@@ -15,6 +15,8 @@ import '../../leaders/services/leader_service.dart';
 import '../../members/screens/members_by_leader_screen.dart';
 import '../../members/screens/members_list_screen.dart';
 import '../../members/screens/register_member_screen.dart';
+import '../../notifications/screens/leader_notifications_screen.dart';
+import '../../notifications/services/leader_notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -35,9 +37,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _selectedMenu = _menuInicio;
   final _leaderService = LeaderService();
+  final _notificationService = LeaderNotificationService();
 
   AppPermissions get _permissions => widget.session.permissions;
   String get _email => widget.session.email;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncLeaderNotifications();
+  }
+
+  Future<void> _syncLeaderNotifications() async {
+    if (!_permissions.canViewLeaderNotifications) return;
+    final leaderId = widget.session.profile.leaderId;
+    if (leaderId == null || leaderId.isEmpty) return;
+    try {
+      await _notificationService.syncAssignmentsForLeader(leaderId);
+    } catch (_) {
+      // Si falla (p. ej. reglas), la pantalla de notificaciones mostrará el error.
+    }
+  }
 
   Future<void> _logout() async {
     final auth = widget.authService ?? AuthService();
@@ -141,6 +161,19 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icons.group_outlined,
           label: 'Mis integrantes',
           onTap: _openMyAssignedMembers,
+        ),
+      );
+    }
+
+    if (p.canViewLeaderNotifications) {
+      items.add(
+        SlideMenuItem(
+          icon: Icons.notifications_outlined,
+          label: 'Notificaciones',
+          onTap: () => _navigate(
+            LeaderNotificationsScreen(session: widget.session),
+            'Notificaciones',
+          ),
         ),
       );
     }
@@ -266,6 +299,34 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
   }
 
+  Widget? _buildNotificationsAction() {
+    if (!_permissions.canViewLeaderNotifications) return null;
+    final leaderId = widget.session.profile.leaderId;
+    if (leaderId == null || leaderId.isEmpty) return null;
+
+    return StreamBuilder<int>(
+      stream: _notificationService.watchUnreadCountForLeader(leaderId),
+      builder: (context, snapshot) {
+        final unread = snapshot.data ?? 0;
+        return Padding(
+          padding: const EdgeInsets.only(right: 4),
+          child: IconButton(
+            tooltip: 'Notificaciones',
+            icon: Badge(
+              isLabelVisible: unread > 0,
+              label: Text(unread > 9 ? '9+' : '$unread'),
+              child: const Icon(Icons.notifications_outlined),
+            ),
+            onPressed: () => _navigate(
+              LeaderNotificationsScreen(session: widget.session),
+              'Notificaciones',
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildAccountActionButton() {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -305,7 +366,10 @@ class _HomeScreenState extends State<HomeScreen> {
       title: appDisplayName,
       selectedMenuLabel: _selectedMenu,
       onSignOut: _logout,
-      actions: [_buildAccountActionButton()],
+      actions: [
+        ?(_buildNotificationsAction()),
+        _buildAccountActionButton(),
+      ],
       menuItems: _buildMenuItems(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

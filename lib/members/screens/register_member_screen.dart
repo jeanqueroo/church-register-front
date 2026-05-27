@@ -433,7 +433,11 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       );
 
       if (widget.isEditing) {
-        await _memberService.updateMember(member);
+        await _memberService.updateMember(
+          member,
+          previousAssignedLeaderId:
+              widget.memberToEdit?.assignedLeaderId,
+        );
       } else {
         await _memberService.addMember(member);
       }

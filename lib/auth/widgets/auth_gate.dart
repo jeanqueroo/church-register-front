@@ -1,8 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../home/screens/home_screen.dart';
+import '../../main.dart';
+import '../../notifications/screens/leader_notifications_screen.dart';
+import '../../notifications/services/push_notification_service.dart';
 import '../models/app_user_role.dart';
 import '../models/user_profile.dart';
 import '../screens/login_screen.dart';
@@ -22,7 +26,9 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   late final AuthService _auth;
   late final UserProfileService _profileService;
+  final _pushService = PushNotificationService();
   UserSession? _session;
+  String? _pushRegisteredUid;
   bool _loadingProfile = false;
   String? _profileError;
   String? _scheduledLoadUid;
@@ -58,7 +64,33 @@ class _AuthGateState extends State<AuthGate> {
       _loadingProfile = false;
       _profileError = null;
       _scheduledLoadUid = null;
+      _pushRegisteredUid = null;
     });
+  }
+
+  void _configurePushForSession(UserSession session) {
+    if (!session.permissions.isLeader) return;
+    if (_pushRegisteredUid == session.uid) return;
+    _pushRegisteredUid = session.uid;
+
+    _pushService.initialize(onNotificationTap: _openNotificationsFromPush);
+  }
+
+  Future<void> _registerPushIfNeeded(UserSession session) async {
+    if (!session.permissions.isLeader) return;
+    await _pushService.registerForUser(session.uid);
+    await _pushService.handleInitialMessage();
+  }
+
+  void _openNotificationsFromPush(RemoteMessage message) {
+    final session = _session;
+    if (session == null) return;
+
+    rootNavigatorKey.currentState?.push(
+      MaterialPageRoute<void>(
+        builder: (_) => LeaderNotificationsScreen(session: session),
+      ),
+    );
   }
 
   Future<void> _loadProfile(User user) async {
@@ -89,14 +121,16 @@ class _AuthGateState extends State<AuthGate> {
 
       if (!mounted) return;
       if (_auth.currentUser?.uid != user.uid) return;
+      final session = UserSession(
+        uid: user.uid,
+        email: user.email ?? user.uid,
+        profile: profile,
+      );
       setState(() {
-        _session = UserSession(
-          uid: user.uid,
-          email: user.email ?? user.uid,
-          profile: profile,
-        );
+        _session = session;
         _loadingProfile = false;
       });
+      _configurePushForSession(session);
     } catch (_) {
       if (!mounted) return;
       if (_auth.currentUser?.uid != user.uid) return;
@@ -167,8 +201,14 @@ class _AuthGateState extends State<AuthGate> {
           );
         }
 
+        final session = _session!;
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || _session?.uid != session.uid) return;
+          _registerPushIfNeeded(session);
+        });
+
         return HomeScreen(
-          session: _session!,
+          session: session,
           authService: _auth,
         );
       },

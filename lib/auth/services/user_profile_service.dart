@@ -44,4 +44,17 @@ class UserProfileService {
       SetOptions(merge: true),
     );
   }
+
+  Future<void> saveFcmToken({
+    required String uid,
+    required String token,
+  }) {
+    return _users.doc(uid).set(
+      {
+        'fcmToken': token,
+        'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
 }

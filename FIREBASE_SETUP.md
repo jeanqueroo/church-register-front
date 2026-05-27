@@ -50,13 +50,70 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow create, update: if request.auth != null;
     }
+    match /notifications/{notificationId} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null && (
+        resource.data.recipientUserId == request.auth.uid ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.leaderId
+          == resource.data.leaderId
+      );
+    }
   }
 }
 ```
 
 4. Publica las reglas.
 
-Los integrantes se guardan en `members`. Los líderes se guardan en `leaders`. Los perfiles de acceso en `users` con campo **`roles`** (array).
+Los integrantes se guardan en `members`. Los líderes se guardan en `leaders`. Los perfiles de acceso en `users` con campo **`roles`** (array). Las notificaciones para líderes (nuevo integrante asignado) en `notifications`.
+
+## Notificaciones al líder
+
+Cuando se registra o reasigna un integrante con un líder, la app crea un documento en `notifications` con el campo **`leaderId`** (id del documento en `leaders`). El líder las ve en **Notificaciones** si su perfil en `users` tiene el mismo `leaderId`.
+
+Al iniciar sesión, la app sincroniza avisos para integrantes ya asignados que aún no tenían notificación.
+
+**Importante:** publica las reglas de `notifications` de arriba. Si solo permites lectura por `recipientUserId`, el líder no verá los avisos aunque existan en la base de datos.
+
+## Notificaciones push en el teléfono (FCM)
+
+Para que el líder reciba un aviso en la **bandeja del sistema** (app cerrada o en segundo plano), además de la notificación dentro de la app:
+
+### 1. App (automático al iniciar sesión como líder)
+
+- Pide permiso de notificaciones (Android 13+ / iOS).
+- Guarda el token en `users/{uid}.fcmToken`.
+
+### 2. Cloud Function (obligatorio)
+
+En la raíz del proyecto:
+
+```powershell
+npm install -g firebase-tools
+firebase login
+firebase use TU_PROJECT_ID
+cd functions
+npm install
+cd ..
+firebase deploy --only functions
+```
+
+La función `notifyLeaderOnMemberAssigned` se ejecuta al crear un documento en `notifications` y envía el push al `fcmToken` del líder.
+
+### 3. Firebase Console
+
+1. **Build → Cloud Messaging** — asegúrate de que esté habilitado.
+2. **Android:** con `google-services.json` suele bastar.
+3. **iOS:** sube la clave APNs en *Project settings → Cloud Messaging → Apple app configuration*.
+
+### 4. Probar
+
+1. Instala la app en un teléfono físico (el emulador a veces no recibe push).
+2. Inicia sesión como **líder** y acepta notificaciones.
+3. En Firestore, comprueba que `users/{uid}` tenga `fcmToken`.
+4. Desde otra cuenta, registra un integrante asignado a ese líder.
+5. Deberías ver el aviso en el teléfono y en **Notificaciones** dentro de la app.
+
+Si no llega el push pero sí el aviso en la app, revisa que la función esté desplegada y que exista `fcmToken` en el perfil del líder.
 
 ## Roles de usuario
 
