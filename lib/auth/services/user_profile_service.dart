@@ -12,13 +12,11 @@ class UserProfileService {
     required String uid,
     required String email,
     required String leaderId,
-    required String fullName,
   }) {
     return _users.doc(uid).set({
       'email': email.trim().toLowerCase(),
       'roles': [AppUserRole.leader],
       'leaderId': leaderId,
-      'fullName': fullName,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });

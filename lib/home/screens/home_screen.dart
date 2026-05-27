@@ -379,9 +379,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.session.profile.fullName?.trim().isNotEmpty ==
-                                true
-                            ? widget.session.profile.fullName!
+                        widget.session.resolvedDisplayName.isNotEmpty
+                            ? widget.session.resolvedDisplayName
                             : 'Bienvenido',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,

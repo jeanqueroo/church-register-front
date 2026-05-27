@@ -38,11 +38,28 @@ class UserSession {
     required this.uid,
     required this.email,
     required this.profile,
+    this.displayName,
   });
 
   final String uid;
   final String email;
   final UserProfile profile;
 
+  /// Nombre para mostrar: ficha en `leaders` si es líder, si no `users.fullName`.
+  final String? displayName;
+
   AppPermissions get permissions => profile.permissions;
+
+  bool get isLeaderAccount =>
+      profile.permissions.isLeader &&
+      profile.leaderId != null &&
+      profile.leaderId!.isNotEmpty;
+
+  String get resolvedDisplayName {
+    final fromLeader = displayName?.trim();
+    if (fromLeader != null && fromLeader.isNotEmpty) return fromLeader;
+    final fromUser = profile.fullName?.trim();
+    if (fromUser != null && fromUser.isNotEmpty) return fromUser;
+    return '';
+  }
 }

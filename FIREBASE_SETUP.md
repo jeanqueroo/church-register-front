@@ -130,15 +130,23 @@ Ejemplo de documento en `users/{uid}`:
 ```json
 {
   "email": "usuario@ejemplo.com",
-  "roles": ["admin", "leader"],
-  "leaderId": "abc123",
+  "roles": ["admin"],
   "fullName": "Nombre Apellido"
 }
 ```
 
-- **Administrador:** crea el usuario en Authentication y añade el documento en `users` con `"roles": ["admin"]`.
-- **Registrador:** `"roles": ["registrador"]` (puede combinarse con otros roles).
-- **Líder:** se asigna automáticamente al registrar un líder desde la app (`"roles": ["leader"]` + `leaderId`).
+Ejemplo de **líder** (sin `fullName`; el nombre está en `leaders`):
+
+```json
+{
+  "email": "lider@ejemplo.com",
+  "roles": ["leader"],
+  "leaderId": "abc123"
+}
+```
+
+- **Administrador / registrador:** pueden usar `fullName` en `users` si lo necesitas.
+- **Líder:** al registrarse desde la app solo se guardan `roles`, `leaderId` y `email` en `users`; `firstName` y `lastName` van en `leaders/{leaderId}`.
 
 Si un usuario autenticado **no tiene documento** en `users`, la app lo trata como **administrador** (compatibilidad con cuentas creadas solo en Console).
 
@@ -146,7 +154,7 @@ Si un usuario autenticado **no tiene documento** en `users`, la app lo trata com
 
 Todos los usuarios autenticados pueden abrir **Mi cuenta** desde el menú:
 
-- **Datos personales:** formulario para actualizar el nombre (`fullName` en Firestore).
+- **Datos personales:** administradores actualizan `fullName` en `users`; líderes editan nombre y apellido en `leaders`.
 - **Cambiar contraseña:** formulario aparte que pide la contraseña actual y la nueva (Firebase Authentication).
 
 Los formularios están separados a propósito; cambiar la clave no se hace desde «Datos personales».

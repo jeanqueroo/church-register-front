@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/models/app_user_role.dart';
+import '../../core/theme/app_theme.dart';
 import '../../members/models/church_member.dart';
 import '../../members/screens/member_detail_screen.dart';
 import '../../members/services/member_service.dart';
@@ -194,6 +195,10 @@ class _LeaderAssignedMembersScreenState
         title: const Text('Integrantes asignados'),
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white.withValues(alpha: 0.65),
+          indicatorColor: AppColors.accent,
+          indicatorWeight: 3,
           tabs: const [
             Tab(icon: Icon(Icons.list_outlined), text: 'Lista'),
             Tab(icon: Icon(Icons.map_outlined), text: 'Mapa'),

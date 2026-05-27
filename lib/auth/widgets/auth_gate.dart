@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../home/screens/home_screen.dart';
+import '../../leaders/services/leader_service.dart';
 import '../../main.dart';
 import '../../notifications/screens/leader_notifications_screen.dart';
 import '../../notifications/services/push_notification_service.dart';
@@ -26,6 +27,7 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   late final AuthService _auth;
   late final UserProfileService _profileService;
+  final _leaderService = LeaderService();
   final _pushService = PushNotificationService();
   UserSession? _session;
   String? _pushRegisteredUid;
@@ -121,10 +123,24 @@ class _AuthGateState extends State<AuthGate> {
 
       if (!mounted) return;
       if (_auth.currentUser?.uid != user.uid) return;
+
+      String? displayName;
+      final leaderId = profile.leaderId;
+      if (leaderId != null && leaderId.isNotEmpty) {
+        final leader = await _leaderService.fetchLeaderById(leaderId);
+        final name = leader?.fullName.trim();
+        if (name != null && name.isNotEmpty) {
+          displayName = name;
+        }
+      } else {
+        displayName = profile.fullName;
+      }
+
       final session = UserSession(
         uid: user.uid,
         email: user.email ?? user.uid,
         profile: profile,
+        displayName: displayName,
       );
       setState(() {
         _session = session;
