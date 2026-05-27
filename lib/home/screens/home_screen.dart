@@ -165,19 +165,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (p.canViewLeaderNotifications) {
-      items.add(
-        SlideMenuItem(
-          icon: Icons.notifications_outlined,
-          label: 'Notificaciones',
-          onTap: () => _navigate(
-            LeaderNotificationsScreen(session: widget.session),
-            'Notificaciones',
-          ),
-        ),
-      );
-    }
-
     if (p.canRegisterLeader) {
       items.add(
         SlideMenuItem(
