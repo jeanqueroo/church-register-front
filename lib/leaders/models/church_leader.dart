@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
+import 'church_office.dart';
 
 class ChurchLeader {
   const ChurchLeader({
@@ -12,6 +13,7 @@ class ChurchLeader {
     this.streetNumber,
     this.cellCode,
     this.gender,
+    this.churchOffice,
     this.neighborhood,
     this.locality,
     this.stateProvince,
@@ -32,6 +34,7 @@ class ChurchLeader {
   final String? streetNumber;
   final String? cellCode;
   final LeaderGender? gender;
+  final ChurchOffice? churchOffice;
   final String? neighborhood;
   final String? locality;
   final String? stateProvince;
@@ -71,6 +74,7 @@ class ChurchLeader {
       'streetNumber': streetNumber,
       'cellCode': cellCode,
       'gender': gender?.code,
+      'churchOffice': churchOffice?.code,
       'neighborhood': neighborhood,
       'locality': locality,
       'stateProvince': stateProvince,
@@ -97,6 +101,7 @@ class ChurchLeader {
       streetNumber: data['streetNumber'] as String?,
       cellCode: data['cellCode'] as String?,
       gender: LeaderGender.fromCode(data['gender'] as String?),
+      churchOffice: ChurchOffice.fromCode(data['churchOffice'] as String?),
       neighborhood: data['neighborhood'] as String?,
       locality: data['locality'] as String?,
       stateProvince: data['stateProvince'] as String?,

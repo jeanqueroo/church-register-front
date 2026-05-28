@@ -49,7 +49,7 @@ class MemberDetailScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar integrante'),
+        title: const Text('Eliminar nuevo creyente'),
         content: Text(
           '¿Eliminar a ${member.fullName}? Esta acción no se puede deshacer.',
         ),
@@ -75,7 +75,7 @@ class MemberDetailScreen extends StatelessWidget {
       await (memberService ?? MemberService()).deleteMember(id);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Integrante eliminado')),
+        const SnackBar(content: Text('Nuevo creyente eliminado')),
       );
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
@@ -182,13 +182,13 @@ class MemberDetailScreen extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => _edit(context),
               icon: const Icon(Icons.edit_outlined),
-              label: const Text('Editar integrante'),
+              label: const Text('Editar nuevo creyente'),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: () => _delete(context),
               icon: const Icon(Icons.delete_outline),
-              label: const Text('Eliminar integrante'),
+              label: const Text('Eliminar nuevo creyente'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error,
                 side: BorderSide(color: Theme.of(context).colorScheme.error),

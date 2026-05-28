@@ -25,12 +25,12 @@ exports.notifyLeaderOnMemberAssigned = onDocumentCreated(
       return;
     }
 
-    const memberName = data.memberName || 'un integrante';
+    const memberName = data.memberName || 'un nuevo creyente';
 
     await getMessaging().send({
       token,
       notification: {
-        title: 'Nuevo integrante asignado',
+        title: 'Nuevo creyente asignado',
         body: `Se te asignó a ${memberName}`,
       },
       data: {

@@ -41,7 +41,7 @@ class MemberService {
   }) async {
     final id = member.id;
     if (id == null || id.isEmpty) {
-      throw ArgumentError('El integrante debe tener id para actualizar');
+      throw ArgumentError('El nuevo creyente debe tener id para actualizar');
     }
     await _members.doc(id).update(member.toMap());
     await _notifyLeaderIfAssigned(
@@ -88,7 +88,7 @@ class MemberService {
       case 'unavailable':
         return 'Firestore no está disponible. Revisa tu conexión.';
       case 'not-found':
-        return 'El integrante ya no existe.';
+        return 'El nuevo creyente ya no existe.';
       default:
         return 'Error al procesar la solicitud. Intenta de nuevo.';
     }

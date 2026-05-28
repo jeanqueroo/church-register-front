@@ -137,7 +137,7 @@ class _MembersMapViewState extends State<MembersMapView> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Este integrante no tiene dirección para navegar.'),
+          content: Text('Este nuevo creyente no tiene dirección para navegar.'),
         ),
       );
       return;
@@ -279,7 +279,7 @@ class _MembersMapViewState extends State<MembersMapView> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Los integrantes necesitan dirección con coordenadas '
+                'Los nuevos creyentes necesitan dirección con coordenadas '
                 'para aparecer en el mapa.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -303,7 +303,7 @@ class _MembersMapViewState extends State<MembersMapView> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Text(
-                '$withoutLocation integrante${withoutLocation == 1 ? '' : 's'} '
+                '$withoutLocation ${withoutLocation == 1 ? 'nuevo creyente' : 'nuevos creyentes'} '
                 'sin ubicación en el mapa',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color:
