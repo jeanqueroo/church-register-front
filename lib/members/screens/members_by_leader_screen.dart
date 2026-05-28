@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../core/services/excel_export_service.dart';
 import '../../core/utils/list_search.dart';
+import '../../core/widgets/export_excel_icon_button.dart';
 import '../../core/widgets/person_list_search_field.dart';
 import '../models/church_member.dart';
 import '../models/leader_member_group.dart';
@@ -55,11 +57,31 @@ class _MembersByLeaderBody extends StatefulWidget {
 
 class _MembersByLeaderBodyState extends State<_MembersByLeaderBody> {
   final _searchController = TextEditingController();
+  List<ChurchMember> _membersForExport = [];
+  bool _canExport = false;
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _exportToExcel() {
+    return ExcelExportService.instance.shareMembersExcel(
+      members: _membersForExport,
+      fileName: 'creyentes_por_lider_${DateTime.now().millisecondsSinceEpoch}',
+      sheetTitle: 'Por líder',
+    );
+  }
+
+  void _syncMembersForExport(List<ChurchMember> members) {
+    _membersForExport = members;
+    final canExport = members.isNotEmpty;
+    if (canExport == _canExport) return;
+    _canExport = canExport;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   String _formatDate(DateTime date) {
@@ -75,6 +97,12 @@ class _MembersByLeaderBodyState extends State<_MembersByLeaderBody> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nuevos creyentes por líder'),
+        actions: [
+          ExportExcelIconButton(
+            enabled: _canExport,
+            onExport: _exportToExcel,
+          ),
+        ],
       ),
       body: StreamBuilder<List<ChurchMember>>(
         stream: service.watchMembers(),
@@ -99,6 +127,7 @@ class _MembersByLeaderBodyState extends State<_MembersByLeaderBody> {
           }
 
           final members = snapshot.data ?? [];
+          _syncMembersForExport(members);
 
           if (members.isEmpty) {
             return Center(

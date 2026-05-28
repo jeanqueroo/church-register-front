@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/models/app_user_role.dart';
+import '../../core/services/excel_export_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/list_search.dart';
+import '../../core/widgets/export_excel_icon_button.dart';
 import '../../core/widgets/person_list_search_field.dart';
 import '../../members/models/church_member.dart';
 import '../../members/screens/member_detail_screen.dart';
@@ -36,6 +38,8 @@ class _LeaderAssignedMembersScreenState
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final _searchController = TextEditingController();
+  List<ChurchMember> _membersForExport = [];
+  bool _canExport = false;
 
   @override
   void initState() {
@@ -56,6 +60,25 @@ class _LeaderAssignedMembersScreenState
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
     return '$day/$month/${date.year}';
+  }
+
+  Future<void> _exportToExcel() {
+    final leaderName = widget.leader.fullName.replaceAll(RegExp(r'\s+'), '_');
+    return ExcelExportService.instance.shareMembersExcel(
+      members: _membersForExport,
+      fileName: 'asignados_${leaderName}_${DateTime.now().millisecondsSinceEpoch}',
+      sheetTitle: 'Asignados',
+    );
+  }
+
+  void _syncMembersForExport(List<ChurchMember> members) {
+    _membersForExport = members;
+    final canExport = members.isNotEmpty;
+    if (canExport == _canExport) return;
+    _canExport = canExport;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   void _openMemberDetail(BuildContext context, ChurchMember member) {
@@ -206,6 +229,12 @@ class _LeaderAssignedMembersScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nuevos creyentes asignados'),
+        actions: [
+          ExportExcelIconButton(
+            enabled: _canExport,
+            onExport: _exportToExcel,
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
@@ -244,6 +273,7 @@ class _LeaderAssignedMembersScreenState
             widget.leader,
             snapshot.data ?? [],
           );
+          _syncMembersForExport(assigned);
           final query = _searchController.text;
           final filtered = assigned
               .where((m) => memberMatchesSearch(m, query))
