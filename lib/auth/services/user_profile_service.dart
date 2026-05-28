@@ -12,13 +12,11 @@ class UserProfileService {
     required String uid,
     required String email,
     required String leaderId,
-    required String fullName,
   }) {
     return _users.doc(uid).set({
       'email': email.trim().toLowerCase(),
       'roles': [AppUserRole.leader],
       'leaderId': leaderId,
-      'fullName': fullName,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
@@ -40,6 +38,19 @@ class UserProfileService {
         'fullName': fullName.trim(),
         'email': email.trim().toLowerCase(),
         'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> saveFcmToken({
+    required String uid,
+    required String token,
+  }) {
+    return _users.doc(uid).set(
+      {
+        'fcmToken': token,
+        'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
     );

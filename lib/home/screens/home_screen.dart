@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
@@ -15,6 +16,8 @@ import '../../leaders/services/leader_service.dart';
 import '../../members/screens/members_by_leader_screen.dart';
 import '../../members/screens/members_list_screen.dart';
 import '../../members/screens/register_member_screen.dart';
+import '../../notifications/screens/leader_notifications_screen.dart';
+import '../../notifications/services/leader_notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -35,9 +38,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _selectedMenu = _menuInicio;
   final _leaderService = LeaderService();
+  final _notificationService = LeaderNotificationService();
 
   AppPermissions get _permissions => widget.session.permissions;
   String get _email => widget.session.email;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncLeaderNotifications();
+  }
+
+  Future<void> _syncLeaderNotifications() async {
+    if (!_permissions.canViewLeaderNotifications) return;
+    final leaderId = widget.session.profile.leaderId;
+    if (leaderId == null || leaderId.isEmpty) return;
+    try {
+      await _notificationService.syncAssignmentsForLeader(
+        leaderId: leaderId,
+        recipientUserId: widget.session.uid,
+      );
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied' && mounted) {
+        debugPrint(
+          'Notificaciones: permission-denied. Publica firestore.rules '
+          '(ver FIREBASE_SETUP.md).',
+        );
+      }
+    } catch (_) {
+      // La pantalla de notificaciones mostrará el error si persiste.
+    }
+  }
 
   Future<void> _logout() async {
     final auth = widget.authService ?? AuthService();
@@ -266,6 +297,49 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
   }
 
+  Widget? _buildNotificationsAction() {
+    if (!_permissions.canViewLeaderNotifications) return null;
+    if (widget.session.profile.leaderId == null ||
+        widget.session.profile.leaderId!.isEmpty) {
+      return null;
+    }
+
+    return StreamBuilder<int>(
+      stream: _notificationService.watchUnreadCountForUser(widget.session.uid),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return IconButton(
+            tooltip: 'Notificaciones (revisa reglas de Firestore)',
+            icon: Icon(
+              Icons.notifications_outlined,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+            onPressed: () => _navigate(
+              LeaderNotificationsScreen(session: widget.session),
+              'Notificaciones',
+            ),
+          );
+        }
+        final unread = snapshot.data ?? 0;
+        return Padding(
+          padding: const EdgeInsets.only(right: 4),
+          child: IconButton(
+            tooltip: 'Notificaciones',
+            icon: Badge(
+              isLabelVisible: unread > 0,
+              label: Text(unread > 9 ? '9+' : '$unread'),
+              child: const Icon(Icons.notifications_outlined),
+            ),
+            onPressed: () => _navigate(
+              LeaderNotificationsScreen(session: widget.session),
+              'Notificaciones',
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildAccountActionButton() {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -305,7 +379,10 @@ class _HomeScreenState extends State<HomeScreen> {
       title: appDisplayName,
       selectedMenuLabel: _selectedMenu,
       onSignOut: _logout,
-      actions: [_buildAccountActionButton()],
+      actions: [
+        ?(_buildNotificationsAction()),
+        _buildAccountActionButton(),
+      ],
       menuItems: _buildMenuItems(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -328,9 +405,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.session.profile.fullName?.trim().isNotEmpty ==
-                                true
-                            ? widget.session.profile.fullName!
+                        widget.session.resolvedDisplayName.isNotEmpty
+                            ? widget.session.resolvedDisplayName
                             : 'Bienvenido',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,

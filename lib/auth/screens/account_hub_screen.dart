@@ -17,8 +17,8 @@ class AccountHubScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = session.profile.fullName?.trim().isNotEmpty == true
-        ? session.profile.fullName!
+    final name = session.resolvedDisplayName.isNotEmpty
+        ? session.resolvedDisplayName
         : 'Usuario';
     final roles = session.profile.permissions.roleLabels;
 
@@ -127,7 +127,9 @@ class AccountHubScreen extends StatelessWidget {
                   WhatsappListTile(
                     icon: Icons.person_outline,
                     title: 'Datos personales',
-                    subtitle: 'Nombre de tu perfil',
+                    subtitle: session.isLeaderAccount
+                        ? 'Nombre, dirección y teléfono'
+                        : 'Nombre de tu perfil',
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(

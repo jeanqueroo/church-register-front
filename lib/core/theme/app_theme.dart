@@ -128,5 +128,34 @@ ThemeData buildChurchTheme() {
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: AppColors.accent,
     ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColors.accent;
+        }
+        if (states.contains(WidgetState.disabled)) {
+          return AppColors.textSecondary.withValues(alpha: 0.5);
+        }
+        return AppColors.surface;
+      }),
+      trackColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColors.accent.withValues(alpha: 0.45);
+        }
+        if (states.contains(WidgetState.disabled)) {
+          return AppColors.divider;
+        }
+        return AppColors.textSecondary.withValues(alpha: 0.35);
+      }),
+      trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return Colors.transparent;
+        }
+        if (states.contains(WidgetState.disabled)) {
+          return AppColors.divider;
+        }
+        return AppColors.textSecondary;
+      }),
+    ),
   );
 }

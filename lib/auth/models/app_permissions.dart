@@ -25,6 +25,7 @@ class AppPermissions {
   bool get canViewMembersByLeader => isAdmin;
   bool get canViewLeadersList => isAdmin;
   bool get canViewMyAssignedMembers => isAdmin || isLeader;
+  bool get canViewLeaderNotifications => isLeader;
   bool get canManageAll => isAdmin;
 
   List<String> get roleLabels =>

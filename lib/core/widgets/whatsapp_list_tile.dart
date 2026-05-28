@@ -11,6 +11,9 @@ class WhatsappListTile extends StatelessWidget {
     this.subtitle,
     required this.onTap,
     this.showDivider = true,
+    this.highlighted = false,
+    this.subtitleMaxLines = 1,
+    this.trailing,
   });
 
   final IconData icon;
@@ -18,6 +21,9 @@ class WhatsappListTile extends StatelessWidget {
   final String? subtitle;
   final VoidCallback onTap;
   final bool showDivider;
+  final bool highlighted;
+  final int subtitleMaxLines;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -44,17 +50,19 @@ class WhatsappListTile extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF111B21),
+                            fontWeight: highlighted
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            color: const Color(0xFF111B21),
                           ),
                         ),
                         if (subtitle != null) ...[
                           const SizedBox(height: 2),
                           Text(
                             subtitle!,
-                            maxLines: 1,
+                            maxLines: subtitleMaxLines,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 14,
@@ -65,6 +73,10 @@ class WhatsappListTile extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (trailing != null) ...[
+                    const SizedBox(width: 8),
+                    trailing!,
+                  ],
                 ],
               ),
             ),

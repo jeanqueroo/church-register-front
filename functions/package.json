@@ -1,0 +1,16 @@
+{
+  "name": "church-register-functions",
+  "description": "Envía push FCM cuando se asigna un integrante a un líder",
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2"
+  }
+}

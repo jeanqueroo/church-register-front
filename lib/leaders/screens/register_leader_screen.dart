@@ -140,9 +140,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
       }
 
       final email = _emailController.text.trim().toLowerCase();
-      final fullName =
-          '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'
-              .trim();
 
       if (!widget.isEditing) {
         final credential = await _authService.createLeaderAccount(
@@ -197,7 +194,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           uid: authUserId,
           email: email,
           leaderId: leaderId,
-          fullName: fullName,
         );
 
         if (!mounted) return;

@@ -29,7 +29,16 @@ class LeaderService {
     if (id == null || id.isEmpty) {
       throw ArgumentError('El líder debe tener id para actualizar');
     }
-    return _leaders.doc(id).update(leader.toMap());
+    return _leaders.doc(id).set(leader.toMap(), SetOptions(merge: true));
+  }
+
+  Future<ChurchLeader?> fetchLeaderByAuthUserId(String authUserId) async {
+    final snapshot = await _leaders
+        .where('authUserId', isEqualTo: authUserId)
+        .limit(1)
+        .get();
+    if (snapshot.docs.isEmpty) return null;
+    return ChurchLeader.fromFirestore(snapshot.docs.first);
   }
 
   Future<void> deleteLeader(String id) {

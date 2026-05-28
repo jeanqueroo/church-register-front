@@ -36,27 +36,70 @@ Esto actualiza `lib/firebase_options.dart` automáticamente.
 2. Elige modo **producción** (o prueba para desarrollo).
 3. En **Rules**, usa reglas que solo permitan lectura/escritura a usuarios autenticados:
 
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /members/{memberId} {
-      allow read, write: if request.auth != null;
-    }
-    match /leaders/{leaderId} {
-      allow read, write: if request.auth != null;
-    }
-    match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow create, update: if request.auth != null;
-    }
-  }
-}
+Copia el contenido de **`firestore.rules`** en la raíz del proyecto (o publica con Firebase CLI):
+
+```powershell
+firebase deploy --only firestore:rules
 ```
 
-4. Publica las reglas.
+4. Pulsa **Publicar**.
 
-Los integrantes se guardan en `members`. Los líderes se guardan en `leaders`. Los perfiles de acceso en `users` con campo **`roles`** (array).
+Los integrantes se guardan en `members`. Los líderes en `leaders`. Los perfiles en `users`. Las notificaciones del líder en **`users/{uid}/notifications`** (subcolección).
+
+### Error `PERMISSION_DENIED` en notificaciones
+
+Si ves `Listen for Query(...)` con `PERMISSION_DENIED`:
+
+1. Publica **`firestore.rules`** del repo (`firebase deploy --only firestore:rules`).
+2. Las notificaciones deben estar en **`users/{uid}/notifications`**, no en la colección raíz `notifications` (versión antigua).
+3. Vuelve a desplegar la Cloud Function (`firebase deploy --only functions`) para el nuevo path.
+
+## Notificaciones al líder
+
+Al asignar un integrante, la app escribe en `users/{uid del líder}/notifications`. El líder solo escucha su propio buzón (sin consultas que fallen por permisos).
+
+Al iniciar sesión, se sincronizan avisos de integrantes ya asignados.
+
+## Notificaciones push en el teléfono (FCM)
+
+Para que el líder reciba un aviso en la **bandeja del sistema** (app cerrada o en segundo plano), además de la notificación dentro de la app:
+
+### 1. App (automático al iniciar sesión como líder)
+
+- Pide permiso de notificaciones (Android 13+ / iOS).
+- Guarda el token en `users/{uid}.fcmToken`.
+
+### 2. Cloud Function (obligatorio)
+
+En la raíz del proyecto:
+
+```powershell
+npm install -g firebase-tools
+firebase login
+firebase use TU_PROJECT_ID
+cd functions
+npm install
+cd ..
+firebase deploy --only functions
+```
+
+La función `notifyLeaderOnMemberAssigned` se ejecuta al crear un documento en `notifications` y envía el push al `fcmToken` del líder.
+
+### 3. Firebase Console
+
+1. **Build → Cloud Messaging** — asegúrate de que esté habilitado.
+2. **Android:** con `google-services.json` suele bastar.
+3. **iOS:** sube la clave APNs en *Project settings → Cloud Messaging → Apple app configuration*.
+
+### 4. Probar
+
+1. Instala la app en un teléfono físico (el emulador a veces no recibe push).
+2. Inicia sesión como **líder** y acepta notificaciones.
+3. En Firestore, comprueba que `users/{uid}` tenga `fcmToken`.
+4. Desde otra cuenta, registra un integrante asignado a ese líder.
+5. Deberías ver el aviso en el teléfono y en **Notificaciones** dentro de la app.
+
+Si no llega el push pero sí el aviso en la app, revisa que la función esté desplegada y que exista `fcmToken` en el perfil del líder.
 
 ## Roles de usuario
 
@@ -73,15 +116,23 @@ Ejemplo de documento en `users/{uid}`:
 ```json
 {
   "email": "usuario@ejemplo.com",
-  "roles": ["admin", "leader"],
-  "leaderId": "abc123",
+  "roles": ["admin"],
   "fullName": "Nombre Apellido"
 }
 ```
 
-- **Administrador:** crea el usuario en Authentication y añade el documento en `users` con `"roles": ["admin"]`.
-- **Registrador:** `"roles": ["registrador"]` (puede combinarse con otros roles).
-- **Líder:** se asigna automáticamente al registrar un líder desde la app (`"roles": ["leader"]` + `leaderId`).
+Ejemplo de **líder** (sin `fullName`; el nombre está en `leaders`):
+
+```json
+{
+  "email": "lider@ejemplo.com",
+  "roles": ["leader"],
+  "leaderId": "abc123"
+}
+```
+
+- **Administrador / registrador:** pueden usar `fullName` en `users` si lo necesitas.
+- **Líder:** al registrarse desde la app solo se guardan `roles`, `leaderId` y `email` en `users`; `firstName` y `lastName` van en `leaders/{leaderId}`.
 
 Si un usuario autenticado **no tiene documento** en `users`, la app lo trata como **administrador** (compatibilidad con cuentas creadas solo en Console).
 
@@ -89,7 +140,7 @@ Si un usuario autenticado **no tiene documento** en `users`, la app lo trata com
 
 Todos los usuarios autenticados pueden abrir **Mi cuenta** desde el menú:
 
-- **Datos personales:** formulario para actualizar el nombre (`fullName` en Firestore).
+- **Datos personales:** administradores actualizan `fullName` en `users`; líderes editan nombre y apellido en `leaders`.
 - **Cambiar contraseña:** formulario aparte que pide la contraseña actual y la nueva (Firebase Authentication).
 
 Los formularios están separados a propósito; cambiar la clave no se hace desde «Datos personales».
@@ -104,15 +155,11 @@ En Firebase Console → **Authentication → Users** → **Add user**, crea un c
 flutter run
 ```
 
-## Direcciones y mapas (OpenStreetMap)
+## Direcciones y mapas (Google Maps)
 
-La app usa **OpenStreetMap** sin API key de Google:
+La app usa **Google Maps**, **Places API** y **Geocoding API**.
 
-- **Autocompletado:** [Nominatim](https://nominatim.openstreetmap.org/) (búsqueda de direcciones)
-- **Mapa:** [flutter_map](https://pub.dev/packages/flutter_map) con tiles de OSM
-- **Asignación de líderes:** geocodificación con Nominatim + distancia en km
-
-No requiere configuración en Google Cloud. Nominatim pide uso moderado (máx. ~1 petición/segundo en producción).
+Configuración detallada: ver **[GOOGLE_MAPS_SETUP.md](GOOGLE_MAPS_SETUP.md)**.
 
 ## iOS (opcional)
 
