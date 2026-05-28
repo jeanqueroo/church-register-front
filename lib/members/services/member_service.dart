@@ -66,11 +66,15 @@ class MemberService {
     if (leaderId == null || leaderId.isEmpty) return;
     if (previousLeaderId != null && previousLeaderId == leaderId) return;
 
-    await _notificationService.notifyMemberAssigned(
-      leaderId: leaderId,
-      memberId: memberId,
-      memberName: member.fullName,
-    );
+    try {
+      await _notificationService.notifyMemberAssigned(
+        leaderId: leaderId,
+        memberId: memberId,
+        memberName: member.fullName,
+      );
+    } on FirebaseException {
+      // El integrante ya quedó guardado; el aviso al líder es secundario.
+    }
   }
 
   Future<void> deleteMember(String id) {

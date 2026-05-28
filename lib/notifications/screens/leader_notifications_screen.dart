@@ -42,7 +42,10 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
     final leaderId = widget.session.profile.leaderId;
     if (leaderId == null) return;
     try {
-      await _notificationService.syncAssignmentsForLeader(leaderId);
+      await _notificationService.syncAssignmentsForLeader(
+        leaderId: leaderId,
+        recipientUserId: widget.session.uid,
+      );
     } catch (_) {
       // La lista en tiempo real mostrará el error si las reglas fallan.
     }
@@ -67,7 +70,10 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
   Future<void> _openNotification(LeaderNotification notification) async {
     final id = notification.id;
     if (id != null && !notification.read) {
-      await _notificationService.markAsRead(id);
+      await _notificationService.markAsRead(
+        userId: widget.session.uid,
+        notificationId: id,
+      );
     }
 
     final member = await _memberService.fetchMemberById(notification.memberId);
@@ -94,6 +100,7 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final uid = widget.session.uid;
     final leaderId = widget.session.profile.leaderId;
     if (leaderId == null || leaderId.isEmpty) {
       return Scaffold(
@@ -120,14 +127,14 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
         title: const Text('Notificaciones'),
         actions: [
           StreamBuilder<List<LeaderNotification>>(
-            stream: _notificationService.watchForLeader(leaderId),
+            stream: _notificationService.watchForUser(uid),
             builder: (context, snapshot) {
               final hasUnread =
                   snapshot.data?.any((n) => !n.read) ?? false;
               if (!hasUnread) return const SizedBox.shrink();
               return TextButton(
                 onPressed: () =>
-                    _notificationService.markAllAsReadForLeader(leaderId),
+                    _notificationService.markAllAsReadForUser(uid),
                 child: const Text('Marcar leídas'),
               );
             },
@@ -135,7 +142,7 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
         ],
       ),
       body: StreamBuilder<List<LeaderNotification>>(
-        stream: _notificationService.watchForLeader(leaderId),
+        stream: _notificationService.watchForUser(uid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -146,8 +153,8 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
                 padding: const EdgeInsets.all(24),
                 child: Text(
                   'No se pudieron cargar las notificaciones. '
-                  'Revisa las reglas de Firestore para la colección '
-                  'notifications (ver FIREBASE_SETUP.md).',
+                  'Revisa las reglas de Firestore para '
+                  'users/{uid}/notifications (ver FIREBASE_SETUP.md).',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,

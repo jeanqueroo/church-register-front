@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/config/google_maps_config.dart';
 import '../../core/models/geo_location.dart';
-import '../services/nominatim_service.dart';
+import '../models/address_place.dart';
+import '../services/google_places_service.dart';
 import 'location_map_preview.dart';
 
 class AddressAutocompleteField extends StatefulWidget {
@@ -15,17 +17,17 @@ class AddressAutocompleteField extends StatefulWidget {
     this.onCoordinatesSelected,
     this.labelText = 'Buscar dirección',
     this.hintText = 'Escribe y elige una sugerencia...',
-    this.nominatimService,
+    this.placesService,
     this.validator,
   });
 
   final TextEditingController controller;
   final bool enabled;
-  final void Function(NominatimPlace place)? onPlaceSelected;
+  final void Function(AddressPlace place)? onPlaceSelected;
   final void Function(GeoLocation location)? onCoordinatesSelected;
   final String labelText;
   final String hintText;
-  final NominatimService? nominatimService;
+  final GooglePlacesService? placesService;
   final FormFieldValidator<String>? validator;
 
   @override
@@ -34,13 +36,14 @@ class AddressAutocompleteField extends StatefulWidget {
 }
 
 class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
-  final _nominatim = NominatimService();
+  final _places = GooglePlacesService();
   Timer? _debounce;
-  List<NominatimPlace> _suggestions = [];
+  List<AddressPlace> _suggestions = [];
   bool _isSearching = false;
+  bool _suppressTextListener = false;
   GeoLocation? _selectedLocation;
 
-  NominatimService get _service => widget.nominatimService ?? _nominatim;
+  GooglePlacesService get _service => widget.placesService ?? _places;
 
   @override
   void initState() {
@@ -56,13 +59,23 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
   }
 
   void _onTextChanged() {
-    if (!widget.enabled) return;
+    if (!widget.enabled || _suppressTextListener) return;
     setState(() => _selectedLocation = null);
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), _fetchSuggestions);
+    _debounce = Timer(const Duration(milliseconds: 400), _fetchSuggestions);
   }
 
   Future<void> _fetchSuggestions() async {
+    if (!GoogleMapsConfig.isConfigured) {
+      if (mounted) {
+        setState(() {
+          _suggestions = [];
+          _isSearching = false;
+        });
+      }
+      return;
+    }
+
     final query = widget.controller.text;
     if (query.trim().length < 3) {
       if (mounted) {
@@ -91,13 +104,14 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('No se pudieron cargar sugerencias de OpenStreetMap.'),
+          content: Text('No se pudieron cargar sugerencias de Google Maps.'),
         ),
       );
     }
   }
 
-  Future<void> _selectPlace(NominatimPlace place) async {
+  Future<void> _selectPlace(AddressPlace place) async {
+    _debounce?.cancel();
     setState(() {
       _suggestions = [];
       _isSearching = true;
@@ -107,12 +121,17 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
 
     if (!mounted) return;
 
+    _suppressTextListener = true;
+    widget.controller.text = enriched.displayName;
+    widget.onPlaceSelected?.call(enriched);
+    widget.onCoordinatesSelected?.call(enriched.location);
+    _suppressTextListener = false;
+
     setState(() {
       _isSearching = false;
       _selectedLocation = enriched.location;
+      _suggestions = [];
     });
-    widget.onPlaceSelected?.call(enriched);
-    widget.onCoordinatesSelected?.call(enriched.location);
   }
 
   @override
@@ -120,9 +139,28 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (!GoogleMapsConfig.isConfigured)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Material(
+              color: Theme.of(context).colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(
+                  'Falta la API key de Google Maps. '
+                  'Configura maps_api_key.dart (ver GOOGLE_MAPS_SETUP.md).',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color:
+                            Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                ),
+              ),
+            ),
+          ),
         TextFormField(
           controller: widget.controller,
-          enabled: widget.enabled,
+          enabled: widget.enabled && GoogleMapsConfig.isConfigured,
           maxLines: 2,
           textCapitalization: TextCapitalization.sentences,
           validator: widget.validator,

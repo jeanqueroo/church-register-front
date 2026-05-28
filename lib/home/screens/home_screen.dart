@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
@@ -53,9 +54,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final leaderId = widget.session.profile.leaderId;
     if (leaderId == null || leaderId.isEmpty) return;
     try {
-      await _notificationService.syncAssignmentsForLeader(leaderId);
+      await _notificationService.syncAssignmentsForLeader(
+        leaderId: leaderId,
+        recipientUserId: widget.session.uid,
+      );
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied' && mounted) {
+        debugPrint(
+          'Notificaciones: permission-denied. Publica firestore.rules '
+          '(ver FIREBASE_SETUP.md).',
+        );
+      }
     } catch (_) {
-      // Si falla (p. ej. reglas), la pantalla de notificaciones mostrará el error.
+      // La pantalla de notificaciones mostrará el error si persiste.
     }
   }
 
@@ -288,12 +299,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget? _buildNotificationsAction() {
     if (!_permissions.canViewLeaderNotifications) return null;
-    final leaderId = widget.session.profile.leaderId;
-    if (leaderId == null || leaderId.isEmpty) return null;
+    if (widget.session.profile.leaderId == null ||
+        widget.session.profile.leaderId!.isEmpty) {
+      return null;
+    }
 
     return StreamBuilder<int>(
-      stream: _notificationService.watchUnreadCountForLeader(leaderId),
+      stream: _notificationService.watchUnreadCountForUser(widget.session.uid),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return IconButton(
+            tooltip: 'Notificaciones (revisa reglas de Firestore)',
+            icon: Icon(
+              Icons.notifications_outlined,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+            onPressed: () => _navigate(
+              LeaderNotificationsScreen(session: widget.session),
+              'Notificaciones',
+            ),
+          );
+        }
         final unread = snapshot.data ?? 0;
         return Padding(
           padding: const EdgeInsets.only(right: 4),

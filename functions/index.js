@@ -8,31 +8,15 @@ initializeApp();
 const ANDROID_CHANNEL_ID = 'leader_assignments';
 
 exports.notifyLeaderOnMemberAssigned = onDocumentCreated(
-  'notifications/{notificationId}',
+  'users/{userId}/notifications/{notificationId}',
   async (event) => {
     const data = event.data?.data();
     if (!data || data.type !== 'member_assigned') {
       return;
     }
 
+    const uid = event.params.userId;
     const db = getFirestore();
-    let uid = data.recipientUserId;
-
-    if (!uid && data.leaderId) {
-      const users = await db
-        .collection('users')
-        .where('leaderId', '==', data.leaderId)
-        .limit(1)
-        .get();
-      if (!users.empty) {
-        uid = users.docs[0].id;
-      }
-    }
-
-    if (!uid) {
-      console.log('Sin usuario destino para leaderId', data.leaderId);
-      return;
-    }
 
     const userSnap = await db.collection('users').doc(uid).get();
     const token = userSnap.data()?.fcmToken;
