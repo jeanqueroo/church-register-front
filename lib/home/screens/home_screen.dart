@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
         leader: leader,
         registeredBy: _email,
       ),
-      'Mis integrantes',
+      'Mis nuevos creyentes',
     );
   }
 
@@ -125,10 +125,10 @@ class _HomeScreenState extends State<HomeScreen> {
       items.add(
         SlideMenuItem(
           icon: Icons.person_add_outlined,
-          label: 'Nuevo integrante',
+          label: 'Nuevo creyente',
           onTap: () => _navigate(
             RegisterMemberScreen(registeredBy: _email),
-            'Nuevo integrante',
+            'Nuevo creyente',
           ),
         ),
       );
@@ -138,13 +138,13 @@ class _HomeScreenState extends State<HomeScreen> {
       items.add(
         SlideMenuItem(
           icon: Icons.people_outlined,
-          label: 'Integrantes',
+          label: 'Nuevos creyentes',
           onTap: () => _navigate(
             MembersListScreen(
               registeredBy: _email,
               permissions: p,
             ),
-            'Integrantes',
+            'Nuevos creyentes',
           ),
         ),
       );
@@ -170,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
       items.add(
         SlideMenuItem(
           icon: Icons.group_outlined,
-          label: 'Mis integrantes',
+          label: 'Mis nuevos creyentes',
           onTap: _openMyAssignedMembers,
         ),
       );
@@ -224,29 +224,29 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canRegisterMember) {
       addEntry(
         icon: Icons.person_add_outlined,
-        title: 'Registrar integrante',
-        subtitle: 'Formulario de nuevo integrante',
+        title: 'Registrar nuevo creyente',
+        subtitle: 'Formulario de nuevo creyente',
         onTap: () => _navigate(
           RegisterMemberScreen(registeredBy: _email),
-          'Nuevo integrante',
+          'Nuevo creyente',
         ),
       );
     }
     if (p.canViewMembersList) {
       addEntry(
         icon: Icons.people_outlined,
-        title: 'Ver integrantes',
-        subtitle: 'Lista de integrantes registrados',
+        title: 'Ver nuevos creyentes',
+        subtitle: 'Lista de nuevos creyentes registrados',
         onTap: () => _navigate(
           MembersListScreen(registeredBy: _email, permissions: p),
-          'Integrantes',
+          'Nuevos creyentes',
         ),
       );
     }
     if (p.canViewMembersByLeader) {
       addEntry(
         icon: Icons.how_to_reg_outlined,
-        title: 'Integrantes por líder',
+        title: 'Nuevos creyentes por líder',
         subtitle: 'Miembros asignados a cada líder',
         onTap: () => _navigate(
           MembersByLeaderScreen(registeredBy: _email, permissions: p),
@@ -257,8 +257,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewMyAssignedMembers) {
       addEntry(
         icon: Icons.group_outlined,
-        title: 'Mis integrantes asignados',
-        subtitle: 'Integrantes bajo tu liderazgo',
+        title: 'Mis nuevos creyentes asignados',
+        subtitle: 'Nuevos creyentes bajo tu liderazgo',
         onTap: _openMyAssignedMembers,
       );
     }

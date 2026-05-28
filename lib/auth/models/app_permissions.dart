@@ -18,12 +18,13 @@ class AppPermissions {
   bool get isAdmin => roles.contains(AppUserRole.admin);
   bool get isRegistrar => roles.contains(AppUserRole.registrar);
   bool get isLeader => roles.contains(AppUserRole.leader);
+  bool get isSupervisor => roles.contains(AppUserRole.supervisor);
 
-  bool get canRegisterMember => isAdmin || isRegistrar;
-  bool get canRegisterLeader => isAdmin || isRegistrar;
-  bool get canViewMembersList => isAdmin;
-  bool get canViewMembersByLeader => isAdmin;
-  bool get canViewLeadersList => isAdmin;
+  bool get canRegisterMember => isAdmin || isRegistrar || isSupervisor;
+  bool get canRegisterLeader => isAdmin || isSupervisor;
+  bool get canViewMembersList => isAdmin || isSupervisor;
+  bool get canViewMembersByLeader => isAdmin || isSupervisor;
+  bool get canViewLeadersList => isAdmin || isSupervisor;
   bool get canViewMyAssignedMembers => isAdmin || isLeader;
   bool get canViewLeaderNotifications => isLeader;
   bool get canManageAll => isAdmin;

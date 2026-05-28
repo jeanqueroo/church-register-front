@@ -445,7 +445,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       if (!mounted) return;
 
       if (widget.isEditing) {
-        _showMessage('Integrante actualizado correctamente');
+        _showMessage('Nuevo creyente actualizado correctamente');
       } else if (assignedLeaderName != null) {
         final cellText = assignedLeaderCellCode != null
             ? ' (Célula $assignedLeaderCellCode)'
@@ -454,15 +454,15 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
             ? ' · ${assignedDistanceKm.toStringAsFixed(1)} km'
             : '';
         _showMessage(
-          'Integrante registrado. Líder: '
+          'Nuevo creyente registrado. Líder: '
           '$assignedLeaderName$cellText$distanceText',
         );
       } else if (_wantsVisit && !_manualLeader) {
         _showMessage(
-          'Integrante registrado. No hay líder del mismo género con dirección cercana.',
+          'Nuevo creyente registrado. No hay líder del mismo género con dirección cercana.',
         );
       } else {
-        _showMessage('Integrante registrado correctamente');
+        _showMessage('Nuevo creyente registrado correctamente');
       }
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
@@ -591,7 +591,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Editar integrante' : 'Nuevo integrante'),
+        title: Text(widget.isEditing ? 'Editar nuevo creyente' : 'Nuevo creyente'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -893,7 +893,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                         ? 'Guardando...'
                         : widget.isEditing
                             ? 'Guardar cambios'
-                            : 'Registrar integrante',
+                            : 'Registrar nuevo creyente',
                   ),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),

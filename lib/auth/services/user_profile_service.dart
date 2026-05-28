@@ -12,14 +12,31 @@ class UserProfileService {
     required String uid,
     required String email,
     required String leaderId,
+    List<String>? roles,
   }) {
+    final effectiveRoles =
+        AppUserRole.sanitizeForLeaderRegistration(roles ?? []);
     return _users.doc(uid).set({
       'email': email.trim().toLowerCase(),
-      'roles': [AppUserRole.leader],
+      'roles': effectiveRoles,
       'leaderId': leaderId,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  Future<void> updateUserRoles({
+    required String uid,
+    required List<String> roles,
+  }) {
+    final effectiveRoles = AppUserRole.sanitizeForLeaderRegistration(roles);
+    return _users.doc(uid).set(
+      {
+        'roles': effectiveRoles,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
   }
 
   Future<DocumentSnapshot<Map<String, dynamic>>?> fetchProfileDoc(String uid) async {

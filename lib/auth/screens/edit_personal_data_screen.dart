@@ -191,6 +191,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                 : _streetNumberController.text.trim(),
             cellCode: leader.cellCode,
             gender: leader.gender,
+            churchOffice: leader.churchOffice,
             neighborhood: _neighborhoodController.text.trim().isEmpty
                 ? null
                 : _neighborhoodController.text.trim(),

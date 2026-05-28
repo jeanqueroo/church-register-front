@@ -44,7 +44,7 @@ firebase deploy --only firestore:rules
 
 4. Pulsa **Publicar**.
 
-Los integrantes se guardan en `members`. Los líderes en `leaders`. Los perfiles en `users`. Las notificaciones del líder en **`users/{uid}/notifications`** (subcolección).
+Los nuevos creyentes se guardan en `members`. Los líderes en `leaders`. Los perfiles en `users`. Las notificaciones del líder en **`users/{uid}/notifications`** (subcolección).
 
 ### Error `PERMISSION_DENIED` en notificaciones
 
@@ -56,9 +56,9 @@ Si ves `Listen for Query(...)` con `PERMISSION_DENIED`:
 
 ## Notificaciones al líder
 
-Al asignar un integrante, la app escribe en `users/{uid del líder}/notifications`. El líder solo escucha su propio buzón (sin consultas que fallen por permisos).
+Al asignar un nuevo creyente, la app escribe en `users/{uid del líder}/notifications`. El líder solo escucha su propio buzón (sin consultas que fallen por permisos).
 
-Al iniciar sesión, se sincronizan avisos de integrantes ya asignados.
+Al iniciar sesión, se sincronizan avisos de nuevos creyentes ya asignados.
 
 ## Notificaciones push en el teléfono (FCM)
 
@@ -96,7 +96,7 @@ La función `notifyLeaderOnMemberAssigned` se ejecuta al crear un documento en `
 1. Instala la app en un teléfono físico (el emulador a veces no recibe push).
 2. Inicia sesión como **líder** y acepta notificaciones.
 3. En Firestore, comprueba que `users/{uid}` tenga `fcmToken`.
-4. Desde otra cuenta, registra un integrante asignado a ese líder.
+4. Desde otra cuenta, registra un nuevo creyente asignado a ese líder.
 5. Deberías ver el aviso en el teléfono y en **Notificaciones** dentro de la app.
 
 Si no llega el push pero sí el aviso en la app, revisa que la función esté desplegada y que exista `fcmToken` en el perfil del líder.
@@ -107,9 +107,12 @@ Un usuario puede tener **varios roles** a la vez. Valores válidos en `roles`:
 
 | Valor en Firestore | Etiqueta        | Permisos en la app                                      |
 |--------------------|-----------------|---------------------------------------------------------|
-| `admin`            | Administrador   | Ve y gestiona todo                                      |
-| `registrador`      | Registrador     | Solo registrar integrantes y líderes (sin listas)       |
-| `leader`           | Líder           | Ver sus integrantes asignados (solo lectura)            |
+| `admin`            | Administrador   | Ve y gestiona todo (solo desde Firebase Console)        |
+| `registrador`      | Registrador     | Solo registrar nuevos creyentes (sin listas ni líderes)  |
+| `supervisor`       | Supervisor      | Registrar y ver listas de creyentes y líderes           |
+| `leader`           | Líder           | Ver sus nuevos creyentes asignados (solo lectura)       |
+
+Al **registrar un líder** en la app puedes asignar `leader`, `registrador` y/o `supervisor` (nunca `admin`).
 
 Ejemplo de documento en `users/{uid}`:
 

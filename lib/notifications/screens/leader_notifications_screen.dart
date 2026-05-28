@@ -82,7 +82,7 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
     if (member == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('El integrante ya no está disponible.'),
+          content: Text('El nuevo creyente ya no está disponible.'),
         ),
       );
       return;
@@ -184,7 +184,7 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Cuando te asignen un integrante nuevo, '
+                      'Cuando te asignen un nuevo creyente, '
                       'aparecerá aquí.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
