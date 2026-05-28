@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../core/services/excel_export_service.dart';
 import '../../core/utils/list_search.dart';
+import '../../core/widgets/export_excel_icon_button.dart';
 import '../../core/widgets/person_list_search_field.dart';
 import '../models/church_leader.dart';
 import '../services/leader_service.dart';
@@ -57,11 +59,30 @@ class _LeadersListBody extends StatefulWidget {
 
 class _LeadersListBodyState extends State<_LeadersListBody> {
   final _searchController = TextEditingController();
+  List<ChurchLeader> _leadersForExport = [];
+  bool _canExport = false;
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _exportToExcel() {
+    return ExcelExportService.instance.shareLeadersExcel(
+      leaders: _leadersForExport,
+      fileName: 'lideres_${DateTime.now().millisecondsSinceEpoch}',
+    );
+  }
+
+  void _syncLeadersForExport(List<ChurchLeader> leaders) {
+    _leadersForExport = leaders;
+    final canExport = leaders.isNotEmpty;
+    if (canExport == _canExport) return;
+    _canExport = canExport;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   void _openAssignedMembers(BuildContext context, ChurchLeader leader) {
@@ -139,6 +160,12 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Líderes'),
+        actions: [
+          ExportExcelIconButton(
+            enabled: _canExport,
+            onExport: _exportToExcel,
+          ),
+        ],
       ),
       floatingActionButton: widget.permissions.canRegisterLeader
           ? FloatingActionButton.extended(
@@ -180,6 +207,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
           }
 
           final leaders = snapshot.data ?? [];
+          _syncLeadersForExport(leaders);
           final query = _searchController.text;
           final filtered =
               leaders.where((l) => leaderMatchesSearch(l, query)).toList();
