@@ -105,6 +105,10 @@ class _AuthGateState extends State<AuthGate> {
       final doc = await _profileService.fetchProfileDoc(user.uid);
       UserProfile profile;
       if (doc == null) {
+        await _profileService.ensureAdminProfile(
+          uid: user.uid,
+          email: user.email,
+        );
         profile = UserProfile(
           roles: [AppUserRole.admin],
           email: user.email,
@@ -112,12 +116,19 @@ class _AuthGateState extends State<AuthGate> {
       } else {
         profile = UserProfile.fromFirestore(doc);
         if (profile.roles.isEmpty) {
-          profile = UserProfile(
-            roles: [AppUserRole.admin],
-            leaderId: profile.leaderId,
-            fullName: profile.fullName,
+          await _profileService.ensureAdminProfile(
+            uid: user.uid,
             email: profile.email ?? user.email,
           );
+          final refreshed = await _profileService.fetchProfileDoc(user.uid);
+          profile = refreshed != null
+              ? UserProfile.fromFirestore(refreshed)
+              : UserProfile(
+                  roles: [AppUserRole.admin],
+                  leaderId: profile.leaderId,
+                  fullName: profile.fullName,
+                  email: profile.email ?? user.email,
+                );
         }
       }
 

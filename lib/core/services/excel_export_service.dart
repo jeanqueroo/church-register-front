@@ -1,13 +1,12 @@
-import 'dart:io';
+import 'dart:convert';
 
-import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../leaders/models/church_leader.dart';
+import '../utils/file_share.dart';
 import '../../members/models/church_member.dart';
 
+/// Exporta listas a CSV (UTF-8 con BOM); Excel lo abre sin paquete `excel`.
 class ExcelExportService {
   ExcelExportService._();
 
@@ -76,7 +75,7 @@ class ExcelExportService {
       ];
     }).toList();
 
-    await _shareExcel(
+    await _shareSpreadsheet(
       fileName: fileName,
       sheetTitle: sheetTitle,
       headers: headers,
@@ -110,7 +109,7 @@ class ExcelExportService {
       return <String>[
         l.lastName,
         l.firstName,
-        l.churchOffice?.label ?? '',
+        l.churchOfficeLabel ?? '',
         l.gender?.label ?? '',
         l.cellCode ?? '',
         l.mobilePhone,
@@ -121,7 +120,7 @@ class ExcelExportService {
       ];
     }).toList();
 
-    await _shareExcel(
+    await _shareSpreadsheet(
       fileName: fileName,
       sheetTitle: sheetTitle,
       headers: headers,
@@ -129,56 +128,47 @@ class ExcelExportService {
     );
   }
 
-  Future<void> _shareExcel({
+  Future<void> _shareSpreadsheet({
     required String fileName,
     required String sheetTitle,
     required List<String> headers,
     required List<List<String>> rows,
   }) async {
-    final excel = Excel.createExcel();
-    final defaultName = excel.getDefaultSheet()!;
-    excel.rename(defaultName, sheetTitle);
-    final sheet = excel[sheetTitle];
+    final csvBytes = utf8.encode(_buildCsv(headers, rows));
 
-    _writeRow(sheet, 0, headers);
-    for (var i = 0; i < rows.length; i++) {
-      _writeRow(sheet, i + 1, rows[i]);
+    final baseName = fileName.replaceAll(RegExp(r'\.xlsx$'), '');
+    final safeName =
+        baseName.endsWith('.csv') ? baseName : '$baseName.csv';
+
+    if (kIsWeb) {
+      throw UnsupportedError(
+        'La exportación solo está disponible en la app móvil.',
+      );
     }
 
-    final bytes = excel.encode();
-    if (bytes == null) {
-      throw StateError('No se pudo generar el archivo Excel.');
-    }
-
-    final safeName = fileName.endsWith('.xlsx') ? fileName : '$fileName.xlsx';
-    final dir = await getTemporaryDirectory();
-    final path = '${dir.path}/$safeName';
-    final file = File(path);
-    await file.writeAsBytes(bytes, flush: true);
-
-    await Share.shareXFiles(
-      [XFile(path, mimeType: _excelMimeType, name: safeName)],
+    final shared = await shareCsvFile(
+      bytes: csvBytes,
+      fileName: safeName,
       subject: sheetTitle,
     );
-  }
-
-  static void _writeRow(Sheet sheet, int rowIndex, List<String> values) {
-    for (var col = 0; col < values.length; col++) {
-      sheet
-          .cell(
-            CellIndex.indexByColumnRow(
-              columnIndex: col,
-              rowIndex: rowIndex,
-            ),
-          )
-          .value = TextCellValue(values[col]);
+    if (!shared) {
+      throw StateError('No se pudo abrir el diálogo para compartir el archivo.');
     }
   }
 
-  static String get _excelMimeType {
-    if (kIsWeb) {
-      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  static String _buildCsv(List<String> headers, List<List<String>> rows) {
+    final buffer = StringBuffer('\uFEFF');
+    buffer.writeln(headers.map(_escapeCsvField).join(','));
+    for (final row in rows) {
+      buffer.writeln(row.map(_escapeCsvField).join(','));
     }
-    return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    return buffer.toString();
+  }
+
+  static String _escapeCsvField(String value) {
+    final needsQuotes =
+        value.contains(',') || value.contains('"') || value.contains('\n');
+    if (!needsQuotes) return value;
+    return '"${value.replaceAll('"', '""')}"';
   }
 }

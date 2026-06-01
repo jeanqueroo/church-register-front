@@ -43,7 +43,7 @@ bool leaderMatchesSearch(ChurchLeader leader, String query) {
     leader.lastName,
     leader.mobilePhone,
     leader.email,
-    leader.churchOffice?.label,
+    leader.churchOfficeLabel,
     leader.cellCode,
     leader.locality,
     leader.neighborhood,

@@ -25,6 +25,8 @@ class AppPermissions {
   bool get canViewMembersList => isAdmin || isSupervisor;
   bool get canViewMembersByLeader => isAdmin || isSupervisor;
   bool get canViewLeadersList => isAdmin || isSupervisor;
+  bool get canViewSupervisorLeaderAssignments => isAdmin || isSupervisor;
+  bool get canAssignSupervisorLeaders => isAdmin;
   bool get canViewMyAssignedMembers => isAdmin || isLeader;
   bool get canViewLeaderNotifications => isLeader;
   bool get canManageAll => isAdmin;

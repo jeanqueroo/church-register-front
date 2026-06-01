@@ -39,6 +39,22 @@ class UserProfileService {
     );
   }
 
+  /// Asegura rol admin sin quitar otros roles (p. ej. supervisor).
+  Future<void> ensureAdminProfile({
+    required String uid,
+    required String? email,
+  }) {
+    final data = <String, dynamic>{
+      'roles': FieldValue.arrayUnion([AppUserRole.admin]),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+    final trimmedEmail = email?.trim().toLowerCase();
+    if (trimmedEmail != null && trimmedEmail.isNotEmpty) {
+      data['email'] = trimmedEmail;
+    }
+    return _users.doc(uid).set(data, SetOptions(merge: true));
+  }
+
   Future<DocumentSnapshot<Map<String, dynamic>>?> fetchProfileDoc(String uid) async {
     final doc = await _users.doc(uid).get();
     if (!doc.exists) return null;
