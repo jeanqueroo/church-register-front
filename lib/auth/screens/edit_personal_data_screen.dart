@@ -211,6 +211,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
             mobilePhone: _mobilePhoneController.text.trim(),
             registeredAt: leader.registeredAt,
             registeredBy: leader.registeredBy,
+            acceptsMemberAssignments: leader.acceptsMemberAssignments,
           ),
         );
       } else {

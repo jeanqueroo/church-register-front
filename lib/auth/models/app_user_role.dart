@@ -31,13 +31,21 @@ class AppUserRole {
     }
   }
 
-  /// Filtra roles válidos para cuentas de líder; excluye admin.
+  /// Líder y supervisor son mutuamente excluyentes en una misma cuenta.
+  static bool hasLeaderSupervisorConflict(Iterable<String> roles) {
+    final set = roles.toSet();
+    return set.contains(leader) && set.contains(supervisor);
+  }
+
+  /// Filtra roles válidos para cuentas de líder; excluye admin y conflictos.
   static List<String> sanitizeForLeaderRegistration(Iterable<String> roles) {
-    return roles
+    final set = roles
         .where((r) => assignableForLeaderRegistration.contains(r))
-        .toSet()
-        .toList()
-      ..sort();
+        .toSet();
+    if (hasLeaderSupervisorConflict(set)) {
+      set.remove(supervisor);
+    }
+    return set.toList()..sort();
   }
 
   static List<String> parseList(dynamic value) {

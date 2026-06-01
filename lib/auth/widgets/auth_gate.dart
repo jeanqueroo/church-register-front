@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../home/screens/home_screen.dart';
+import '../../supervisors/screens/supervisor_home_screen.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../main.dart';
 import '../../notifications/screens/leader_notifications_screen.dart';
@@ -233,6 +234,13 @@ class _AuthGateState extends State<AuthGate> {
           if (!mounted || _session?.uid != session.uid) return;
           _registerPushIfNeeded(session);
         });
+
+        if (session.permissions.usesSupervisorHome) {
+          return SupervisorHomeScreen(
+            session: session,
+            authService: _auth,
+          );
+        }
 
         return HomeScreen(
           session: session,

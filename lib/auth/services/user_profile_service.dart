@@ -55,6 +55,21 @@ class UserProfileService {
     return _users.doc(uid).set(data, SetOptions(merge: true));
   }
 
+  /// Ids en `leaders` vinculados a usuarios con rol `leader`.
+  Future<Set<String>> fetchLeaderDocumentIdsWithLeaderRole() async {
+    final snapshot = await _users
+        .where('roles', arrayContains: AppUserRole.leader)
+        .get();
+    final ids = <String>{};
+    for (final doc in snapshot.docs) {
+      final leaderId = doc.data()['leaderId'] as String?;
+      if (leaderId != null && leaderId.isNotEmpty) {
+        ids.add(leaderId);
+      }
+    }
+    return ids;
+  }
+
   Future<DocumentSnapshot<Map<String, dynamic>>?> fetchProfileDoc(String uid) async {
     final doc = await _users.doc(uid).get();
     if (!doc.exists) return null;

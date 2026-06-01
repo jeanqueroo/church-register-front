@@ -21,6 +21,11 @@ class AssignableRolesSection extends StatelessWidget {
 
     final next = Set<String>.from(selectedRoles);
     if (selected) {
+      if (role == AppUserRole.leader) {
+        next.remove(AppUserRole.supervisor);
+      } else if (role == AppUserRole.supervisor) {
+        next.remove(AppUserRole.leader);
+      }
       next.add(role);
     } else {
       next.remove(role);
@@ -35,8 +40,10 @@ class AssignableRolesSection extends StatelessWidget {
       children: [
         const FormSectionTitle('ROLES EN LA APP'),
         Text(
-          'Elige qué puede hacer esta cuenta. El rol Administrador solo se '
-          'asigna desde Firebase Console.',
+          'Elige qué puede hacer esta cuenta. Líder y Supervisor no pueden '
+          'combinarse en la misma cuenta. Solo con rol Líder puede recibir '
+          'nuevos creyentes asignados. El rol Administrador solo se asigna desde '
+          'Firebase Console.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),

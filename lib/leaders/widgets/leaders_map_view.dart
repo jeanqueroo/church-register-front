@@ -5,71 +5,38 @@ import '../../core/config/google_maps_config.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/external_map_launcher.dart';
 import '../../core/widgets/google_maps_missing_key.dart';
-import '../../leaders/models/church_leader.dart';
-import '../models/church_member.dart';
+import '../models/church_leader.dart';
 
-/// Mapa de integrantes con Google Maps; opcionalmente muestra al líder.
-class MembersMapView extends StatefulWidget {
-  const MembersMapView({
+/// Mapa de líderes con Google Maps.
+class LeadersMapView extends StatefulWidget {
+  const LeadersMapView({
     super.key,
-    required this.members,
-    required this.onMemberTap,
-    this.leader,
-    this.mapLeaders = const [],
+    required this.leaders,
+    required this.onLeaderTap,
   });
 
-  final List<ChurchMember> members;
-  final ValueChanged<ChurchMember> onMemberTap;
-  final ChurchLeader? leader;
-
-  /// Líderes adicionales en el mapa (p. ej. cartera de un supervisor).
-  final List<ChurchLeader> mapLeaders;
+  final List<ChurchLeader> leaders;
+  final ValueChanged<ChurchLeader> onLeaderTap;
 
   @override
-  State<MembersMapView> createState() => _MembersMapViewState();
+  State<LeadersMapView> createState() => _LeadersMapViewState();
 }
 
-class _MembersMapViewState extends State<MembersMapView> {
+class _LeadersMapViewState extends State<LeadersMapView> {
   GoogleMapController? _mapController;
-  List<ChurchMember>? _lastFittedMembers;
+  List<ChurchLeader>? _lastFittedLeaders;
 
-  List<ChurchMember> get _locatedMembers =>
-      widget.members.where((m) => m.geoLocation != null).toList();
+  List<ChurchLeader> get _locatedLeaders =>
+      widget.leaders.where((l) => l.geoLocation != null).toList();
 
-  List<ChurchLeader> get _leadersOnMap {
-    final seen = <String>{};
-    final result = <ChurchLeader>[];
-    void add(ChurchLeader? value) {
-      if (value == null) return;
-      final key = value.id ?? value.fullName;
-      if (seen.add(key)) result.add(value);
-    }
-    add(widget.leader);
-    for (final l in widget.mapLeaders) {
-      add(l);
-    }
-    return result;
-  }
-
-  List<LatLng> get _allPoints {
-    final points = <LatLng>[];
-    for (final leader in _leadersOnMap) {
-      final leaderLoc = leader.geoLocation;
-      if (leaderLoc != null) {
-        points.add(LatLng(leaderLoc.latitude, leaderLoc.longitude));
-      }
-    }
-    for (final m in _locatedMembers) {
-      points.add(LatLng(m.latitude!, m.longitude!));
-    }
-    return points;
-  }
+  List<LatLng> get _allPoints => _locatedLeaders
+      .map((l) => LatLng(l.latitude!, l.longitude!))
+      .toList();
 
   @override
-  void didUpdateWidget(MembersMapView oldWidget) {
+  void didUpdateWidget(LeadersMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.members != widget.members ||
-        oldWidget.leader != widget.leader) {
+    if (oldWidget.leaders != widget.leaders) {
       _fitMap();
     }
   }
@@ -116,86 +83,67 @@ class _MembersMapViewState extends State<MembersMapView> {
 
   Set<Marker> _buildMarkers() {
     final markers = <Marker>{};
-    for (final leader in _leadersOnMap) {
-      final leaderLoc = leader.geoLocation;
-      if (leaderLoc == null) continue;
+    for (final leader in _locatedLeaders) {
       markers.add(
         Marker(
           markerId: MarkerId('leader_${leader.id ?? leader.fullName}'),
-          position: LatLng(leaderLoc.latitude, leaderLoc.longitude),
+          position: LatLng(leader.latitude!, leader.longitude!),
           icon: BitmapDescriptor.defaultMarkerWithHue(
             BitmapDescriptor.hueViolet,
           ),
           infoWindow: InfoWindow(
             title: leader.fullName,
             snippet: leader.cellCode != null
-                ? 'Líder · Célula ${leader.cellCode}'
+                ? 'Célula ${leader.cellCode}'
                 : 'Líder',
           ),
+          onTap: () => _showLeaderSheet(leader),
         ),
       );
     }
-
-    for (final member in _locatedMembers) {
-      markers.add(
-        Marker(
-          markerId: MarkerId('member_${member.id ?? member.fullName}'),
-          position: LatLng(member.latitude!, member.longitude!),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueGreen,
-          ),
-          infoWindow: InfoWindow(title: member.fullName),
-          onTap: () => _showMemberSheet(member),
-        ),
-      );
-    }
-
     return markers;
   }
 
-  Future<void> _openInGoogleMaps(ChurchMember member) async {
-    final address = member.formattedAddress;
+  Future<void> _openInGoogleMaps(ChurchLeader leader) async {
+    final address = leader.formattedAddress;
     final hasCoords =
-        member.latitude != null && member.longitude != null;
+        leader.latitude != null && leader.longitude != null;
     if (!hasCoords && address.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Este nuevo creyente no tiene dirección para navegar.'),
+          content: Text('Este líder no tiene dirección para navegar.'),
         ),
       );
       return;
     }
 
     final opened = await ExternalMapLauncher.openGoogleMapsDirections(
-      latitude: member.latitude,
-      longitude: member.longitude,
+      latitude: leader.latitude,
+      longitude: leader.longitude,
       addressQuery: address.isNotEmpty ? address : null,
     );
     if (!mounted) return;
     if (!opened) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo abrir Google Maps.'),
-        ),
+        const SnackBar(content: Text('No se pudo abrir Google Maps.')),
       );
     }
   }
 
-  void _showMemberSheet(ChurchMember member) {
+  void _showLeaderSheet(ChurchLeader leader) {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
       builder: (ctx) {
-        final address = member.formattedAddress;
+        final address = leader.formattedAddress;
         final canNavigate =
-            member.geoLocation != null || address.isNotEmpty;
+            leader.geoLocation != null || address.isNotEmpty;
         final parts = <String>[
-          member.phone,
-          if (member.wantsVisit) 'Solicita visita',
-          if (member.locality != null) member.locality!,
-          if (member.assignedDistanceKm != null)
-            '${member.assignedDistanceKm!.toStringAsFixed(1)} km del líder',
+          if (leader.churchOfficeLabel != null) leader.churchOfficeLabel!,
+          if (leader.cellCode != null) 'Célula ${leader.cellCode}',
+          leader.mobilePhone,
+          if (leader.email != null && leader.email!.isNotEmpty) leader.email!,
         ];
 
         return SafeArea(
@@ -206,30 +154,14 @@ class _MembersMapViewState extends State<MembersMapView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  member.fullName,
+                  leader.fullName,
                   style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                 ),
                 if (address.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.place_outlined,
-                        size: 20,
-                        color: Theme.of(ctx).colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          address,
-                          style: Theme.of(ctx).textTheme.bodyMedium,
-                        ),
-                      ),
-                    ],
-                  ),
+                  Text(address, style: Theme.of(ctx).textTheme.bodyMedium),
                 ],
                 if (parts.isNotEmpty) ...[
                   const SizedBox(height: 8),
@@ -245,7 +177,7 @@ class _MembersMapViewState extends State<MembersMapView> {
                   onPressed: canNavigate
                       ? () {
                           Navigator.pop(ctx);
-                          _openInGoogleMaps(member);
+                          _openInGoogleMaps(leader);
                         }
                       : null,
                   icon: const Icon(Icons.directions),
@@ -255,9 +187,9 @@ class _MembersMapViewState extends State<MembersMapView> {
                 OutlinedButton(
                   onPressed: () {
                     Navigator.pop(ctx);
-                    widget.onMemberTap(member);
+                    widget.onLeaderTap(leader);
                   },
-                  child: const Text('Ver detalle'),
+                  child: const Text('Ver nuevos creyentes'),
                 ),
               ],
             ),
@@ -273,13 +205,12 @@ class _MembersMapViewState extends State<MembersMapView> {
       return const Center(child: GoogleMapsMissingKey());
     }
 
-    final located = _locatedMembers;
-    final withoutLocation = widget.members.length - located.length;
-    final leadersOnMap = _leadersOnMap;
+    final located = _locatedLeaders;
+    final withoutLocation = widget.leaders.length - located.length;
     final hasAnyPoint = _allPoints.isNotEmpty;
 
-    if (_lastFittedMembers != widget.members) {
-      _lastFittedMembers = widget.members;
+    if (_lastFittedLeaders != widget.leaders) {
+      _lastFittedLeaders = widget.leaders;
       WidgetsBinding.instance.addPostFrameCallback((_) => _fitMap());
     }
 
@@ -303,7 +234,7 @@ class _MembersMapViewState extends State<MembersMapView> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Los nuevos creyentes necesitan dirección con coordenadas '
+                'Los líderes necesitan dirección con coordenadas '
                 'para aparecer en el mapa.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -316,8 +247,6 @@ class _MembersMapViewState extends State<MembersMapView> {
       );
     }
 
-    final initialCenter = _allPoints.first;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -327,7 +256,7 @@ class _MembersMapViewState extends State<MembersMapView> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Text(
-                '$withoutLocation ${withoutLocation == 1 ? 'nuevo creyente' : 'nuevos creyentes'} '
+                '$withoutLocation ${withoutLocation == 1 ? 'líder' : 'líderes'} '
                 'sin ubicación en el mapa',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color:
@@ -336,39 +265,10 @@ class _MembersMapViewState extends State<MembersMapView> {
               ),
             ),
           ),
-        if (leadersOnMap.isNotEmpty)
-          Material(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.supervisor_account,
-                    size: 18,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      leadersOnMap.length == 1
-                          ? 'Marcador morado: ${leadersOnMap.first.fullName} (líder)'
-                          : 'Marcadores morados: ${leadersOnMap.length} líderes',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         Expanded(
           child: GoogleMap(
             initialCameraPosition: CameraPosition(
-              target: initialCenter,
+              target: _allPoints.first,
               zoom: 12,
             ),
             markers: _buildMarkers(),
