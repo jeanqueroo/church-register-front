@@ -50,6 +50,9 @@ class ChurchLeader {
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
 
+  /// Cargo en la iglesia (texto legible para listas y búsqueda).
+  String? get churchOfficeLabel => churchOffice?.label;
+
   GeoLocation? get geoLocation {
     if (latitude == null || longitude == null) return null;
     return GeoLocation(latitude: latitude!, longitude: longitude!);

@@ -18,6 +18,7 @@ import '../../members/screens/members_list_screen.dart';
 import '../../members/screens/register_member_screen.dart';
 import '../../notifications/screens/leader_notifications_screen.dart';
 import '../../notifications/services/leader_notification_service.dart';
+import '../../supervisors/screens/supervisor_leader_assignments_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -205,6 +206,19 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    if (p.canViewSupervisorLeaderAssignments) {
+      items.add(
+        SlideMenuItem(
+          icon: Icons.assignment_ind_outlined,
+          label: 'Líderes por supervisor',
+          onTap: () => _navigate(
+            SupervisorLeaderAssignmentsScreen(session: widget.session),
+            'Líderes por supervisor',
+          ),
+        ),
+      );
+    }
+
     return items;
   }
 
@@ -281,6 +295,19 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () => _navigate(
           LeadersListScreen(registeredBy: _email, permissions: p),
           'Líderes',
+        ),
+      );
+    }
+    if (p.canViewSupervisorLeaderAssignments) {
+      addEntry(
+        icon: Icons.assignment_ind_outlined,
+        title: 'Líderes por supervisor',
+        subtitle: p.canAssignSupervisorLeaders
+            ? 'Asignar líderes a cada supervisor'
+            : 'Líderes que te fueron asignados',
+        onTap: () => _navigate(
+          SupervisorLeaderAssignmentsScreen(session: widget.session),
+          'Líderes por supervisor',
         ),
       );
     }

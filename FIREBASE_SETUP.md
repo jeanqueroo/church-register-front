@@ -46,6 +46,16 @@ firebase deploy --only firestore:rules
 
 Los nuevos creyentes se guardan en `members`. Los líderes en `leaders`. Los perfiles en `users`. Las notificaciones del líder en **`users/{uid}/notifications`** (subcolección).
 
+### Error `PERMISSION_DENIED` en «Líderes por supervisor»
+
+Si un administrador o supervisor ve *No tienes permiso* al entrar:
+
+1. Publica las reglas: `firebase deploy --only firestore:rules`
+2. En Firestore → `users` → documento con el **UID** del usuario (no el correo), campo **`roles`** debe ser un **array** con strings exactos, por ejemplo: `["admin", "supervisor"]` (no «Administrador» ni un solo texto).
+3. Cierra sesión en la app y vuelve a entrar.
+
+Los roles se leen solo desde Firestore (`users.roles`), no desde la consola de Authentication.
+
 ### Error `PERMISSION_DENIED` en notificaciones
 
 Si ves `Listen for Query(...)` con `PERMISSION_DENIED`:
@@ -109,10 +119,19 @@ Un usuario puede tener **varios roles** a la vez. Valores válidos en `roles`:
 |--------------------|-----------------|---------------------------------------------------------|
 | `admin`            | Administrador   | Ve y gestiona todo (solo desde Firebase Console)        |
 | `registrador`      | Registrador     | Solo registrar nuevos creyentes (sin listas ni líderes)  |
-| `supervisor`       | Supervisor      | Registrar y ver listas de creyentes y líderes           |
+| `supervisor`       | Supervisor      | Registrar y ver listas; ver líderes que le asignó el admin |
 | `leader`           | Líder           | Ver sus nuevos creyentes asignados (solo lectura)       |
 
 Al **registrar un líder** en la app puedes asignar `leader`, `registrador` y/o `supervisor` (nunca `admin`).
+
+### Líderes por supervisor
+
+En `users/{uid del supervisor}` guarda el campo **`supervisedLeaderIds`**: array de IDs de documentos de la colección `leaders`.
+
+- **Administrador:** menú **Líderes por supervisor** → elige supervisor y marca los líderes → Guardar.
+- **Supervisor:** mismo menú → solo lectura de los líderes que le asignaron.
+
+Publica las reglas de Firestore tras actualizar (`firebase deploy --only firestore:rules`).
 
 Ejemplo de documento en `users/{uid}`:
 
