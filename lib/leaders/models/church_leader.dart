@@ -25,6 +25,7 @@ class ChurchLeader {
     required this.mobilePhone,
     required this.registeredAt,
     required this.registeredBy,
+    this.acceptsMemberAssignments,
   });
 
   final String? id;
@@ -46,6 +47,12 @@ class ChurchLeader {
   final String mobilePhone;
   final DateTime registeredAt;
   final String registeredBy;
+
+  /// `true` si la cuenta tiene rol Líder; `false` si no; `null` = registro anterior.
+  final bool? acceptsMemberAssignments;
+
+  /// Si puede recibir nuevos creyentes (solo con `acceptsMemberAssignments == true`).
+  bool get canReceiveMemberAssignments => acceptsMemberAssignments == true;
 
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
@@ -89,6 +96,8 @@ class ChurchLeader {
       'mobilePhone': mobilePhone,
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
+      if (acceptsMemberAssignments != null)
+        'acceptsMemberAssignments': acceptsMemberAssignments,
     };
   }
 
@@ -116,6 +125,7 @@ class ChurchLeader {
       mobilePhone: data['mobilePhone'] as String? ?? '',
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',
+      acceptsMemberAssignments: data['acceptsMemberAssignments'] as bool?,
     );
   }
 }

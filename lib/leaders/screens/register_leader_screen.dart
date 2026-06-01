@@ -139,6 +139,12 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
       _showMessage('Selecciona al menos un rol para la cuenta.');
       return;
     }
+    if (AppUserRole.hasLeaderSupervisorConflict(_selectedRoles)) {
+      _showMessage(
+        'No se puede asignar Líder y Supervisor a la misma cuenta.',
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -208,6 +214,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           mobilePhone: _mobilePhoneController.text.trim(),
           registeredAt: DateTime.now(),
           registeredBy: widget.registeredBy,
+          acceptsMemberAssignments:
+              _selectedRoles.contains(AppUserRole.leader),
         );
 
         final leaderId = await _leaderService.addLeader(leader);
@@ -261,6 +269,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         mobilePhone: _mobilePhoneController.text.trim(),
         registeredAt: widget.leaderToEdit?.registeredAt ?? DateTime.now(),
         registeredBy: widget.leaderToEdit?.registeredBy ?? widget.registeredBy,
+        acceptsMemberAssignments:
+            _selectedRoles.contains(AppUserRole.leader),
       );
 
       await _leaderService.updateLeader(leader);

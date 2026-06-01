@@ -20,9 +20,12 @@ class AppPermissions {
   bool get isLeader => roles.contains(AppUserRole.leader);
   bool get isSupervisor => roles.contains(AppUserRole.supervisor);
 
+  /// Pantalla principal con lista y mapa de creyentes de sus líderes.
+  bool get usesSupervisorHome => isSupervisor && !isAdmin;
+
   bool get canRegisterMember => isAdmin || isRegistrar || isSupervisor;
   bool get canRegisterLeader => isAdmin || isSupervisor;
-  bool get canViewMembersList => isAdmin || isSupervisor;
+  bool get canViewMembersList => isAdmin || isRegistrar || isSupervisor;
   bool get canViewMembersByLeader => isAdmin || isSupervisor;
   bool get canViewLeadersList => isAdmin || isSupervisor;
   bool get canViewSupervisorLeaderAssignments => isAdmin || isSupervisor;

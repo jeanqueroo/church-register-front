@@ -37,6 +37,8 @@ class _SupervisorLeaderAssignmentsScreenState
 
   List<SupervisorAccount> _supervisors = [];
   List<ChurchLeader> _leaders = [];
+  List<ChurchLeader> _assignableLeaders = [];
+  Map<String, String> _leaderOwnerBySupervisorUid = {};
   SupervisorAccount? _selectedSupervisor;
   Set<String> _selectedLeaderIds = {};
   bool _loading = true;
@@ -66,32 +68,43 @@ class _SupervisorLeaderAssignmentsScreenState
     });
 
     try {
-      final leaders = await _leaderService.fetchAllLeaders();
-      leaders.sort(
-        (a, b) => a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()),
-      );
-
       if (_isAdmin) {
         final supervisors =
             await _assignmentService.fetchSupervisorAccounts();
+        final assignable = await _leaderService.fetchAssignableLeaders();
+        final ownerMap =
+            await _assignmentService.fetchLeaderToSupervisorMap();
+        assignable.sort(
+          (a, b) =>
+              a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()),
+        );
         if (!mounted) return;
+        final assignableIds =
+            assignable.map((l) => l.id).whereType<String>().toSet();
+        final firstSupervisor =
+            supervisors.isNotEmpty ? supervisors.first : null;
         setState(() {
-          _leaders = leaders;
+          _assignableLeaders = assignable;
+          _leaderOwnerBySupervisorUid = ownerMap;
           _supervisors = supervisors;
-          _selectedSupervisor =
-              supervisors.isNotEmpty ? supervisors.first : null;
-          _selectedLeaderIds =
-              _selectedSupervisor?.supervisedLeaderIds.toSet() ?? {};
+          _selectedSupervisor = firstSupervisor;
+          _selectedLeaderIds = firstSupervisor == null
+              ? {}
+              : firstSupervisor.supervisedLeaderIds
+                  .where(assignableIds.contains)
+                  .toSet();
           _loading = false;
         });
       } else {
-        final ids = await _assignmentService
-            .watchSupervisedLeaderIds(widget.session.uid)
-            .first;
+        final assigned = await _assignmentService.fetchAssignedLeaders(
+          widget.session.uid,
+          leaderService: _leaderService,
+        );
         if (!mounted) return;
         setState(() {
-          _leaders = leaders;
-          _selectedLeaderIds = ids.toSet();
+          _leaders = assigned;
+          _selectedLeaderIds =
+              assigned.map((l) => l.id).whereType<String>().toSet();
           _loading = false;
         });
       }
@@ -114,9 +127,13 @@ class _SupervisorLeaderAssignmentsScreenState
 
   void _onSupervisorChanged(SupervisorAccount? supervisor) {
     if (supervisor == null) return;
+    final assignableIds =
+        _assignableLeaders.map((l) => l.id).whereType<String>().toSet();
     setState(() {
       _selectedSupervisor = supervisor;
-      _selectedLeaderIds = supervisor.supervisedLeaderIds.toSet();
+      _selectedLeaderIds = supervisor.supervisedLeaderIds
+          .where(assignableIds.contains)
+          .toSet();
     });
   }
 
@@ -162,9 +179,21 @@ class _SupervisorLeaderAssignmentsScreenState
     }
   }
 
+  List<ChurchLeader> get _displayLeaders {
+    if (!_isAdmin) return _leaders;
+    final supervisorUid = _selectedSupervisor?.uid;
+    if (supervisorUid == null) return [];
+    return _assignableLeaders.where((leader) {
+      final id = leader.id;
+      if (id == null || id.isEmpty) return false;
+      final owner = _leaderOwnerBySupervisorUid[id];
+      return owner == null || owner == supervisorUid;
+    }).toList();
+  }
+
   List<ChurchLeader> get _filteredLeaders {
     final query = _searchController.text;
-    return _leaders.where((l) => leaderMatchesSearch(l, query)).toList();
+    return _displayLeaders.where((l) => leaderMatchesSearch(l, query)).toList();
   }
 
   @override
@@ -243,13 +272,18 @@ class _SupervisorLeaderAssignmentsScreenState
       );
     }
 
-    if (_leaders.isEmpty) {
-      return const Center(
+    if (_displayLeaders.isEmpty) {
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Text(
-            'No hay líderes registrados para asignar.',
+            _isAdmin
+                ? 'No hay líderes con rol Líder disponibles para este supervisor.\n'
+                    'Los ya asignados a otro supervisor no se muestran.'
+                : 'No tienes líderes asignados.\n'
+                    'Pide al administrador que te asigne líderes.',
             textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
       );
@@ -307,15 +341,27 @@ class _SupervisorLeaderAssignmentsScreenState
               ),
             ),
           ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Text(
-            '${_selectedLeaderIds.length} de ${_leaders.length} líderes seleccionados',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+        if (_isAdmin)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Text(
+              '${_selectedLeaderIds.length} de ${_displayLeaders.length} '
+              'líderes disponibles',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Text(
+              '${_leaders.length} ${_leaders.length == 1 ? 'líder asignado' : 'líderes asignados'}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
           ),
-        ),
         PersonListSearchField(
           controller: _searchController,
           hintText: 'Buscar líder por nombre, célula o teléfono…',
@@ -338,8 +384,8 @@ class _SupervisorLeaderAssignmentsScreenState
                     if (id == null) return const SizedBox.shrink();
 
                     final parts = <String>[
-                      if (leader.churchOffice != null)
-                        leader.churchOffice!.label,
+                      if (leader.churchOfficeLabel != null)
+                        leader.churchOfficeLabel!,
                       if (leader.cellCode != null) 'Célula ${leader.cellCode}',
                       leader.mobilePhone,
                     ];
