@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../church/services/church_service.dart';
 import '../../home/screens/home_screen.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../main.dart';
@@ -11,6 +12,7 @@ import '../../notifications/services/push_notification_service.dart';
 import '../models/app_user_role.dart';
 import '../models/user_profile.dart';
 import '../screens/login_screen.dart';
+import 'access_enforcement_gate.dart';
 import '../services/auth_service.dart';
 import '../services/user_profile_service.dart';
 
@@ -28,6 +30,7 @@ class _AuthGateState extends State<AuthGate> {
   late final AuthService _auth;
   late final UserProfileService _profileService;
   final _leaderService = LeaderService();
+  final _churchService = ChurchService();
   final _pushService = PushNotificationService();
   UserSession? _session;
   String? _pushRegisteredUid;
@@ -106,15 +109,16 @@ class _AuthGateState extends State<AuthGate> {
       UserProfile profile;
       if (doc == null) {
         profile = UserProfile(
-          roles: [AppUserRole.admin],
+          roles: [AppUserRole.superAdmin],
           email: user.email,
         );
       } else {
         profile = UserProfile.fromFirestore(doc);
         if (profile.roles.isEmpty) {
           profile = UserProfile(
-            roles: [AppUserRole.admin],
+            roles: [AppUserRole.superAdmin],
             leaderId: profile.leaderId,
+            churchId: profile.churchId,
             fullName: profile.fullName,
             email: profile.email ?? user.email,
           );
@@ -125,6 +129,7 @@ class _AuthGateState extends State<AuthGate> {
       if (_auth.currentUser?.uid != user.uid) return;
 
       String? displayName;
+      var churchId = profile.churchId;
       final leaderId = profile.leaderId;
       if (leaderId != null && leaderId.isNotEmpty) {
         final leader = await _leaderService.fetchLeaderById(leaderId);
@@ -132,8 +137,26 @@ class _AuthGateState extends State<AuthGate> {
         if (name != null && name.isNotEmpty) {
           displayName = name;
         }
-      } else {
-        displayName = profile.fullName;
+        final leaderChurchId = leader?.churchId;
+        if ((churchId == null || churchId.isEmpty) &&
+            leaderChurchId != null &&
+            leaderChurchId.isNotEmpty) {
+          churchId = leaderChurchId;
+        }
+      }
+      if (churchId != profile.churchId) {
+        profile = UserProfile(
+          roles: profile.roles,
+          leaderId: profile.leaderId,
+          churchId: churchId,
+          fullName: profile.fullName,
+          email: profile.email,
+          isBlocked: profile.isBlocked,
+        );
+      }
+      displayName ??= profile.fullName?.trim();
+      if (displayName != null && displayName.isEmpty) {
+        displayName = null;
       }
 
       final session = UserSession(
@@ -223,9 +246,15 @@ class _AuthGateState extends State<AuthGate> {
           _registerPushIfNeeded(session);
         });
 
-        return HomeScreen(
+        return AccessEnforcementGate(
           session: session,
           authService: _auth,
+          userProfileService: _profileService,
+          churchService: _churchService,
+          child: HomeScreen(
+            session: session,
+            authService: _auth,
+          ),
         );
       },
     );

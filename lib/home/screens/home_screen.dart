@@ -8,6 +8,9 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/church_logo.dart';
 import '../../core/widgets/whatsapp_list_tile.dart';
 import '../../core/widgets/slide_menu_scaffold.dart';
+import '../../auth/screens/admins_list_screen.dart';
+import '../../auth/screens/register_admin_screen.dart';
+import '../../church/screens/churches_list_screen.dart';
 import '../../leaders/screens/leader_assigned_members_screen.dart';
 import '../../leaders/screens/leaders_list_screen.dart';
 import '../../leaders/screens/register_leader_screen.dart';
@@ -41,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   AppPermissions get _permissions => widget.session.permissions;
   String get _email => widget.session.email;
+  String? get _churchId => widget.session.profile.churchId;
 
   @override
   void initState() {
@@ -95,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
       LeaderAssignedMembersScreen(
         leader: leader,
         registeredBy: _email,
+        permissions: _permissions,
       ),
       'Mis integrantes',
     );
@@ -116,7 +121,10 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icons.person_add_outlined,
           label: 'Nuevo integrante',
           onTap: () => _navigate(
-            RegisterMemberScreen(registeredBy: _email),
+            RegisterMemberScreen(
+              registeredBy: _email,
+              churchId: _churchId,
+            ),
             'Nuevo integrante',
           ),
         ),
@@ -171,7 +179,10 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icons.supervisor_account_outlined,
           label: 'Nuevo líder',
           onTap: () => _navigate(
-            RegisterLeaderScreen(registeredBy: _email),
+            RegisterLeaderScreen(
+              registeredBy: _email,
+              churchId: _churchId,
+            ),
             'Nuevo líder',
           ),
         ),
@@ -189,6 +200,54 @@ class _HomeScreenState extends State<HomeScreen> {
               permissions: p,
             ),
             'Líderes',
+          ),
+        ),
+      );
+    }
+
+    if (p.canViewChurchesList) {
+      items.add(
+        SlideMenuItem(
+          icon: Icons.church_outlined,
+          label: 'Iglesias',
+          onTap: () => _navigate(
+            ChurchesListScreen(
+              updatedBy: _email,
+              permissions: p,
+            ),
+            'Iglesias',
+          ),
+        ),
+      );
+    }
+
+    if (p.canViewAdminsList) {
+      items.add(
+        SlideMenuItem(
+          icon: Icons.admin_panel_settings_outlined,
+          label: 'Administradores',
+          onTap: () => _navigate(
+            AdminsListScreen(
+              updatedBy: _email,
+              permissions: p,
+            ),
+            'Administradores',
+          ),
+        ),
+      );
+    }
+
+    if (p.canRegisterAdmin) {
+      items.add(
+        SlideMenuItem(
+          icon: Icons.person_add_alt_1_outlined,
+          label: 'Nuevo administrador',
+          onTap: () => _navigate(
+            RegisterAdminScreen(
+              registeredBy: _email,
+              permissions: p,
+            ),
+            'Nuevo administrador',
           ),
         ),
       );
@@ -216,7 +275,10 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'Registrar integrante',
         subtitle: 'Formulario de nuevo integrante',
         onTap: () => _navigate(
-          RegisterMemberScreen(registeredBy: _email),
+          RegisterMemberScreen(
+            registeredBy: _email,
+            churchId: _churchId,
+          ),
           'Nuevo integrante',
         ),
       );
@@ -257,7 +319,10 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'Registrar líder',
         subtitle: 'Datos del liderazgo',
         onTap: () => _navigate(
-          RegisterLeaderScreen(registeredBy: _email),
+          RegisterLeaderScreen(
+            registeredBy: _email,
+            churchId: _churchId,
+          ),
           'Nuevo líder',
         ),
       );
@@ -270,6 +335,48 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () => _navigate(
           LeadersListScreen(registeredBy: _email, permissions: p),
           'Líderes',
+        ),
+      );
+    }
+    if (p.canViewChurchesList) {
+      addEntry(
+        icon: Icons.church_outlined,
+        title: 'Iglesias',
+        subtitle: 'Ver, editar y registrar sedes',
+        onTap: () => _navigate(
+          ChurchesListScreen(
+            updatedBy: _email,
+            permissions: p,
+          ),
+          'Iglesias',
+        ),
+      );
+    }
+    if (p.canViewAdminsList) {
+      addEntry(
+        icon: Icons.admin_panel_settings_outlined,
+        title: 'Administradores',
+        subtitle: 'Ver, editar y bloquear cuentas',
+        onTap: () => _navigate(
+          AdminsListScreen(
+            updatedBy: _email,
+            permissions: p,
+          ),
+          'Administradores',
+        ),
+      );
+    }
+    if (p.canRegisterAdmin) {
+      addEntry(
+        icon: Icons.person_add_alt_1_outlined,
+        title: 'Nuevo administrador',
+        subtitle: 'Asignar iglesia al administrador',
+        onTap: () => _navigate(
+          RegisterAdminScreen(
+            registeredBy: _email,
+            permissions: p,
+          ),
+          'Nuevo administrador',
         ),
       );
     }
@@ -370,7 +477,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   radius: 28,
                   backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                   child: ClipOval(
-                    child: ChurchLogo(size: 48),
+                    child: ChurchLogo(
+                      size: 48,
+                      churchId: widget.session.profile.churchId,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 14),

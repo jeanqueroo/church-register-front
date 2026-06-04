@@ -35,6 +35,7 @@ class MemberDetailScreen extends StatelessWidget {
       MaterialPageRoute<bool>(
         builder: (_) => RegisterMemberScreen(
           registeredBy: registeredBy,
+          churchId: _permissions.churchId,
           memberService: memberService,
           memberToEdit: member,
         ),

@@ -119,11 +119,12 @@ Si no llega el push pero sí el aviso en la app, revisa que la función esté de
 
 Un usuario puede tener **varios roles** a la vez. Valores válidos en `roles`:
 
-| Valor en Firestore | Etiqueta        | Permisos en la app                                      |
-|--------------------|-----------------|---------------------------------------------------------|
-| `admin`            | Administrador   | Ve y gestiona todo                                      |
-| `registrador`      | Registrador     | Solo registrar integrantes y líderes (sin listas)       |
-| `leader`           | Líder           | Ver sus integrantes asignados (solo lectura)            |
+| Valor en Firestore | Etiqueta                 | Permisos en la app                                      |
+|--------------------|--------------------------|---------------------------------------------------------|
+| `superadmin`       | Super administrador      | Crear iglesias y registrar administradores de iglesia   |
+| `admin`            | Administrador de iglesia | Gestiona su sede (`churchId`); integrantes y líderes    |
+| `registrador`      | Registrador              | Solo registrar integrantes y líderes (sin listas)       |
+| `leader`           | Líder                    | Ver sus integrantes asignados (solo lectura)            |
 
 Ejemplo de documento en `users/{uid}`:
 
@@ -148,7 +149,31 @@ Ejemplo de **líder** (sin `fullName`; el nombre está en `leaders`):
 - **Administrador / registrador:** pueden usar `fullName` en `users` si lo necesitas.
 - **Líder:** al registrarse desde la app solo se guardan `roles`, `leaderId` y `email` en `users`; `firstName` y `lastName` van en `leaders/{leaderId}`.
 
-Si un usuario autenticado **no tiene documento** en `users`, la app lo trata como **administrador** (compatibilidad con cuentas creadas solo en Console).
+Si un usuario autenticado **no tiene documento** en `users`, la app lo trata como **super administrador** (compatibilidad con la primera cuenta en Firebase Console).
+
+## Datos de la iglesia
+
+- **Super administrador** (`roles: ["superadmin"]`): menú **Iglesias** (listar, editar, crear) y **Nuevo administrador**.
+- **Administrador de iglesia** (`roles: ["admin"]` + `churchId`): menú **Datos de la iglesia** y gestión de la sede.
+
+Firestore → colección `churches` (un documento por iglesia). Logo opcional en Storage → `church_profiles/{churchId}/logo.jpg`.
+
+Ejemplo de administrador de iglesia en `users/{uid}`:
+
+```json
+{
+  "email": "admin@iglesia.com",
+  "roles": ["admin"],
+  "churchId": "abc123church",
+  "fullName": "María García"
+}
+```
+
+Activa **Storage** y publica reglas:
+
+```bash
+firebase deploy --only firestore:rules,storage
+```
 
 ## Mi cuenta (datos y contraseña)
 

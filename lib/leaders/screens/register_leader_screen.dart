@@ -2,24 +2,30 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../address/services/geocoding_service.dart';
+import '../../auth/models/app_user_role.dart';
 import '../../auth/services/auth_service.dart';
 import '../../auth/services/user_profile_service.dart';
+import '../../auth/widgets/assignable_roles_section.dart';
 import '../../address/widgets/address_fields_section.dart';
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
 import '../../core/widgets/form_section_title.dart';
 import '../models/church_leader.dart';
+import '../models/church_office.dart';
 import '../services/leader_service.dart';
 
 class RegisterLeaderScreen extends StatefulWidget {
   const RegisterLeaderScreen({
     super.key,
     required this.registeredBy,
+    this.churchId,
     this.leaderService,
     this.leaderToEdit,
   });
 
   final String registeredBy;
+  /// Iglesia del usuario que registra (admin / registrador).
+  final String? churchId;
   final LeaderService? leaderService;
   final ChurchLeader? leaderToEdit;
 
@@ -51,10 +57,13 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
   final _geocodingService = GeocodingService();
 
   LeaderGender? _gender;
+  ChurchOffice? _churchOffice;
+  Set<String> _selectedRoles = {AppUserRole.leader};
   GeoLocation? _leaderLocation;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
+  bool _loadingRoles = false;
 
   @override
   void initState() {
@@ -62,6 +71,30 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _leaderService = widget.leaderService ?? LeaderService();
     if (widget.leaderToEdit != null) {
       _loadLeader(widget.leaderToEdit!);
+      _loadUserRoles(widget.leaderToEdit!);
+    }
+  }
+
+  Future<void> _loadUserRoles(ChurchLeader leader) async {
+    final authUserId = leader.authUserId;
+    if (authUserId == null || authUserId.isEmpty) return;
+
+    setState(() => _loadingRoles = true);
+    try {
+      final doc = await _userProfileService.fetchProfileDoc(authUserId);
+      if (doc != null && mounted) {
+        final roles = AppUserRole.parseList(doc.data()?['roles']);
+        if (roles.isNotEmpty) {
+          setState(() {
+            _selectedRoles =
+                AppUserRole.sanitizeForLeaderRegistration(roles).toSet();
+          });
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loadingRoles = false);
+      }
     }
   }
 
@@ -78,6 +111,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _emailController.text = leader.email ?? '';
     _mobilePhoneController.text = leader.mobilePhone;
     _gender = leader.gender;
+    _churchOffice = leader.churchOffice;
     _leaderLocation = leader.geoLocation;
   }
 
@@ -118,6 +152,15 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
 
   Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_churchOffice == null) {
+      _showMessage('Selecciona el cargo en la iglesia');
+      return;
+    }
+    if (_selectedRoles.isEmpty) {
+      _showMessage('Selecciona al menos un rol en la app');
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -186,6 +229,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           mobilePhone: _mobilePhoneController.text.trim(),
           registeredAt: DateTime.now(),
           registeredBy: widget.registeredBy,
+          churchId: widget.churchId,
+          churchOffice: _churchOffice,
         );
 
         final leaderId = await _leaderService.addLeader(leader);
@@ -194,6 +239,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           uid: authUserId,
           email: email,
           leaderId: leaderId,
+          roles: _selectedRoles.toList(),
+          churchId: widget.churchId,
         );
 
         if (!mounted) return;
@@ -237,9 +284,20 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         mobilePhone: _mobilePhoneController.text.trim(),
         registeredAt: widget.leaderToEdit?.registeredAt ?? DateTime.now(),
         registeredBy: widget.leaderToEdit?.registeredBy ?? widget.registeredBy,
+        churchId: widget.leaderToEdit?.churchId ?? widget.churchId,
+        churchOffice: _churchOffice,
       );
 
       await _leaderService.updateLeader(leader);
+
+      final authUserId = widget.leaderToEdit?.authUserId;
+      if (authUserId != null && authUserId.isNotEmpty) {
+        await _userProfileService.updateUserRoles(
+          uid: authUserId,
+          roles: _selectedRoles.toList(),
+        );
+      }
+
       if (!mounted) return;
       _showMessage('Líder actualizado correctamente');
       Navigator.of(context).pop(true);
@@ -335,6 +393,55 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                     setState(() => _leaderLocation = location);
                   },
                 ),
+                const FormSectionTitle('CARGO EN LA IGLESIA'),
+                DropdownButtonFormField<ChurchOffice>(
+                  initialValue: _churchOffice,
+                  decoration: const InputDecoration(
+                    labelText: 'Cargo *',
+                    prefixIcon: Icon(Icons.church_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                  items: ChurchOffice.values
+                      .map(
+                        (office) => DropdownMenuItem(
+                          value: office,
+                          child: Text(office.label),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: _isLoading
+                      ? null
+                      : (value) => setState(() => _churchOffice = value),
+                  validator: (value) =>
+                      value == null ? 'Selecciona el cargo' : null,
+                ),
+                const SizedBox(height: 24),
+                const FormSectionTitle('ROLES EN LA APP'),
+                if (_loadingRoles)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: LinearProgressIndicator(),
+                  )
+                else
+                  AssignableRolesSection(
+                    selectedRoles: _selectedRoles,
+                    enabled: !_isLoading,
+                    onChanged: (roles) => setState(() => _selectedRoles = roles),
+                  ),
+                if (widget.isEditing && widget.leaderToEdit?.authUserId == null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      'Sin cuenta de acceso: los roles se aplicarán cuando '
+                      'se cree el usuario.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
+                          ),
+                    ),
+                  ),
+                const SizedBox(height: 24),
                 const FormSectionTitle('CÉLULA Y CONTACTO'),
                 TextFormField(
                   controller: _cellCodeController,

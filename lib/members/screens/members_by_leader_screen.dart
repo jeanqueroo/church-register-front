@@ -62,7 +62,7 @@ class _MembersByLeaderBody extends StatelessWidget {
         title: const Text('Integrantes por líder'),
       ),
       body: StreamBuilder<List<ChurchMember>>(
-        stream: service.watchMembers(),
+        stream: service.watchMembers(churchId: permissions.churchId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

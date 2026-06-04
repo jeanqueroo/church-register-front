@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
+import '../../auth/models/app_user_role.dart';
+import '../../auth/services/user_profile_service.dart';
 import '../models/church_leader.dart';
 import '../services/leader_service.dart';
 import 'leader_assigned_members_screen.dart';
@@ -29,6 +31,7 @@ class LeaderDetailScreen extends StatelessWidget {
       MaterialPageRoute<bool>(
         builder: (_) => RegisterLeaderScreen(
           registeredBy: registeredBy,
+          churchId: _permissions.churchId,
           leaderService: leaderService,
           leaderToEdit: leader,
         ),
@@ -111,8 +114,11 @@ class LeaderDetailScreen extends StatelessWidget {
               _Row('Apellido', leader.lastName),
               _Row('Nombres', leader.firstName),
               _Row('Género', leader.gender?.label),
+              _Row('Cargo en la iglesia', leader.churchOffice?.label),
             ],
           ),
+          if (leader.authUserId != null && leader.authUserId!.isNotEmpty)
+            _LeaderRolesSection(authUserId: leader.authUserId!),
           _Section(
             title: 'Dirección',
             rows: [
@@ -173,6 +179,37 @@ class LeaderDetailScreen extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _LeaderRolesSection extends StatelessWidget {
+  const _LeaderRolesSection({required this.authUserId});
+
+  final String authUserId;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: UserProfileService().fetchProfileDoc(authUserId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.only(bottom: 24),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final roles = snapshot.hasData
+            ? AppUserRole.parseList(snapshot.data!.data()?['roles'])
+            : <String>[];
+        if (roles.isEmpty) return const SizedBox.shrink();
+
+        final labels = roles.map(AppUserRole.label).toList()..sort();
+        return _Section(
+          title: 'Roles en la app',
+          rows: [_Row('Permisos', labels.join(', '))],
+        );
+      },
     );
   }
 }

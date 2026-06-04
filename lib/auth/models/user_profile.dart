@@ -7,16 +7,22 @@ class UserProfile {
   const UserProfile({
     required this.roles,
     this.leaderId,
+    this.churchId,
     this.fullName,
     this.email,
+    this.isBlocked = false,
   });
 
   final List<String> roles;
   final String? leaderId;
+  /// Iglesia asignada (administradores de una sede).
+  final String? churchId;
   final String? fullName;
   final String? email;
+  final bool isBlocked;
 
-  AppPermissions get permissions => AppPermissions.fromRoles(roles);
+  AppPermissions get permissions =>
+      AppPermissions.fromRoles(roles, churchId: churchId);
 
   factory UserProfile.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
@@ -27,8 +33,10 @@ class UserProfile {
     return UserProfile(
       roles: roles,
       leaderId: data['leaderId'] as String?,
+      churchId: data['churchId'] as String?,
       fullName: data['fullName'] as String?,
       email: data['email'] as String?,
+      isBlocked: data['isBlocked'] as bool? ?? false,
     );
   }
 }
@@ -45,7 +53,7 @@ class UserSession {
   final String email;
   final UserProfile profile;
 
-  /// Nombre para mostrar: ficha en `leaders` si es líder, si no `users.fullName`.
+  /// Nombre para mostrar: ficha en `leaders` vía [leaderId]; legado en `users.fullName`.
   final String? displayName;
 
   AppPermissions get permissions => profile.permissions;

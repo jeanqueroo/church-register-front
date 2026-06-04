@@ -15,14 +15,15 @@ class MemberService {
   final CollectionReference<Map<String, dynamic>> _members;
   final LeaderNotificationService _notificationService;
 
-  Stream<List<ChurchMember>> watchMembers() {
-    return _members
-        .orderBy('registeredAt', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs.map(ChurchMember.fromFirestore).toList(),
-        );
+  Stream<List<ChurchMember>> watchMembers({String? churchId}) {
+    final query = churchId != null && churchId.isNotEmpty
+        ? _members.where('churchId', isEqualTo: churchId)
+        : _members.orderBy('registeredAt', descending: true);
+    return query.snapshots().map((snapshot) {
+      final list = snapshot.docs.map(ChurchMember.fromFirestore).toList();
+      list.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
+      return list;
+    });
   }
 
   Future<String> addMember(ChurchMember member) async {

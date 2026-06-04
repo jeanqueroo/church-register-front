@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../church/screens/register_church_screen.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/whatsapp_list_tile.dart';
 import '../models/user_profile.dart';
@@ -21,6 +22,11 @@ class AccountHubScreen extends StatelessWidget {
         ? session.resolvedDisplayName
         : 'Usuario';
     final roles = session.profile.permissions.roleLabels;
+    final permissions = session.profile.permissions;
+    final churchId = session.profile.churchId;
+    final showChurchData = permissions.canManageChurch &&
+        churchId != null &&
+        churchId.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mi cuenta')),
@@ -139,6 +145,23 @@ class AccountHubScreen extends StatelessWidget {
                       );
                     },
                   ),
+                  if (showChurchData)
+                    WhatsappListTile(
+                      icon: Icons.church_outlined,
+                      title: 'Datos de la iglesia',
+                      subtitle: 'Nombre, dirección y logo de tu sede',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => RegisterChurchScreen(
+                              updatedBy: session.email,
+                              permissions: permissions,
+                              churchId: churchId,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   WhatsappListTile(
                     icon: Icons.lock_outline,
                     title: 'Cambiar contraseña',

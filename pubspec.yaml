@@ -38,6 +38,8 @@ dependencies:
   firebase_auth: ^6.5.1
   firebase_messaging: ^16.0.4
   cloud_firestore: ^6.4.1
+  firebase_storage: ^13.0.0
+  image_picker: ^1.1.2
   flutter_local_notifications: ^19.4.0
   http: ^1.6.0
   flutter_map: ^8.3.0
@@ -54,6 +56,17 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
   firebase_core_platform_interface: ^7.0.1
+  flutter_launcher_icons: ^0.14.3
+
+# Icono de la app (Android e iOS). Cambia image_path y ejecuta:
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/images/logo_iglesia.png
+  adaptive_icon_background: "#075E54"
+  adaptive_icon_foreground: assets/images/logo_iglesia.png
+  remove_alpha_ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

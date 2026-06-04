@@ -19,11 +19,14 @@ class RegisterMemberScreen extends StatefulWidget {
   const RegisterMemberScreen({
     super.key,
     required this.registeredBy,
+    this.churchId,
     this.memberService,
     this.memberToEdit,
   });
 
   final String registeredBy;
+  /// Iglesia del usuario que registra (admin / registrador).
+  final String? churchId;
   final MemberService? memberService;
   final ChurchMember? memberToEdit;
 
@@ -93,7 +96,8 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
 
   Future<void> _loadLeaders() async {
     try {
-      final leaders = await _leaderService.fetchAllLeaders();
+      final leaders =
+          await _leaderService.fetchAllLeaders(churchId: widget.churchId);
       leaders.sort((a, b) => a.fullName.compareTo(b.fullName));
       if (!mounted) return;
 
@@ -370,6 +374,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         final assignment = await _assignmentService.assignNearestLeader(
           gender: _gender!,
           memberLocation: location,
+          churchId: widget.churchId,
         );
         if (assignment != null) {
           assignedLeader = assignment.leader;
@@ -430,6 +435,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         formDate: _formDate,
         registeredAt: widget.memberToEdit?.registeredAt ?? DateTime.now(),
         registeredBy: widget.memberToEdit?.registeredBy ?? widget.registeredBy,
+        churchId: widget.memberToEdit?.churchId ?? widget.churchId,
       );
 
       if (widget.isEditing) {

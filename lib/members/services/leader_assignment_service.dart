@@ -29,8 +29,9 @@ class LeaderAssignmentService {
   Future<LeaderAssignmentResult?> assignNearestLeader({
     required LeaderGender gender,
     required GeoLocation memberLocation,
+    String? churchId,
   }) async {
-    final leaders = await _leaderService.fetchAllLeaders();
+    final leaders = await _leaderService.fetchAllLeaders(churchId: churchId);
     final candidates = <({ChurchLeader leader, double distance})>[];
 
     for (final leader in leaders) {

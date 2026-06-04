@@ -17,6 +17,8 @@ class AddressAutocompleteField extends StatefulWidget {
     this.hintText = 'Escribe y elige una sugerencia...',
     this.nominatimService,
     this.validator,
+    this.showInlineMapPreview = true,
+    this.suggestionsLocked = false,
   });
 
   final TextEditingController controller;
@@ -27,6 +29,10 @@ class AddressAutocompleteField extends StatefulWidget {
   final String hintText;
   final NominatimService? nominatimService;
   final FormFieldValidator<String>? validator;
+  final bool showInlineMapPreview;
+
+  /// Si es true, no se muestran ni buscan sugerencias (p. ej. dirección ya confirmada).
+  final bool suggestionsLocked;
 
   @override
   State<AddressAutocompleteField> createState() =>
@@ -39,8 +45,23 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
   List<NominatimPlace> _suggestions = [];
   bool _isSearching = false;
   GeoLocation? _selectedLocation;
+  bool _ignoreTextChangeAfterSelect = false;
 
   NominatimService get _service => widget.nominatimService ?? _nominatim;
+
+  @override
+  void didUpdateWidget(AddressAutocompleteField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.suggestionsLocked && !oldWidget.suggestionsLocked) {
+      _debounce?.cancel();
+      if (_suggestions.isNotEmpty || _isSearching) {
+        setState(() {
+          _suggestions = [];
+          _isSearching = false;
+        });
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -57,12 +78,22 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
 
   void _onTextChanged() {
     if (!widget.enabled) return;
+
+    if (_ignoreTextChangeAfterSelect) {
+      _ignoreTextChangeAfterSelect = false;
+      return;
+    }
+
+    if (widget.suggestionsLocked) return;
+
     setState(() => _selectedLocation = null);
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), _fetchSuggestions);
   }
 
   Future<void> _fetchSuggestions() async {
+    if (widget.suggestionsLocked) return;
+
     final query = widget.controller.text;
     if (query.trim().length < 3) {
       if (mounted) {
@@ -98,6 +129,8 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
   }
 
   Future<void> _selectPlace(NominatimPlace place) async {
+    _debounce?.cancel();
+    _ignoreTextChangeAfterSelect = true;
     setState(() {
       _suggestions = [];
       _isSearching = true;
@@ -110,6 +143,7 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
     setState(() {
       _isSearching = false;
       _selectedLocation = enriched.location;
+      _suggestions = [];
     });
     widget.onPlaceSelected?.call(enriched);
     widget.onCoordinatesSelected?.call(enriched.location);
@@ -145,7 +179,7 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
             alignLabelWithHint: true,
           ),
         ),
-        if (_suggestions.isNotEmpty)
+        if (!widget.suggestionsLocked && _suggestions.isNotEmpty)
           Material(
             elevation: 4,
             borderRadius: BorderRadius.circular(12),
@@ -169,7 +203,7 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
               },
             ),
           ),
-        if (_selectedLocation != null) ...[
+        if (widget.showInlineMapPreview && _selectedLocation != null) ...[
           const SizedBox(height: 12),
           LocationMapPreview(location: _selectedLocation!),
         ],
