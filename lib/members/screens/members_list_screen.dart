@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
-import '../../core/services/excel_export_service.dart';
-import '../../core/utils/list_search.dart';
-import '../../core/widgets/export_excel_icon_button.dart';
-import '../../core/widgets/person_list_search_field.dart';
 import '../models/church_member.dart';
 import '../services/member_service.dart';
 import 'member_detail_screen.dart';
@@ -41,7 +37,7 @@ class MembersListScreen extends StatelessWidget {
   }
 }
 
-class _MembersListBody extends StatefulWidget {
+class _MembersListBody extends StatelessWidget {
   const _MembersListBody({
     required this.registeredBy,
     this.memberService,
@@ -51,38 +47,6 @@ class _MembersListBody extends StatefulWidget {
   final String registeredBy;
   final MemberService? memberService;
   final AppPermissions permissions;
-
-  @override
-  State<_MembersListBody> createState() => _MembersListBodyState();
-}
-
-class _MembersListBodyState extends State<_MembersListBody> {
-  final _searchController = TextEditingController();
-  List<ChurchMember> _membersForExport = [];
-  bool _canExport = false;
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _exportToExcel() {
-    return ExcelExportService.instance.shareMembersExcel(
-      members: _membersForExport,
-      fileName: 'nuevos_creyentes_${DateTime.now().millisecondsSinceEpoch}',
-    );
-  }
-
-  void _syncMembersForExport(List<ChurchMember> members) {
-    _membersForExport = members;
-    final canExport = members.isNotEmpty;
-    if (canExport == _canExport) return;
-    _canExport = canExport;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() {});
-    });
-  }
 
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
@@ -94,8 +58,8 @@ class _MembersListBodyState extends State<_MembersListBody> {
     await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
         builder: (_) => RegisterMemberScreen(
-          registeredBy: widget.registeredBy,
-          memberService: widget.memberService,
+          registeredBy: registeredBy,
+          memberService: memberService,
           memberToEdit: member,
         ),
       ),
@@ -109,7 +73,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar nuevo creyente'),
+        title: const Text('Eliminar integrante'),
         content: Text(
           '¿Eliminar a ${member.fullName}? Esta acción no se puede deshacer.',
         ),
@@ -132,10 +96,10 @@ class _MembersListBodyState extends State<_MembersListBody> {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      await (widget.memberService ?? MemberService()).deleteMember(id);
+      await (memberService ?? MemberService()).deleteMember(id);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nuevo creyente eliminado')),
+        const SnackBar(content: Text('Integrante eliminado')),
       );
     } on FirebaseException catch (e) {
       if (!context.mounted) return;
@@ -149,25 +113,19 @@ class _MembersListBodyState extends State<_MembersListBody> {
 
   @override
   Widget build(BuildContext context) {
-    final service = widget.memberService ?? MemberService();
+    final service = memberService ?? MemberService();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nuevos creyentes'),
-        actions: [
-          ExportExcelIconButton(
-            enabled: _canExport,
-            onExport: _exportToExcel,
-          ),
-        ],
+        title: const Text('Integrantes'),
       ),
-      floatingActionButton: widget.permissions.canRegisterMember
+      floatingActionButton: permissions.canRegisterMember
           ? FloatingActionButton.extended(
               onPressed: () async {
                 await Navigator.of(context).push<bool>(
                   MaterialPageRoute<bool>(
                     builder: (_) => RegisterMemberScreen(
-                      registeredBy: widget.registeredBy,
+                      registeredBy: registeredBy,
                       memberService: service,
                     ),
                   ),
@@ -200,11 +158,6 @@ class _MembersListBodyState extends State<_MembersListBody> {
           }
 
           final members = snapshot.data ?? [];
-          _syncMembersForExport(members);
-          final query = _searchController.text;
-          final filtered = members
-              .where((m) => memberMatchesSearch(m, query))
-              .toList();
 
           if (members.isEmpty) {
             return Center(
@@ -220,7 +173,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Aún no hay nuevos creyentes registrados',
+                      'Aún no hay integrantes registrados',
                       style: Theme.of(context).textTheme.titleMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -239,26 +192,12 @@ class _MembersListBodyState extends State<_MembersListBody> {
             );
           }
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PersonListSearchField(
-                controller: _searchController,
-                hintText: 'Buscar por nombre, teléfono o líder…',
-                onChanged: (_) => setState(() {}),
-              ),
-              if (filtered.isEmpty)
-                Expanded(
-                  child: PersonListSearchEmptyState(query: query),
-                )
-              else
-                Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 88),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final member = filtered[index];
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+            itemCount: members.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final member = members[index];
               final subtitleParts = <String>[
                 member.phone,
                 if (member.assignedLeaderName != null)
@@ -286,9 +225,9 @@ class _MembersListBodyState extends State<_MembersListBody> {
                             MaterialPageRoute<bool>(
                               builder: (_) => MemberDetailScreen(
                                 member: member,
-                                registeredBy: widget.registeredBy,
+                                registeredBy: registeredBy,
                                 memberService: service,
-                                permissions: widget.permissions,
+                                permissions: permissions,
                               ),
                             ),
                           );
@@ -303,7 +242,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
                         value: 'view',
                         child: Text('Ver detalle'),
                       ),
-                      if (widget.permissions.canManageAll) ...[
+                      if (permissions.canManageAll) ...[
                         const PopupMenuItem(
                           value: 'edit',
                           child: Text('Editar'),
@@ -323,19 +262,16 @@ class _MembersListBodyState extends State<_MembersListBody> {
                       MaterialPageRoute<void>(
                         builder: (_) => MemberDetailScreen(
                           member: member,
-                          registeredBy: widget.registeredBy,
+                          registeredBy: registeredBy,
                           memberService: service,
-                          permissions: widget.permissions,
+                          permissions: permissions,
                         ),
                       ),
                     );
                   },
                 ),
               );
-                    },
-                  ),
-                ),
-            ],
+            },
           );
         },
       ),

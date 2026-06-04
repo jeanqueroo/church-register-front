@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/models/app_user_role.dart';
-import '../../core/services/excel_export_service.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/utils/list_search.dart';
-import '../../core/widgets/export_excel_icon_button.dart';
-import '../../core/widgets/person_list_search_field.dart';
 import '../../members/models/church_member.dart';
 import '../../members/screens/member_detail_screen.dart';
 import '../../members/services/member_service.dart';
@@ -37,9 +33,6 @@ class _LeaderAssignedMembersScreenState
     extends State<LeaderAssignedMembersScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  final _searchController = TextEditingController();
-  List<ChurchMember> _membersForExport = [];
-  bool _canExport = false;
 
   @override
   void initState() {
@@ -50,7 +43,6 @@ class _LeaderAssignedMembersScreenState
   @override
   void dispose() {
     _tabController.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -60,25 +52,6 @@ class _LeaderAssignedMembersScreenState
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
     return '$day/$month/${date.year}';
-  }
-
-  Future<void> _exportToExcel() {
-    final leaderName = widget.leader.fullName.replaceAll(RegExp(r'\s+'), '_');
-    return ExcelExportService.instance.shareMembersExcel(
-      members: _membersForExport,
-      fileName: 'asignados_${leaderName}_${DateTime.now().millisecondsSinceEpoch}',
-      sheetTitle: 'Asignados',
-    );
-  }
-
-  void _syncMembersForExport(List<ChurchMember> members) {
-    _membersForExport = members;
-    final canExport = members.isNotEmpty;
-    if (canExport == _canExport) return;
-    _canExport = canExport;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() {});
-    });
   }
 
   void _openMemberDetail(BuildContext context, ChurchMember member) {
@@ -126,7 +99,8 @@ class _LeaderAssignedMembersScreenState
                           ),
                     ),
                     Text(
-                      '$count ${count == 1 ? 'nuevo creyente' : 'nuevos creyentes'} asignado${count == 1 ? '' : 's'}$cellLabel',
+                      '$count integrante${count == 1 ? '' : 's'} asignado'
+                      '${count == 1 ? '' : 's'}$cellLabel',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color:
                                 Theme.of(context).colorScheme.onSurfaceVariant,
@@ -156,13 +130,13 @@ class _LeaderAssignedMembersScreenState
             ),
             const SizedBox(height: 16),
             Text(
-              'Sin nuevos creyentes asignados',
+              'Sin integrantes asignados',
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Los nuevos creyentes con visita activada y dirección '
+              'Los integrantes con visita activada y dirección '
               'aparecerán aquí al registrarse.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -175,27 +149,17 @@ class _LeaderAssignedMembersScreenState
     );
   }
 
-  Widget _buildListTab(
-    BuildContext context,
-    List<ChurchMember> assigned,
-    String query,
-  ) {
+  Widget _buildListTab(BuildContext context, List<ChurchMember> assigned) {
     if (assigned.isEmpty) {
       return _buildEmptyState(context);
     }
 
-    final filtered =
-        assigned.where((m) => memberMatchesSearch(m, query)).toList();
-    if (filtered.isEmpty) {
-      return PersonListSearchEmptyState(query: query);
-    }
-
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      itemCount: filtered.length,
+      itemCount: assigned.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
-        final member = filtered[index];
+        final member = assigned[index];
         final parts = <String>[
           member.phone,
           if (member.wantsVisit) 'Solicita visita',
@@ -228,13 +192,7 @@ class _LeaderAssignedMembersScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nuevos creyentes asignados'),
-        actions: [
-          ExportExcelIconButton(
-            enabled: _canExport,
-            onExport: _exportToExcel,
-          ),
-        ],
+        title: const Text('Integrantes asignados'),
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
@@ -259,7 +217,7 @@ class _LeaderAssignedMembersScreenState
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'No se pudo cargar los nuevos creyentes.',
+                  'No se pudo cargar los integrantes.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.error,
@@ -273,31 +231,20 @@ class _LeaderAssignedMembersScreenState
             widget.leader,
             snapshot.data ?? [],
           );
-          _syncMembersForExport(assigned);
-          final query = _searchController.text;
-          final filtered = assigned
-              .where((m) => memberMatchesSearch(m, query))
-              .toList();
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildHeader(context, assigned.length),
-              if (assigned.isNotEmpty)
-                PersonListSearchField(
-                  controller: _searchController,
-                  hintText: 'Buscar por nombre, teléfono o dirección…',
-                  onChanged: (_) => setState(() {}),
-                ),
               Expanded(
                 child: assigned.isEmpty
                     ? _buildEmptyState(context)
                     : TabBarView(
                         controller: _tabController,
                         children: [
-                          _buildListTab(context, assigned, query),
+                          _buildListTab(context, assigned),
                           MembersMapView(
-                            members: filtered,
+                            members: assigned,
                             leader: widget.leader,
                             onMemberTap: (m) => _openMemberDetail(context, m),
                           ),

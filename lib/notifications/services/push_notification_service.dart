@@ -9,7 +9,7 @@ import '../../auth/services/user_profile_service.dart';
 import '../../firebase_options.dart';
 
 const androidChannelId = 'leader_assignments';
-const androidChannelName = 'Asignación de nuevos creyentes';
+const androidChannelName = 'Asignación de integrantes';
 
 /// Maneja mensajes FCM cuando la app está en segundo plano o cerrada.
 @pragma('vm:entry-point')
@@ -64,7 +64,7 @@ class PushNotificationService {
             const AndroidNotificationChannel(
               androidChannelId,
               androidChannelName,
-              description: 'Avisos cuando te asignan un nuevo creyente',
+              description: 'Avisos cuando te asignan un integrante',
               importance: Importance.high,
             ),
           );

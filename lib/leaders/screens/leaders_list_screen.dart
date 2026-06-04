@@ -2,13 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
-import '../../auth/services/user_profile_service.dart';
 import '../../auth/widgets/role_gate.dart';
-import '../../auth/widgets/user_roles_chips.dart';
-import '../../core/services/excel_export_service.dart';
-import '../../core/utils/list_search.dart';
-import '../../core/widgets/export_excel_icon_button.dart';
-import '../../core/widgets/person_list_search_field.dart';
 import '../models/church_leader.dart';
 import '../services/leader_service.dart';
 import 'leader_assigned_members_screen.dart';
@@ -44,7 +38,7 @@ class LeadersListScreen extends StatelessWidget {
   }
 }
 
-class _LeadersListBody extends StatefulWidget {
+class _LeadersListBody extends StatelessWidget {
   const _LeadersListBody({
     required this.registeredBy,
     this.leaderService,
@@ -55,57 +49,12 @@ class _LeadersListBody extends StatefulWidget {
   final LeaderService? leaderService;
   final AppPermissions permissions;
 
-  @override
-  State<_LeadersListBody> createState() => _LeadersListBodyState();
-}
-
-class _LeadersListBodyState extends State<_LeadersListBody> {
-  final _searchController = TextEditingController();
-  final _userProfileService = UserProfileService();
-  List<ChurchLeader> _leadersForExport = [];
-  Map<String, List<String>> _rolesByLeaderIdForExport = {};
-  bool _canExport = false;
-
-  List<String> _rolesFor(ChurchLeader leader, Map<String, List<String>> rolesByLeaderId) {
-    final id = leader.id;
-    if (id == null || id.isEmpty) return [];
-    return rolesByLeaderId[id] ?? [];
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _exportToExcel() {
-    return ExcelExportService.instance.shareLeadersExcel(
-      leaders: _leadersForExport,
-      rolesByLeaderId: _rolesByLeaderIdForExport,
-      fileName: 'lideres_${DateTime.now().millisecondsSinceEpoch}',
-    );
-  }
-
-  void _syncLeadersForExport(
-    List<ChurchLeader> leaders,
-    Map<String, List<String>> rolesByLeaderId,
-  ) {
-    _leadersForExport = leaders;
-    _rolesByLeaderIdForExport = rolesByLeaderId;
-    final canExport = leaders.isNotEmpty;
-    if (canExport == _canExport) return;
-    _canExport = canExport;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() {});
-    });
-  }
-
   void _openAssignedMembers(BuildContext context, ChurchLeader leader) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LeaderAssignedMembersScreen(
           leader: leader,
-          registeredBy: widget.registeredBy,
+          registeredBy: registeredBy,
         ),
       ),
     );
@@ -115,9 +64,8 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
     await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
         builder: (_) => RegisterLeaderScreen(
-          registeredBy: widget.registeredBy,
-          permissions: widget.permissions,
-          leaderService: widget.leaderService,
+          registeredBy: registeredBy,
+          leaderService: leaderService,
           leaderToEdit: leader,
         ),
       ),
@@ -154,7 +102,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      await (widget.leaderService ?? LeaderService()).deleteLeader(id);
+      await (leaderService ?? LeaderService()).deleteLeader(id);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Líder eliminado')),
@@ -171,26 +119,19 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
 
   @override
   Widget build(BuildContext context) {
-    final service = widget.leaderService ?? LeaderService();
+    final service = leaderService ?? LeaderService();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Líderes y supervisores'),
-        actions: [
-          ExportExcelIconButton(
-            enabled: _canExport,
-            onExport: _exportToExcel,
-          ),
-        ],
+        title: const Text('Líderes'),
       ),
-      floatingActionButton: widget.permissions.canRegisterLeader
+      floatingActionButton: permissions.canRegisterLeader
           ? FloatingActionButton.extended(
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => RegisterLeaderScreen(
-                      registeredBy: widget.registeredBy,
-                      permissions: widget.permissions,
+                      registeredBy: registeredBy,
                       leaderService: service,
                     ),
                   ),
@@ -200,14 +141,10 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
               label: const Text('Nuevo'),
             )
           : null,
-      body: StreamBuilder<Map<String, List<String>>>(
-        stream: _userProfileService.watchRolesByLeaderId(),
-        builder: (context, rolesSnapshot) {
-          return StreamBuilder<List<ChurchLeader>>(
-            stream: service.watchLeaders(),
-            builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              !snapshot.hasData) {
+      body: StreamBuilder<List<ChurchLeader>>(
+        stream: service.watchLeaders(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -228,18 +165,6 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
           }
 
           final leaders = snapshot.data ?? [];
-          final rolesByLeaderId = rolesSnapshot.data ?? {};
-          _syncLeadersForExport(leaders, rolesByLeaderId);
-          final query = _searchController.text;
-          final filtered = leaders
-              .where(
-                (l) => leaderMatchesSearch(
-                  l,
-                  query,
-                  appRoles: _rolesFor(l, rolesByLeaderId),
-                ),
-              )
-              .toList();
 
           if (leaders.isEmpty) {
             return Center(
@@ -265,39 +190,20 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
             );
           }
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PersonListSearchField(
-                controller: _searchController,
-                hintText: 'Buscar por nombre, teléfono o célula…',
-                onChanged: (_) => setState(() {}),
-              ),
-              if (filtered.isEmpty)
-                Expanded(
-                  child: PersonListSearchEmptyState(query: query),
-                )
-              else
-                Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 88),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final leader = filtered[index];
-                      final appRoles = _rolesFor(leader, rolesByLeaderId);
-                      final parts = <String>[
-                        if (leader.churchOffice != null)
-                          leader.churchOffice!.label,
-                        if (leader.cellCode != null)
-                          'Célula ${leader.cellCode}',
-                        leader.mobilePhone,
-                        if (leader.email != null) leader.email!,
-                      ];
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+            itemCount: leaders.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final leader = leaders[index];
+              final parts = <String>[
+                if (leader.cellCode != null) 'Célula ${leader.cellCode}',
+                leader.mobilePhone,
+                if (leader.email != null) leader.email!,
+              ];
 
               return Card(
                 child: ListTile(
-                  isThreeLine: true,
                   leading: CircleAvatar(
                     child: Text(
                       leader.lastName.isNotEmpty
@@ -306,14 +212,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                     ),
                   ),
                   title: Text('${leader.lastName}, ${leader.firstName}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (parts.isNotEmpty) Text(parts.join(' · ')),
-                      const SizedBox(height: 6),
-                      UserRolesChips(roles: appRoles),
-                    ],
-                  ),
+                  subtitle: Text(parts.join(' · ')),
                   trailing: PopupMenuButton<String>(
                     onSelected: (value) {
                       switch (value) {
@@ -322,9 +221,9 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                             MaterialPageRoute<bool>(
                               builder: (_) => LeaderDetailScreen(
                                 leader: leader,
-                                registeredBy: widget.registeredBy,
+                                registeredBy: registeredBy,
                                 leaderService: service,
-                                permissions: widget.permissions,
+                                permissions: permissions,
                               ),
                             ),
                           );
@@ -343,9 +242,9 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                       ),
                       const PopupMenuItem(
                         value: 'members',
-                        child: Text('Ver nuevos creyentes asignados'),
+                        child: Text('Ver integrantes asignados'),
                       ),
-                      if (widget.permissions.canManageAll) ...[
+                      if (permissions.canManageAll) ...[
                         const PopupMenuItem(
                           value: 'edit',
                           child: Text('Editar'),
@@ -365,20 +264,15 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                       MaterialPageRoute<void>(
                         builder: (_) => LeaderDetailScreen(
                           leader: leader,
-                          registeredBy: widget.registeredBy,
+                          registeredBy: registeredBy,
                           leaderService: service,
-                          permissions: widget.permissions,
+                          permissions: permissions,
                         ),
                       ),
                     );
                   },
                 ),
               );
-                    },
-                  ),
-                ),
-            ],
-          );
             },
           );
         },

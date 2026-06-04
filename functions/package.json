@@ -1,6 +1,6 @@
 {
   "name": "church-register-functions",
-  "description": "Envía push FCM cuando se asigna un nuevo creyente a un líder",
+  "description": "Envía push FCM cuando se asigna un integrante a un líder",
   "main": "index.js",
   "engines": {
     "node": "20"

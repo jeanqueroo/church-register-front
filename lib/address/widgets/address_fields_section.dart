@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/models/geo_location.dart';
 import '../../core/widgets/form_section_title.dart';
-import '../models/address_place.dart';
+import '../services/nominatim_service.dart';
 import 'address_autocomplete_field.dart';
 
 class AddressFieldsSection extends StatefulWidget {
@@ -71,7 +71,7 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
     return null;
   }
 
-  void _applyPlace(AddressPlace place) {
+  void _applyPlace(NominatimPlace place) {
     final parsed = place.parsedAddress;
 
     _searchController.text = place.displayName;

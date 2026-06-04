@@ -29,15 +29,12 @@ class LeaderAssignmentService {
   Future<LeaderAssignmentResult?> assignNearestLeader({
     required LeaderGender gender,
     required GeoLocation memberLocation,
-    Set<String>? allowedLeaderIds,
   }) async {
-    var leaders = await _leaderService.fetchAssignableLeaders(
-      restrictToIds: allowedLeaderIds,
-    );
+    final leaders = await _leaderService.fetchAllLeaders();
     final candidates = <({ChurchLeader leader, double distance})>[];
 
     for (final leader in leaders) {
-      if (leader.gender != null && leader.gender != gender) continue;
+      if (leader.gender != gender) continue;
 
       var location = leader.geoLocation;
       if (location == null) {
