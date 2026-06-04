@@ -55,6 +55,35 @@ class UserProfileService {
     return _users.doc(uid).set(data, SetOptions(merge: true));
   }
 
+  /// Roles en la app por id de documento en `leaders` (`users.leaderId`).
+  Stream<Map<String, List<String>>> watchRolesByLeaderId() {
+    return _users.snapshots().map((snapshot) {
+      final map = <String, List<String>>{};
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final leaderId = data['leaderId'] as String?;
+        if (leaderId == null || leaderId.isEmpty) continue;
+        final roles = AppUserRole.sanitizeForLeaderRegistration(
+          AppUserRole.parseList(data['roles']),
+        );
+        if (roles.isEmpty) continue;
+        map[leaderId] = roles;
+      }
+      return map;
+    });
+  }
+
+  Future<List<String>> fetchRolesForLeaderId(String leaderId) async {
+    final snapshot = await _users
+        .where('leaderId', isEqualTo: leaderId)
+        .limit(1)
+        .get();
+    if (snapshot.docs.isEmpty) return [];
+    return AppUserRole.sanitizeForLeaderRegistration(
+      AppUserRole.parseList(snapshot.docs.first.data()['roles']),
+    );
+  }
+
   /// Ids en `leaders` vinculados a usuarios con rol `leader`.
   Future<Set<String>> fetchLeaderDocumentIdsWithLeaderRole() async {
     final snapshot = await _users

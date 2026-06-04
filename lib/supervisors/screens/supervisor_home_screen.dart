@@ -12,6 +12,7 @@ import '../../core/widgets/person_list_search_field.dart';
 import '../../core/widgets/slide_menu_scaffold.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/screens/leader_assigned_members_screen.dart';
+import '../../leaders/screens/leaders_list_screen.dart';
 import '../../leaders/screens/register_leader_screen.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../leaders/widgets/leaders_map_view.dart';
@@ -112,6 +113,36 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen>
     );
   }
 
+  Future<void> _openMyAssignedMembers() async {
+    final leaderId = widget.session.profile.leaderId;
+    if (leaderId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tu cuenta de líder no está vinculada a un registro.'),
+        ),
+      );
+      return;
+    }
+
+    final leader = await _leaderService.fetchLeaderById(leaderId);
+    if (!mounted) return;
+    if (leader == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se encontró tu ficha de líder.')),
+      );
+      return;
+    }
+
+    _navigate(
+      LeaderAssignedMembersScreen(
+        leader: leader,
+        registeredBy: _email,
+        permissions: _permissions,
+      ),
+      'Mis nuevos creyentes',
+    );
+  }
+
   List<SlideMenuItem> _buildMenuItems() {
     final p = _permissions;
     return [
@@ -137,9 +168,30 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen>
           icon: Icons.supervisor_account_outlined,
           label: 'Registrar líder',
           onTap: () => _navigate(
-            RegisterLeaderScreen(registeredBy: _email),
+            RegisterLeaderScreen(
+              registeredBy: _email,
+              permissions: p,
+            ),
             'Registrar líder',
           ),
+        ),
+      if (p.canViewLeadersList)
+        SlideMenuItem(
+          icon: Icons.groups_outlined,
+          label: 'Ver líderes',
+          onTap: () => _navigate(
+            LeadersListScreen(
+              registeredBy: _email,
+              permissions: p,
+            ),
+            'Ver líderes',
+          ),
+        ),
+      if (p.canViewMyAssignedMembers)
+        SlideMenuItem(
+          icon: Icons.group_outlined,
+          label: 'Mis nuevos creyentes',
+          onTap: _openMyAssignedMembers,
         ),
     ];
   }
@@ -306,7 +358,11 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen>
           );
         }
 
-        final leaderIds = leaderIdsSnapshot.data?.toSet() ?? {};
+        var leaderIds = leaderIdsSnapshot.data?.toSet() ?? {};
+        final ownLeaderId = widget.session.profile.leaderId;
+        if (ownLeaderId != null && ownLeaderId.isNotEmpty) {
+          leaderIds = Set<String>.from(leaderIds)..remove(ownLeaderId);
+        }
         if (leaderIds.isEmpty) {
           return _buildNoLeadersState();
         }

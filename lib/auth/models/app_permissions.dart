@@ -24,7 +24,7 @@ class AppPermissions {
   bool get usesSupervisorHome => isSupervisor && !isAdmin;
 
   bool get canRegisterMember => isAdmin || isRegistrar || isSupervisor;
-  bool get canRegisterLeader => isAdmin || isSupervisor;
+  bool get canRegisterLeader => isAdmin;
   bool get canViewMembersList => isAdmin || isRegistrar || isSupervisor;
   bool get canViewMembersByLeader => isAdmin || isSupervisor;
   bool get canViewLeadersList => isAdmin || isSupervisor;

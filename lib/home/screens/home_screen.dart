@@ -183,7 +183,10 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icons.supervisor_account_outlined,
           label: 'Nuevo líder',
           onTap: () => _navigate(
-            RegisterLeaderScreen(registeredBy: _email),
+            RegisterLeaderScreen(
+              registeredBy: _email,
+              permissions: p,
+            ),
             'Nuevo líder',
           ),
         ),
@@ -194,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
       items.add(
         SlideMenuItem(
           icon: Icons.groups_outlined,
-          label: 'Líderes',
+          label: 'Ver líderes',
           onTap: () => _navigate(
             LeadersListScreen(
               registeredBy: _email,
@@ -282,7 +285,10 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'Registrar líder',
         subtitle: 'Datos del liderazgo',
         onTap: () => _navigate(
-          RegisterLeaderScreen(registeredBy: _email),
+          RegisterLeaderScreen(
+            registeredBy: _email,
+            permissions: p,
+          ),
           'Nuevo líder',
         ),
       );

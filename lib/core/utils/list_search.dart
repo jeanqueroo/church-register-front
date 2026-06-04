@@ -1,3 +1,4 @@
+import '../../auth/models/app_user_role.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../members/models/church_member.dart';
 import '../../members/models/leader_member_group.dart';
@@ -36,7 +37,11 @@ bool memberMatchesSearch(ChurchMember member, String query) {
   ]);
 }
 
-bool leaderMatchesSearch(ChurchLeader leader, String query) {
+bool leaderMatchesSearch(
+  ChurchLeader leader,
+  String query, {
+  List<String> appRoles = const [],
+}) {
   return matchesSearchQuery(query, [
     leader.fullName,
     leader.firstName,
@@ -49,6 +54,7 @@ bool leaderMatchesSearch(ChurchLeader leader, String query) {
     leader.neighborhood,
     leader.street,
     leader.formattedAddress,
+    for (final role in appRoles) AppUserRole.label(role),
   ]);
 }
 

@@ -3,7 +3,8 @@ enum ChurchOffice {
   lideres('lideres', 'Líderes'),
   ancianoMenor('anciano_menor', 'Anciano menor'),
   anciano('anciano', 'Anciano'),
-  ancianoMayor('anciano_mayor', 'Anciano mayor');
+  ancianoMayor('anciano_mayor', 'Anciano mayor'),
+  voluntario('voluntario', 'Voluntario');
 
   const ChurchOffice(this.code, this.label);
 

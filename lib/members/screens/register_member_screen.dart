@@ -108,6 +108,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         leaders = await _supervisorAssignmentService.fetchAssignedLeaders(
           supervisorUid,
           leaderService: _leaderService,
+          includeOwnLeaderFicha: true,
         );
         _allowedLeaderIds = leaders
             .map((l) => l.id)

@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
+import '../../auth/services/user_profile_service.dart';
+import '../../auth/widgets/user_roles_chips.dart';
 import '../models/church_leader.dart';
 import '../services/leader_service.dart';
 import 'leader_assigned_members_screen.dart';
@@ -29,6 +31,7 @@ class LeaderDetailScreen extends StatelessWidget {
       MaterialPageRoute<bool>(
         builder: (_) => RegisterLeaderScreen(
           registeredBy: registeredBy,
+          permissions: _permissions,
           leaderService: leaderService,
           leaderToEdit: leader,
         ),
@@ -84,6 +87,7 @@ class LeaderDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final leaderId = leader.id;
     return Scaffold(
       appBar: AppBar(
         title: Text(leader.fullName),
@@ -105,6 +109,29 @@ class LeaderDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
+          if (leaderId != null && leaderId.isNotEmpty)
+            FutureBuilder<List<String>>(
+              future: UserProfileService().fetchRolesForLeaderId(leaderId),
+              builder: (context, snapshot) {
+                final roles = snapshot.data ?? [];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Roles en la app',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      UserRolesChips(roles: roles),
+                    ],
+                  ),
+                );
+              },
+            ),
           _Section(
             title: 'Datos del liderazgo',
             rows: [

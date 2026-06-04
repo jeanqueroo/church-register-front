@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
+import '../../auth/services/user_profile_service.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../auth/widgets/user_roles_chips.dart';
 import '../../core/services/excel_export_service.dart';
 import '../../core/utils/list_search.dart';
 import '../../core/widgets/export_excel_icon_button.dart';
@@ -59,8 +61,16 @@ class _LeadersListBody extends StatefulWidget {
 
 class _LeadersListBodyState extends State<_LeadersListBody> {
   final _searchController = TextEditingController();
+  final _userProfileService = UserProfileService();
   List<ChurchLeader> _leadersForExport = [];
+  Map<String, List<String>> _rolesByLeaderIdForExport = {};
   bool _canExport = false;
+
+  List<String> _rolesFor(ChurchLeader leader, Map<String, List<String>> rolesByLeaderId) {
+    final id = leader.id;
+    if (id == null || id.isEmpty) return [];
+    return rolesByLeaderId[id] ?? [];
+  }
 
   @override
   void dispose() {
@@ -71,12 +81,17 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
   Future<void> _exportToExcel() {
     return ExcelExportService.instance.shareLeadersExcel(
       leaders: _leadersForExport,
+      rolesByLeaderId: _rolesByLeaderIdForExport,
       fileName: 'lideres_${DateTime.now().millisecondsSinceEpoch}',
     );
   }
 
-  void _syncLeadersForExport(List<ChurchLeader> leaders) {
+  void _syncLeadersForExport(
+    List<ChurchLeader> leaders,
+    Map<String, List<String>> rolesByLeaderId,
+  ) {
     _leadersForExport = leaders;
+    _rolesByLeaderIdForExport = rolesByLeaderId;
     final canExport = leaders.isNotEmpty;
     if (canExport == _canExport) return;
     _canExport = canExport;
@@ -101,6 +116,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
       MaterialPageRoute<bool>(
         builder: (_) => RegisterLeaderScreen(
           registeredBy: widget.registeredBy,
+          permissions: widget.permissions,
           leaderService: widget.leaderService,
           leaderToEdit: leader,
         ),
@@ -159,7 +175,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Líderes'),
+        title: const Text('Líderes y supervisores'),
         actions: [
           ExportExcelIconButton(
             enabled: _canExport,
@@ -174,6 +190,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                   MaterialPageRoute<void>(
                     builder: (_) => RegisterLeaderScreen(
                       registeredBy: widget.registeredBy,
+                      permissions: widget.permissions,
                       leaderService: service,
                     ),
                   ),
@@ -183,10 +200,14 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
               label: const Text('Nuevo'),
             )
           : null,
-      body: StreamBuilder<List<ChurchLeader>>(
-        stream: service.watchLeaders(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: StreamBuilder<Map<String, List<String>>>(
+        stream: _userProfileService.watchRolesByLeaderId(),
+        builder: (context, rolesSnapshot) {
+          return StreamBuilder<List<ChurchLeader>>(
+            stream: service.watchLeaders(),
+            builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -207,10 +228,18 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
           }
 
           final leaders = snapshot.data ?? [];
-          _syncLeadersForExport(leaders);
+          final rolesByLeaderId = rolesSnapshot.data ?? {};
+          _syncLeadersForExport(leaders, rolesByLeaderId);
           final query = _searchController.text;
-          final filtered =
-              leaders.where((l) => leaderMatchesSearch(l, query)).toList();
+          final filtered = leaders
+              .where(
+                (l) => leaderMatchesSearch(
+                  l,
+                  query,
+                  appRoles: _rolesFor(l, rolesByLeaderId),
+                ),
+              )
+              .toList();
 
           if (leaders.isEmpty) {
             return Center(
@@ -256,15 +285,19 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final leader = filtered[index];
-              final parts = <String>[
-                if (leader.churchOffice != null) leader.churchOffice!.label,
-                if (leader.cellCode != null) 'Célula ${leader.cellCode}',
-                leader.mobilePhone,
-                if (leader.email != null) leader.email!,
-              ];
+                      final appRoles = _rolesFor(leader, rolesByLeaderId);
+                      final parts = <String>[
+                        if (leader.churchOffice != null)
+                          leader.churchOffice!.label,
+                        if (leader.cellCode != null)
+                          'Célula ${leader.cellCode}',
+                        leader.mobilePhone,
+                        if (leader.email != null) leader.email!,
+                      ];
 
               return Card(
                 child: ListTile(
+                  isThreeLine: true,
                   leading: CircleAvatar(
                     child: Text(
                       leader.lastName.isNotEmpty
@@ -273,7 +306,14 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                     ),
                   ),
                   title: Text('${leader.lastName}, ${leader.firstName}'),
-                  subtitle: Text(parts.join(' · ')),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (parts.isNotEmpty) Text(parts.join(' · ')),
+                      const SizedBox(height: 6),
+                      UserRolesChips(roles: appRoles),
+                    ],
+                  ),
                   trailing: PopupMenuButton<String>(
                     onSelected: (value) {
                       switch (value) {
@@ -338,6 +378,8 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                   ),
                 ),
             ],
+          );
+            },
           );
         },
       ),

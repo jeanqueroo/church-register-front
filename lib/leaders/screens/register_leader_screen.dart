@@ -2,10 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../address/services/geocoding_service.dart';
+import '../../auth/models/app_permissions.dart';
 import '../../auth/models/app_user_role.dart';
 import '../../auth/services/auth_service.dart';
 import '../../auth/services/user_profile_service.dart';
 import '../../auth/widgets/assignable_roles_section.dart';
+import '../../auth/widgets/role_gate.dart';
 import '../../address/widgets/address_fields_section.dart';
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
@@ -18,11 +20,13 @@ class RegisterLeaderScreen extends StatefulWidget {
   const RegisterLeaderScreen({
     super.key,
     required this.registeredBy,
+    required this.permissions,
     this.leaderService,
     this.leaderToEdit,
   });
 
   final String registeredBy;
+  final AppPermissions permissions;
   final LeaderService? leaderService;
   final ChurchLeader? leaderToEdit;
 
@@ -139,9 +143,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
       _showMessage('Selecciona al menos un rol para la cuenta.');
       return;
     }
-    if (AppUserRole.hasLeaderSupervisorConflict(_selectedRoles)) {
+    if (AppUserRole.hasAdminWithOtherRolesConflict(_selectedRoles)) {
       _showMessage(
-        'No se puede asignar Líder y Supervisor a la misma cuenta.',
+        'Si asignas Administrador, no puedes combinar otros roles.',
       );
       return;
     }
@@ -307,11 +311,16 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isEditing ? 'Editar líder' : 'Nuevo líder'),
-      ),
-      body: SafeArea(
+    return RoleGate(
+      permissions: widget.permissions,
+      allowed: widget.permissions.canRegisterLeader,
+      deniedMessage:
+          'Solo los administradores pueden registrar o editar líderes.',
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.isEditing ? 'Editar líder' : 'Nuevo líder'),
+        ),
+        body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Form(
@@ -571,6 +580,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

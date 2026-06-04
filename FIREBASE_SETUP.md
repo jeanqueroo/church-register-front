@@ -119,7 +119,7 @@ Un usuario puede tener **varios roles** a la vez. Valores válidos en `roles`:
 |--------------------|-----------------|---------------------------------------------------------|
 | `admin`            | Administrador   | Ve y gestiona todo (solo desde Firebase Console)        |
 | `registrador`      | Registrador     | Solo registrar nuevos creyentes (sin listas ni líderes)  |
-| `supervisor`       | Supervisor      | Registrar y ver listas; ver líderes que le asignó el admin |
+| `supervisor`       | Supervisor      | Registrar creyentes y ver listas; ver líderes que le asignó el admin |
 | `leader`           | Líder           | Ver sus nuevos creyentes asignados (solo lectura)       |
 
 Al **registrar un líder** en la app puedes asignar `leader`, `registrador` y/o `supervisor` (nunca `admin`).

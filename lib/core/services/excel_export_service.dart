@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../../auth/models/app_user_role.dart';
 import '../../leaders/models/church_leader.dart';
 import '../utils/file_share.dart';
 import '../../members/models/church_member.dart';
@@ -86,6 +87,7 @@ class ExcelExportService {
   Future<void> shareLeadersExcel({
     required List<ChurchLeader> leaders,
     required String fileName,
+    Map<String, List<String>> rolesByLeaderId = const {},
     String sheetTitle = 'Líderes',
   }) async {
     if (leaders.isEmpty) {
@@ -95,6 +97,7 @@ class ExcelExportService {
     const headers = [
       'Apellido',
       'Nombres',
+      'Roles en la app',
       'Cargo en la iglesia',
       'Género',
       'Célula',
@@ -106,9 +109,14 @@ class ExcelExportService {
     ];
 
     final rows = leaders.map((l) {
+      final roles = l.id != null ? rolesByLeaderId[l.id] ?? [] : <String>[];
+      final rolesLabel = roles.isEmpty
+          ? ''
+          : roles.map(AppUserRole.label).join(', ');
       return <String>[
         l.lastName,
         l.firstName,
+        rolesLabel,
         l.churchOfficeLabel ?? '',
         l.gender?.label ?? '',
         l.cellCode ?? '',

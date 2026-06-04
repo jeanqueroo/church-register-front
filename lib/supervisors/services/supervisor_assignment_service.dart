@@ -22,12 +22,46 @@ class SupervisorAssignmentService {
     return ids.toSet();
   }
 
+  /// Cartera del supervisor sin su propia ficha (no aparece “asignado a sí mismo”).
+  Future<Set<String>> fetchSupervisedLeaderIdSetExcludingSelf(
+    String supervisorUid,
+  ) async {
+    final ids = await fetchSupervisedLeaderIdSet(supervisorUid);
+    final ownLeaderId = await _fetchOwnLeaderIdIfLeaderRole(supervisorUid);
+    if (ownLeaderId != null) {
+      ids.remove(ownLeaderId);
+    }
+    return ids;
+  }
+
+  /// Id en `leaders` del supervisor cuando su cuenta también tiene rol `leader`.
+  Future<String?> _fetchOwnLeaderIdIfLeaderRole(String supervisorUid) async {
+    final doc = await _users.doc(supervisorUid).get();
+    if (!doc.exists) return null;
+    final data = doc.data() ?? {};
+    final roles = AppUserRole.parseList(data['roles']);
+    if (!roles.contains(AppUserRole.leader)) return null;
+    final leaderId = data['leaderId'] as String?;
+    if (leaderId == null || leaderId.isEmpty) return null;
+    return leaderId;
+  }
+
   /// Líderes asignados al supervisor que además tienen rol `leader`.
+  ///
+  /// Con [includeOwnLeaderFicha] (p. ej. al registrar creyentes), incluye la
+  /// ficha propia aunque no esté en `supervisedLeaderIds`.
   Future<List<ChurchLeader>> fetchAssignedLeaders(
     String supervisorUid, {
     LeaderService? leaderService,
+    bool includeOwnLeaderFicha = false,
   }) async {
-    final ids = await fetchSupervisedLeaderIdSet(supervisorUid);
+    var ids = await fetchSupervisedLeaderIdSetExcludingSelf(supervisorUid);
+    if (includeOwnLeaderFicha) {
+      final ownLeaderId = await _fetchOwnLeaderIdIfLeaderRole(supervisorUid);
+      if (ownLeaderId != null) {
+        ids = Set<String>.from(ids)..add(ownLeaderId);
+      }
+    }
     final service = leaderService ?? LeaderService();
     return service.fetchAssignableLeaders(restrictToIds: ids);
   }

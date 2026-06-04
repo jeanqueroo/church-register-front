@@ -9,8 +9,9 @@ class AppUserRole {
 
   static const all = [admin, registrar, leader, supervisor];
 
-  /// Roles que se pueden asignar al registrar o editar un líder (nunca admin).
+  /// Roles asignables al registrar o editar un líder (incluye administrador).
   static const assignableForLeaderRegistration = [
+    admin,
     leader,
     registrar,
     supervisor,
@@ -31,19 +32,19 @@ class AppUserRole {
     }
   }
 
-  /// Líder y supervisor son mutuamente excluyentes en una misma cuenta.
-  static bool hasLeaderSupervisorConflict(Iterable<String> roles) {
+  /// Administrador no puede combinarse con ningún otro rol.
+  static bool hasAdminWithOtherRolesConflict(Iterable<String> roles) {
     final set = roles.toSet();
-    return set.contains(leader) && set.contains(supervisor);
+    return set.contains(admin) && set.length > 1;
   }
 
-  /// Filtra roles válidos para cuentas de líder; excluye admin y conflictos.
+  /// Filtra roles válidos para cuentas de líder y resuelve conflictos.
   static List<String> sanitizeForLeaderRegistration(Iterable<String> roles) {
     final set = roles
         .where((r) => assignableForLeaderRegistration.contains(r))
         .toSet();
-    if (hasLeaderSupervisorConflict(set)) {
-      set.remove(supervisor);
+    if (set.contains(admin)) {
+      return [admin];
     }
     return set.toList()..sort();
   }

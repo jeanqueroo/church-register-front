@@ -54,8 +54,7 @@ service cloud.firestore {
 
     match /leaders/{leaderId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn();
+      allow create, update, delete: if isAppAdmin();
     }
 
     match /users/{userId} {
