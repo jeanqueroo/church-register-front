@@ -1,18 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../../auth/services/user_profile_service.dart';
 import '../models/church_leader.dart';
 
 class LeaderService {
-  LeaderService({
-    FirebaseFirestore? firestore,
-    UserProfileService? userProfileService,
-  })  : _leaders = (firestore ?? FirebaseFirestore.instance)
-            .collection('leaders'),
-        _userProfileService = userProfileService ?? UserProfileService();
+  LeaderService({FirebaseFirestore? firestore})
+      : _leaders = (firestore ?? FirebaseFirestore.instance)
+            .collection('leaders');
 
   final CollectionReference<Map<String, dynamic>> _leaders;
-  final UserProfileService _userProfileService;
 
   Stream<List<ChurchLeader>> watchLeaders() {
     return _leaders
@@ -59,48 +54,6 @@ class LeaderService {
   Future<List<ChurchLeader>> fetchAllLeaders() async {
     final snapshot = await _leaders.get();
     return snapshot.docs.map(ChurchLeader.fromFirestore).toList();
-  }
-
-  /// Solo fichas con rol Líder en la app (`acceptsMemberAssignments` o `users.roles`).
-  Future<List<ChurchLeader>> fetchAssignableLeaders({
-    Set<String>? restrictToIds,
-  }) async {
-    final leaderRoleIds = await _resolveLeaderRoleDocumentIds();
-    final all = await fetchAllLeaders();
-    var leaders = all
-        .where((l) => _hasLeaderRoleForAssignment(l, leaderRoleIds))
-        .toList();
-    if (restrictToIds != null) {
-      leaders = leaders
-          .where((l) => l.id != null && restrictToIds.contains(l.id))
-          .toList();
-    }
-    leaders.sort(
-      (a, b) => a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()),
-    );
-    return leaders;
-  }
-
-  Future<Set<String>> _resolveLeaderRoleDocumentIds() async {
-    try {
-      return await _userProfileService.fetchLeaderDocumentIdsWithLeaderRole();
-    } on FirebaseException catch (e) {
-      if (e.code == 'permission-denied') {
-        return {};
-      }
-      rethrow;
-    }
-  }
-
-  bool _hasLeaderRoleForAssignment(
-    ChurchLeader leader,
-    Set<String> leaderRoleDocIds,
-  ) {
-    final id = leader.id;
-    if (id == null || id.isEmpty) return false;
-    if (leader.acceptsMemberAssignments == true) return true;
-    if (leader.acceptsMemberAssignments == false) return false;
-    return leaderRoleDocIds.contains(id);
   }
 
   static String messageFromFirestoreException(FirebaseException e) {

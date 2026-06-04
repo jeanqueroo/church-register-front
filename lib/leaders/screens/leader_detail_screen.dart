@@ -111,7 +111,6 @@ class LeaderDetailScreen extends StatelessWidget {
               _Row('Apellido', leader.lastName),
               _Row('Nombres', leader.firstName),
               _Row('Género', leader.gender?.label),
-              _Row('Cargo en la iglesia', leader.churchOffice?.label),
             ],
           ),
           _Section(
@@ -152,7 +151,7 @@ class LeaderDetailScreen extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.people_outlined),
-            label: const Text('Ver nuevos creyentes asignados'),
+            label: const Text('Ver integrantes asignados'),
           ),
           const SizedBox(height: 12),
           if (_permissions.canManageAll) ...[

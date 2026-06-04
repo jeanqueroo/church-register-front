@@ -12,7 +12,6 @@ import '../../leaders/services/leader_service.dart';
 import '../../leaders/widgets/leader_search_field.dart';
 import '../models/church_member.dart';
 import '../models/marital_status.dart';
-import '../../supervisors/services/supervisor_assignment_service.dart';
 import '../services/leader_assignment_service.dart';
 import '../services/member_service.dart';
 
@@ -22,16 +21,11 @@ class RegisterMemberScreen extends StatefulWidget {
     required this.registeredBy,
     this.memberService,
     this.memberToEdit,
-    /// Si se indica, el selector y la asignación automática solo usan estos líderes.
-    this.supervisorUid,
   });
 
   final String registeredBy;
   final MemberService? memberService;
   final ChurchMember? memberToEdit;
-
-  /// Supervisor: limita líderes a los de su cartera.
-  final String? supervisorUid;
 
   bool get isEditing => memberToEdit != null;
 
@@ -62,9 +56,6 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   final _leaderService = LeaderService();
   final _geocodingService = GeocodingService();
   final _assignmentService = LeaderAssignmentService();
-  final _supervisorAssignmentService = SupervisorAssignmentService();
-
-  Set<String>? _allowedLeaderIds;
 
   DateTime _formDate = DateTime.now();
   DateTime? _birthDate;
@@ -102,21 +93,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
 
   Future<void> _loadLeaders() async {
     try {
-      List<ChurchLeader> leaders;
-      final supervisorUid = widget.supervisorUid;
-      if (supervisorUid != null && supervisorUid.isNotEmpty) {
-        leaders = await _supervisorAssignmentService.fetchAssignedLeaders(
-          supervisorUid,
-          leaderService: _leaderService,
-        );
-        _allowedLeaderIds = leaders
-            .map((l) => l.id)
-            .whereType<String>()
-            .toSet();
-      } else {
-        _allowedLeaderIds = null;
-        leaders = await _leaderService.fetchAssignableLeaders();
-      }
+      final leaders = await _leaderService.fetchAllLeaders();
       leaders.sort((a, b) => a.fullName.compareTo(b.fullName));
       if (!mounted) return;
 
@@ -228,10 +205,6 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       initialDate: initial,
       firstDate: firstDate,
       lastDate: lastDate,
-      locale: const Locale('es', 'ES'),
-      helpText: 'Seleccionar fecha',
-      cancelText: 'Cancelar',
-      confirmText: 'Aceptar',
     );
     if (picked != null) onPicked(picked);
   }
@@ -279,13 +252,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         initial = TimeOfDay(hour: h, minute: m);
       }
     }
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: initial,
-      helpText: 'Seleccionar hora',
-      cancelText: 'Cancelar',
-      confirmText: 'Aceptar',
-    );
+    final picked = await showTimePicker(context: context, initialTime: initial);
     if (picked != null) {
       _cellTimeController.text = _formatTime(picked);
     }
@@ -357,8 +324,8 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       return;
     }
 
-    if (!_manualLeader && _gender == null) {
-      _showMessage('Selecciona el género para asignar el líder más cercano');
+    if (!_manualLeader && _wantsVisit && _gender == null) {
+      _showMessage('Selecciona el género para asignar un líder automático');
       return;
     }
 
@@ -390,12 +357,11 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
             leader: assignedLeader,
           );
         }
-      } else {
+      } else if (_wantsVisit) {
         if (location == null) {
           if (mounted) {
             _showMessage(
-              'No se pudo ubicar la dirección. Selecciónala del autocompletado '
-              'para asignar el líder más cercano.',
+              'No se pudo ubicar la dirección. Selecciónala del autocompletado.',
             );
           }
           return;
@@ -404,7 +370,6 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         final assignment = await _assignmentService.assignNearestLeader(
           gender: _gender!,
           memberLocation: location,
-          allowedLeaderIds: _allowedLeaderIds,
         );
         if (assignment != null) {
           assignedLeader = assignment.leader;
@@ -480,7 +445,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       if (!mounted) return;
 
       if (widget.isEditing) {
-        _showMessage('Nuevo creyente actualizado correctamente');
+        _showMessage('Integrante actualizado correctamente');
       } else if (assignedLeaderName != null) {
         final cellText = assignedLeaderCellCode != null
             ? ' (Célula $assignedLeaderCellCode)'
@@ -489,16 +454,15 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
             ? ' · ${assignedDistanceKm.toStringAsFixed(1)} km'
             : '';
         _showMessage(
-          'Nuevo creyente registrado. Líder: '
+          'Integrante registrado. Líder: '
           '$assignedLeaderName$cellText$distanceText',
         );
-      } else if (!_manualLeader) {
+      } else if (_wantsVisit && !_manualLeader) {
         _showMessage(
-          'Nuevo creyente registrado. No se encontró un líder disponible del '
-          'mismo género con dirección cercana.',
+          'Integrante registrado. No hay líder del mismo género con dirección cercana.',
         );
       } else {
-        _showMessage('Nuevo creyente registrado correctamente');
+        _showMessage('Integrante registrado correctamente');
       }
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
@@ -543,7 +507,9 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
           subtitle: Text(
             _manualLeader
                 ? 'Busca y elige un líder escribiendo su nombre'
-                : 'Se asignará el líder más cercano del mismo género',
+                : _wantsVisit
+                    ? 'Se asignará el líder más cercano del mismo género'
+                    : 'Sin líder hasta que actives visita o elijas uno',
           ),
           secondary: const Icon(Icons.supervisor_account_outlined),
         ),
@@ -556,8 +522,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
             )
           else if (_leaders.isEmpty)
             Text(
-              'No hay líderes disponibles para asignar. '
-              'Solo las cuentas con rol Líder pueden recibir nuevos creyentes.',
+              'No hay líderes registrados. Registra un líder primero.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.error,
                   ),
@@ -626,7 +591,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Editar nuevo creyente' : 'Nuevo creyente'),
+        title: Text(widget.isEditing ? 'Editar integrante' : 'Nuevo integrante'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -928,7 +893,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                         ? 'Guardando...'
                         : widget.isEditing
                             ? 'Guardar cambios'
-                            : 'Registrar nuevo creyente',
+                            : 'Registrar integrante',
                   ),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),

@@ -191,7 +191,6 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                 : _streetNumberController.text.trim(),
             cellCode: leader.cellCode,
             gender: leader.gender,
-            churchOffice: leader.churchOffice,
             neighborhood: _neighborhoodController.text.trim().isEmpty
                 ? null
                 : _neighborhoodController.text.trim(),
@@ -211,7 +210,6 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
             mobilePhone: _mobilePhoneController.text.trim(),
             registeredAt: leader.registeredAt,
             registeredBy: leader.registeredBy,
-            acceptsMemberAssignments: leader.acceptsMemberAssignments,
           ),
         );
       } else {

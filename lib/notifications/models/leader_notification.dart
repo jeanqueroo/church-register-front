@@ -20,7 +20,7 @@ class LeaderNotification {
   final DateTime createdAt;
   final bool read;
 
-  String get title => 'Nuevo creyente asignado';
+  String get title => 'Nuevo integrante asignado';
 
   String get body =>
       'Se te asignó a $memberName. Toca para ver el detalle.';
@@ -46,7 +46,7 @@ class LeaderNotification {
       recipientUserId: data['recipientUserId'] as String?,
       leaderId: data['leaderId'] as String? ?? '',
       memberId: data['memberId'] as String? ?? '',
-      memberName: data['memberName'] as String? ?? 'Nuevo creyente',
+      memberName: data['memberName'] as String? ?? 'Integrante',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       read: data['read'] as bool? ?? false,
     );

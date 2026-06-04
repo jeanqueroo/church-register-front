@@ -58,6 +58,3 @@ app.*.map.json
 
 # Firebase (por ahora no versionar)
 /android/app/google-services.json
-
-# Google Maps API key local (Dart)
-/lib/core/config/maps_api_key.dart
