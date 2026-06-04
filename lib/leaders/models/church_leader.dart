@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
+import 'church_office.dart';
 
 class ChurchLeader {
   const ChurchLeader({
@@ -23,6 +24,8 @@ class ChurchLeader {
     required this.mobilePhone,
     required this.registeredAt,
     required this.registeredBy,
+    this.churchId,
+    this.churchOffice,
   });
 
   final String? id;
@@ -43,6 +46,8 @@ class ChurchLeader {
   final String mobilePhone;
   final DateTime registeredAt;
   final String registeredBy;
+  final String? churchId;
+  final ChurchOffice? churchOffice;
 
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
@@ -82,6 +87,8 @@ class ChurchLeader {
       'mobilePhone': mobilePhone,
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
+      if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
+      if (churchOffice != null) 'churchOffice': churchOffice!.code,
     };
   }
 
@@ -108,6 +115,8 @@ class ChurchLeader {
       mobilePhone: data['mobilePhone'] as String? ?? '',
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',
+      churchId: data['churchId'] as String?,
+      churchOffice: ChurchOffice.fromCode(data['churchOffice'] as String?),
     );
   }
 }

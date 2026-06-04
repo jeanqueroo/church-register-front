@@ -65,6 +65,7 @@ class _LeadersListBody extends StatelessWidget {
       MaterialPageRoute<bool>(
         builder: (_) => RegisterLeaderScreen(
           registeredBy: registeredBy,
+          churchId: permissions.churchId,
           leaderService: leaderService,
           leaderToEdit: leader,
         ),
@@ -132,6 +133,7 @@ class _LeadersListBody extends StatelessWidget {
                   MaterialPageRoute<void>(
                     builder: (_) => RegisterLeaderScreen(
                       registeredBy: registeredBy,
+                      churchId: permissions.churchId,
                       leaderService: service,
                     ),
                   ),
@@ -142,7 +144,7 @@ class _LeadersListBody extends StatelessWidget {
             )
           : null,
       body: StreamBuilder<List<ChurchLeader>>(
-        stream: service.watchLeaders(),
+        stream: service.watchLeaders(churchId: permissions.churchId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -197,6 +199,7 @@ class _LeadersListBody extends StatelessWidget {
             itemBuilder: (context, index) {
               final leader = leaders[index];
               final parts = <String>[
+                if (leader.churchOffice != null) leader.churchOffice!.label,
                 if (leader.cellCode != null) 'Célula ${leader.cellCode}',
                 leader.mobilePhone,
                 if (leader.email != null) leader.email!,

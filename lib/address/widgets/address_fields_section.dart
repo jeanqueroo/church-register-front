@@ -39,6 +39,7 @@ class AddressFieldsSection extends StatefulWidget {
 
 class _AddressFieldsSectionState extends State<AddressFieldsSection> {
   final _searchController = TextEditingController();
+  bool _suggestionsLocked = false;
 
   @override
   void initState() {
@@ -46,6 +47,9 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
     if (widget.initialSearchText != null &&
         widget.initialSearchText!.isNotEmpty) {
       _searchController.text = widget.initialSearchText!;
+    }
+    if (widget.streetController.text.trim().isNotEmpty) {
+      _suggestionsLocked = true;
     }
   }
 
@@ -84,6 +88,7 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
     }
     widget.postalCodeController.text = parsed.postalCode ?? '';
 
+    setState(() => _suggestionsLocked = true);
     widget.onStreetCoordinatesSelected?.call(place.location);
   }
 
@@ -112,6 +117,7 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
           controller: _searchController,
           enabled: widget.enabled,
           onPlaceSelected: _applyPlace,
+          suggestionsLocked: _suggestionsLocked,
           labelText: widget.requireAddress
               ? 'Buscar dirección *'
               : 'Buscar dirección',

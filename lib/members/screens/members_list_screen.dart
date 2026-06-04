@@ -59,6 +59,7 @@ class _MembersListBody extends StatelessWidget {
       MaterialPageRoute<bool>(
         builder: (_) => RegisterMemberScreen(
           registeredBy: registeredBy,
+          churchId: permissions.churchId,
           memberService: memberService,
           memberToEdit: member,
         ),
@@ -126,6 +127,7 @@ class _MembersListBody extends StatelessWidget {
                   MaterialPageRoute<bool>(
                     builder: (_) => RegisterMemberScreen(
                       registeredBy: registeredBy,
+                      churchId: permissions.churchId,
                       memberService: service,
                     ),
                   ),
@@ -136,7 +138,7 @@ class _MembersListBody extends StatelessWidget {
             )
           : null,
       body: StreamBuilder<List<ChurchMember>>(
-        stream: service.watchMembers(),
+        stream: service.watchMembers(churchId: permissions.churchId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

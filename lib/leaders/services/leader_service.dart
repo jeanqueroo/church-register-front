@@ -9,14 +9,15 @@ class LeaderService {
 
   final CollectionReference<Map<String, dynamic>> _leaders;
 
-  Stream<List<ChurchLeader>> watchLeaders() {
-    return _leaders
-        .orderBy('registeredAt', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs.map(ChurchLeader.fromFirestore).toList(),
-        );
+  Stream<List<ChurchLeader>> watchLeaders({String? churchId}) {
+    final query = churchId != null && churchId.isNotEmpty
+        ? _leaders.where('churchId', isEqualTo: churchId)
+        : _leaders.orderBy('registeredAt', descending: true);
+    return query.snapshots().map((snapshot) {
+      final list = snapshot.docs.map(ChurchLeader.fromFirestore).toList();
+      list.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
+      return list;
+    });
   }
 
   Future<String> addLeader(ChurchLeader leader) async {
@@ -51,8 +52,10 @@ class LeaderService {
     return ChurchLeader.fromFirestore(doc);
   }
 
-  Future<List<ChurchLeader>> fetchAllLeaders() async {
-    final snapshot = await _leaders.get();
+  Future<List<ChurchLeader>> fetchAllLeaders({String? churchId}) async {
+    final snapshot = churchId != null && churchId.isNotEmpty
+        ? await _leaders.where('churchId', isEqualTo: churchId).get()
+        : await _leaders.get();
     return snapshot.docs.map(ChurchLeader.fromFirestore).toList();
   }
 

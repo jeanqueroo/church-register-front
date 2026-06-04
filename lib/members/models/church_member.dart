@@ -35,6 +35,7 @@ class ChurchMember {
     required this.formDate,
     required this.registeredAt,
     required this.registeredBy,
+    this.churchId,
   });
 
   final String? id;
@@ -66,6 +67,7 @@ class ChurchMember {
   final DateTime formDate;
   final DateTime registeredAt;
   final String registeredBy;
+  final String? churchId;
 
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
@@ -128,6 +130,7 @@ class ChurchMember {
       'formDate': Timestamp.fromDate(formDate),
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
+      if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
     };
   }
 
@@ -187,6 +190,7 @@ class ChurchMember {
           (data['registeredAt'] as Timestamp).toDate(),
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',
+      churchId: data['churchId'] as String?,
     );
   }
 }

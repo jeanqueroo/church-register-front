@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/admin_user_record.dart';
 import '../models/app_user_role.dart';
+import '../models/user_profile.dart';
 
 class UserProfileService {
   UserProfileService({FirebaseFirestore? firestore})
@@ -12,14 +14,104 @@ class UserProfileService {
     required String uid,
     required String email,
     required String leaderId,
+    required List<String> roles,
+    String? churchId,
   }) {
-    return _users.doc(uid).set({
+    final data = <String, dynamic>{
       'email': email.trim().toLowerCase(),
-      'roles': [AppUserRole.leader],
+      'roles': AppUserRole.sanitizeForLeaderRegistration(roles),
       'leaderId': leaderId,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
+    };
+    if (churchId != null && churchId.isNotEmpty) {
+      data['churchId'] = churchId;
+    }
+    return _users.doc(uid).set(data);
+  }
+
+  Future<void> updateUserRoles({
+    required String uid,
+    required List<String> roles,
+  }) {
+    return _users.doc(uid).set(
+      {
+        'roles': AppUserRole.sanitizeForLeaderRegistration(roles),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> setAdminProfile({
+    required String uid,
+    required String email,
+    required String churchId,
+    required String leaderId,
+  }) {
+    return _users.doc(uid).set({
+      'email': email.trim().toLowerCase(),
+      'roles': [AppUserRole.admin],
+      'churchId': churchId,
+      'leaderId': leaderId,
+      'isBlocked': false,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  Stream<List<AdminUserRecord>> watchChurchAdmins() {
+    return _users
+        .where('roles', arrayContains: AppUserRole.admin)
+        .snapshots()
+        .map((snapshot) {
+      final admins = snapshot.docs
+          .map(AdminUserRecord.fromFirestore)
+          .toList();
+      admins.sort((a, b) => a.displayName.compareTo(b.displayName));
+      return admins;
+    });
+  }
+
+  Future<void> updateAdminUser({
+    required String uid,
+    required String churchId,
+    required String leaderId,
+  }) {
+    return _users.doc(uid).set(
+      {
+        'churchId': churchId,
+        'leaderId': leaderId,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> setAdminBlocked({
+    required String uid,
+    required bool blocked,
+    required String updatedBy,
+  }) {
+    return _users.doc(uid).update({
+      'isBlocked': blocked,
+      'updatedAt': FieldValue.serverTimestamp(),
+      'updatedBy': updatedBy,
+    });
+  }
+
+  static String messageFromException(Object e) {
+    if (e is FirebaseException) {
+      switch (e.code) {
+        case 'permission-denied':
+          return 'No tienes permiso para gestionar administradores.';
+        case 'unavailable':
+          return 'Servicio no disponible. Revisa tu conexión.';
+        default:
+          return 'Error: ${e.message ?? e.code}';
+      }
+    }
+    return 'Error inesperado. Intenta de nuevo.';
   }
 
   Future<DocumentSnapshot<Map<String, dynamic>>?> fetchProfileDoc(String uid) async {
@@ -28,14 +120,19 @@ class UserProfileService {
     return doc;
   }
 
-  Future<void> updatePersonalData({
+  Stream<UserProfile?> watchProfile(String uid) {
+    return _users.doc(uid).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      return UserProfile.fromFirestore(doc);
+    });
+  }
+
+  Future<void> updateUserEmail({
     required String uid,
-    required String fullName,
     required String email,
   }) {
     return _users.doc(uid).set(
       {
-        'fullName': fullName.trim(),
         'email': email.trim().toLowerCase(),
         'updatedAt': FieldValue.serverTimestamp(),
       },

@@ -48,6 +48,9 @@ class _LeaderAssignedMembersScreenState
 
   MemberService get _service => widget.memberService ?? MemberService();
 
+  String? get _churchId =>
+      widget.permissions?.churchId ?? widget.leader.churchId;
+
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
@@ -206,7 +209,7 @@ class _LeaderAssignedMembersScreenState
         ),
       ),
       body: StreamBuilder<List<ChurchMember>>(
-        stream: _service.watchMembers(),
+        stream: _service.watchMembers(churchId: _churchId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

@@ -9,6 +9,7 @@ import '../../leaders/models/church_leader.dart';
 import '../../leaders/services/leader_service.dart';
 import '../models/user_profile.dart';
 import '../services/user_profile_service.dart';
+import '../utils/person_name.dart';
 
 /// Formulario solo para datos personales (sin contraseña).
 class EditPersonalDataScreen extends StatefulWidget {
@@ -51,6 +52,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
 
   bool get _isLeaderAccount => widget.session.isLeaderAccount;
 
+  bool get _usesLeaderRecord =>
+      _isLeaderAccount || widget.session.profile.permissions.isAdmin;
+
   @override
   void initState() {
     super.initState();
@@ -72,7 +76,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _emailController = TextEditingController(
       text: profile.email ?? widget.session.email,
     );
-    if (_isLeaderAccount) {
+    if (_usesLeaderRecord) {
       _loadLeader();
     }
   }
@@ -93,6 +97,10 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
         _leader = leader;
         if (leader != null) {
           _populateFromLeader(leader);
+        } else if (!_isLeaderAccount) {
+          final names = PersonName.split(widget.session.resolvedDisplayName);
+          _firstNameController.text = names.firstName;
+          _lastNameController.text = names.lastName;
         }
         _loadingLeader = false;
       });
@@ -155,69 +163,101 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     setState(() => _isLoading = true);
 
     try {
-      if (_isLeaderAccount) {
+      if (_usesLeaderRecord) {
         final leader = _leader;
-        final leaderId = leader?.id ?? widget.session.profile.leaderId;
-        if (leader == null || leaderId == null || leaderId.isEmpty) {
-          _showMessage('No se encontró tu ficha de líder.');
-          return;
-        }
+        var leaderId = leader?.id ?? widget.session.profile.leaderId;
 
-        var location = _leaderLocation;
-        if (location == null) {
-          final address = _buildFormattedAddress();
-          if (address.isNotEmpty) {
-            location = await _geocodingService.geocodeAddress(address);
+        if (_isLeaderAccount) {
+          if (leader == null || leaderId == null || leaderId.isEmpty) {
+            _showMessage('No se encontró tu ficha de líder.');
+            return;
+          }
+
+          var location = _leaderLocation;
+          if (location == null) {
+            final address = _buildFormattedAddress();
+            if (address.isNotEmpty) {
+              location = await _geocodingService.geocodeAddress(address);
+            }
+          }
+
+          if (location == null) {
+            _showMessage(
+              'No se pudo ubicar la dirección. Selecciónala del autocompletado.',
+            );
+            return;
+          }
+
+          await _leaderService.updateLeader(
+            ChurchLeader(
+              id: leaderId,
+              firstName: _firstNameController.text.trim(),
+              lastName: _lastNameController.text.trim(),
+              street: _streetController.text.trim().isEmpty
+                  ? null
+                  : _streetController.text.trim(),
+              streetNumber: _streetNumberController.text.trim().isEmpty
+                  ? null
+                  : _streetNumberController.text.trim(),
+              cellCode: leader.cellCode,
+              gender: leader.gender,
+              neighborhood: _neighborhoodController.text.trim().isEmpty
+                  ? null
+                  : _neighborhoodController.text.trim(),
+              locality: _localityController.text.trim().isEmpty
+                  ? null
+                  : _localityController.text.trim(),
+              stateProvince: _stateProvinceController.text.trim().isEmpty
+                  ? null
+                  : _stateProvinceController.text.trim(),
+              postalCode: _postalCodeController.text.trim().isEmpty
+                  ? null
+                  : _postalCodeController.text.trim(),
+              email: leader.email,
+              authUserId: leader.authUserId ?? widget.session.uid,
+              latitude: location.latitude,
+              longitude: location.longitude,
+              mobilePhone: _mobilePhoneController.text.trim(),
+              registeredAt: leader.registeredAt,
+              registeredBy: leader.registeredBy,
+            ),
+          );
+        } else {
+          if (leaderId == null || leaderId.isEmpty) {
+            leaderId = await _leaderService.addLeader(
+              ChurchLeader(
+                firstName: _firstNameController.text.trim(),
+                lastName: _lastNameController.text.trim(),
+                email: widget.session.email,
+                authUserId: widget.session.uid,
+                mobilePhone: '-',
+                registeredAt: DateTime.now(),
+                registeredBy: widget.session.email,
+              ),
+            );
+            await _profileService.updateAdminUser(
+              uid: widget.session.uid,
+              churchId: widget.session.profile.churchId ?? '',
+              leaderId: leaderId,
+            );
+          } else {
+            await _leaderService.updateLeader(
+              ChurchLeader(
+                id: leaderId,
+                firstName: _firstNameController.text.trim(),
+                lastName: _lastNameController.text.trim(),
+                email: leader?.email ?? widget.session.email,
+                authUserId: leader?.authUserId ?? widget.session.uid,
+                mobilePhone: leader?.mobilePhone ?? '-',
+                registeredAt: leader?.registeredAt ?? DateTime.now(),
+                registeredBy: leader?.registeredBy ?? widget.session.email,
+              ),
+            );
           }
         }
-
-        if (location == null) {
-          _showMessage(
-            'No se pudo ubicar la dirección. Selecciónala del autocompletado.',
-          );
-          return;
-        }
-
-        await _leaderService.updateLeader(
-          ChurchLeader(
-            id: leaderId,
-            firstName: _firstNameController.text.trim(),
-            lastName: _lastNameController.text.trim(),
-            street: _streetController.text.trim().isEmpty
-                ? null
-                : _streetController.text.trim(),
-            streetNumber: _streetNumberController.text.trim().isEmpty
-                ? null
-                : _streetNumberController.text.trim(),
-            cellCode: leader.cellCode,
-            gender: leader.gender,
-            neighborhood: _neighborhoodController.text.trim().isEmpty
-                ? null
-                : _neighborhoodController.text.trim(),
-            locality: _localityController.text.trim().isEmpty
-                ? null
-                : _localityController.text.trim(),
-            stateProvince: _stateProvinceController.text.trim().isEmpty
-                ? null
-                : _stateProvinceController.text.trim(),
-            postalCode: _postalCodeController.text.trim().isEmpty
-                ? null
-                : _postalCodeController.text.trim(),
-            email: leader.email,
-            authUserId: leader.authUserId ?? widget.session.uid,
-            latitude: location.latitude,
-            longitude: location.longitude,
-            mobilePhone: _mobilePhoneController.text.trim(),
-            registeredAt: leader.registeredAt,
-            registeredBy: leader.registeredBy,
-          ),
-        );
       } else {
-        await _profileService.updatePersonalData(
-          uid: widget.session.uid,
-          fullName: _fullNameController.text,
-          email: widget.session.email,
-        );
+        _showMessage('No se encontró tu ficha de datos.');
+        return;
       }
       if (!mounted) return;
       _showMessage('Datos personales actualizados');
@@ -246,14 +286,14 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
   Widget build(BuildContext context) {
     final roleLabels = widget.session.profile.permissions.roleLabels;
 
-    if (_isLeaderAccount && _loadingLeader) {
+    if (_usesLeaderRecord && _loadingLeader) {
       return Scaffold(
         appBar: AppBar(title: const Text('Datos personales')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
-    if (_isLeaderAccount && _leader == null) {
+    if (_usesLeaderRecord && _leader == null && _isLeaderAccount) {
       return Scaffold(
         appBar: AppBar(title: const Text('Datos personales')),
         body: Center(
@@ -291,13 +331,52 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
               _isLeaderAccount
                   ? 'Actualiza tu nombre, dirección y teléfono en tu ficha de líder. '
                       'Para cambiar la contraseña usa «Cambiar contraseña» en Mi cuenta.'
-                  : 'Actualiza tu nombre. Para cambiar la contraseña usa '
+                  : 'Actualiza tu nombre en tu ficha de líder. Para cambiar la contraseña usa '
                       '«Cambiar contraseña» en Mi cuenta.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
             ),
             const SizedBox(height: 24),
+            if (_usesLeaderRecord) ...[
+              if (!_isLeaderAccount) const FormSectionTitle('NOMBRE'),
+              if (!_isLeaderAccount) ...[
+                TextFormField(
+                  controller: _firstNameController,
+                  textCapitalization: TextCapitalization.words,
+                  enabled: !_isLoading,
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre *',
+                    prefixIcon: Icon(Icons.person_outline),
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Ingresa tu nombre';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _lastNameController,
+                  textCapitalization: TextCapitalization.words,
+                  enabled: !_isLoading,
+                  decoration: const InputDecoration(
+                    labelText: 'Apellido *',
+                    prefixIcon: Icon(Icons.person_outline),
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Ingresa tu apellido';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+            ],
             if (_isLeaderAccount) ...[
               const FormSectionTitle('NOMBRE'),
               TextFormField(
@@ -364,22 +443,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                   return null;
                 },
               ),
-            ] else
-              TextFormField(
-                controller: _fullNameController,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre completo',
-                  prefixIcon: Icon(Icons.badge_outlined),
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Ingresa tu nombre completo';
-                  }
-                  return null;
-                },
-              ),
+            ],
             const SizedBox(height: 16),
             TextFormField(
               controller: _emailController,
