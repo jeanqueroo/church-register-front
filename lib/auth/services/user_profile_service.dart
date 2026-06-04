@@ -12,14 +12,91 @@ class UserProfileService {
     required String uid,
     required String email,
     required String leaderId,
+    List<String>? roles,
   }) {
+    final effectiveRoles =
+        AppUserRole.sanitizeForLeaderRegistration(roles ?? []);
     return _users.doc(uid).set({
       'email': email.trim().toLowerCase(),
-      'roles': [AppUserRole.leader],
+      'roles': effectiveRoles,
       'leaderId': leaderId,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  Future<void> updateUserRoles({
+    required String uid,
+    required List<String> roles,
+  }) {
+    final effectiveRoles = AppUserRole.sanitizeForLeaderRegistration(roles);
+    return _users.doc(uid).set(
+      {
+        'roles': effectiveRoles,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  /// Asegura rol admin sin quitar otros roles (p. ej. supervisor).
+  Future<void> ensureAdminProfile({
+    required String uid,
+    required String? email,
+  }) {
+    final data = <String, dynamic>{
+      'roles': FieldValue.arrayUnion([AppUserRole.admin]),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+    final trimmedEmail = email?.trim().toLowerCase();
+    if (trimmedEmail != null && trimmedEmail.isNotEmpty) {
+      data['email'] = trimmedEmail;
+    }
+    return _users.doc(uid).set(data, SetOptions(merge: true));
+  }
+
+  /// Roles en la app por id de documento en `leaders` (`users.leaderId`).
+  Stream<Map<String, List<String>>> watchRolesByLeaderId() {
+    return _users.snapshots().map((snapshot) {
+      final map = <String, List<String>>{};
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final leaderId = data['leaderId'] as String?;
+        if (leaderId == null || leaderId.isEmpty) continue;
+        final roles = AppUserRole.sanitizeForLeaderRegistration(
+          AppUserRole.parseList(data['roles']),
+        );
+        if (roles.isEmpty) continue;
+        map[leaderId] = roles;
+      }
+      return map;
+    });
+  }
+
+  Future<List<String>> fetchRolesForLeaderId(String leaderId) async {
+    final snapshot = await _users
+        .where('leaderId', isEqualTo: leaderId)
+        .limit(1)
+        .get();
+    if (snapshot.docs.isEmpty) return [];
+    return AppUserRole.sanitizeForLeaderRegistration(
+      AppUserRole.parseList(snapshot.docs.first.data()['roles']),
+    );
+  }
+
+  /// Ids en `leaders` vinculados a usuarios con rol `leader`.
+  Future<Set<String>> fetchLeaderDocumentIdsWithLeaderRole() async {
+    final snapshot = await _users
+        .where('roles', arrayContains: AppUserRole.leader)
+        .get();
+    final ids = <String>{};
+    for (final doc in snapshot.docs) {
+      final leaderId = doc.data()['leaderId'] as String?;
+      if (leaderId != null && leaderId.isNotEmpty) {
+        ids.add(leaderId);
+      }
+    }
+    return ids;
   }
 
   Future<DocumentSnapshot<Map<String, dynamic>>?> fetchProfileDoc(String uid) async {

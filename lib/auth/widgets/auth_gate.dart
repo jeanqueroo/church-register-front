@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../home/screens/home_screen.dart';
+import '../../supervisors/screens/supervisor_home_screen.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../main.dart';
 import '../../notifications/screens/leader_notifications_screen.dart';
@@ -105,6 +106,10 @@ class _AuthGateState extends State<AuthGate> {
       final doc = await _profileService.fetchProfileDoc(user.uid);
       UserProfile profile;
       if (doc == null) {
+        await _profileService.ensureAdminProfile(
+          uid: user.uid,
+          email: user.email,
+        );
         profile = UserProfile(
           roles: [AppUserRole.admin],
           email: user.email,
@@ -112,12 +117,19 @@ class _AuthGateState extends State<AuthGate> {
       } else {
         profile = UserProfile.fromFirestore(doc);
         if (profile.roles.isEmpty) {
-          profile = UserProfile(
-            roles: [AppUserRole.admin],
-            leaderId: profile.leaderId,
-            fullName: profile.fullName,
+          await _profileService.ensureAdminProfile(
+            uid: user.uid,
             email: profile.email ?? user.email,
           );
+          final refreshed = await _profileService.fetchProfileDoc(user.uid);
+          profile = refreshed != null
+              ? UserProfile.fromFirestore(refreshed)
+              : UserProfile(
+                  roles: [AppUserRole.admin],
+                  leaderId: profile.leaderId,
+                  fullName: profile.fullName,
+                  email: profile.email ?? user.email,
+                );
         }
       }
 
@@ -222,6 +234,13 @@ class _AuthGateState extends State<AuthGate> {
           if (!mounted || _session?.uid != session.uid) return;
           _registerPushIfNeeded(session);
         });
+
+        if (session.permissions.usesSupervisorHome) {
+          return SupervisorHomeScreen(
+            session: session,
+            authService: _auth,
+          );
+        }
 
         return HomeScreen(
           session: session,

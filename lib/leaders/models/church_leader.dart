@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
+import 'church_office.dart';
 
 class ChurchLeader {
   const ChurchLeader({
@@ -12,6 +13,7 @@ class ChurchLeader {
     this.streetNumber,
     this.cellCode,
     this.gender,
+    this.churchOffice,
     this.neighborhood,
     this.locality,
     this.stateProvince,
@@ -23,6 +25,7 @@ class ChurchLeader {
     required this.mobilePhone,
     required this.registeredAt,
     required this.registeredBy,
+    this.acceptsMemberAssignments,
   });
 
   final String? id;
@@ -32,6 +35,7 @@ class ChurchLeader {
   final String? streetNumber;
   final String? cellCode;
   final LeaderGender? gender;
+  final ChurchOffice? churchOffice;
   final String? neighborhood;
   final String? locality;
   final String? stateProvince;
@@ -44,8 +48,17 @@ class ChurchLeader {
   final DateTime registeredAt;
   final String registeredBy;
 
+  /// `true` si la cuenta tiene rol Líder; `false` si no; `null` = registro anterior.
+  final bool? acceptsMemberAssignments;
+
+  /// Si puede recibir nuevos creyentes (solo con `acceptsMemberAssignments == true`).
+  bool get canReceiveMemberAssignments => acceptsMemberAssignments == true;
+
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
+
+  /// Cargo en la iglesia (texto legible para listas y búsqueda).
+  String? get churchOfficeLabel => churchOffice?.label;
 
   GeoLocation? get geoLocation {
     if (latitude == null || longitude == null) return null;
@@ -71,6 +84,7 @@ class ChurchLeader {
       'streetNumber': streetNumber,
       'cellCode': cellCode,
       'gender': gender?.code,
+      'churchOffice': churchOffice?.code,
       'neighborhood': neighborhood,
       'locality': locality,
       'stateProvince': stateProvince,
@@ -82,6 +96,8 @@ class ChurchLeader {
       'mobilePhone': mobilePhone,
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
+      if (acceptsMemberAssignments != null)
+        'acceptsMemberAssignments': acceptsMemberAssignments,
     };
   }
 
@@ -97,6 +113,7 @@ class ChurchLeader {
       streetNumber: data['streetNumber'] as String?,
       cellCode: data['cellCode'] as String?,
       gender: LeaderGender.fromCode(data['gender'] as String?),
+      churchOffice: ChurchOffice.fromCode(data['churchOffice'] as String?),
       neighborhood: data['neighborhood'] as String?,
       locality: data['locality'] as String?,
       stateProvince: data['stateProvince'] as String?,
@@ -108,6 +125,7 @@ class ChurchLeader {
       mobilePhone: data['mobilePhone'] as String? ?? '',
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',
+      acceptsMemberAssignments: data['acceptsMemberAssignments'] as bool?,
     );
   }
 }

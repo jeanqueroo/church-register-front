@@ -41,7 +41,7 @@ class MemberService {
   }) async {
     final id = member.id;
     if (id == null || id.isEmpty) {
-      throw ArgumentError('El integrante debe tener id para actualizar');
+      throw ArgumentError('El nuevo creyente debe tener id para actualizar');
     }
     await _members.doc(id).update(member.toMap());
     await _notifyLeaderIfAssigned(
@@ -66,11 +66,15 @@ class MemberService {
     if (leaderId == null || leaderId.isEmpty) return;
     if (previousLeaderId != null && previousLeaderId == leaderId) return;
 
-    await _notificationService.notifyMemberAssigned(
-      leaderId: leaderId,
-      memberId: memberId,
-      memberName: member.fullName,
-    );
+    try {
+      await _notificationService.notifyMemberAssigned(
+        leaderId: leaderId,
+        memberId: memberId,
+        memberName: member.fullName,
+      );
+    } on FirebaseException {
+      // El integrante ya quedó guardado; el aviso al líder es secundario.
+    }
   }
 
   Future<void> deleteMember(String id) {
@@ -84,7 +88,7 @@ class MemberService {
       case 'unavailable':
         return 'Firestore no está disponible. Revisa tu conexión.';
       case 'not-found':
-        return 'El integrante ya no existe.';
+        return 'El nuevo creyente ya no existe.';
       default:
         return 'Error al procesar la solicitud. Intenta de nuevo.';
     }

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
@@ -17,6 +18,7 @@ import '../../members/screens/members_list_screen.dart';
 import '../../members/screens/register_member_screen.dart';
 import '../../notifications/screens/leader_notifications_screen.dart';
 import '../../notifications/services/leader_notification_service.dart';
+import '../../supervisors/screens/supervisor_leader_assignments_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -53,9 +55,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final leaderId = widget.session.profile.leaderId;
     if (leaderId == null || leaderId.isEmpty) return;
     try {
-      await _notificationService.syncAssignmentsForLeader(leaderId);
+      await _notificationService.syncAssignmentsForLeader(
+        leaderId: leaderId,
+        recipientUserId: widget.session.uid,
+      );
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied' && mounted) {
+        debugPrint(
+          'Notificaciones: permission-denied. Publica firestore.rules '
+          '(ver FIREBASE_SETUP.md).',
+        );
+      }
     } catch (_) {
-      // Si falla (p. ej. reglas), la pantalla de notificaciones mostrará el error.
+      // La pantalla de notificaciones mostrará el error si persiste.
     }
   }
 
@@ -96,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
         leader: leader,
         registeredBy: _email,
       ),
-      'Mis integrantes',
+      'Mis nuevos creyentes',
     );
   }
 
@@ -114,10 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
       items.add(
         SlideMenuItem(
           icon: Icons.person_add_outlined,
-          label: 'Nuevo integrante',
+          label: 'Nuevo creyente',
           onTap: () => _navigate(
             RegisterMemberScreen(registeredBy: _email),
-            'Nuevo integrante',
+            'Nuevo creyente',
           ),
         ),
       );
@@ -127,13 +139,13 @@ class _HomeScreenState extends State<HomeScreen> {
       items.add(
         SlideMenuItem(
           icon: Icons.people_outlined,
-          label: 'Integrantes',
+          label: 'Nuevos creyentes',
           onTap: () => _navigate(
             MembersListScreen(
               registeredBy: _email,
               permissions: p,
             ),
-            'Integrantes',
+            'Nuevos creyentes',
           ),
         ),
       );
@@ -159,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
       items.add(
         SlideMenuItem(
           icon: Icons.group_outlined,
-          label: 'Mis integrantes',
+          label: 'Mis nuevos creyentes',
           onTap: _openMyAssignedMembers,
         ),
       );
@@ -171,7 +183,10 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icons.supervisor_account_outlined,
           label: 'Nuevo líder',
           onTap: () => _navigate(
-            RegisterLeaderScreen(registeredBy: _email),
+            RegisterLeaderScreen(
+              registeredBy: _email,
+              permissions: p,
+            ),
             'Nuevo líder',
           ),
         ),
@@ -182,13 +197,26 @@ class _HomeScreenState extends State<HomeScreen> {
       items.add(
         SlideMenuItem(
           icon: Icons.groups_outlined,
-          label: 'Líderes',
+          label: 'Ver líderes',
           onTap: () => _navigate(
             LeadersListScreen(
               registeredBy: _email,
               permissions: p,
             ),
             'Líderes',
+          ),
+        ),
+      );
+    }
+
+    if (p.canViewSupervisorLeaderAssignments) {
+      items.add(
+        SlideMenuItem(
+          icon: Icons.assignment_ind_outlined,
+          label: 'Líderes por supervisor',
+          onTap: () => _navigate(
+            SupervisorLeaderAssignmentsScreen(session: widget.session),
+            'Líderes por supervisor',
           ),
         ),
       );
@@ -213,29 +241,29 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canRegisterMember) {
       addEntry(
         icon: Icons.person_add_outlined,
-        title: 'Registrar integrante',
-        subtitle: 'Formulario de nuevo integrante',
+        title: 'Registrar nuevo creyente',
+        subtitle: 'Formulario de nuevo creyente',
         onTap: () => _navigate(
           RegisterMemberScreen(registeredBy: _email),
-          'Nuevo integrante',
+          'Nuevo creyente',
         ),
       );
     }
     if (p.canViewMembersList) {
       addEntry(
         icon: Icons.people_outlined,
-        title: 'Ver integrantes',
-        subtitle: 'Lista de integrantes registrados',
+        title: 'Ver nuevos creyentes',
+        subtitle: 'Lista de nuevos creyentes registrados',
         onTap: () => _navigate(
           MembersListScreen(registeredBy: _email, permissions: p),
-          'Integrantes',
+          'Nuevos creyentes',
         ),
       );
     }
     if (p.canViewMembersByLeader) {
       addEntry(
         icon: Icons.how_to_reg_outlined,
-        title: 'Integrantes por líder',
+        title: 'Nuevos creyentes por líder',
         subtitle: 'Miembros asignados a cada líder',
         onTap: () => _navigate(
           MembersByLeaderScreen(registeredBy: _email, permissions: p),
@@ -246,8 +274,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewMyAssignedMembers) {
       addEntry(
         icon: Icons.group_outlined,
-        title: 'Mis integrantes asignados',
-        subtitle: 'Integrantes bajo tu liderazgo',
+        title: 'Mis nuevos creyentes asignados',
+        subtitle: 'Nuevos creyentes bajo tu liderazgo',
         onTap: _openMyAssignedMembers,
       );
     }
@@ -257,7 +285,10 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'Registrar líder',
         subtitle: 'Datos del liderazgo',
         onTap: () => _navigate(
-          RegisterLeaderScreen(registeredBy: _email),
+          RegisterLeaderScreen(
+            registeredBy: _email,
+            permissions: p,
+          ),
           'Nuevo líder',
         ),
       );
@@ -270,6 +301,19 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () => _navigate(
           LeadersListScreen(registeredBy: _email, permissions: p),
           'Líderes',
+        ),
+      );
+    }
+    if (p.canViewSupervisorLeaderAssignments) {
+      addEntry(
+        icon: Icons.assignment_ind_outlined,
+        title: 'Líderes por supervisor',
+        subtitle: p.canAssignSupervisorLeaders
+            ? 'Asignar líderes a cada supervisor'
+            : 'Líderes que te fueron asignados',
+        onTap: () => _navigate(
+          SupervisorLeaderAssignmentsScreen(session: widget.session),
+          'Líderes por supervisor',
         ),
       );
     }
@@ -288,12 +332,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget? _buildNotificationsAction() {
     if (!_permissions.canViewLeaderNotifications) return null;
-    final leaderId = widget.session.profile.leaderId;
-    if (leaderId == null || leaderId.isEmpty) return null;
+    if (widget.session.profile.leaderId == null ||
+        widget.session.profile.leaderId!.isEmpty) {
+      return null;
+    }
 
     return StreamBuilder<int>(
-      stream: _notificationService.watchUnreadCountForLeader(leaderId),
+      stream: _notificationService.watchUnreadCountForUser(widget.session.uid),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return IconButton(
+            tooltip: 'Notificaciones (revisa reglas de Firestore)',
+            icon: Icon(
+              Icons.notifications_outlined,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+            onPressed: () => _navigate(
+              LeaderNotificationsScreen(session: widget.session),
+              'Notificaciones',
+            ),
+          );
+        }
         final unread = snapshot.data ?? 0;
         return Padding(
           padding: const EdgeInsets.only(right: 4),

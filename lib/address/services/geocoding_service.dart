@@ -1,14 +1,14 @@
 import '../../core/models/geo_location.dart';
-import 'nominatim_service.dart';
+import 'google_places_service.dart';
 
-/// Geocodificación con OpenStreetMap (Nominatim).
+/// Geocodificación con Google Geocoding API.
 class GeocodingService {
-  GeocodingService({NominatimService? nominatim})
-      : _nominatim = nominatim ?? NominatimService();
+  GeocodingService({GooglePlacesService? places})
+      : _places = places ?? GooglePlacesService();
 
-  final NominatimService _nominatim;
+  final GooglePlacesService _places;
 
   Future<GeoLocation?> geocodeAddress(String address) {
-    return _nominatim.geocodeAddress(address);
+    return _places.geocodeAddress(address);
   }
 }

@@ -36,43 +36,39 @@ Esto actualiza `lib/firebase_options.dart` automáticamente.
 2. Elige modo **producción** (o prueba para desarrollo).
 3. En **Rules**, usa reglas que solo permitan lectura/escritura a usuarios autenticados:
 
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /members/{memberId} {
-      allow read, write: if request.auth != null;
-    }
-    match /leaders/{leaderId} {
-      allow read, write: if request.auth != null;
-    }
-    match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow create, update: if request.auth != null;
-    }
-    match /notifications/{notificationId} {
-      allow create: if request.auth != null;
-      allow read, update: if request.auth != null && (
-        resource.data.recipientUserId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.leaderId
-          == resource.data.leaderId
-      );
-    }
-  }
-}
+Copia el contenido de **`firestore.rules`** en la raíz del proyecto (o publica con Firebase CLI):
+
+```powershell
+firebase deploy --only firestore:rules
 ```
 
-4. Publica las reglas.
+4. Pulsa **Publicar**.
 
-Los integrantes se guardan en `members`. Los líderes se guardan en `leaders`. Los perfiles de acceso en `users` con campo **`roles`** (array). Las notificaciones para líderes (nuevo integrante asignado) en `notifications`.
+Los nuevos creyentes se guardan en `members`. Los líderes en `leaders`. Los perfiles en `users`. Las notificaciones del líder en **`users/{uid}/notifications`** (subcolección).
+
+### Error `PERMISSION_DENIED` en «Líderes por supervisor»
+
+Si un administrador o supervisor ve *No tienes permiso* al entrar:
+
+1. Publica las reglas: `firebase deploy --only firestore:rules`
+2. En Firestore → `users` → documento con el **UID** del usuario (no el correo), campo **`roles`** debe ser un **array** con strings exactos, por ejemplo: `["admin", "supervisor"]` (no «Administrador» ni un solo texto).
+3. Cierra sesión en la app y vuelve a entrar.
+
+Los roles se leen solo desde Firestore (`users.roles`), no desde la consola de Authentication.
+
+### Error `PERMISSION_DENIED` en notificaciones
+
+Si ves `Listen for Query(...)` con `PERMISSION_DENIED`:
+
+1. Publica **`firestore.rules`** del repo (`firebase deploy --only firestore:rules`).
+2. Las notificaciones deben estar en **`users/{uid}/notifications`**, no en la colección raíz `notifications` (versión antigua).
+3. Vuelve a desplegar la Cloud Function (`firebase deploy --only functions`) para el nuevo path.
 
 ## Notificaciones al líder
 
-Cuando se registra o reasigna un integrante con un líder, la app crea un documento en `notifications` con el campo **`leaderId`** (id del documento en `leaders`). El líder las ve en **Notificaciones** si su perfil en `users` tiene el mismo `leaderId`.
+Al asignar un nuevo creyente, la app escribe en `users/{uid del líder}/notifications`. El líder solo escucha su propio buzón (sin consultas que fallen por permisos).
 
-Al iniciar sesión, la app sincroniza avisos para integrantes ya asignados que aún no tenían notificación.
-
-**Importante:** publica las reglas de `notifications` de arriba. Si solo permites lectura por `recipientUserId`, el líder no verá los avisos aunque existan en la base de datos.
+Al iniciar sesión, se sincronizan avisos de nuevos creyentes ya asignados.
 
 ## Notificaciones push en el teléfono (FCM)
 
@@ -110,7 +106,7 @@ La función `notifyLeaderOnMemberAssigned` se ejecuta al crear un documento en `
 1. Instala la app en un teléfono físico (el emulador a veces no recibe push).
 2. Inicia sesión como **líder** y acepta notificaciones.
 3. En Firestore, comprueba que `users/{uid}` tenga `fcmToken`.
-4. Desde otra cuenta, registra un integrante asignado a ese líder.
+4. Desde otra cuenta, registra un nuevo creyente asignado a ese líder.
 5. Deberías ver el aviso en el teléfono y en **Notificaciones** dentro de la app.
 
 Si no llega el push pero sí el aviso en la app, revisa que la función esté desplegada y que exista `fcmToken` en el perfil del líder.
@@ -121,9 +117,21 @@ Un usuario puede tener **varios roles** a la vez. Valores válidos en `roles`:
 
 | Valor en Firestore | Etiqueta        | Permisos en la app                                      |
 |--------------------|-----------------|---------------------------------------------------------|
-| `admin`            | Administrador   | Ve y gestiona todo                                      |
-| `registrador`      | Registrador     | Solo registrar integrantes y líderes (sin listas)       |
-| `leader`           | Líder           | Ver sus integrantes asignados (solo lectura)            |
+| `admin`            | Administrador   | Ve y gestiona todo (solo desde Firebase Console)        |
+| `registrador`      | Registrador     | Solo registrar nuevos creyentes (sin listas ni líderes)  |
+| `supervisor`       | Supervisor      | Registrar creyentes y ver listas; ver líderes que le asignó el admin |
+| `leader`           | Líder           | Ver sus nuevos creyentes asignados (solo lectura)       |
+
+Al **registrar un líder** en la app puedes asignar `leader`, `registrador` y/o `supervisor` (nunca `admin`).
+
+### Líderes por supervisor
+
+En `users/{uid del supervisor}` guarda el campo **`supervisedLeaderIds`**: array de IDs de documentos de la colección `leaders`.
+
+- **Administrador:** menú **Líderes por supervisor** → elige supervisor y marca los líderes → Guardar.
+- **Supervisor:** mismo menú → solo lectura de los líderes que le asignaron.
+
+Publica las reglas de Firestore tras actualizar (`firebase deploy --only firestore:rules`).
 
 Ejemplo de documento en `users/{uid}`:
 
@@ -169,15 +177,11 @@ En Firebase Console → **Authentication → Users** → **Add user**, crea un c
 flutter run
 ```
 
-## Direcciones y mapas (OpenStreetMap)
+## Direcciones y mapas (Google Maps)
 
-La app usa **OpenStreetMap** sin API key de Google:
+La app usa **Google Maps**, **Places API** y **Geocoding API**.
 
-- **Autocompletado:** [Nominatim](https://nominatim.openstreetmap.org/) (búsqueda de direcciones)
-- **Mapa:** [flutter_map](https://pub.dev/packages/flutter_map) con tiles de OSM
-- **Asignación de líderes:** geocodificación con Nominatim + distancia en km
-
-No requiere configuración en Google Cloud. Nominatim pide uso moderado (máx. ~1 petición/segundo en producción).
+Configuración detallada: ver **[GOOGLE_MAPS_SETUP.md](GOOGLE_MAPS_SETUP.md)**.
 
 ## iOS (opcional)
 

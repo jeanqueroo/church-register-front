@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../core/services/excel_export_service.dart';
+import '../../core/utils/list_search.dart';
+import '../../core/widgets/export_excel_icon_button.dart';
+import '../../core/widgets/person_list_search_field.dart';
 import '../models/church_member.dart';
 import '../models/leader_member_group.dart';
 import '../services/member_service.dart';
@@ -36,7 +40,7 @@ class MembersByLeaderScreen extends StatelessWidget {
   }
 }
 
-class _MembersByLeaderBody extends StatelessWidget {
+class _MembersByLeaderBody extends StatefulWidget {
   const _MembersByLeaderBody({
     required this.registeredBy,
     this.memberService,
@@ -47,6 +51,39 @@ class _MembersByLeaderBody extends StatelessWidget {
   final MemberService? memberService;
   final AppPermissions permissions;
 
+  @override
+  State<_MembersByLeaderBody> createState() => _MembersByLeaderBodyState();
+}
+
+class _MembersByLeaderBodyState extends State<_MembersByLeaderBody> {
+  final _searchController = TextEditingController();
+  List<ChurchMember> _membersForExport = [];
+  bool _canExport = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _exportToExcel() {
+    return ExcelExportService.instance.shareMembersExcel(
+      members: _membersForExport,
+      fileName: 'creyentes_por_lider_${DateTime.now().millisecondsSinceEpoch}',
+      sheetTitle: 'Por líder',
+    );
+  }
+
+  void _syncMembersForExport(List<ChurchMember> members) {
+    _membersForExport = members;
+    final canExport = members.isNotEmpty;
+    if (canExport == _canExport) return;
+    _canExport = canExport;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
@@ -55,11 +92,17 @@ class _MembersByLeaderBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final service = memberService ?? MemberService();
+    final service = widget.memberService ?? MemberService();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Integrantes por líder'),
+        title: const Text('Nuevos creyentes por líder'),
+        actions: [
+          ExportExcelIconButton(
+            enabled: _canExport,
+            onExport: _exportToExcel,
+          ),
+        ],
       ),
       body: StreamBuilder<List<ChurchMember>>(
         stream: service.watchMembers(),
@@ -84,6 +127,7 @@ class _MembersByLeaderBody extends StatelessWidget {
           }
 
           final members = snapshot.data ?? [];
+          _syncMembersForExport(members);
 
           if (members.isEmpty) {
             return Center(
@@ -99,7 +143,7 @@ class _MembersByLeaderBody extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No hay integrantes registrados',
+                      'No hay nuevos creyentes registrados',
                       style: Theme.of(context).textTheme.titleMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -109,7 +153,9 @@ class _MembersByLeaderBody extends StatelessWidget {
             );
           }
 
-          final groups = groupMembersByLeader(members);
+          final allGroups = groupMembersByLeader(members);
+          final query = _searchController.text;
+          final groups = filterLeaderMemberGroups(allGroups, query);
           final assignedCount = members
               .where(
                 (m) =>
@@ -122,7 +168,7 @@ class _MembersByLeaderBody extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -135,7 +181,7 @@ class _MembersByLeaderBody extends StatelessWidget {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            '$assignedCount de ${members.length} integrantes '
+                            '$assignedCount de ${members.length} nuevos creyentes '
                             'con líder asignado',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
@@ -145,30 +191,37 @@ class _MembersByLeaderBody extends StatelessWidget {
                   ),
                 ),
               ),
+              PersonListSearchField(
+                controller: _searchController,
+                hintText: 'Buscar por líder, nombre o teléfono…',
+                onChanged: (_) => setState(() {}),
+              ),
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                  itemCount: groups.length,
-                  itemBuilder: (context, index) {
-                    final group = groups[index];
-                    return _LeaderGroupTile(
-                      group: group,
-                      formatDate: _formatDate,
-                      onMemberTap: (member) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => MemberDetailScreen(
-                              member: member,
-                              registeredBy: registeredBy,
-                              memberService: service,
-                              permissions: permissions,
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
+                child: groups.isEmpty
+                    ? PersonListSearchEmptyState(query: query)
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                        itemCount: groups.length,
+                        itemBuilder: (context, index) {
+                          final group = groups[index];
+                          return _LeaderGroupTile(
+                            group: group,
+                            formatDate: _formatDate,
+                            onMemberTap: (member) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => MemberDetailScreen(
+                                    member: member,
+                                    registeredBy: widget.registeredBy,
+                                    memberService: service,
+                                    permissions: widget.permissions,
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
               ),
             ],
           );
@@ -200,7 +253,7 @@ class _LeaderGroupTileState extends State<_LeaderGroupTile> {
   Widget build(BuildContext context) {
     final group = widget.group;
     final subtitleParts = <String>[
-      '${group.count} integrante${group.count == 1 ? '' : 's'}',
+      '${group.count} ${group.count == 1 ? 'nuevo creyente' : 'nuevos creyentes'}',
       if (group.cellCode != null) 'Célula ${group.cellCode}',
     ];
 
