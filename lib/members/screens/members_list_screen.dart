@@ -5,6 +5,7 @@ import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
 import '../models/church_member.dart';
 import '../services/member_service.dart';
+import '../services/members_excel_export_service.dart';
 import 'member_detail_screen.dart';
 import 'register_member_screen.dart';
 
@@ -37,7 +38,7 @@ class MembersListScreen extends StatelessWidget {
   }
 }
 
-class _MembersListBody extends StatelessWidget {
+class _MembersListBody extends StatefulWidget {
   const _MembersListBody({
     required this.registeredBy,
     this.memberService,
@@ -47,6 +48,42 @@ class _MembersListBody extends StatelessWidget {
   final String registeredBy;
   final MemberService? memberService;
   final AppPermissions permissions;
+
+  @override
+  State<_MembersListBody> createState() => _MembersListBodyState();
+}
+
+class _MembersListBodyState extends State<_MembersListBody> {
+  final _searchController = TextEditingController();
+  final _excelExportService = MembersExcelExportService();
+  bool _exporting = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  bool _matchesSearch(ChurchMember member, String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return true;
+    final haystack = [
+      member.firstName,
+      member.lastName,
+      member.fullName,
+      member.phone,
+      member.assignedLeaderName,
+      member.assignedLeaderCellCode,
+      member.locality,
+      member.neighborhood,
+      member.cellZone,
+      member.occupation,
+      member.volunteer,
+      member.maritalStatus?.label,
+      member.gender?.label,
+    ].whereType<String>().join(' ').toLowerCase();
+    return haystack.contains(q);
+  }
 
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
@@ -58,13 +95,37 @@ class _MembersListBody extends StatelessWidget {
     await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
         builder: (_) => RegisterMemberScreen(
-          registeredBy: registeredBy,
-          churchId: permissions.churchId,
-          memberService: memberService,
+          registeredBy: widget.registeredBy,
+          churchId: widget.permissions.churchId,
+          memberService: widget.memberService,
           memberToEdit: member,
+          permissions: widget.permissions,
         ),
       ),
     );
+  }
+
+  Future<void> _exportToExcel(List<ChurchMember> members) async {
+    if (_exporting) return;
+
+    setState(() => _exporting = true);
+    try {
+      await _excelExportService.shareMembers(members);
+    } on MembersExcelExportException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo exportar el listado. Intenta de nuevo.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, ChurchMember member) async {
@@ -74,7 +135,7 @@ class _MembersListBody extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar integrante'),
+        title: const Text('Eliminar Creyente'),
         content: Text(
           '¿Eliminar a ${member.fullName}? Esta acción no se puede deshacer.',
         ),
@@ -97,10 +158,10 @@ class _MembersListBody extends StatelessWidget {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      await (memberService ?? MemberService()).deleteMember(id);
+      await (widget.memberService ?? MemberService()).deleteMember(id);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Integrante eliminado')),
+        const SnackBar(content: Text('Creyente eliminado')),
       );
     } on FirebaseException catch (e) {
       if (!context.mounted) return;
@@ -114,32 +175,56 @@ class _MembersListBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final service = memberService ?? MemberService();
+    final service = widget.memberService ?? MemberService();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Integrantes'),
-      ),
-      floatingActionButton: permissions.canRegisterMember
-          ? FloatingActionButton.extended(
-              onPressed: () async {
-                await Navigator.of(context).push<bool>(
-                  MaterialPageRoute<bool>(
-                    builder: (_) => RegisterMemberScreen(
-                      registeredBy: registeredBy,
-                      churchId: permissions.churchId,
-                      memberService: service,
-                    ),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.person_add),
-              label: const Text('Nuevo'),
-            )
-          : null,
-      body: StreamBuilder<List<ChurchMember>>(
-        stream: service.watchMembers(churchId: permissions.churchId),
-        builder: (context, snapshot) {
+    return StreamBuilder<List<ChurchMember>>(
+      stream: service.watchMembers(churchId: widget.permissions.churchId),
+      builder: (context, snapshot) {
+        final members = snapshot.data ?? [];
+        final filtered = members
+            .where((m) => _matchesSearch(m, _searchController.text))
+            .toList();
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Creyentes'),
+            actions: [
+              if (snapshot.hasData && members.isNotEmpty)
+                IconButton(
+                  tooltip: 'Descargar Excel',
+                  onPressed: _exporting || filtered.isEmpty
+                      ? null
+                      : () => _exportToExcel(filtered),
+                  icon: _exporting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.download_outlined),
+                ),
+            ],
+          ),
+          floatingActionButton: widget.permissions.canRegisterMember
+              ? FloatingActionButton.extended(
+                  onPressed: () async {
+                    await Navigator.of(context).push<bool>(
+                      MaterialPageRoute<bool>(
+                        builder: (_) => RegisterMemberScreen(
+                          registeredBy: widget.registeredBy,
+                          churchId: widget.permissions.churchId,
+                          memberService: service,
+                          permissions: widget.permissions,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.person_add),
+                  label: const Text('Nuevo'),
+                )
+              : null,
+          body: Builder(
+            builder: (context) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -159,8 +244,6 @@ class _MembersListBody extends StatelessWidget {
             );
           }
 
-          final members = snapshot.data ?? [];
-
           if (members.isEmpty) {
             return Center(
               child: Padding(
@@ -175,7 +258,7 @@ class _MembersListBody extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Aún no hay integrantes registrados',
+                      'Aún no hay Creyentes registrados',
                       style: Theme.of(context).textTheme.titleMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -194,12 +277,39 @@ class _MembersListBody extends StatelessWidget {
             );
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
-            itemCount: members.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final member = members[index];
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (_) => setState(() {}),
+                  decoration: const InputDecoration(
+                    hintText:
+                        'Buscar por nombre, teléfono, líder o localidad…',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              if (filtered.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'No hay coincidencias',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+              final member = filtered[index];
               final subtitleParts = <String>[
                 member.phone,
                 if (member.assignedLeaderName != null)
@@ -227,9 +337,9 @@ class _MembersListBody extends StatelessWidget {
                             MaterialPageRoute<bool>(
                               builder: (_) => MemberDetailScreen(
                                 member: member,
-                                registeredBy: registeredBy,
+                                registeredBy: widget.registeredBy,
                                 memberService: service,
-                                permissions: permissions,
+                                permissions: widget.permissions,
                               ),
                             ),
                           );
@@ -244,7 +354,7 @@ class _MembersListBody extends StatelessWidget {
                         value: 'view',
                         child: Text('Ver detalle'),
                       ),
-                      if (permissions.canManageAll) ...[
+                      if (widget.permissions.canManageAll) ...[
                         const PopupMenuItem(
                           value: 'edit',
                           child: Text('Editar'),
@@ -264,9 +374,9 @@ class _MembersListBody extends StatelessWidget {
                       MaterialPageRoute<void>(
                         builder: (_) => MemberDetailScreen(
                           member: member,
-                          registeredBy: registeredBy,
+                          registeredBy: widget.registeredBy,
                           memberService: service,
-                          permissions: permissions,
+                          permissions: widget.permissions,
                         ),
                       ),
                     );
@@ -274,9 +384,14 @@ class _MembersListBody extends StatelessWidget {
                 ),
               );
             },
+                  ),
+                ),
+            ],
           );
-        },
-      ),
+            },
+          ),
+        );
+      },
     );
   }
 }

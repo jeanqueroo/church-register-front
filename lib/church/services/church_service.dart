@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 
@@ -13,13 +14,21 @@ class ChurchService {
     FirebaseStorage? storage,
   })  : _churches = (firestore ?? FirebaseFirestore.instance)
             .collection('churches'),
-        _storage = storage ?? FirebaseStorage.instance;
+        _storage = storage ?? _defaultStorage();
 
   /// Id legado cuando aún no hay multi-iglesia.
   static const String mainChurchId = 'main';
 
   final CollectionReference<Map<String, dynamic>> _churches;
   final FirebaseStorage _storage;
+
+  static FirebaseStorage _defaultStorage() {
+    final bucket = Firebase.app().options.storageBucket;
+    if (bucket != null && bucket.isNotEmpty) {
+      return FirebaseStorage.instanceFor(bucket: bucket);
+    }
+    return FirebaseStorage.instance;
+  }
 
   String _resolveChurchId(String? churchId) =>
       churchId != null && churchId.isNotEmpty ? churchId : mainChurchId;
@@ -109,8 +118,22 @@ class ChurchService {
     });
   }
 
+  static bool _isStorageNotConfigured(FirebaseException e) {
+    final message = (e.message ?? '').toLowerCase();
+    return e.code == 'object-not-found' ||
+        e.code == 'bucket-not-found' ||
+        message.contains('404') ||
+        message.contains('not found') ||
+        message.contains('terminated the upload session');
+  }
+
   static String messageFromException(Object e) {
     if (e is FirebaseException) {
+      if (_isStorageNotConfigured(e)) {
+        return 'Firebase Storage no está activo en el proyecto. '
+            'En Firebase Console → Storage, pulsa "Comenzar", '
+            'elige ubicación y vuelve a subir el logo.';
+      }
       switch (e.code) {
         case 'permission-denied':
           return 'No tienes permiso para gestionar iglesias.';

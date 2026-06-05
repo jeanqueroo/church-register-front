@@ -24,9 +24,10 @@ class AccountHubScreen extends StatelessWidget {
     final roles = session.profile.permissions.roleLabels;
     final permissions = session.profile.permissions;
     final churchId = session.profile.churchId;
-    final showChurchData = permissions.canManageChurch &&
-        churchId != null &&
-        churchId.isNotEmpty;
+    final showChurchData = permissions.canViewChurchData;
+    final editsFullPersonalData = session.isLeaderAccount ||
+        permissions.isRegistrar ||
+        permissions.isSupervisor;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mi cuenta')),
@@ -133,7 +134,7 @@ class AccountHubScreen extends StatelessWidget {
                   WhatsappListTile(
                     icon: Icons.person_outline,
                     title: 'Datos personales',
-                    subtitle: session.isLeaderAccount
+                    subtitle: editsFullPersonalData
                         ? 'Nombre, dirección y teléfono'
                         : 'Nombre de tu perfil',
                     onTap: () {
@@ -149,7 +150,7 @@ class AccountHubScreen extends StatelessWidget {
                     WhatsappListTile(
                       icon: Icons.church_outlined,
                       title: 'Datos de la iglesia',
-                      subtitle: 'Nombre, dirección y logo de tu sede',
+                      subtitle: 'Consulta los datos de tu sede',
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute<void>(
@@ -157,6 +158,7 @@ class AccountHubScreen extends StatelessWidget {
                               updatedBy: session.email,
                               permissions: permissions,
                               churchId: churchId,
+                              readOnly: true,
                             ),
                           ),
                         );

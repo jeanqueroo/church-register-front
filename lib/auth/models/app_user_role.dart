@@ -45,10 +45,14 @@ class AppUserRole {
   }
 
   /// Administrador no puede asignarse desde el registro de líderes.
+  /// El rol registrador es exclusivo: no se combina con líder ni supervisor.
   static List<String> sanitizeForLeaderRegistration(Iterable<String> roles) {
     final set = roles
         .where((r) => assignableForLeaderRegistration.contains(r))
         .toSet();
+    if (set.contains(registrar)) {
+      return [registrar];
+    }
     if (set.isEmpty) {
       set.add(leader);
     }

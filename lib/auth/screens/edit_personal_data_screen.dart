@@ -52,8 +52,22 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
 
   bool get _isLeaderAccount => widget.session.isLeaderAccount;
 
+  bool get _hasLinkedLeaderId {
+    final id = widget.session.profile.leaderId;
+    return id != null && id.isNotEmpty;
+  }
+
+  /// Cuenta vinculada a ficha en `leaders` (líder, registrador, supervisor, admin).
   bool get _usesLeaderRecord =>
-      _isLeaderAccount || widget.session.profile.permissions.isAdmin;
+      _isLeaderAccount ||
+      widget.session.profile.permissions.isAdmin ||
+      _hasLinkedLeaderId;
+
+  /// Nombre, dirección y teléfono (no solo nombre como el admin de iglesia).
+  bool get _editsFullLeaderFields =>
+      _isLeaderAccount ||
+      widget.session.profile.permissions.isRegistrar ||
+      widget.session.profile.permissions.isSupervisor;
 
   @override
   void initState() {
@@ -167,9 +181,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
         final leader = _leader;
         var leaderId = leader?.id ?? widget.session.profile.leaderId;
 
-        if (_isLeaderAccount) {
+        if (_editsFullLeaderFields) {
           if (leader == null || leaderId == null || leaderId.isEmpty) {
-            _showMessage('No se encontró tu ficha de líder.');
+            _showMessage('No se encontró tu ficha de datos.');
             return;
           }
 
@@ -220,6 +234,8 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
               mobilePhone: _mobilePhoneController.text.trim(),
               registeredAt: leader.registeredAt,
               registeredBy: leader.registeredBy,
+              churchId: leader.churchId,
+              churchOffice: leader.churchOffice,
             ),
           );
         } else {
@@ -293,7 +309,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
       );
     }
 
-    if (_usesLeaderRecord && _leader == null && _isLeaderAccount) {
+    if (_usesLeaderRecord && _leader == null && _editsFullLeaderFields) {
       return Scaffold(
         appBar: AppBar(title: const Text('Datos personales')),
         body: Center(
@@ -303,7 +319,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'No se encontró tu ficha de líder.',
+                  'No se encontró tu ficha de datos.',
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -328,10 +344,10 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
           padding: const EdgeInsets.all(24),
           children: [
             Text(
-              _isLeaderAccount
-                  ? 'Actualiza tu nombre, dirección y teléfono en tu ficha de líder. '
+              _editsFullLeaderFields
+                  ? 'Actualiza tu nombre, dirección y teléfono. '
                       'Para cambiar la contraseña usa «Cambiar contraseña» en Mi cuenta.'
-                  : 'Actualiza tu nombre en tu ficha de líder. Para cambiar la contraseña usa '
+                  : 'Actualiza tu nombre en tu ficha. Para cambiar la contraseña usa '
                       '«Cambiar contraseña» en Mi cuenta.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -339,8 +355,8 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
             ),
             const SizedBox(height: 24),
             if (_usesLeaderRecord) ...[
-              if (!_isLeaderAccount) const FormSectionTitle('NOMBRE'),
-              if (!_isLeaderAccount) ...[
+              if (!_editsFullLeaderFields) const FormSectionTitle('NOMBRE'),
+              if (!_editsFullLeaderFields) ...[
                 TextFormField(
                   controller: _firstNameController,
                   textCapitalization: TextCapitalization.words,
@@ -377,7 +393,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                 const SizedBox(height: 16),
               ],
             ],
-            if (_isLeaderAccount) ...[
+            if (_editsFullLeaderFields) ...[
               const FormSectionTitle('NOMBRE'),
               TextFormField(
                 controller: _firstNameController,

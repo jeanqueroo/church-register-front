@@ -23,6 +23,7 @@ class RegisterChurchScreen extends StatefulWidget {
     this.churchService,
     this.churchId,
     this.createNew = false,
+    this.readOnly = false,
   });
 
   final String updatedBy;
@@ -34,6 +35,9 @@ class RegisterChurchScreen extends StatefulWidget {
 
   /// Si es true, crea un documento nuevo en `churches`.
   final bool createNew;
+
+  /// Solo consulta: campos y logo sin edición (p. ej. registrador en Mi cuenta).
+  final bool readOnly;
 
   @override
   State<RegisterChurchScreen> createState() => _RegisterChurchScreenState();
@@ -311,24 +315,31 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
   Widget build(BuildContext context) {
     final allowed = widget.createNew
         ? widget.permissions.canCreateChurch
-        : widget.permissions.canManageChurch ||
-            widget.permissions.canEditAnyChurch;
+        : widget.readOnly
+            ? widget.permissions.canViewChurchData ||
+                widget.permissions.canEditAnyChurch
+            : widget.permissions.canEditAnyChurch;
 
     final title = widget.createNew
         ? 'Nueva iglesia'
-        : widget.permissions.isSuperAdmin
-            ? 'Editar iglesia'
-            : 'Datos de la iglesia';
+        : widget.readOnly
+            ? 'Datos de la iglesia'
+            : widget.permissions.isSuperAdmin
+                ? 'Editar iglesia'
+                : 'Datos de la iglesia';
 
     final lockedByBlock =
         _isBlocked && !widget.permissions.isSuperAdmin && !widget.createNew;
+    final editable = !widget.readOnly && !lockedByBlock;
 
     return RoleGate(
       permissions: widget.permissions,
       allowed: allowed,
       deniedMessage: widget.createNew
           ? 'Solo el super administrador puede crear iglesias.'
-          : 'No tienes permiso para editar los datos de esta iglesia.',
+          : widget.readOnly
+              ? 'No tienes permiso para ver los datos de esta iglesia.'
+              : 'No tienes permiso para editar los datos de esta iglesia.',
       child: Scaffold(
         appBar: AppBar(
           title: Text(title),
@@ -374,91 +385,119 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
                             ),
                           ),
                         if (lockedByBlock) const SizedBox(height: 16),
-                        const FormSectionTitle('LOGO (opcional)'),
+                        FormSectionTitle(
+                          widget.readOnly ? 'LOGO' : 'LOGO (opcional)',
+                        ),
                         Center(child: _buildLogoPreview()),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Puedes guardar sin logo; se usará el predeterminado.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
+                        if (!widget.readOnly) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'Puedes guardar sin logo; se usará el predeterminado.',
+                            textAlign: TextAlign.center,
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              FilledButton.tonalIcon(
+                                onPressed:
+                                    _saving || lockedByBlock ? null : _pickLogo,
+                                icon: const Icon(Icons.upload_outlined),
+                                label: const Text('Subir logo'),
                               ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            FilledButton.tonalIcon(
-                              onPressed: _saving || lockedByBlock ? null : _pickLogo,
-                              icon: const Icon(Icons.upload_outlined),
-                              label: const Text('Subir logo'),
-                            ),
-                            if (_pickedLogoBytes != null) ...[
-                              const SizedBox(width: 8),
-                              TextButton(
-                                onPressed: _saving ? null : _clearPickedLogo,
-                                child: const Text('Quitar'),
-                              ),
+                              if (_pickedLogoBytes != null) ...[
+                                const SizedBox(width: 8),
+                                TextButton(
+                                  onPressed: _saving ? null : _clearPickedLogo,
+                                  child: const Text('Quitar'),
+                                ),
+                              ],
                             ],
-                          ],
-                        ),
+                          ),
+                        ],
                         const SizedBox(height: 24),
                         const FormSectionTitle('INFORMACIÓN'),
                         TextFormField(
                           controller: _nameController,
-                          enabled: !_saving && !lockedByBlock,
+                          readOnly: widget.readOnly,
+                          enabled: editable && !_saving,
                           textCapitalization: TextCapitalization.words,
-                          decoration: const InputDecoration(
-                            labelText: 'Nombre de la iglesia *',
-                            prefixIcon: Icon(Icons.church_outlined),
-                            border: OutlineInputBorder(),
+                          decoration: InputDecoration(
+                            labelText: widget.readOnly
+                                ? 'Nombre de la iglesia'
+                                : 'Nombre de la iglesia *',
+                            prefixIcon: const Icon(Icons.church_outlined),
+                            border: const OutlineInputBorder(),
+                            filled: widget.readOnly,
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Ingresa el nombre';
-                            }
-                            return null;
-                          },
+                          validator: editable
+                              ? (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Ingresa el nombre';
+                                  }
+                                  return null;
+                                }
+                              : null,
                         ),
                         const SizedBox(height: 16),
-                        AddressAutocompleteField(
-                          controller: _addressController,
-                          enabled: !_saving && !lockedByBlock,
-                          showInlineMapPreview: false,
-                          suggestionsLocked: _churchLocation != null ||
-                              (_loadedAddress != null &&
-                                  _addressController.text.trim() ==
-                                      _loadedAddress &&
-                                  _addressController.text.trim().length >= 3),
-                          labelText: 'Buscar dirección *',
-                          hintText: 'Escribe y elige una sugerencia…',
-                          onPlaceSelected: _onPlaceSelected,
-                          validator: _validateAddress,
-                        ),
+                        if (widget.readOnly)
+                          TextFormField(
+                            controller: _addressController,
+                            readOnly: true,
+                            enabled: false,
+                            maxLines: 2,
+                            decoration: const InputDecoration(
+                              labelText: 'Dirección',
+                              prefixIcon: Icon(Icons.location_on_outlined),
+                              border: OutlineInputBorder(),
+                              filled: true,
+                            ),
+                          )
+                        else
+                          AddressAutocompleteField(
+                            controller: _addressController,
+                            enabled: editable && !_saving,
+                            showInlineMapPreview: false,
+                            suggestionsLocked: _churchLocation != null ||
+                                (_loadedAddress != null &&
+                                    _addressController.text.trim() ==
+                                        _loadedAddress &&
+                                    _addressController.text.trim().length >= 3),
+                            labelText: 'Buscar dirección *',
+                            hintText: 'Escribe y elige una sugerencia…',
+                            onPlaceSelected: _onPlaceSelected,
+                            validator: _validateAddress,
+                          ),
                         if (_churchLocation != null) ...[
                           const SizedBox(height: 12),
                           ChurchLocationMapPreview(location: _churchLocation!),
                         ],
-                        const SizedBox(height: 32),
-                        FilledButton.icon(
-                          onPressed: _saving || lockedByBlock ? null : _save,
-                          icon: _saving
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(Icons.save_outlined),
-                          label: Text(_saving ? 'Guardando…' : 'Guardar'),
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                        if (editable) ...[
+                          const SizedBox(height: 32),
+                          FilledButton.icon(
+                            onPressed: _saving ? null : _save,
+                            icon: _saving
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.save_outlined),
+                            label: Text(_saving ? 'Guardando…' : 'Guardar'),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),

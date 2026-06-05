@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import 'church_display_name.dart';
 
 class SlideMenuItem {
   const SlideMenuItem({
@@ -18,7 +19,8 @@ class SlideMenuItem {
 class SlideMenuScaffold extends StatefulWidget {
   const SlideMenuScaffold({
     super.key,
-    required this.title,
+    this.churchId,
+    this.titleFallback = appDisplayName,
     required this.body,
     required this.menuItems,
     required this.onSignOut,
@@ -27,7 +29,8 @@ class SlideMenuScaffold extends StatefulWidget {
     this.floatingActionButton,
   });
 
-  final String title;
+  final String? churchId;
+  final String titleFallback;
   final Widget body;
   final List<SlideMenuItem> menuItems;
   final VoidCallback onSignOut;
@@ -99,7 +102,8 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _WhatsappAppBar(
-                title: widget.title,
+                churchId: widget.churchId,
+                titleFallback: widget.titleFallback,
                 onMenuPressed: _toggleMenu,
                 actions: widget.actions,
               ),
@@ -136,7 +140,8 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _DrawerProfileHeader(
-                        title: appDisplayName,
+                        churchId: widget.churchId,
+                        titleFallback: widget.titleFallback,
                         subtitle: headerLabel,
                         onClose: _closeMenu,
                       ),
@@ -180,12 +185,14 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
 
 class _WhatsappAppBar extends StatelessWidget implements PreferredSizeWidget {
   const _WhatsappAppBar({
-    required this.title,
+    required this.churchId,
+    required this.titleFallback,
     required this.onMenuPressed,
     this.actions,
   });
 
-  final String title;
+  final String? churchId;
+  final String titleFallback;
   final VoidCallback onMenuPressed;
   final List<Widget>? actions;
 
@@ -208,8 +215,9 @@ class _WhatsappAppBar extends StatelessWidget implements PreferredSizeWidget {
                 tooltip: 'Menú',
               ),
               Expanded(
-                child: Text(
-                  title,
+                child: ChurchDisplayName(
+                  churchId: churchId,
+                  fallback: titleFallback,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -228,12 +236,14 @@ class _WhatsappAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class _DrawerProfileHeader extends StatelessWidget {
   const _DrawerProfileHeader({
-    required this.title,
+    required this.churchId,
+    required this.titleFallback,
     required this.subtitle,
     required this.onClose,
   });
 
-  final String title;
+  final String? churchId;
+  final String titleFallback;
   final String subtitle;
   final VoidCallback onClose;
 
@@ -263,8 +273,9 @@ class _DrawerProfileHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
+                ChurchDisplayName(
+                  churchId: churchId,
+                  fallback: titleFallback,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,

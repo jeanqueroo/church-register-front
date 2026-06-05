@@ -31,7 +31,8 @@ class LeaderAssignmentService {
     required GeoLocation memberLocation,
     String? churchId,
   }) async {
-    final leaders = await _leaderService.fetchAllLeaders(churchId: churchId);
+    final leaders =
+        await _leaderService.fetchAssignableLeaders(churchId: churchId);
     final candidates = <({ChurchLeader leader, double distance})>[];
 
     for (final leader in leaders) {

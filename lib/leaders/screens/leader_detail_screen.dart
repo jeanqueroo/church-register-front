@@ -34,6 +34,7 @@ class LeaderDetailScreen extends StatelessWidget {
           churchId: _permissions.churchId,
           leaderService: leaderService,
           leaderToEdit: leader,
+          permissions: _permissions,
         ),
       ),
     );

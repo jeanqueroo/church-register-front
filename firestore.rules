@@ -48,8 +48,47 @@ service cloud.firestore {
       );
     }
 
+    function isRegistrar() {
+      return userHasRole('registrador');
+    }
+
+    // Admin, superadmin o registrador: creyentes, líderes y avisos al asignar.
+    function canManageChurchRecords() {
+      return isAppAdmin() || isRegistrar();
+    }
+
+    function isAssignedLeaderForNotification() {
+      return userDocExists() &&
+        currentUserData().get('leaderId', '') != '' &&
+        currentUserData().get('leaderId', '') == resource.data.get('leaderId', '');
+    }
+
     function canManageOtherUsers() {
       return isSuperAdmin();
+    }
+
+    function currentUserChurchId() {
+      return userDocExists() ? currentUserData().get('churchId', '') : '';
+    }
+
+    // Admin de iglesia: asignar líderes a supervisores de su sede.
+    function canChurchAdminAssignSupervisorLeaders() {
+      return isChurchAdmin() &&
+        resource.data.get('roles', []).hasAny(['supervisor']) &&
+        resource.data.get('churchId', '') != '' &&
+        resource.data.get('churchId', '') == currentUserChurchId() &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['supervisedLeaderIds', 'updatedAt']);
+    }
+
+    // Admin de iglesia: actualizar roles de líderes de su sede al editarlos.
+    function canChurchAdminUpdateLeaderRoles() {
+      return isChurchAdmin() &&
+        currentUserChurchId() != '' &&
+        resource.data.get('churchId', '') == currentUserChurchId() &&
+        !resource.data.get('roles', []).hasAny(['superadmin', 'admin']) &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['roles', 'updatedAt']);
     }
 
     match /members/{memberId} {
@@ -62,9 +101,26 @@ service cloud.firestore {
       allow update, delete: if isSignedIn();
     }
 
+    // Avisos al asignar creyentes (colección raíz usada por la app).
+    match /notifications/{notificationId} {
+      allow create: if isSignedIn();
+      allow read, update: if isSignedIn() && (
+        canManageChurchRecords() ||
+        resource.data.get('recipientUserId', '') == request.auth.uid ||
+        isAssignedLeaderForNotification()
+      );
+    }
+
+    function canEditOwnChurch(churchId) {
+      return currentUserChurchId() != '' &&
+        currentUserChurchId() == churchId &&
+        isChurchAdmin();
+    }
+
     match /churches/{churchId} {
       allow read: if isSignedIn();
-      allow create, update: if isSuperAdmin();
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin() || canEditOwnChurch(churchId);
       allow delete: if false;
     }
 
@@ -76,7 +132,10 @@ service cloud.firestore {
       allow list: if isStaffUser();
       allow create: if isSignedIn();
       allow update: if isSignedIn() && (
-        request.auth.uid == userId || canManageOtherUsers()
+        request.auth.uid == userId ||
+        canManageOtherUsers() ||
+        canChurchAdminAssignSupervisorLeaders() ||
+        canChurchAdminUpdateLeaderRoles()
       );
 
       // Buzón del líder: solo él lee; cualquier usuario autenticado puede crear (registro).

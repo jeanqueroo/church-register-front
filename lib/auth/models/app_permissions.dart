@@ -31,18 +31,21 @@ class AppPermissions {
   bool get isSupervisor => roles.contains(AppUserRole.supervisor);
   bool get isLeader => roles.contains(AppUserRole.leader);
 
-  bool get canRegisterMember => isAdmin || isRegistrar;
-  bool get canRegisterLeader => isAdmin || isRegistrar;
-  bool get canViewMembersList => isAdmin;
-  bool get canViewMembersByLeader => isAdmin;
-  bool get canViewLeadersList => isAdmin;
+  bool get canRegisterMember => isAdmin || isRegistrar || isSuperAdmin;
+  bool get canRegisterLeader => isAdmin || isSuperAdmin;
+  bool get canViewMembersList => isAdmin || isSuperAdmin;
+  bool get canViewMembersByLeader => isAdmin || isSuperAdmin;
+  bool get canViewLeadersList => isAdmin || isSuperAdmin;
+  bool get canViewSupervisorLeaderAssignments =>
+      isAdmin || isSupervisor || isSuperAdmin;
+  bool get canAssignSupervisorLeaders => isAdmin || isSuperAdmin;
   bool get canViewMyAssignedMembers => isAdmin || isLeader;
   bool get canViewLeaderNotifications => isLeader;
-  bool get canManageAll => isAdmin;
+  bool get canManageAll => isAdmin || isSuperAdmin;
 
-  /// Solo el admin de iglesia edita los datos de su sede.
-  bool get canManageChurch =>
-      isAdmin && churchId != null && churchId!.trim().isNotEmpty;
+  /// Ver datos de la iglesia en Mi cuenta (solo lectura).
+  bool get canViewChurchData =>
+      churchId != null && churchId!.trim().isNotEmpty;
 
   /// Solo super administrador: iglesias y administradores de plataforma.
   bool get canViewChurchesList => isSuperAdmin;

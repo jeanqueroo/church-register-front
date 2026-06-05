@@ -20,7 +20,7 @@ class LeaderNotification {
   final DateTime createdAt;
   final bool read;
 
-  String get title => 'Nuevo integrante asignado';
+  String get title => 'Nuevo creyente asignado';
 
   String get body =>
       'Se te asignó a $memberName. Toca para ver el detalle.';

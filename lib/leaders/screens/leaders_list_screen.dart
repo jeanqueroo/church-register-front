@@ -5,6 +5,7 @@ import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
 import '../models/church_leader.dart';
 import '../services/leader_service.dart';
+import '../services/leaders_excel_export_service.dart';
 import 'leader_assigned_members_screen.dart';
 import 'leader_detail_screen.dart';
 import 'register_leader_screen.dart';
@@ -38,7 +39,7 @@ class LeadersListScreen extends StatelessWidget {
   }
 }
 
-class _LeadersListBody extends StatelessWidget {
+class _LeadersListBody extends StatefulWidget {
   const _LeadersListBody({
     required this.registeredBy,
     this.leaderService,
@@ -49,12 +50,42 @@ class _LeadersListBody extends StatelessWidget {
   final LeaderService? leaderService;
   final AppPermissions permissions;
 
+  @override
+  State<_LeadersListBody> createState() => _LeadersListBodyState();
+}
+
+class _LeadersListBodyState extends State<_LeadersListBody> {
+  final _searchController = TextEditingController();
+  final _excelExportService = LeadersExcelExportService();
+  bool _exporting = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  bool _matchesSearch(ChurchLeader leader, String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return true;
+    final haystack = [
+      leader.lastName,
+      leader.firstName,
+      leader.fullName,
+      leader.cellCode,
+      leader.mobilePhone,
+      leader.email,
+      leader.churchOffice?.label,
+    ].whereType<String>().join(' ').toLowerCase();
+    return haystack.contains(q);
+  }
+
   void _openAssignedMembers(BuildContext context, ChurchLeader leader) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LeaderAssignedMembersScreen(
           leader: leader,
-          registeredBy: registeredBy,
+          registeredBy: widget.registeredBy,
         ),
       ),
     );
@@ -64,13 +95,37 @@ class _LeadersListBody extends StatelessWidget {
     await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
         builder: (_) => RegisterLeaderScreen(
-          registeredBy: registeredBy,
-          churchId: permissions.churchId,
-          leaderService: leaderService,
+          registeredBy: widget.registeredBy,
+          churchId: widget.permissions.churchId,
+          leaderService: widget.leaderService,
           leaderToEdit: leader,
+          permissions: widget.permissions,
         ),
       ),
     );
+  }
+
+  Future<void> _exportToExcel(List<ChurchLeader> leaders) async {
+    if (_exporting) return;
+
+    setState(() => _exporting = true);
+    try {
+      await _excelExportService.shareLeaders(leaders);
+    } on LeadersExcelExportException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo exportar el listado. Intenta de nuevo.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, ChurchLeader leader) async {
@@ -103,7 +158,7 @@ class _LeadersListBody extends StatelessWidget {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      await (leaderService ?? LeaderService()).deleteLeader(id);
+      await (widget.leaderService ?? LeaderService()).deleteLeader(id);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Líder eliminado')),
@@ -120,32 +175,56 @@ class _LeadersListBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final service = leaderService ?? LeaderService();
+    final service = widget.leaderService ?? LeaderService();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Líderes'),
-      ),
-      floatingActionButton: permissions.canRegisterLeader
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => RegisterLeaderScreen(
-                      registeredBy: registeredBy,
-                      churchId: permissions.churchId,
-                      leaderService: service,
-                    ),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.person_add),
-              label: const Text('Nuevo'),
-            )
-          : null,
-      body: StreamBuilder<List<ChurchLeader>>(
-        stream: service.watchLeaders(churchId: permissions.churchId),
-        builder: (context, snapshot) {
+    return StreamBuilder<List<ChurchLeader>>(
+      stream: service.watchLeaders(churchId: widget.permissions.churchId),
+      builder: (context, snapshot) {
+        final leaders = snapshot.data ?? [];
+        final filtered = leaders
+            .where((l) => _matchesSearch(l, _searchController.text))
+            .toList();
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Líderes'),
+            actions: [
+              if (snapshot.hasData && leaders.isNotEmpty)
+                IconButton(
+                  tooltip: 'Descargar Excel',
+                  onPressed: _exporting || filtered.isEmpty
+                      ? null
+                      : () => _exportToExcel(filtered),
+                  icon: _exporting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.download_outlined),
+                ),
+            ],
+          ),
+          floatingActionButton: widget.permissions.canRegisterLeader
+              ? FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => RegisterLeaderScreen(
+                          registeredBy: widget.registeredBy,
+                          churchId: widget.permissions.churchId,
+                          leaderService: service,
+                          permissions: widget.permissions,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.person_add),
+                  label: const Text('Nuevo'),
+                )
+              : null,
+          body: Builder(
+            builder: (context) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -165,8 +244,6 @@ class _LeadersListBody extends StatelessWidget {
               ),
             );
           }
-
-          final leaders = snapshot.data ?? [];
 
           if (leaders.isEmpty) {
             return Center(
@@ -192,12 +269,38 @@ class _LeadersListBody extends StatelessWidget {
             );
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
-            itemCount: leaders.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final leader = leaders[index];
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (_) => setState(() {}),
+                  decoration: const InputDecoration(
+                    hintText: 'Buscar por nombre, teléfono, correo o célula…',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              if (filtered.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'No hay coincidencias',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+              final leader = filtered[index];
               final parts = <String>[
                 if (leader.churchOffice != null) leader.churchOffice!.label,
                 if (leader.cellCode != null) 'Célula ${leader.cellCode}',
@@ -224,9 +327,9 @@ class _LeadersListBody extends StatelessWidget {
                             MaterialPageRoute<bool>(
                               builder: (_) => LeaderDetailScreen(
                                 leader: leader,
-                                registeredBy: registeredBy,
+                                registeredBy: widget.registeredBy,
                                 leaderService: service,
-                                permissions: permissions,
+                                permissions: widget.permissions,
                               ),
                             ),
                           );
@@ -247,7 +350,7 @@ class _LeadersListBody extends StatelessWidget {
                         value: 'members',
                         child: Text('Ver integrantes asignados'),
                       ),
-                      if (permissions.canManageAll) ...[
+                      if (widget.permissions.canManageAll) ...[
                         const PopupMenuItem(
                           value: 'edit',
                           child: Text('Editar'),
@@ -267,9 +370,9 @@ class _LeadersListBody extends StatelessWidget {
                       MaterialPageRoute<void>(
                         builder: (_) => LeaderDetailScreen(
                           leader: leader,
-                          registeredBy: registeredBy,
+                          registeredBy: widget.registeredBy,
                           leaderService: service,
-                          permissions: permissions,
+                          permissions: widget.permissions,
                         ),
                       ),
                     );
@@ -277,9 +380,14 @@ class _LeadersListBody extends StatelessWidget {
                 ),
               );
             },
+                  ),
+                ),
+            ],
           );
-        },
-      ),
+            },
+          ),
+        );
+      },
     );
   }
 }
