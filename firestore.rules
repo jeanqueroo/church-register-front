@@ -82,6 +82,39 @@ service cloud.firestore {
           .hasAny([resource.data.get('assignedLeaderId', '')]);
     }
 
+    function memberData(memberId) {
+      return get(/databases/$(database)/documents/members/$(memberId)).data;
+    }
+
+    function isAssignedLeaderForMemberId(memberId) {
+      return isLeader() &&
+        currentUserLeaderId() != '' &&
+        memberData(memberId).get('assignedLeaderId', '') == currentUserLeaderId();
+    }
+
+    function isSupervisedLeaderForMemberId(memberId) {
+      return isSupervisor() &&
+        memberData(memberId).get('assignedLeaderId', '') != '' &&
+        currentUserData().get('supervisedLeaderIds', [])
+          .hasAny([memberData(memberId).get('assignedLeaderId', '')]);
+    }
+
+    function canReadVisitDocument() {
+      return isSuperAdmin() ||
+        (
+          (isChurchAdmin() || isRegistrar()) &&
+          currentUserChurchId() != '' &&
+          resource.data.get('churchId', '') == currentUserChurchId()
+        ) ||
+        (isSupervisor() &&
+          resource.data.get('leaderId', '') != '' &&
+          currentUserData().get('supervisedLeaderIds', [])
+            .hasAny([resource.data.get('leaderId', '')])) ||
+        (isLeader() &&
+          currentUserLeaderId() != '' &&
+          resource.data.get('leaderId', '') == currentUserLeaderId());
+    }
+
     function isAssignedLeaderForNotification() {
       return userDocExists() &&
         currentUserData().get('leaderId', '') != '' &&
@@ -123,6 +156,49 @@ service cloud.firestore {
         isSupervisedLeaderMember()
       );
       allow create, update, delete: if isSignedIn() && canManageChurchRecords();
+
+      match /visits/{visitId} {
+        allow read: if isSignedIn() && (
+          canReadVisitDocument() ||
+          isAssignedLeaderForMemberId(memberId) ||
+          isSupervisedLeaderForMemberId(memberId)
+        );
+        allow create: if isSignedIn() &&
+          isAssignedLeaderForMemberId(memberId) &&
+          request.resource.data.leaderId == currentUserLeaderId() &&
+          request.resource.data.memberId == memberId &&
+          request.resource.data.comment is string &&
+          request.resource.data.comment.size() > 0 &&
+          request.resource.data.comment.size() <= 2000 &&
+          request.resource.data.visitPlace is string &&
+          request.resource.data.visitPlace in [
+            'casa', 'hospital', 'trabajo', 'iglesia', 'videollamada'
+          ] &&
+          request.resource.data.prayerPerformed is bool &&
+          request.resource.data.needsFollowUp is bool &&
+          (
+            !('approximateDuration' in request.resource.data) ||
+            (
+              request.resource.data.approximateDuration is string &&
+              request.resource.data.approximateDuration.size() <= 100
+            )
+          ) &&
+          (
+            !('prayerRequests' in request.resource.data) ||
+            (
+              request.resource.data.prayerRequests is string &&
+              request.resource.data.prayerRequests.size() <= 2000
+            )
+          ) &&
+          (
+            !('spiritualState' in request.resource.data) ||
+            request.resource.data.spiritualState in [
+              'nuevoCreyente', 'enDiscipulado', 'miembroActivo',
+              'alejado', 'visitanteFrecuente'
+            ]
+          );
+        allow update, delete: if isSignedIn() && canManageChurchRecords();
+      }
     }
 
     match /leaders/{leaderId} {
@@ -152,6 +228,11 @@ service cloud.firestore {
       allow create: if isSuperAdmin();
       allow update: if isSuperAdmin() || canEditOwnChurch(churchId);
       allow delete: if false;
+    }
+
+    // Consultas collection group para el dashboard de visitas.
+    match /{path=**}/visits/{visitId} {
+      allow read: if isSignedIn() && canReadVisitDocument();
     }
 
     match /users/{userId} {

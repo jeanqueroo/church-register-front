@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import '../../auth/models/app_permissions.dart';
 import '../models/church_member.dart';
 import '../services/member_service.dart';
+import '../widgets/member_visits_section.dart';
 import 'register_member_screen.dart';
+import 'register_member_visit_screen.dart';
 
 class MemberDetailScreen extends StatelessWidget {
   const MemberDetailScreen({
@@ -13,12 +15,14 @@ class MemberDetailScreen extends StatelessWidget {
     required this.registeredBy,
     this.memberService,
     this.permissions,
+    this.leaderId,
   });
 
   final ChurchMember member;
   final String registeredBy;
   final MemberService? memberService;
   final AppPermissions? permissions;
+  final String? leaderId;
 
   AppPermissions get _permissions =>
       permissions ?? AppPermissions.fromRoles([]);
@@ -28,6 +32,27 @@ class MemberDetailScreen extends StatelessWidget {
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
     return '$day/$month/${date.year}';
+  }
+
+  bool get _canRegisterVisit =>
+      _permissions.canRegisterMemberVisits &&
+      leaderId != null &&
+      leaderId!.isNotEmpty &&
+      member.id != null &&
+      member.assignedLeaderId == leaderId;
+
+  Future<void> _registerVisit(BuildContext context) async {
+    if (!_canRegisterVisit) return;
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => RegisterMemberVisitScreen(
+          member: member,
+          leaderId: leaderId!,
+          registeredBy: registeredBy,
+          permissions: _permissions,
+        ),
+      ),
+    );
   }
 
   Future<void> _edit(BuildContext context) async {
@@ -171,6 +196,11 @@ class MemberDetailScreen extends StatelessWidget {
               title: 'Observaciones',
               rows: [_Row('', member.observations)],
             ),
+          if (member.id != null)
+            MemberVisitsSection(
+              memberId: member.id!,
+              permissions: _permissions,
+            ),
           _Section(
             title: 'Registro',
             rows: [
@@ -180,6 +210,14 @@ class MemberDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          if (_canRegisterVisit) ...[
+            FilledButton.icon(
+              onPressed: () => _registerVisit(context),
+              icon: const Icon(Icons.event_note_outlined),
+              label: const Text('Registrar visita'),
+            ),
+            const SizedBox(height: 12),
+          ],
           if (_permissions.canManageMembers) ...[
             FilledButton.icon(
               onPressed: () => _edit(context),
