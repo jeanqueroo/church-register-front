@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../auth/models/app_permissions.dart';
+import '../../auth/widgets/role_gate.dart';
 import '../../address/services/geocoding_service.dart';
 import '../../address/widgets/address_fields_section.dart';
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
-import '../../core/theme/app_theme.dart';
+import '../../core/widgets/church_display_name.dart';
 import '../../core/widgets/form_section_title.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/services/leader_service.dart';
@@ -22,6 +24,7 @@ class RegisterMemberScreen extends StatefulWidget {
     this.churchId,
     this.memberService,
     this.memberToEdit,
+    this.permissions,
   });
 
   final String registeredBy;
@@ -29,8 +32,12 @@ class RegisterMemberScreen extends StatefulWidget {
   final String? churchId;
   final MemberService? memberService;
   final ChurchMember? memberToEdit;
+  final AppPermissions? permissions;
 
   bool get isEditing => memberToEdit != null;
+
+  AppPermissions get _permissions =>
+      permissions ?? AppPermissions.adminDefault();
 
   @override
   State<RegisterMemberScreen> createState() => _RegisterMemberScreenState();
@@ -97,7 +104,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   Future<void> _loadLeaders() async {
     try {
       final leaders =
-          await _leaderService.fetchAllLeaders(churchId: widget.churchId);
+          await _leaderService.fetchAssignableLeaders(churchId: widget.churchId);
       leaders.sort((a, b) => a.fullName.compareTo(b.fullName));
       if (!mounted) return;
 
@@ -451,7 +458,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       if (!mounted) return;
 
       if (widget.isEditing) {
-        _showMessage('Integrante actualizado correctamente');
+        _showMessage('Creyente actualizado correctamente');
       } else if (assignedLeaderName != null) {
         final cellText = assignedLeaderCellCode != null
             ? ' (Célula $assignedLeaderCellCode)'
@@ -460,15 +467,15 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
             ? ' · ${assignedDistanceKm.toStringAsFixed(1)} km'
             : '';
         _showMessage(
-          'Integrante registrado. Líder: '
+          'Creyente registrado. Líder: '
           '$assignedLeaderName$cellText$distanceText',
         );
       } else if (_wantsVisit && !_manualLeader) {
         _showMessage(
-          'Integrante registrado. No hay líder del mismo género con dirección cercana.',
+          'Creyente registrado. No hay líder del mismo género con dirección cercana.',
         );
       } else {
-        _showMessage('Integrante registrado correctamente');
+        _showMessage('Creyente registrado correctamente');
       }
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
@@ -528,7 +535,8 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
             )
           else if (_leaders.isEmpty)
             Text(
-              'No hay líderes registrados. Registra un líder primero.',
+              'No hay líderes con rol de líder en la app. '
+              'Asigna el rol Líder al registrar un líder.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.error,
                   ),
@@ -595,9 +603,22 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final permissions = widget._permissions;
+    return RoleGate(
+      permissions: permissions,
+      allowed: widget.isEditing
+          ? permissions.canManageAll
+          : permissions.canRegisterMember,
+      deniedMessage: widget.isEditing
+          ? 'Solo el administrador puede editar creyentes.'
+          : 'No tienes permiso para registrar creyentes.',
+      child: Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Editar integrante' : 'Nuevo integrante'),
+        title: Text(
+          widget.isEditing
+              ? 'Editar creyente'
+              : 'Registro de nuevo creyente',
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -607,8 +628,8 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  appDisplayName,
+                ChurchDisplayName(
+                  churchId: widget.churchId,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
@@ -899,7 +920,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                         ? 'Guardando...'
                         : widget.isEditing
                             ? 'Guardar cambios'
-                            : 'Registrar integrante',
+                            : 'Registrar creyente',
                   ),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -909,6 +930,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

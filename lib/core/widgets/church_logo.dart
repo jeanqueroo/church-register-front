@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../church/services/church_service.dart';
-import '../theme/app_theme.dart';
+import 'church_display_name.dart';
 
 class ChurchLogo extends StatelessWidget {
   const ChurchLogo({
@@ -29,9 +29,7 @@ class ChurchLogo extends StatelessWidget {
             logoUrl != null && logoUrl.trim().isNotEmpty;
 
         return Semantics(
-          label: snapshot.data?.name.trim().isNotEmpty == true
-              ? snapshot.data!.name
-              : appDisplayName,
+          label: resolveChurchDisplayName(snapshot.data),
           image: true,
           child: hasNetworkLogo
               ? ClipRRect(

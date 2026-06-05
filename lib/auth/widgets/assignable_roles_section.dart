@@ -17,12 +17,18 @@ class AssignableRolesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final registrarSelected =
+        selectedRoles.contains(AppUserRole.registrar);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Marca los permisos de acceso en la aplicación. '
-          'Puedes combinar Líder y Supervisor en la misma cuenta.',
+          registrarSelected
+              ? 'El rol Registrador es exclusivo: no se puede combinar con otros.'
+              : 'Marca los permisos de acceso en la aplicación. '
+                  'Puedes combinar Líder y Supervisor en la misma cuenta. '
+                  'El rol Registrador debe ir solo.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -33,10 +39,11 @@ class AssignableRolesSection extends StatelessWidget {
           runSpacing: 8,
           children: AppUserRole.assignableForLeaderRegistration.map((role) {
             final selected = selectedRoles.contains(role);
+            final roleDisabled = registrarSelected && role != AppUserRole.registrar;
             return FilterChip(
               label: Text(AppUserRole.label(role)),
               selected: selected,
-              onSelected: enabled
+              onSelected: enabled && !roleDisabled
                   ? (value) {
                       final next = Set<String>.from(selectedRoles);
                       if (value) {

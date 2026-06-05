@@ -2,7 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../address/services/geocoding_service.dart';
+import '../../auth/models/app_permissions.dart';
 import '../../auth/models/app_user_role.dart';
+import '../../auth/widgets/role_gate.dart';
 import '../../auth/services/auth_service.dart';
 import '../../auth/services/user_profile_service.dart';
 import '../../auth/widgets/assignable_roles_section.dart';
@@ -21,15 +23,20 @@ class RegisterLeaderScreen extends StatefulWidget {
     this.churchId,
     this.leaderService,
     this.leaderToEdit,
+    this.permissions,
   });
 
   final String registeredBy;
-  /// Iglesia del usuario que registra (admin / registrador).
+  /// Iglesia del usuario que registra (admin).
   final String? churchId;
   final LeaderService? leaderService;
   final ChurchLeader? leaderToEdit;
+  final AppPermissions? permissions;
 
   bool get isEditing => leaderToEdit != null;
+
+  AppPermissions get _permissions =>
+      permissions ?? AppPermissions.adminDefault();
 
   @override
   State<RegisterLeaderScreen> createState() => _RegisterLeaderScreenState();
@@ -322,7 +329,16 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final permissions = widget._permissions;
+    return RoleGate(
+      permissions: permissions,
+      allowed: widget.isEditing
+          ? permissions.canManageAll
+          : permissions.canRegisterLeader,
+      deniedMessage: widget.isEditing
+          ? 'Solo el administrador puede editar líderes.'
+          : 'No tienes permiso para registrar líderes.',
+      child: Scaffold(
       appBar: AppBar(
         title: Text(widget.isEditing ? 'Editar líder' : 'Nuevo líder'),
       ),
@@ -603,6 +619,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

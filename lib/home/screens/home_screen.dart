@@ -20,6 +20,7 @@ import '../../members/screens/members_list_screen.dart';
 import '../../members/screens/register_member_screen.dart';
 import '../../notifications/screens/leader_notifications_screen.dart';
 import '../../notifications/services/leader_notification_service.dart';
+import '../../supervisors/screens/supervisor_leader_assignments_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -119,13 +120,14 @@ class _HomeScreenState extends State<HomeScreen> {
       items.add(
         SlideMenuItem(
           icon: Icons.person_add_outlined,
-          label: 'Nuevo integrante',
+          label: 'Nuevo creyente',
           onTap: () => _navigate(
             RegisterMemberScreen(
               registeredBy: _email,
               churchId: _churchId,
+              permissions: p,
             ),
-            'Nuevo integrante',
+            'Registro de nuevo creyente',
           ),
         ),
       );
@@ -182,6 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
             RegisterLeaderScreen(
               registeredBy: _email,
               churchId: _churchId,
+              permissions: p,
             ),
             'Nuevo líder',
           ),
@@ -200,6 +203,19 @@ class _HomeScreenState extends State<HomeScreen> {
               permissions: p,
             ),
             'Líderes',
+          ),
+        ),
+      );
+    }
+
+    if (p.canViewSupervisorLeaderAssignments) {
+      items.add(
+        SlideMenuItem(
+          icon: Icons.account_tree_outlined,
+          label: 'Líderes por supervisor',
+          onTap: () => _navigate(
+            SupervisorLeaderAssignmentsScreen(session: widget.session),
+            'Líderes por supervisor',
           ),
         ),
       );
@@ -272,21 +288,22 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canRegisterMember) {
       addEntry(
         icon: Icons.person_add_outlined,
-        title: 'Registrar integrante',
-        subtitle: 'Formulario de nuevo integrante',
+        title: 'Registro de nuevo creyente',
+        subtitle: 'Formulario de nuevo creyente',
         onTap: () => _navigate(
           RegisterMemberScreen(
             registeredBy: _email,
             churchId: _churchId,
+            permissions: p,
           ),
-          'Nuevo integrante',
+          'Registro de nuevo creyente',
         ),
       );
     }
     if (p.canViewMembersList) {
       addEntry(
         icon: Icons.people_outlined,
-        title: 'Ver integrantes',
+        title: 'Ver creyentes',
         subtitle: 'Lista de integrantes registrados',
         onTap: () => _navigate(
           MembersListScreen(registeredBy: _email, permissions: p),
@@ -322,6 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
           RegisterLeaderScreen(
             registeredBy: _email,
             churchId: _churchId,
+            permissions: p,
           ),
           'Nuevo líder',
         ),
@@ -335,6 +353,17 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () => _navigate(
           LeadersListScreen(registeredBy: _email, permissions: p),
           'Líderes',
+        ),
+      );
+    }
+    if (p.canViewSupervisorLeaderAssignments) {
+      addEntry(
+        icon: Icons.account_tree_outlined,
+        title: 'Líderes por supervisor',
+        subtitle: 'Asignar cartera de líderes a cada supervisor',
+        onTap: () => _navigate(
+          SupervisorLeaderAssignmentsScreen(session: widget.session),
+          'Líderes por supervisor',
         ),
       );
     }
@@ -457,7 +486,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return SlideMenuScaffold(
-      title: appDisplayName,
+      churchId: widget.session.profile.churchId,
       selectedMenuLabel: _selectedMenu,
       onSignOut: _logout,
       actions: [

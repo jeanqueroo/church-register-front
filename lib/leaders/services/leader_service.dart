@@ -1,13 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../auth/models/app_user_role.dart';
+import '../../auth/services/user_profile_service.dart';
 import '../models/church_leader.dart';
 
 class LeaderService {
-  LeaderService({FirebaseFirestore? firestore})
-      : _leaders = (firestore ?? FirebaseFirestore.instance)
-            .collection('leaders');
+  LeaderService({
+    FirebaseFirestore? firestore,
+    UserProfileService? userProfileService,
+  })  : _leaders = (firestore ?? FirebaseFirestore.instance)
+            .collection('leaders'),
+        _userProfileService = userProfileService ?? UserProfileService();
 
   final CollectionReference<Map<String, dynamic>> _leaders;
+  final UserProfileService _userProfileService;
 
   Stream<List<ChurchLeader>> watchLeaders({String? churchId}) {
     final query = churchId != null && churchId.isNotEmpty
@@ -57,6 +63,32 @@ class LeaderService {
         ? await _leaders.where('churchId', isEqualTo: churchId).get()
         : await _leaders.get();
     return snapshot.docs.map(ChurchLeader.fromFirestore).toList();
+  }
+
+  /// Líderes cuya cuenta en `users` incluye el rol `leader`.
+  Future<bool> hasLeaderAppRole(ChurchLeader leader) async {
+    final authUserId = leader.authUserId?.trim();
+    if (authUserId == null || authUserId.isEmpty) return false;
+
+    final doc = await _userProfileService.fetchProfileDoc(authUserId);
+    if (doc == null) return false;
+
+    final data = doc.data() ?? {};
+    final roles = AppUserRole.parseList(data['roles']);
+    final rolesFinal =
+        roles.isNotEmpty ? roles : AppUserRole.parseList(data['role']);
+    return rolesFinal.contains(AppUserRole.leader);
+  }
+
+  Future<List<ChurchLeader>> fetchAssignableLeaders({String? churchId}) async {
+    final leaders = await fetchAllLeaders(churchId: churchId);
+    final results = await Future.wait(
+      leaders.map((leader) async {
+        if (await hasLeaderAppRole(leader)) return leader;
+        return null;
+      }),
+    );
+    return results.whereType<ChurchLeader>().toList();
   }
 
   static String messageFromFirestoreException(FirebaseException e) {

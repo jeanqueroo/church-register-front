@@ -38,6 +38,7 @@ class MemberDetailScreen extends StatelessWidget {
           churchId: _permissions.churchId,
           memberService: memberService,
           memberToEdit: member,
+          permissions: _permissions,
         ),
       ),
     );
