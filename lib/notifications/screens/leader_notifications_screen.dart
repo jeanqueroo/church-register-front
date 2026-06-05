@@ -89,6 +89,7 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
           registeredBy: widget.session.email,
           memberService: _memberService,
           permissions: widget.session.permissions,
+          leaderId: widget.session.profile.leaderId,
         ),
       ),
     );

@@ -22,6 +22,8 @@ import '../../notifications/screens/leader_notifications_screen.dart';
 import '../../notifications/services/leader_notification_service.dart';
 import '../../supervisors/screens/supervisor_leader_assignments_screen.dart';
 import '../../supervisors/screens/supervisor_my_leaders_screen.dart';
+import '../../dashboard/screens/pastoral_dashboard_screen.dart';
+import '../../dashboard/screens/visits_dashboard_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -222,6 +224,32 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    if (p.canViewVisitsDashboard) {
+      items.add(
+        SlideMenuItem(
+          icon: Icons.bar_chart_outlined,
+          label: 'Dashboard de visitas',
+          onTap: () => _navigate(
+            VisitsDashboardScreen(session: widget.session),
+            'Dashboard de visitas',
+          ),
+        ),
+      );
+    }
+
+    if (p.canViewPastoralDashboard) {
+      items.add(
+        SlideMenuItem(
+          icon: Icons.favorite_outline,
+          label: 'Dashboard pastoral',
+          onTap: () => _navigate(
+            PastoralDashboardScreen(session: widget.session),
+            'Dashboard pastoral',
+          ),
+        ),
+      );
+    }
+
     if (p.canAssignSupervisorLeaders) {
       items.add(
         SlideMenuItem(
@@ -378,6 +406,28 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () => _navigate(
           SupervisorMyLeadersScreen(session: widget.session),
           'Mis líderes asignados',
+        ),
+      );
+    }
+    if (p.canViewVisitsDashboard) {
+      addEntry(
+        icon: Icons.bar_chart_outlined,
+        title: 'Dashboard de visitas',
+        subtitle: 'Gráficas de visitas por día, mes y año',
+        onTap: () => _navigate(
+          VisitsDashboardScreen(session: widget.session),
+          'Dashboard de visitas',
+        ),
+      );
+    }
+    if (p.canViewPastoralDashboard) {
+      addEntry(
+        icon: Icons.favorite_outline,
+        title: 'Dashboard pastoral',
+        subtitle: 'Seguimiento, nuevos creyentes y oración',
+        onTap: () => _navigate(
+          PastoralDashboardScreen(session: widget.session),
+          'Dashboard pastoral',
         ),
       );
     }

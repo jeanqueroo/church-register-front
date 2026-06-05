@@ -5,6 +5,7 @@ import '../../auth/models/app_user_role.dart';
 import '../../core/theme/app_theme.dart';
 import '../../members/models/church_member.dart';
 import '../../members/screens/member_detail_screen.dart';
+import '../../members/screens/register_member_visit_screen.dart';
 import '../../members/services/member_service.dart';
 import '../../members/widgets/members_map_view.dart';
 import '../models/church_leader.dart';
@@ -69,6 +70,30 @@ class _LeaderAssignedMembersScreenState
           member: member,
           registeredBy: widget.registeredBy,
           memberService: _service,
+          permissions: viewPermissions,
+          leaderId: widget.leader.id,
+        ),
+      ),
+    );
+  }
+
+  void _openRegisterVisit(BuildContext context, ChurchMember member) {
+    final leaderId = widget.leader.id;
+    final memberId = member.id;
+    if (leaderId == null || leaderId.isEmpty || memberId == null) return;
+
+    final viewPermissions = widget.permissions ??
+        AppPermissions.fromRoles(
+          [AppUserRole.leader],
+          churchId: widget.leader.churchId,
+        );
+
+    Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => RegisterMemberVisitScreen(
+          member: member,
+          leaderId: leaderId,
+          registeredBy: widget.registeredBy,
           permissions: viewPermissions,
         ),
       ),
@@ -175,6 +200,9 @@ class _LeaderAssignedMembersScreenState
           if (member.geoLocation == null) 'Sin ubicación en mapa',
         ];
 
+        final canRegisterVisit = widget.leader.id != null &&
+            member.assignedLeaderId == widget.leader.id;
+
         return Card(
           child: ListTile(
             leading: CircleAvatar(
@@ -186,7 +214,18 @@ class _LeaderAssignedMembersScreenState
             ),
             title: Text(member.fullName),
             subtitle: Text(parts.join(' · ')),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (canRegisterVisit)
+                  IconButton(
+                    icon: const Icon(Icons.event_note_outlined),
+                    tooltip: 'Registrar visita',
+                    onPressed: () => _openRegisterVisit(context, member),
+                  ),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
             onTap: () => _openMemberDetail(context, member),
           ),
         );

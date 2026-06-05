@@ -50,6 +50,19 @@ class AppPermissions {
   bool get canViewSupervisedLeaderMembers => isSupervisor;
   bool get canViewMyAssignedMembers => isLeader;
   bool get canViewLeaderNotifications => isLeader;
+
+  /// Líder: registrar visitas a sus integrantes asignados.
+  bool get canRegisterMemberVisits => isLeader;
+
+  /// Ver historial de visitas (líder, admin, supervisor de ese líder).
+  bool get canViewMemberVisits =>
+      isLeader || canManageMembers || canViewSupervisedLeaderMembers;
+
+  /// Dashboard de visitas: supervisor (sus líderes), admin (iglesia), superadmin (todas).
+  bool get canViewVisitsDashboard => isSupervisor || isAdmin || isSuperAdmin;
+
+  /// Dashboard pastoral: mismo alcance que el de visitas.
+  bool get canViewPastoralDashboard => canViewVisitsDashboard;
   bool get canManageAll => isAdmin || isSuperAdmin;
 
   /// Crear, editar o eliminar creyentes (no aplica al rol líder).
