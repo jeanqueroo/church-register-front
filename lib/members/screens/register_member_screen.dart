@@ -74,6 +74,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   String? _cellDay;
   GeoLocation? _memberLocation;
   bool _wantsVisit = true;
+  bool _includeAddress = true;
   bool _manualLeader = false;
   bool _isLoading = false;
   bool _loadingLeaders = true;
@@ -162,6 +163,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     _maritalStatus = member.maritalStatus;
     _cellDay = member.cellDay;
     _wantsVisit = member.wantsVisit;
+    _includeAddress = member.street != null && member.street!.trim().isNotEmpty;
     if (member.assignedLeaderId != null) {
       _pendingLeaderId = member.assignedLeaderId;
       _manualLeader = true;
@@ -337,6 +339,15 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
 
     if (!_manualLeader && _wantsVisit && _gender == null) {
       _showMessage('Selecciona el género para asignar un líder automático');
+      return;
+    }
+
+    if (_needsAddressForAssignment &&
+        (!_includeAddress || _streetController.text.trim().isEmpty)) {
+      _showMessage(
+        'Activa "Incluir dirección" y selecciona una dirección del buscador '
+        'para asignar un líder automático.',
+      );
       return;
     }
 
@@ -567,6 +578,18 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     );
   }
 
+  bool get _needsAddressForAssignment => _wantsVisit && !_manualLeader;
+
+  void _clearAddressFields() {
+    _streetController.clear();
+    _streetNumberController.clear();
+    _neighborhoodController.clear();
+    _localityController.clear();
+    _stateProvinceController.text = 'Buenos Aires';
+    _postalCodeController.clear();
+    _memberLocation = null;
+  }
+
   Widget _genderSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -672,19 +695,43 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                 const SizedBox(height: 12),
                 _genderSelector(),
                 const SizedBox(height: 16),
-                AddressFieldsSection(
-                  streetController: _streetController,
-                  streetNumberController: _streetNumberController,
-                  neighborhoodController: _neighborhoodController,
-                  localityController: _localityController,
-                  stateProvinceController: _stateProvinceController,
-                  postalCodeController: _postalCodeController,
-                  enabled: !_isLoading,
-                  initialSearchText: widget.memberToEdit?.formattedAddress,
-                  onStreetCoordinatesSelected: (location) {
-                    setState(() => _memberLocation = location);
-                  },
+                SwitchListTile(
+                  value: _includeAddress,
+                  onChanged: _isLoading
+                      ? null
+                      : (value) {
+                          setState(() {
+                            _includeAddress = value;
+                            if (!value) {
+                              _clearAddressFields();
+                            }
+                          });
+                        },
+                  title: const Text('Incluir dirección'),
+                  subtitle: Text(
+                    _needsAddressForAssignment
+                        ? 'Requerida para asignar un líder automático'
+                        : 'Opcional: datos de domicilio del creyente',
+                  ),
+                  secondary: const Icon(Icons.location_on_outlined),
                 ),
+                if (_includeAddress) ...[
+                  const SizedBox(height: 8),
+                  AddressFieldsSection(
+                    streetController: _streetController,
+                    streetNumberController: _streetNumberController,
+                    neighborhoodController: _neighborhoodController,
+                    localityController: _localityController,
+                    stateProvinceController: _stateProvinceController,
+                    postalCodeController: _postalCodeController,
+                    enabled: !_isLoading,
+                    requireAddress: _needsAddressForAssignment,
+                    initialSearchText: widget.memberToEdit?.formattedAddress,
+                    onStreetCoordinatesSelected: (location) {
+                      setState(() => _memberLocation = location);
+                    },
+                  ),
+                ],
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _phoneController,
@@ -873,7 +920,12 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   value: _wantsVisit,
                   onChanged: _isLoading
                       ? null
-                      : (value) => setState(() => _wantsVisit = value),
+                      : (value) => setState(() {
+                            _wantsVisit = value;
+                            if (value && !_includeAddress) {
+                              _includeAddress = true;
+                            }
+                          }),
                   title: const Text('Desea ser visitado'),
                   subtitle: const Text(
                     'Indica si la persona solicita una visita domiciliaria',

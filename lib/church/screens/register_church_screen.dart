@@ -3,7 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../address/services/nominatim_service.dart';
+import '../../address/models/address_place.dart';
+import '../../address/services/google_places_service.dart';
 import '../../address/widgets/address_autocomplete_field.dart';
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
@@ -50,7 +51,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
   final _picker = ImagePicker();
 
   late final ChurchService _churchService;
-  final _nominatim = NominatimService();
+  final _placesService = GooglePlacesService();
 
   bool _loading = true;
   bool _saving = false;
@@ -135,15 +136,15 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
 
   Future<void> _geocodeAddressForPreview(String address) async {
     try {
-      final results = await _nominatim.searchPlaces(address, limit: 1);
+      final results = await _placesService.searchPlaces(address, limit: 1);
       if (results.isEmpty || !mounted) return;
-      final enriched = await _nominatim.enrichPlace(results.first);
+      final enriched = await _placesService.enrichPlace(results.first);
       if (!mounted) return;
       setState(() => _churchLocation = enriched.location);
     } catch (_) {}
   }
 
-  void _onPlaceSelected(NominatimPlace place) {
+  void _onPlaceSelected(AddressPlace place) {
     setState(() {
       _addressFromSelection = true;
       _addressController.text = place.displayName;

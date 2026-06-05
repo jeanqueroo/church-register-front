@@ -26,6 +26,24 @@ class MemberService {
     });
   }
 
+  /// Solo integrantes asignados a un líder (lectura para rol líder).
+  Stream<List<ChurchMember>> watchMembersAssignedToLeader({
+    required String leaderId,
+    String? churchId,
+  }) {
+    return _members
+        .where('assignedLeaderId', isEqualTo: leaderId)
+        .snapshots()
+        .map((snapshot) {
+      var list = snapshot.docs.map(ChurchMember.fromFirestore).toList();
+      if (churchId != null && churchId.isNotEmpty) {
+        list = list.where((m) => m.churchId == churchId).toList();
+      }
+      list.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
+      return list;
+    });
+  }
+
   Future<String> addMember(ChurchMember member) async {
     final ref = await _members.add(member.toMap());
     await _notifyLeaderIfAssigned(

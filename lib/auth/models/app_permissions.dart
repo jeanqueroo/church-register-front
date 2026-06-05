@@ -36,12 +36,24 @@ class AppPermissions {
   bool get canViewMembersList => isAdmin || isSuperAdmin;
   bool get canViewMembersByLeader => isAdmin || isSuperAdmin;
   bool get canViewLeadersList => isAdmin || isSuperAdmin;
-  bool get canViewSupervisorLeaderAssignments =>
-      isAdmin || isSupervisor || isSuperAdmin;
-  bool get canAssignSupervisorLeaders => isAdmin || isSuperAdmin;
-  bool get canViewMyAssignedMembers => isAdmin || isLeader;
+  /// Admin sin rol supervisor: asignar líderes a supervisores.
+  bool get canAssignSupervisorLeaders =>
+      (isAdmin || isSuperAdmin) && !isSupervisor;
+
+  /// Alias de [canAssignSupervisorLeaders] para el menú de asignación.
+  bool get canViewSupervisorLeaderAssignments => canAssignSupervisorLeaders;
+
+  /// Supervisor: ver sus líderes asignados (solo lectura).
+  bool get canViewMySupervisedLeaders => isSupervisor;
+
+  /// Supervisor: ver creyentes asignados a sus líderes (solo lectura).
+  bool get canViewSupervisedLeaderMembers => isSupervisor;
+  bool get canViewMyAssignedMembers => isLeader;
   bool get canViewLeaderNotifications => isLeader;
   bool get canManageAll => isAdmin || isSuperAdmin;
+
+  /// Crear, editar o eliminar creyentes (no aplica al rol líder).
+  bool get canManageMembers => canManageAll;
 
   /// Ver datos de la iglesia en Mi cuenta (solo lectura).
   bool get canViewChurchData =>

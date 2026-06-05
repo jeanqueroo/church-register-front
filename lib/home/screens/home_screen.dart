@@ -21,6 +21,7 @@ import '../../members/screens/register_member_screen.dart';
 import '../../notifications/screens/leader_notifications_screen.dart';
 import '../../notifications/services/leader_notification_service.dart';
 import '../../supervisors/screens/supervisor_leader_assignments_screen.dart';
+import '../../supervisors/screens/supervisor_my_leaders_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -208,10 +209,23 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (p.canViewSupervisorLeaderAssignments) {
+    if (p.canViewMySupervisedLeaders) {
       items.add(
         SlideMenuItem(
           icon: Icons.account_tree_outlined,
+          label: 'Mis líderes asignados',
+          onTap: () => _navigate(
+            SupervisorMyLeadersScreen(session: widget.session),
+            'Mis líderes asignados',
+          ),
+        ),
+      );
+    }
+
+    if (p.canAssignSupervisorLeaders) {
+      items.add(
+        SlideMenuItem(
+          icon: Icons.manage_accounts_outlined,
           label: 'Líderes por supervisor',
           onTap: () => _navigate(
             SupervisorLeaderAssignmentsScreen(session: widget.session),
@@ -356,9 +370,20 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    if (p.canViewSupervisorLeaderAssignments) {
+    if (p.canViewMySupervisedLeaders) {
       addEntry(
         icon: Icons.account_tree_outlined,
+        title: 'Mis líderes asignados',
+        subtitle: 'Líderes bajo tu supervisión',
+        onTap: () => _navigate(
+          SupervisorMyLeadersScreen(session: widget.session),
+          'Mis líderes asignados',
+        ),
+      );
+    }
+    if (p.canAssignSupervisorLeaders) {
+      addEntry(
+        icon: Icons.manage_accounts_outlined,
         title: 'Líderes por supervisor',
         subtitle: 'Asignar cartera de líderes a cada supervisor',
         onTap: () => _navigate(

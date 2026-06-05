@@ -21,7 +21,7 @@ class MemberDetailScreen extends StatelessWidget {
   final AppPermissions? permissions;
 
   AppPermissions get _permissions =>
-      permissions ?? AppPermissions.adminDefault();
+      permissions ?? AppPermissions.fromRoles([]);
 
   String _formatDate(DateTime? date) {
     if (date == null) return '—';
@@ -96,7 +96,7 @@ class MemberDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(member.fullName),
         actions: [
-          if (_permissions.canManageAll) ...[
+          if (_permissions.canManageMembers) ...[
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               tooltip: 'Editar',
@@ -180,7 +180,7 @@ class MemberDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          if (_permissions.canManageAll) ...[
+          if (_permissions.canManageMembers) ...[
             FilledButton.icon(
               onPressed: () => _edit(context),
               icon: const Icon(Icons.edit_outlined),

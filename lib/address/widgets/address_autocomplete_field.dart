@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/models/geo_location.dart';
-import '../services/nominatim_service.dart';
+import '../models/address_place.dart';
+import '../services/google_places_service.dart';
 import 'location_map_preview.dart';
 
 class AddressAutocompleteField extends StatefulWidget {
@@ -15,7 +16,7 @@ class AddressAutocompleteField extends StatefulWidget {
     this.onCoordinatesSelected,
     this.labelText = 'Buscar dirección',
     this.hintText = 'Escribe y elige una sugerencia...',
-    this.nominatimService,
+    this.placesService,
     this.validator,
     this.showInlineMapPreview = true,
     this.suggestionsLocked = false,
@@ -23,15 +24,13 @@ class AddressAutocompleteField extends StatefulWidget {
 
   final TextEditingController controller;
   final bool enabled;
-  final void Function(NominatimPlace place)? onPlaceSelected;
+  final void Function(AddressPlace place)? onPlaceSelected;
   final void Function(GeoLocation location)? onCoordinatesSelected;
   final String labelText;
   final String hintText;
-  final NominatimService? nominatimService;
+  final GooglePlacesService? placesService;
   final FormFieldValidator<String>? validator;
   final bool showInlineMapPreview;
-
-  /// Si es true, no se muestran ni buscan sugerencias (p. ej. dirección ya confirmada).
   final bool suggestionsLocked;
 
   @override
@@ -40,14 +39,14 @@ class AddressAutocompleteField extends StatefulWidget {
 }
 
 class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
-  final _nominatim = NominatimService();
+  final _placesService = GooglePlacesService();
   Timer? _debounce;
-  List<NominatimPlace> _suggestions = [];
+  List<AddressPlace> _suggestions = [];
   bool _isSearching = false;
   GeoLocation? _selectedLocation;
   bool _ignoreTextChangeAfterSelect = false;
 
-  NominatimService get _service => widget.nominatimService ?? _nominatim;
+  GooglePlacesService get _service => widget.placesService ?? _placesService;
 
   @override
   void didUpdateWidget(AddressAutocompleteField oldWidget) {
@@ -88,7 +87,7 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
 
     setState(() => _selectedLocation = null);
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), _fetchSuggestions);
+    _debounce = Timer(const Duration(milliseconds: 400), _fetchSuggestions);
   }
 
   Future<void> _fetchSuggestions() async {
@@ -101,6 +100,19 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
           _suggestions = [];
           _isSearching = false;
         });
+      }
+      return;
+    }
+
+    if (!_service.isConfigured) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Configura la API key de Google Maps en maps_api_key.dart',
+            ),
+          ),
+        );
       }
       return;
     }
@@ -122,13 +134,13 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('No se pudieron cargar sugerencias de OpenStreetMap.'),
+          content: Text('No se pudieron cargar sugerencias de Google Maps.'),
         ),
       );
     }
   }
 
-  Future<void> _selectPlace(NominatimPlace place) async {
+  Future<void> _selectPlace(AddressPlace place) async {
     _debounce?.cancel();
     _ignoreTextChangeAfterSelect = true;
     setState(() {

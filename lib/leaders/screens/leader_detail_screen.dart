@@ -24,7 +24,7 @@ class LeaderDetailScreen extends StatelessWidget {
   final AppPermissions? permissions;
 
   AppPermissions get _permissions =>
-      permissions ?? AppPermissions.adminDefault();
+      permissions ?? AppPermissions.fromRoles([]);
 
   Future<void> _edit(BuildContext context) async {
     await Navigator.of(context).push<bool>(
@@ -145,22 +145,27 @@ class LeaderDetailScreen extends StatelessWidget {
               _Row('Registrado por', leader.registeredBy),
             ],
           ),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => LeaderAssignedMembersScreen(
-                    leader: leader,
-                    registeredBy: registeredBy,
+          if (_permissions.canManageAll ||
+              _permissions.isLeader ||
+              _permissions.canViewSupervisedLeaderMembers) ...[
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => LeaderAssignedMembersScreen(
+                      leader: leader,
+                      registeredBy: registeredBy,
+                      permissions: _permissions,
+                    ),
                   ),
-                ),
-              );
-            },
-            icon: const Icon(Icons.people_outlined),
-            label: const Text('Ver integrantes asignados'),
-          ),
-          const SizedBox(height: 12),
+                );
+              },
+              icon: const Icon(Icons.people_outlined),
+              label: const Text('Ver integrantes asignados'),
+            ),
+            const SizedBox(height: 12),
+          ],
           if (_permissions.canManageAll) ...[
             FilledButton.icon(
               onPressed: () => _edit(context),

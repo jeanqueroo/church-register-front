@@ -87,6 +87,8 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
         builder: (_) => MemberDetailScreen(
           member: member,
           registeredBy: widget.session.email,
+          memberService: _memberService,
+          permissions: widget.session.permissions,
         ),
       ),
     );

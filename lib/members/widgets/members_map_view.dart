@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../core/utils/external_maps.dart';
 import '../../leaders/models/church_leader.dart';
 import '../models/church_member.dart';
 
-/// Mapa de integrantes; opcionalmente muestra al líder asignado.
+/// Mapa de integrantes con Google Maps; opcionalmente muestra al líder asignado.
 class MembersMapView extends StatefulWidget {
   const MembersMapView({
     super.key,
@@ -23,7 +23,7 @@ class MembersMapView extends StatefulWidget {
 }
 
 class _MembersMapViewState extends State<MembersMapView> {
-  final _mapController = MapController();
+  GoogleMapController? _mapController;
   List<ChurchMember>? _lastFittedMembers;
 
   List<ChurchMember> get _locatedMembers =>
@@ -50,23 +50,63 @@ class _MembersMapViewState extends State<MembersMapView> {
     }
   }
 
-  void _fitMap() {
+  Future<void> _fitMap() async {
+    final controller = _mapController;
     final points = _allPoints;
-    if (points.isEmpty) return;
+    if (controller == null || points.isEmpty) return;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      if (points.length == 1) {
-        _mapController.move(points.first, 14);
-      } else {
-        _mapController.fitCamera(
-          CameraFit.bounds(
-            bounds: LatLngBounds.fromPoints(points),
-            padding: const EdgeInsets.all(48),
-          ),
-        );
-      }
-    });
+    if (points.length == 1) {
+      await controller.animateCamera(
+        CameraUpdate.newLatLngZoom(points.first, 14),
+      );
+      return;
+    }
+
+    var minLat = points.first.latitude;
+    var maxLat = points.first.latitude;
+    var minLng = points.first.longitude;
+    var maxLng = points.first.longitude;
+
+    for (final point in points.skip(1)) {
+      minLat = minLat < point.latitude ? minLat : point.latitude;
+      maxLat = maxLat > point.latitude ? maxLat : point.latitude;
+      minLng = minLng < point.longitude ? minLng : point.longitude;
+      maxLng = maxLng > point.longitude ? maxLng : point.longitude;
+    }
+
+    final bounds = LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
+
+    await controller.animateCamera(
+      CameraUpdate.newLatLngBounds(bounds, 48),
+    );
+  }
+
+  Future<void> _openDirections(BuildContext ctx, ChurchMember member) async {
+    final location = member.geoLocation;
+    if (location == null) {
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        const SnackBar(
+          content: Text('Este integrante no tiene ubicación en el mapa'),
+        ),
+      );
+      return;
+    }
+
+    final opened = await openMapsDirections(
+      latitude: location.latitude,
+      longitude: location.longitude,
+    );
+
+    if (!opened && ctx.mounted) {
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo abrir la navegación'),
+        ),
+      );
+    }
   }
 
   void _showMemberSheet(ChurchMember member) {
@@ -74,10 +114,10 @@ class _MembersMapViewState extends State<MembersMapView> {
       context: context,
       showDragHandle: true,
       builder: (ctx) {
+        final address = member.formattedAddress;
         final parts = <String>[
           member.phone,
           if (member.wantsVisit) 'Solicita visita',
-          if (member.locality != null) member.locality!,
           if (member.assignedDistanceKm != null)
             '${member.assignedDistanceKm!.toStringAsFixed(1)} km del líder',
         ];
@@ -104,7 +144,34 @@ class _MembersMapViewState extends State<MembersMapView> {
                         ),
                   ),
                 ],
+                if (address.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 20,
+                        color: Theme.of(ctx).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          address,
+                          style: Theme.of(ctx).textTheme.bodyMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 16),
+                if (member.geoLocation != null)
+                  OutlinedButton.icon(
+                    onPressed: () => _openDirections(ctx, member),
+                    icon: const Icon(Icons.directions_outlined),
+                    label: const Text('Cómo llegar'),
+                  ),
+                if (member.geoLocation != null) const SizedBox(height: 8),
                 FilledButton(
                   onPressed: () {
                     Navigator.pop(ctx);
@@ -120,11 +187,40 @@ class _MembersMapViewState extends State<MembersMapView> {
     );
   }
 
+  Set<Marker> _buildMarkers(BuildContext context) {
+    final markers = <Marker>{};
+    final leaderLoc = widget.leader?.geoLocation;
+    if (leaderLoc != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('leader'),
+          position: LatLng(leaderLoc.latitude, leaderLoc.longitude),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+          infoWindow: InfoWindow(title: widget.leader!.fullName, snippet: 'Líder'),
+        ),
+      );
+    }
+
+    for (final member in _locatedMembers) {
+      final id = member.id ?? member.fullName;
+      markers.add(
+        Marker(
+          markerId: MarkerId('member-$id'),
+          position: LatLng(member.latitude!, member.longitude!),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          infoWindow: InfoWindow(title: member.fullName),
+          onTap: () => _showMemberSheet(member),
+        ),
+      );
+    }
+
+    return markers;
+  }
+
   @override
   Widget build(BuildContext context) {
     final located = _locatedMembers;
     final withoutLocation = widget.members.length - located.length;
-    final leaderLoc = widget.leader?.geoLocation;
     final hasAnyPoint = _allPoints.isNotEmpty;
 
     if (_lastFittedMembers != widget.members) {
@@ -185,7 +281,7 @@ class _MembersMapViewState extends State<MembersMapView> {
               ),
             ),
           ),
-        if (leaderLoc != null)
+        if (widget.leader?.geoLocation != null)
           Material(
             color: Theme.of(context).colorScheme.primaryContainer,
             child: Padding(
@@ -213,48 +309,16 @@ class _MembersMapViewState extends State<MembersMapView> {
             ),
           ),
         Expanded(
-          child: FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: initialCenter,
-              initialZoom: 12,
+          child: GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: initialCenter,
+              zoom: 12,
             ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.church.register.church_registe',
-              ),
-              MarkerLayer(
-                markers: [
-                  if (leaderLoc != null)
-                    Marker(
-                      point: LatLng(leaderLoc.latitude, leaderLoc.longitude),
-                      width: 48,
-                      height: 48,
-                      child: Icon(
-                        Icons.person_pin_circle,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 48,
-                      ),
-                    ),
-                  ...located.map(
-                    (member) => Marker(
-                      point: LatLng(member.latitude!, member.longitude!),
-                      width: 40,
-                      height: 40,
-                      child: GestureDetector(
-                        onTap: () => _showMemberSheet(member),
-                        child: Icon(
-                          Icons.location_pin,
-                          color: Theme.of(context).colorScheme.tertiary,
-                          size: 40,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            markers: _buildMarkers(context),
+            onMapCreated: (controller) {
+              _mapController = controller;
+              _fitMap();
+            },
           ),
         ),
       ],

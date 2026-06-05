@@ -52,9 +52,34 @@ service cloud.firestore {
       return userHasRole('registrador');
     }
 
+    function isLeader() {
+      return userHasRole('leader');
+    }
+
+    function isSupervisor() {
+      return userHasRole('supervisor');
+    }
+
+    function currentUserLeaderId() {
+      return userDocExists() ? currentUserData().get('leaderId', '') : '';
+    }
+
     // Admin, superadmin o registrador: creyentes, líderes y avisos al asignar.
     function canManageChurchRecords() {
       return isAppAdmin() || isRegistrar();
+    }
+
+    function isAssignedLeaderForMember() {
+      return isLeader() &&
+        currentUserLeaderId() != '' &&
+        resource.data.get('assignedLeaderId', '') == currentUserLeaderId();
+    }
+
+    function isSupervisedLeaderMember() {
+      return isSupervisor() &&
+        resource.data.get('assignedLeaderId', '') != '' &&
+        currentUserData().get('supervisedLeaderIds', [])
+          .hasAny([resource.data.get('assignedLeaderId', '')]);
     }
 
     function isAssignedLeaderForNotification() {
@@ -92,7 +117,12 @@ service cloud.firestore {
     }
 
     match /members/{memberId} {
-      allow read, write: if isSignedIn();
+      allow read: if isSignedIn() && (
+        canManageChurchRecords() ||
+        isAssignedLeaderForMember() ||
+        isSupervisedLeaderMember()
+      );
+      allow create, update, delete: if isSignedIn() && canManageChurchRecords();
     }
 
     match /leaders/{leaderId} {

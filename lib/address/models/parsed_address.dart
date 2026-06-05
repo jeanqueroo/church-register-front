@@ -15,6 +15,33 @@ class ParsedAddress {
   final String? stateProvince;
   final String? postalCode;
 
+  static ParsedAddress fromGoogleComponents(List<dynamic> components) {
+    String? component(String type, {bool shortName = false}) {
+      for (final item in components) {
+        final map = item as Map<String, dynamic>;
+        final types = (map['types'] as List<dynamic>).cast<String>();
+        if (types.contains(type)) {
+          final value = shortName ? map['short_name'] : map['long_name'];
+          if (value is String && value.trim().isNotEmpty) {
+            return value.trim();
+          }
+        }
+      }
+      return null;
+    }
+
+    return ParsedAddress(
+      street: component('route'),
+      streetNumber: component('street_number'),
+      neighborhood: component('sublocality') ??
+          component('sublocality_level_1') ??
+          component('neighborhood'),
+      locality: component('locality') ?? component('administrative_area_level_2'),
+      stateProvince: component('administrative_area_level_1'),
+      postalCode: component('postal_code'),
+    );
+  }
+
   static ParsedAddress fromNominatim(
     Map<String, dynamic>? address, {
     String? displayName,
