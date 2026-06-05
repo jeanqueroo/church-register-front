@@ -8,7 +8,7 @@ import '../../leaders/services/leader_service.dart';
 import '../models/supervisor_account.dart';
 import '../services/supervisor_assignment_service.dart';
 
-/// Asigna líderes a usuarios con rol supervisor (admin) o consulta la propia cartera.
+/// Asigna líderes a usuarios con rol supervisor (solo administrador).
 class SupervisorLeaderAssignmentsScreen extends StatefulWidget {
   const SupervisorLeaderAssignmentsScreen({
     super.key,
@@ -81,44 +81,12 @@ class _SupervisorLeaderAssignmentsScreenState
 
       if (!mounted) return;
 
-      var supervisorList = supervisors;
-      // Si el usuario actual también tiene rol supervisor, no debe aparecer
-      // como opción seleccionable en la vista de asignación (evita auto-selección).
-      if (_canAssign) {
-        supervisorList =
-            supervisorList.where((s) => s.uid != widget.session.uid).toList();
-      }
-      if (!_canAssign && _permissions.isSupervisor) {
-        final inList =
-            supervisorList.any((account) => account.uid == widget.session.uid);
-        if (!inList) {
-          supervisorList = [
-            SupervisorAccount(
-              uid: widget.session.uid,
-              email: widget.session.email,
-              leaderId: widget.session.profile.leaderId,
-              churchId: widget.session.profile.churchId,
-              displayName: widget.session.resolvedDisplayName,
-              supervisedLeaderIds: const [],
-            ),
-            ...supervisorList,
-          ];
-        }
-      }
+      final supervisorList = supervisors
+          .where((s) => s.uid != widget.session.uid)
+          .toList();
 
-      String? selectedUid;
-      if (_canAssign) {
-        selectedUid =
-            supervisorList.isNotEmpty ? supervisorList.first.uid : null;
-      } else if (_permissions.isSupervisor) {
-        selectedUid = widget.session.uid;
-      }
-
-      if (selectedUid != null &&
-          !supervisorList.any((supervisor) => supervisor.uid == selectedUid)) {
-        selectedUid =
-            supervisorList.isNotEmpty ? supervisorList.first.uid : null;
-      }
+      final selectedUid =
+          supervisorList.isNotEmpty ? supervisorList.first.uid : null;
 
       setState(() {
         _supervisors = supervisorList;
@@ -286,15 +254,6 @@ class _SupervisorLeaderAssignmentsScreenState
     return list;
   }
 
-  SupervisorAccount? get _selectedSupervisor {
-    final uid = _selectedSupervisorUid;
-    if (uid == null) return null;
-    for (final supervisor in _supervisors) {
-      if (supervisor.uid == uid) return supervisor;
-    }
-    return null;
-  }
-
   String? get _selectedSupervisorOwnLeaderId {
     final selectedUid = _selectedSupervisorUid;
     if (selectedUid == null || selectedUid.isEmpty) return null;
@@ -328,9 +287,11 @@ class _SupervisorLeaderAssignmentsScreenState
   Widget build(BuildContext context) {
     return RoleGate(
       permissions: _permissions,
-      allowed: _permissions.canViewSupervisorLeaderAssignments,
-      deniedMessage:
-          'No tienes permiso para ver las asignaciones de líderes por supervisor.',
+      allowed: _permissions.canAssignSupervisorLeaders,
+      deniedMessage: _permissions.isSupervisor
+          ? 'Los supervisores no pueden acceder a esta pantalla. '
+              'Usa «Mis líderes asignados» para ver tu cartera.'
+          : 'Solo el administrador puede asignar líderes a supervisores.',
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Líderes por supervisor'),
@@ -381,7 +342,7 @@ class _SupervisorLeaderAssignmentsScreenState
       );
     }
 
-    if (_supervisors.isEmpty && !_permissions.isSupervisor) {
+    if (_supervisors.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -416,46 +377,34 @@ class _SupervisorLeaderAssignmentsScreenState
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
       children: [
-        if (_canAssign) ...[
-          Text(
-            'Supervisor',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            key: ValueKey(_effectiveSupervisorDropdownValue),
-            initialValue: _effectiveSupervisorDropdownValue,
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.person_outline),
-              border: OutlineInputBorder(),
-              labelText: 'Selecciona supervisor *',
-            ),
-            items: _supervisors
-                .map(
-                  (supervisor) => DropdownMenuItem(
-                    value: supervisor.uid,
-                    child: Text(
-                      _supervisorSelectLabel(supervisor),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: _saving ? null : _onSupervisorChanged,
-          ),
-        ] else ...[
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                child: Icon(Icons.supervisor_account_outlined),
+        Text(
+          'Supervisor',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
-              title: Text(_selectedSupervisor?.displayLabel ?? widget.session.email),
-              subtitle: const Text('Tus líderes asignados'),
-            ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          key: ValueKey(_effectiveSupervisorDropdownValue),
+          initialValue: _effectiveSupervisorDropdownValue,
+          decoration: const InputDecoration(
+            prefixIcon: Icon(Icons.person_outline),
+            border: OutlineInputBorder(),
+            labelText: 'Selecciona supervisor *',
           ),
-        ],
+          items: _supervisors
+              .map(
+                (supervisor) => DropdownMenuItem(
+                  value: supervisor.uid,
+                  child: Text(
+                    _supervisorSelectLabel(supervisor),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: _saving ? null : _onSupervisorChanged,
+        ),
         const SizedBox(height: 24),
         Text(
           'Líderes asignados (${_selectedLeaderIds.length})',
@@ -464,19 +413,9 @@ class _SupervisorLeaderAssignmentsScreenState
               ),
         ),
         const SizedBox(height: 8),
-        if (!_canAssign)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              'Solo el administrador puede modificar estas asignaciones.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-          ),
         TextField(
           controller: _leaderSearchController,
-          enabled: !_saving && _canAssign,
+          enabled: !_saving,
           decoration: const InputDecoration(
             labelText: 'Buscar líder',
             prefixIcon: Icon(Icons.search),
@@ -518,9 +457,9 @@ class _SupervisorLeaderAssignmentsScreenState
               margin: const EdgeInsets.only(bottom: 8),
               child: CheckboxListTile(
                 value: selected,
-                onChanged: _canAssign && !_saving
-                    ? (value) => _toggleLeader(id, value ?? false)
-                    : null,
+                onChanged: _saving
+                    ? null
+                    : (value) => _toggleLeader(id, value ?? false),
                 secondary: CircleAvatar(
                   child: Text(
                     leader.lastName.isNotEmpty

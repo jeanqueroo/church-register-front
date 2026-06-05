@@ -59,7 +59,10 @@ class _LeaderAssignedMembersScreenState
 
   void _openMemberDetail(BuildContext context, ChurchMember member) {
     final viewPermissions = widget.permissions ??
-        AppPermissions.fromRoles([AppUserRole.leader]);
+        AppPermissions.fromRoles(
+          [AppUserRole.leader],
+          churchId: widget.leader.churchId,
+        );
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => MemberDetailScreen(
@@ -209,7 +212,12 @@ class _LeaderAssignedMembersScreenState
         ),
       ),
       body: StreamBuilder<List<ChurchMember>>(
-        stream: _service.watchMembers(churchId: _churchId),
+        stream: widget.leader.id != null && widget.leader.id!.isNotEmpty
+            ? _service.watchMembersAssignedToLeader(
+                leaderId: widget.leader.id!,
+                churchId: _churchId,
+              )
+            : Stream<List<ChurchMember>>.value(const []),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
