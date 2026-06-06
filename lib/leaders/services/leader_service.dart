@@ -70,18 +70,32 @@ class LeaderService {
     final authUserId = leader.authUserId?.trim();
     if (authUserId == null || authUserId.isEmpty) return false;
 
-    final doc = await _userProfileService.fetchProfileDoc(authUserId);
-    if (doc == null) return false;
+    try {
+      final doc = await _userProfileService.fetchProfileDoc(authUserId);
+      if (doc == null) return false;
 
-    final data = doc.data() ?? {};
-    final roles = AppUserRole.parseList(data['roles']);
-    final rolesFinal =
-        roles.isNotEmpty ? roles : AppUserRole.parseList(data['role']);
-    return rolesFinal.contains(AppUserRole.leader);
+      final data = doc.data() ?? {};
+      final roles = AppUserRole.parseList(data['roles']);
+      final rolesFinal =
+          roles.isNotEmpty ? roles : AppUserRole.parseList(data['role']);
+      return rolesFinal.contains(AppUserRole.leader);
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        // Cuenta vinculada en `leaders`; no se pudo verificar rol en `users`.
+        return true;
+      }
+      rethrow;
+    }
   }
 
   Future<List<ChurchLeader>> fetchAssignableLeaders({String? churchId}) async {
     final leaders = await fetchAllLeaders(churchId: churchId);
+    final normalizedChurchId = churchId?.trim();
+    if (normalizedChurchId != null && normalizedChurchId.isNotEmpty) {
+      // Registrador/admin: la colección `leaders` ya está filtrada por iglesia.
+      return leaders;
+    }
+
     final results = await Future.wait(
       leaders.map((leader) async {
         if (await hasLeaderAppRole(leader)) return leader;

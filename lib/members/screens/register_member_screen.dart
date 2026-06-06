@@ -44,6 +44,13 @@ class RegisterMemberScreen extends StatefulWidget {
 }
 
 class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
+  String? get _effectiveChurchId {
+    final fromWidget = widget.churchId?.trim();
+    if (fromWidget != null && fromWidget.isNotEmpty) return fromWidget;
+    final fromProfile = widget._permissions.churchId?.trim();
+    if (fromProfile != null && fromProfile.isNotEmpty) return fromProfile;
+    return null;
+  }
   final _formKey = GlobalKey<FormState>();
   final _birthDateFieldKey = GlobalKey<FormFieldState<DateTime>>();
   final _maritalStatusFieldKey = GlobalKey<FormFieldState<MaritalStatus>>();
@@ -105,7 +112,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   Future<void> _loadLeaders() async {
     try {
       final leaders =
-          await _leaderService.fetchAssignableLeaders(churchId: widget.churchId);
+          await _leaderService.fetchAssignableLeaders(churchId: _effectiveChurchId);
       leaders.sort((a, b) => a.fullName.compareTo(b.fullName));
       if (!mounted) return;
 
@@ -332,6 +339,14 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (widget._permissions.isRegistrar &&
+        (_effectiveChurchId == null || _effectiveChurchId!.isEmpty)) {
+      _showMessage(
+        'Tu cuenta no tiene iglesia asignada. Contacta al administrador.',
+      );
+      return;
+    }
+
     if (_manualLeader && _selectedLeader == null) {
       _showMessage('Selecciona un líder de la lista');
       return;
@@ -392,7 +407,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         final assignment = await _assignmentService.assignNearestLeader(
           gender: _gender!,
           memberLocation: location,
-          churchId: widget.churchId,
+          churchId: _effectiveChurchId,
         );
         if (assignment != null) {
           assignedLeader = assignment.leader;
@@ -453,7 +468,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         formDate: _formDate,
         registeredAt: widget.memberToEdit?.registeredAt ?? DateTime.now(),
         registeredBy: widget.memberToEdit?.registeredBy ?? widget.registeredBy,
-        churchId: widget.memberToEdit?.churchId ?? widget.churchId,
+        churchId: widget.memberToEdit?.churchId ?? _effectiveChurchId,
       );
 
       if (widget.isEditing) {
@@ -630,10 +645,10 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     return RoleGate(
       permissions: permissions,
       allowed: widget.isEditing
-          ? permissions.canManageAll
+          ? permissions.canManageMembers
           : permissions.canRegisterMember,
       deniedMessage: widget.isEditing
-          ? 'Solo el administrador puede editar creyentes.'
+          ? 'No tienes permiso para editar creyentes.'
           : 'No tienes permiso para registrar creyentes.',
       child: Scaffold(
       appBar: AppBar(
@@ -652,8 +667,10 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ChurchDisplayName(
-                  churchId: widget.churchId,
+                  churchId: _effectiveChurchId,
                   textAlign: TextAlign.center,
+                  maxLines: 2,
+                  layout: ChurchDisplayNameLayout.inline,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,

@@ -48,7 +48,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   AppPermissions get _permissions => widget.session.permissions;
   String get _email => widget.session.email;
-  String? get _churchId => widget.session.profile.churchId;
+  String? get _churchId =>
+      widget.session.profile.churchId?.trim().isNotEmpty == true
+          ? widget.session.profile.churchId
+          : null;
 
   @override
   void initState() {

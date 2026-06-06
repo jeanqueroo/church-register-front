@@ -19,7 +19,10 @@ service cloud.firestore {
     }
 
     function userHasRole(role) {
-      return isSignedIn() && currentUserRoles().hasAny([role]);
+      return isSignedIn() && userDocExists() && (
+        currentUserData().get('roles', []).hasAny([role]) ||
+        currentUserData().get('role', '') == role
+      );
     }
 
     // Super administrador: iglesias y registro de administradores de iglesia.
@@ -127,6 +130,14 @@ service cloud.firestore {
 
     function currentUserChurchId() {
       return userDocExists() ? currentUserData().get('churchId', '') : '';
+    }
+
+    // Registrador: leer perfiles de cuentas con rol líder (asignación de creyentes).
+    function canRegistrarReadLeaderUser() {
+      return isRegistrar() && (
+        resource.data.get('roles', []).hasAny(['leader']) ||
+        resource.data.get('role', '') == 'leader'
+      );
     }
 
     // Admin de iglesia: asignar líderes a supervisores de su sede.
@@ -237,7 +248,9 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow get: if isSignedIn() && (
-        request.auth.uid == userId || isStaffUser()
+        request.auth.uid == userId ||
+        isStaffUser() ||
+        canRegistrarReadLeaderUser()
       );
       // Necesario para `users.where('roles', arrayContains: 'supervisor')`.
       allow list: if isStaffUser();

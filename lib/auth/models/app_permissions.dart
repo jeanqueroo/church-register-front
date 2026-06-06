@@ -33,7 +33,7 @@ class AppPermissions {
 
   bool get canRegisterMember => isAdmin || isRegistrar || isSuperAdmin;
   bool get canRegisterLeader => isAdmin || isSuperAdmin;
-  bool get canViewMembersList => isAdmin || isSuperAdmin;
+  bool get canViewMembersList => isAdmin || isSuperAdmin || isRegistrar;
   bool get canViewMembersByLeader => isAdmin || isSuperAdmin;
   bool get canViewLeadersList => isAdmin || isSuperAdmin;
   /// Admin sin rol supervisor: asignar líderes a supervisores.
@@ -63,7 +63,7 @@ class AppPermissions {
 
   /// Dashboard pastoral: mismo alcance que el de visitas.
   bool get canViewPastoralDashboard => canViewVisitsDashboard;
-  bool get canManageAll => isAdmin || isSuperAdmin;
+  bool get canManageAll => isAdmin || isSuperAdmin || isRegistrar;
 
   /// Crear, editar o eliminar creyentes (no aplica al rol líder).
   bool get canManageMembers => canManageAll;

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/user_profile.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../core/theme/app_theme.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/screens/leader_assigned_members_screen.dart';
 import '../../leaders/screens/leader_detail_screen.dart';
 import '../../leaders/services/leader_service.dart';
+import '../../leaders/widgets/leaders_map_view.dart';
 import '../services/supervisor_assignment_service.dart';
 
 /// Vista de solo lectura: líderes asignados al supervisor actual.
@@ -26,9 +28,11 @@ class SupervisorMyLeadersScreen extends StatefulWidget {
       _SupervisorMyLeadersScreenState();
 }
 
-class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen> {
+class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
+    with SingleTickerProviderStateMixin {
   late final SupervisorAssignmentService _assignmentService;
   late final LeaderService _leaderService;
+  late final TabController _tabController;
   final _searchController = TextEditingController();
 
   List<ChurchLeader> _leaders = [];
@@ -38,6 +42,7 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _assignmentService =
         widget.assignmentService ?? SupervisorAssignmentService();
     _leaderService = widget.leaderService ?? LeaderService();
@@ -46,6 +51,7 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -125,6 +131,141 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen> {
     );
   }
 
+  Widget _buildSummaryCard() {
+    return Card(
+      child: ListTile(
+        leading: const CircleAvatar(
+          child: Icon(Icons.supervisor_account_outlined),
+        ),
+        title: Text(
+          widget.session.resolvedDisplayName.isNotEmpty
+              ? widget.session.resolvedDisplayName
+              : widget.session.email,
+        ),
+        subtitle: Text(
+          '${_leaders.length} líder${_leaders.length == 1 ? '' : 'es'} '
+          'bajo tu supervisión',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return TextField(
+      controller: _searchController,
+      decoration: const InputDecoration(
+        labelText: 'Buscar líder',
+        prefixIcon: Icon(Icons.search),
+        border: OutlineInputBorder(),
+      ),
+      onChanged: (_) => setState(() {}),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Column(
+        children: [
+          Icon(
+            Icons.groups_outlined,
+            size: 64,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Sin líderes asignados',
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'El administrador te asignará líderes cuando corresponda.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoSearchResults() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Text(
+        'Ningún líder coincide con la búsqueda.',
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildLeaderCard(ChurchLeader leader) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+              leading: CircleAvatar(
+                child: Text(
+                  leader.lastName.isNotEmpty
+                      ? leader.lastName[0].toUpperCase()
+                      : '?',
+                ),
+              ),
+              title: Text(leader.fullName),
+              subtitle: Text(
+                SupervisorAssignmentService.leaderLabel(leader),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _openLeaderDetail(leader),
+                      icon: const Icon(Icons.person_outline),
+                      label: const Text('Ver líder'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => _openLeaderMembers(leader),
+                      icon: const Icon(Icons.people_outline),
+                      label: const Text('Creyentes'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListTab(List<ChurchLeader> filtered) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      children: [
+        if (filtered.isEmpty)
+          _buildNoSearchResults()
+        else
+          ...filtered.map(_buildLeaderCard),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return RoleGate(
@@ -134,6 +275,19 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Mis líderes asignados'),
+          bottom: _loading || _loadError != null || _leaders.isEmpty
+              ? null
+              : TabBar(
+                  controller: _tabController,
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.white.withValues(alpha: 0.65),
+                  indicatorColor: AppColors.accent,
+                  indicatorWeight: 3,
+                  tabs: const [
+                    Tab(icon: Icon(Icons.list_outlined), text: 'Lista'),
+                    Tab(icon: Icon(Icons.map_outlined), text: 'Mapa'),
+                  ],
+                ),
         ),
         body: _buildBody(),
       ),
@@ -168,126 +322,45 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen> {
       );
     }
 
+    if (_leaders.isEmpty) {
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        children: [
+          _buildSummaryCard(),
+          const SizedBox(height: 16),
+          _buildEmptyState(),
+        ],
+      );
+    }
+
     final filtered = _filteredLeaders;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Card(
-          child: ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Icons.supervisor_account_outlined),
-            ),
-            title: Text(
-              widget.session.resolvedDisplayName.isNotEmpty
-                  ? widget.session.resolvedDisplayName
-                  : widget.session.email,
-            ),
-            subtitle: Text(
-              '${_leaders.length} líder${_leaders.length == 1 ? '' : 'es'} '
-              'bajo tu supervisión',
-            ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Column(
+            children: [
+              _buildSummaryCard(),
+              const SizedBox(height: 16),
+              _buildSearchField(),
+            ],
           ),
         ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _searchController,
-          decoration: const InputDecoration(
-            labelText: 'Buscar líder',
-            prefixIcon: Icon(Icons.search),
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (_) => setState(() {}),
-        ),
-        const SizedBox(height: 16),
-        if (_leaders.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 32),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.groups_outlined,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Sin líderes asignados',
-                  style: Theme.of(context).textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'El administrador te asignará líderes cuando corresponda.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-              ],
-            ),
-          )
-        else if (filtered.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 32),
-            child: Text(
-              'Ningún líder coincide con la búsqueda.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-          )
-        else
-          ...filtered.map((leader) {
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                      leading: CircleAvatar(
-                        child: Text(
-                          leader.lastName.isNotEmpty
-                              ? leader.lastName[0].toUpperCase()
-                              : '?',
-                        ),
-                      ),
-                      title: Text(leader.fullName),
-                      subtitle: Text(
-                        SupervisorAssignmentService.leaderLabel(leader),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _openLeaderDetail(leader),
-                              icon: const Icon(Icons.person_outline),
-                              label: const Text('Ver líder'),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: FilledButton.icon(
-                              onPressed: () => _openLeaderMembers(leader),
-                              icon: const Icon(Icons.people_outline),
-                              label: const Text('Creyentes'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildListTab(filtered),
+              LeadersMapView(
+                leaders: filtered,
+                onLeaderTap: _openLeaderDetail,
               ),
-            );
-          }),
+            ],
+          ),
+        ),
       ],
     );
   }

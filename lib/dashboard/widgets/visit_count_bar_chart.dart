@@ -100,7 +100,7 @@ class VisitCountBarChart extends StatelessWidget {
                     BarChartRodData(
                       toY: points[i].count.toDouble(),
                       width: points.length > 10 ? 10 : 16,
-                      color: AppColors.primaryLight,
+                      color: const Color(0xFF1976D2),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(4),
                       ),

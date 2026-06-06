@@ -354,7 +354,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
                         value: 'view',
                         child: Text('Ver detalle'),
                       ),
-                      if (widget.permissions.canManageAll) ...[
+                      if (widget.permissions.canManageMembers) ...[
                         const PopupMenuItem(
                           value: 'edit',
                           child: Text('Editar'),

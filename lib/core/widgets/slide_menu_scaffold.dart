@@ -218,6 +218,7 @@ class _WhatsappAppBar extends StatelessWidget implements PreferredSizeWidget {
                 child: ChurchDisplayName(
                   churchId: churchId,
                   fallback: titleFallback,
+                  layout: ChurchDisplayNameLayout.appBar,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -276,6 +277,7 @@ class _DrawerProfileHeader extends StatelessWidget {
                 ChurchDisplayName(
                   churchId: churchId,
                   fallback: titleFallback,
+                  layout: ChurchDisplayNameLayout.drawer,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
