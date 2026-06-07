@@ -7,6 +7,7 @@ import '../../church/models/church_record.dart';
 import '../../church/screens/register_church_screen.dart';
 import '../../church/services/church_service.dart';
 import '../../church/widgets/church_search_field.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/widgets/form_section_title.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/services/leader_service.dart';
@@ -156,6 +157,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
   }
 
   Widget _buildChurchPicker() {
+    final l10n = context.l10n;
     if (_churchesLoading) {
       return const Center(
         child: Padding(
@@ -171,15 +173,15 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              const Text(
-                'No hay iglesias activas. Crea una o desbloquea una existente.',
+              Text(
+                l10n.adminRegNoChurches,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
               FilledButton.tonalIcon(
                 onPressed: _saving ? null : _openCreateChurch,
                 icon: const Icon(Icons.add),
-                label: const Text('Crear iglesia'),
+                label: Text(l10n.adminRegCreateChurch),
               ),
             ],
           ),
@@ -191,13 +193,12 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ChurchSearchField(
-          key: ValueKey('admin-church-${_selectedChurch?.id ?? 'none'}'),
           churches: _churches,
           selectedChurch: _selectedChurch,
           enabled: !_saving,
           onChurchSelected: (church) => setState(() => _selectedChurch = church),
           validator: (church) =>
-              church == null ? 'Selecciona una iglesia' : null,
+              church == null ? l10n.adminRegSelectChurch : null,
         ),
         const SizedBox(height: 8),
         Align(
@@ -205,7 +206,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
           child: TextButton.icon(
             onPressed: _saving ? null : _openCreateChurch,
             icon: const Icon(Icons.add),
-            label: const Text('Nueva iglesia'),
+            label: Text(l10n.adminRegNewChurch),
           ),
         ),
       ],
@@ -224,7 +225,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
       ),
     );
     if (created == true && mounted) {
-      _showMessage('Iglesia creada. Selecciónala en la lista.');
+      _showMessage(context.l10n.adminRegChurchCreated);
     }
   }
 
@@ -286,8 +287,9 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
 
   Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = context.l10n;
     if (_selectedChurch == null) {
-      _showMessage('Selecciona la iglesia para este administrador.');
+      _showMessage(l10n.adminRegSelectChurchForAdmin);
       return;
     }
 
@@ -331,7 +333,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
           leaderId: resolvedLeaderId,
         );
         if (!mounted) return;
-        _showMessage('Administrador actualizado');
+        _showMessage(l10n.adminRegUpdated);
       } else {
         final credential = await _authService.createLeaderAccount(
           email: email,
@@ -341,7 +343,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
         if (uid == null) {
           throw FirebaseAuthException(
             code: 'unknown',
-            message: 'No se pudo crear el usuario',
+            message: l10n.authCreateUserFailed,
           );
         }
 
@@ -361,19 +363,19 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
           leaderId: leaderId,
         );
         if (!mounted) return;
-        _showMessage('Administrador registrado correctamente');
+        _showMessage(l10n.adminRegSuccess);
       }
 
       Navigator.of(context).pop(true);
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      _showMessage(AuthService.messageFromFirebaseAuthException(e));
+      _showMessage(AuthService.messageFromFirebaseAuthException(e, context.l10n));
     } on FirebaseException catch (e) {
       if (!mounted) return;
-      _showMessage(e.message ?? 'Error al guardar el perfil.');
+      _showMessage(ChurchService.messageFromException(e, l10n));
     } catch (e) {
       if (!mounted) return;
-      _showMessage('Error al registrar: $e');
+      _showMessage(l10n.adminRegRegisterError('$e'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -381,6 +383,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final allowed = _isEdit
         ? widget.permissions.canEditAdmin
         : widget.permissions.canRegisterAdmin;
@@ -389,11 +392,11 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
       permissions: widget.permissions,
       allowed: allowed,
       deniedMessage: _isEdit
-          ? 'Solo el super administrador puede editar administradores.'
-          : 'Solo el super administrador puede registrar administradores de iglesia.',
+          ? l10n.adminRegEditDenied
+          : l10n.adminRegRegisterDenied,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(_isEdit ? 'Editar administrador' : 'Nuevo administrador'),
+          title: Text(_isEdit ? l10n.adminRegEditTitle : l10n.adminRegNewTitle),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -403,31 +406,31 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const FormSectionTitle('CUENTA'),
+                  FormSectionTitle(l10n.adminRegSectionAccount),
                   TextFormField(
                     controller: _firstNameController,
                     enabled: !_saving,
                     textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      labelText: 'Nombre *',
-                      prefixIcon: Icon(Icons.person_outline),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.memberFirstName,
+                      prefixIcon: const Icon(Icons.person_outline),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (v) =>
-                        v == null || v.trim().isEmpty ? 'Ingresa el nombre' : null,
+                        v == null || v.trim().isEmpty ? l10n.memberFirstNameRequired : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _lastNameController,
                     enabled: !_saving,
                     textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      labelText: 'Apellido *',
-                      prefixIcon: Icon(Icons.person_outline),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.leaderRegLastName,
+                      prefixIcon: const Icon(Icons.person_outline),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (v) =>
-                        v == null || v.trim().isEmpty ? 'Ingresa el apellido' : null,
+                        v == null || v.trim().isEmpty ? l10n.leaderRegLastNameRequired : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -437,18 +440,16 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
                     keyboardType: TextInputType.emailAddress,
                     autocorrect: false,
                     decoration: InputDecoration(
-                      labelText: 'Correo electrónico *',
+                      labelText: '${l10n.emailLabel} *',
                       prefixIcon: const Icon(Icons.email_outlined),
                       border: const OutlineInputBorder(),
-                      helperText: _isEdit
-                          ? 'El correo de inicio de sesión no se puede cambiar desde aquí.'
-                          : null,
+                      helperText: _isEdit ? l10n.adminRegEmailLockedHelper : null,
                     ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
-                        return 'Ingresa el correo';
+                        return l10n.emailRequired;
                       }
-                      if (!v.contains('@')) return 'Correo no válido';
+                      if (!v.contains('@')) return l10n.emailInvalid;
                       return null;
                     },
                   ),
@@ -459,7 +460,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
                       enabled: !_saving,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
-                        labelText: 'Contraseña *',
+                        labelText: l10n.passwordLabel,
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
@@ -474,9 +475,9 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
                         ),
                       ),
                       validator: (v) {
-                        if (v == null || v.isEmpty) return 'Ingresa la contraseña';
+                        if (v == null || v.isEmpty) return l10n.adminRegPasswordRequired;
                         if (v.length < 6) {
-                          return 'Mínimo 6 caracteres';
+                          return l10n.passwordMinLength;
                         }
                         return null;
                       },
@@ -487,7 +488,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
                       enabled: !_saving,
                       obscureText: _obscureConfirmPassword,
                       decoration: InputDecoration(
-                        labelText: 'Confirmar contraseña *',
+                        labelText: l10n.changePasswordConfirm,
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
@@ -504,16 +505,16 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
                       ),
                       validator: (v) {
                         if (v != _passwordController.text) {
-                          return 'Las contraseñas no coinciden';
+                          return l10n.changePasswordMismatch;
                         }
                         return null;
                       },
                     ),
                   ],
                   const SizedBox(height: 24),
-                  const FormSectionTitle('IGLESIA ASIGNADA'),
+                  FormSectionTitle(l10n.adminRegSectionChurch),
                   Text(
-                    'Este administrador solo gestionará la iglesia seleccionada.',
+                    l10n.adminRegChurchHint,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -535,10 +536,10 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
                         : Icon(_isEdit ? Icons.save_outlined : Icons.person_add_outlined),
                     label: Text(
                       _saving
-                          ? 'Guardando…'
+                          ? l10n.commonSaving
                           : _isEdit
-                              ? 'Guardar cambios'
-                              : 'Registrar administrador',
+                              ? l10n.memberSaveChanges
+                              : l10n.adminRegRegisterButton,
                     ),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),

@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../models/visit_chart_point.dart';
 
@@ -16,10 +17,12 @@ class VisitCountBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     if (points.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 220,
-        child: Center(child: Text('Sin datos para mostrar')),
+        child: Center(child: Text(l10n.dashboardNoData)),
       );
     }
 
@@ -113,8 +116,7 @@ class VisitCountBarChart extends StatelessWidget {
                 getTooltipItem: (group, groupIndex, rod, rodIndex) {
                   final point = points[group.x];
                   return BarTooltipItem(
-                    '${point.label}\n${point.count} visita'
-                    '${point.count == 1 ? '' : 's'}',
+                    '${point.label}\n${point.count}',
                     const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/utils/external_maps.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/church_leader.dart';
 
 /// Mapa de líderes con Google Maps.
@@ -73,12 +75,11 @@ class _LeadersMapViewState extends State<LeadersMapView> {
   }
 
   Future<void> _openDirections(BuildContext ctx, ChurchLeader leader) async {
+    final l10n = ctx.l10n;
     final location = leader.geoLocation;
     if (location == null) {
       ScaffoldMessenger.of(ctx).showSnackBar(
-        const SnackBar(
-          content: Text('Este líder no tiene ubicación en el mapa'),
-        ),
+        SnackBar(content: Text(l10n.leadersMapNoLocationSnack)),
       );
       return;
     }
@@ -90,9 +91,17 @@ class _LeadersMapViewState extends State<LeadersMapView> {
 
     if (!opened && ctx.mounted) {
       ScaffoldMessenger.of(ctx).showSnackBar(
-        const SnackBar(content: Text('No se pudo abrir la navegación')),
+        SnackBar(content: Text(l10n.membersMapNavigationFailed)),
       );
     }
+  }
+
+  List<String> _leaderSheetParts(AppLocalizations l10n, ChurchLeader leader) {
+    return [
+      if (leader.cellCode != null && leader.cellCode!.isNotEmpty)
+        l10n.leadersListCellPrefix(leader.cellCode!),
+      leader.mobilePhone,
+    ];
   }
 
   void _showLeaderSheet(ChurchLeader leader) {
@@ -100,12 +109,9 @@ class _LeadersMapViewState extends State<LeadersMapView> {
       context: context,
       showDragHandle: true,
       builder: (ctx) {
+        final sheetL10n = ctx.l10n;
         final address = leader.formattedAddress;
-        final parts = <String>[
-          if (leader.cellCode != null && leader.cellCode!.isNotEmpty)
-            'Célula ${leader.cellCode}',
-          leader.mobilePhone,
-        ];
+        final parts = _leaderSheetParts(sheetL10n, leader);
 
         return SafeArea(
           child: Padding(
@@ -154,7 +160,7 @@ class _LeadersMapViewState extends State<LeadersMapView> {
                   OutlinedButton.icon(
                     onPressed: () => _openDirections(ctx, leader),
                     icon: const Icon(Icons.directions_outlined),
-                    label: const Text('Cómo llegar'),
+                    label: Text(sheetL10n.membersMapGetDirections),
                   ),
                 if (leader.geoLocation != null) const SizedBox(height: 8),
                 FilledButton(
@@ -162,7 +168,7 @@ class _LeadersMapViewState extends State<LeadersMapView> {
                     Navigator.pop(ctx);
                     widget.onLeaderTap(leader);
                   },
-                  child: const Text('Ver líder'),
+                  child: Text(sheetL10n.leadersMapViewLeader),
                 ),
               ],
             ),
@@ -172,7 +178,7 @@ class _LeadersMapViewState extends State<LeadersMapView> {
     );
   }
 
-  Set<Marker> _buildMarkers() {
+  Set<Marker> _buildMarkers(AppLocalizations l10n) {
     final markers = <Marker>{};
 
     for (var i = 0; i < _locatedLeaders.length; i++) {
@@ -188,7 +194,7 @@ class _LeadersMapViewState extends State<LeadersMapView> {
           infoWindow: InfoWindow(
             title: leader.fullName,
             snippet: leader.cellCode != null && leader.cellCode!.isNotEmpty
-                ? 'Célula ${leader.cellCode}'
+                ? l10n.leadersListCellPrefix(leader.cellCode!)
                 : leader.mobilePhone,
           ),
           onTap: () => _showLeaderSheet(leader),
@@ -201,6 +207,7 @@ class _LeadersMapViewState extends State<LeadersMapView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final located = _locatedLeaders;
     final withoutLocation = widget.leaders.length - located.length;
     final hasAnyPoint = _allPoints.isNotEmpty;
@@ -224,14 +231,13 @@ class _LeadersMapViewState extends State<LeadersMapView> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Sin ubicaciones en el mapa',
+                l10n.leadersMapEmptyTitle,
                 style: Theme.of(context).textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                'Los líderes necesitan dirección con coordenadas '
-                'para aparecer en el mapa.',
+                l10n.leadersMapEmptySubtitle,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -252,8 +258,7 @@ class _LeadersMapViewState extends State<LeadersMapView> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Text(
-                '$withoutLocation líder${withoutLocation == 1 ? '' : 'es'} '
-                'sin ubicación en el mapa',
+                l10n.leadersMapMissingLocationCount(withoutLocation),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color:
                           Theme.of(context).colorScheme.onSecondaryContainer,
@@ -267,7 +272,7 @@ class _LeadersMapViewState extends State<LeadersMapView> {
               target: _allPoints.first,
               zoom: 12,
             ),
-            markers: _buildMarkers(),
+            markers: _buildMarkers(l10n),
             onMapCreated: (controller) {
               _mapController = controller;
               _fitMap();

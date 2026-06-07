@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../models/app_permissions.dart';
 
 /// Pantalla de acceso denegado cuando el rol no permite la vista.
@@ -10,8 +11,10 @@ class AccessDeniedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Acceso restringido')),
+      appBar: AppBar(title: Text(l10n.accessDeniedTitle)),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -25,14 +28,14 @@ class AccessDeniedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                message ?? 'No tienes permiso para ver esta sección.',
+                message ?? l10n.accessDeniedDefault,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Volver'),
+                child: Text(l10n.commonBack),
               ),
             ],
           ),

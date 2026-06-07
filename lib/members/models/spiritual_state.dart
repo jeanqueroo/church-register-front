@@ -1,9 +1,26 @@
+import '../../l10n/app_localizations.dart';
+
 enum SpiritualState {
   nuevoCreyente,
   enDiscipulado,
   miembroActivo,
   alejado,
   visitanteFrecuente;
+
+  String localizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case SpiritualState.nuevoCreyente:
+        return l10n.spiritualNewBeliever;
+      case SpiritualState.enDiscipulado:
+        return l10n.spiritualInDiscipleship;
+      case SpiritualState.miembroActivo:
+        return l10n.spiritualActiveMember;
+      case SpiritualState.alejado:
+        return l10n.spiritualDistant;
+      case SpiritualState.visitanteFrecuente:
+        return l10n.spiritualFrequentVisitor;
+    }
+  }
 
   String get label {
     switch (this) {

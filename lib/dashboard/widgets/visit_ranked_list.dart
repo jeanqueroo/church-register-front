@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../models/visit_chart_point.dart';
 
@@ -7,20 +8,23 @@ class VisitRankedList extends StatelessWidget {
   const VisitRankedList({
     super.key,
     required this.items,
-    this.emptyMessage = 'Sin datos para mostrar',
+    this.emptyMessage,
   });
 
   final List<VisitChartPoint> items;
-  final String emptyMessage;
+  final String? emptyMessage;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final message = emptyMessage ?? l10n.dashboardNoData;
+
     if (items.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
           child: Text(
-            emptyMessage,
+            message,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondary,
                 ),

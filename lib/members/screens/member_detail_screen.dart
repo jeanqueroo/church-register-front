@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
+import '../../core/locale/weekday_labels.dart';
 import '../../auth/models/app_permissions.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/church_member.dart';
 import '../services/member_service.dart';
 import '../widgets/member_visits_section.dart';
@@ -70,27 +73,26 @@ class MemberDetailScreen extends StatelessWidget {
   }
 
   Future<void> _delete(BuildContext context) async {
+    final l10n = context.l10n;
     final id = member.id;
     if (id == null) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar integrante'),
-        content: Text(
-          '¿Eliminar a ${member.fullName}? Esta acción no se puede deshacer.',
-        ),
+        title: Text(l10n.memberDetailDeleteTitle),
+        content: Text(l10n.memberDetailDeleteConfirm(member.fullName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
-            child: const Text('Eliminar'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),
@@ -102,14 +104,16 @@ class MemberDetailScreen extends StatelessWidget {
       await (memberService ?? MemberService()).deleteMember(id);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Integrante eliminado')),
+        SnackBar(content: Text(l10n.memberDetailDeletedSuccess)),
       );
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(MemberService.messageFromFirestoreException(e)),
+          content: Text(
+            MemberService.messageFromFirestoreException(e, context.l10n),
+          ),
         ),
       );
     }
@@ -117,6 +121,8 @@ class MemberDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(member.fullName),
@@ -124,12 +130,12 @@ class MemberDetailScreen extends StatelessWidget {
           if (_permissions.canManageMembers) ...[
             IconButton(
               icon: const Icon(Icons.edit_outlined),
-              tooltip: 'Editar',
+              tooltip: l10n.commonEdit,
               onPressed: () => _edit(context),
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              tooltip: 'Eliminar',
+              tooltip: l10n.commonDelete,
               onPressed: () => _delete(context),
             ),
           ],
@@ -139,61 +145,25 @@ class MemberDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         children: [
           _Section(
-            title: 'Datos personales',
-            rows: [
-              _Row('Nombre', member.firstName),
-              _Row('Apellidos', member.lastName),
-              _Row('Género', member.gender?.label),
-              _Row('Teléfono', member.phone),
-              _Row('Fecha de nacimiento', _formatDate(member.birthDate)),
-              _Row(
-                'Edad',
-                member.age != null ? '${member.age} años' : null,
-              ),
-              _Row('Ocupación', member.occupation),
-              _Row('Estado civil', member.maritalStatus?.label),
-              _Row(
-                'Desea ser visitado',
-                member.wantsVisit ? 'Sí' : 'No',
-              ),
-            ],
+            title: l10n.memberDetailSectionPersonal,
+            rows: _personalRows(l10n),
           ),
           _Section(
-            title: 'Dirección',
-            rows: [
-              _Row('Calle', member.street),
-              _Row('Número', member.streetNumber),
-              _Row('Barrio', member.neighborhood),
-              _Row('Localidad / Partido', member.locality),
-              _Row('Estado / Provincia', member.stateProvince),
-              _Row('Código postal', member.postalCode),
-            ],
+            title: l10n.memberDetailSectionAddress,
+            rows: _addressRows(l10n),
           ),
           if (member.assignedLeaderName != null)
             _Section(
-              title: 'Líder asignado',
-              rows: [
-                _Row('Nombre', member.assignedLeaderName),
-                _Row('Célula', member.assignedLeaderCellCode),
-                _Row(
-                  'Distancia',
-                  member.assignedDistanceKm != null
-                      ? '${member.assignedDistanceKm!.toStringAsFixed(1)} km'
-                      : null,
-                ),
-              ],
+              title: l10n.memberDetailSectionLeader,
+              rows: _leaderRows(l10n),
             ),
           _Section(
-            title: 'Horario para célula',
-            rows: [
-              _Row('Día', member.cellDay),
-              _Row('Horario', member.cellTime),
-              _Row('Zona', member.cellZone),
-            ],
+            title: l10n.memberDetailSectionCellSchedule,
+            rows: _cellScheduleRows(l10n),
           ),
           if (member.observations != null && member.observations!.isNotEmpty)
             _Section(
-              title: 'Observaciones',
+              title: l10n.memberDetailSectionObservations,
               rows: [_Row('', member.observations)],
             ),
           if (member.id != null)
@@ -202,19 +172,15 @@ class MemberDetailScreen extends StatelessWidget {
               permissions: _permissions,
             ),
           _Section(
-            title: 'Registro',
-            rows: [
-              _Row('Fecha del formulario', _formatDate(member.formDate)),
-              _Row('Voluntario', member.volunteer),
-              _Row('Registrado por', member.registeredBy),
-            ],
+            title: l10n.memberDetailSectionRegistration,
+            rows: _registrationRows(l10n),
           ),
           const SizedBox(height: 16),
           if (_canRegisterVisit) ...[
             FilledButton.icon(
               onPressed: () => _registerVisit(context),
               icon: const Icon(Icons.event_note_outlined),
-              label: const Text('Registrar visita'),
+              label: Text(l10n.memberDetailRegisterVisit),
             ),
             const SizedBox(height: 12),
           ],
@@ -222,13 +188,13 @@ class MemberDetailScreen extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => _edit(context),
               icon: const Icon(Icons.edit_outlined),
-              label: const Text('Editar integrante'),
+              label: Text(l10n.memberDetailEditMember),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: () => _delete(context),
               icon: const Icon(Icons.delete_outline),
-              label: const Text('Eliminar integrante'),
+              label: Text(l10n.memberDetailDeleteMember),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error,
                 side: BorderSide(color: Theme.of(context).colorScheme.error),
@@ -238,6 +204,74 @@ class MemberDetailScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<_Row> _personalRows(AppLocalizations l10n) {
+    return [
+      _Row(l10n.memberDetailFirstName, member.firstName),
+      _Row(l10n.memberDetailLastName, member.lastName),
+      _Row(
+        l10n.memberDetailGender,
+        member.gender?.localizedLabel(l10n),
+      ),
+      _Row(l10n.memberDetailPhone, member.phone),
+      _Row(l10n.memberDetailBirthDate, _formatDate(member.birthDate)),
+      _Row(
+        l10n.memberDetailAge,
+        member.age != null ? l10n.memberAgeYears(member.age!) : null,
+      ),
+      _Row(l10n.memberDetailOccupation, member.occupation),
+      _Row(
+        l10n.memberDetailMaritalStatus,
+        member.maritalStatus?.localizedLabel(l10n),
+      ),
+      _Row(
+        l10n.memberDetailWantsVisit,
+        member.wantsVisit ? l10n.commonYes : l10n.commonNo,
+      ),
+    ];
+  }
+
+  List<_Row> _addressRows(AppLocalizations l10n) {
+    return [
+      _Row(l10n.addressStreetOptional, member.street),
+      _Row(l10n.addressNumber, member.streetNumber),
+      _Row(l10n.addressNeighborhood, member.neighborhood),
+      _Row(l10n.addressLocality, member.locality),
+      _Row(l10n.addressStateProvince, member.stateProvince),
+      _Row(l10n.addressPostalCode, member.postalCode),
+    ];
+  }
+
+  List<_Row> _leaderRows(AppLocalizations l10n) {
+    return [
+      _Row(l10n.memberDetailLeaderName, member.assignedLeaderName),
+      _Row(l10n.memberDetailCell, member.assignedLeaderCellCode),
+      _Row(
+        l10n.memberDetailDistance,
+        member.assignedDistanceKm != null
+            ? l10n.memberDetailDistanceKm(
+                member.assignedDistanceKm!.toStringAsFixed(1),
+              )
+            : null,
+      ),
+    ];
+  }
+
+  List<_Row> _cellScheduleRows(AppLocalizations l10n) {
+    return [
+      _Row(l10n.memberDetailCellDay, localizedWeekday(l10n, member.cellDay)),
+      _Row(l10n.memberDetailCellTime, member.cellTime),
+      _Row(l10n.memberDetailCellZone, member.cellZone),
+    ];
+  }
+
+  List<_Row> _registrationRows(AppLocalizations l10n) {
+    return [
+      _Row(l10n.memberDetailFormDate, _formatDate(member.formDate)),
+      _Row(l10n.memberDetailVolunteer, member.volunteer),
+      _Row(l10n.memberDetailRegisteredBy, member.registeredBy),
+    ];
   }
 }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../auth/models/app_permissions.dart';
 import '../../auth/models/user_profile.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/services/leader_service.dart';
 import '../models/supervisor_account.dart';
@@ -102,7 +103,10 @@ class _SupervisorLeaderAssignmentsScreenState
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _loadError = SupervisorAssignmentService.messageFromException(e);
+        _loadError = SupervisorAssignmentService.messageFromException(
+          e,
+          context.l10n,
+        );
       });
     }
   }
@@ -139,7 +143,7 @@ class _SupervisorLeaderAssignmentsScreenState
       setState(() => _selectedLeaderIds = selected);
     } catch (e) {
       if (!mounted) return;
-      _showMessage(SupervisorAssignmentService.messageFromException(e));
+      _showMessage(SupervisorAssignmentService.messageFromException(e, context.l10n));
     }
   }
 
@@ -174,9 +178,10 @@ class _SupervisorLeaderAssignmentsScreenState
   }
 
   Future<void> _save() async {
+    final l10n = context.l10n;
     final supervisorUid = _selectedSupervisorUid;
     if (supervisorUid == null) {
-      _showMessage('Selecciona un supervisor');
+      _showMessage(l10n.supervisorAssignmentsSelectSupervisorError);
       return;
     }
 
@@ -184,8 +189,9 @@ class _SupervisorLeaderAssignmentsScreenState
       final owner = _supervisorOwningLeader(leaderId);
       if (owner != null) {
         _showMessage(
-          'No se puede guardar: un líder ya pertenece a '
-          '${_supervisorSelectLabel(owner)}',
+          l10n.supervisorAssignmentsConflict(
+            _supervisorSelectLabel(owner),
+          ),
         );
         return;
       }
@@ -209,10 +215,10 @@ class _SupervisorLeaderAssignmentsScreenState
             )
             .toList();
       });
-      _showMessage('Líderes asignados correctamente');
+      _showMessage(l10n.supervisorAssignmentsSaved);
     } catch (e) {
       if (!mounted) return;
-      _showMessage(SupervisorAssignmentService.messageFromException(e));
+      _showMessage(SupervisorAssignmentService.messageFromException(e, context.l10n));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -285,16 +291,17 @@ class _SupervisorLeaderAssignmentsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return RoleGate(
       permissions: _permissions,
       allowed: _permissions.canAssignSupervisorLeaders,
       deniedMessage: _permissions.isSupervisor
-          ? 'Los supervisores no pueden acceder a esta pantalla. '
-              'Usa «Mis líderes asignados» para ver tu cartera.'
-          : 'Solo el administrador puede asignar líderes a supervisores.',
+          ? l10n.supervisorAssignmentsDeniedSupervisor
+          : l10n.supervisorAssignmentsDeniedAdmin,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Líderes por supervisor'),
+          title: Text(l10n.supervisorAssignmentsTitle),
         ),
         body: _buildBody(),
         floatingActionButton: _canAssign && !_loading && _loadError == null
@@ -307,7 +314,7 @@ class _SupervisorLeaderAssignmentsScreenState
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.save_outlined),
-                label: Text(_saving ? 'Guardando...' : 'Guardar'),
+                label: Text(_saving ? l10n.commonSaving : l10n.commonSave),
               )
             : null,
       ),
@@ -315,6 +322,8 @@ class _SupervisorLeaderAssignmentsScreenState
   }
 
   Widget _buildBody() {
+    final l10n = context.l10n;
+
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -334,7 +343,7 @@ class _SupervisorLeaderAssignmentsScreenState
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: _loadInitialData,
-                child: const Text('Reintentar'),
+                child: Text(l10n.retry),
               ),
             ],
           ),
@@ -356,13 +365,13 @@ class _SupervisorLeaderAssignmentsScreenState
               ),
               const SizedBox(height: 16),
               Text(
-                'No hay supervisores en tu iglesia',
+                l10n.supervisorAssignmentsNoSupervisors,
                 style: Theme.of(context).textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                'Al registrar un líder, asigna el rol Supervisor en la app.',
+                l10n.supervisorAssignmentsNoSupervisorsHint,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -378,7 +387,7 @@ class _SupervisorLeaderAssignmentsScreenState
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
       children: [
         Text(
-          'Supervisor',
+          l10n.roleSupervisor,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -387,10 +396,10 @@ class _SupervisorLeaderAssignmentsScreenState
         DropdownButtonFormField<String>(
           key: ValueKey(_effectiveSupervisorDropdownValue),
           initialValue: _effectiveSupervisorDropdownValue,
-          decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.person_outline),
-            border: OutlineInputBorder(),
-            labelText: 'Selecciona supervisor *',
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.person_outline),
+            border: const OutlineInputBorder(),
+            labelText: l10n.supervisorAssignmentsSelectSupervisor,
           ),
           items: _supervisors
               .map(
@@ -407,7 +416,7 @@ class _SupervisorLeaderAssignmentsScreenState
         ),
         const SizedBox(height: 24),
         Text(
-          'Líderes asignados (${_selectedLeaderIds.length})',
+          l10n.supervisorAssignmentsAssignedLeaders(_selectedLeaderIds.length),
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -416,10 +425,10 @@ class _SupervisorLeaderAssignmentsScreenState
         TextField(
           controller: _leaderSearchController,
           enabled: !_saving,
-          decoration: const InputDecoration(
-            labelText: 'Buscar líder',
-            prefixIcon: Icon(Icons.search),
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.supervisorAssignmentsSearchLeader,
+            prefixIcon: const Icon(Icons.search),
+            border: const OutlineInputBorder(),
           ),
           onChanged: (_) => setState(() {}),
         ),
@@ -428,7 +437,7 @@ class _SupervisorLeaderAssignmentsScreenState
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Text(
-              'No hay líderes registrados en tu iglesia.',
+              l10n.supervisorAssignmentsNoLeaders,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -440,8 +449,8 @@ class _SupervisorLeaderAssignmentsScreenState
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Text(
               _leaderSearchController.text.trim().isNotEmpty
-                  ? 'Ningún líder coincide con la búsqueda.'
-                  : 'No hay líderes disponibles para asignar.',
+                  ? l10n.supervisorAssignmentsNoLeaderMatches
+                  : l10n.supervisorAssignmentsNoLeadersAvailable,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -469,7 +478,7 @@ class _SupervisorLeaderAssignmentsScreenState
                 ),
                 title: Text(leader.fullName),
                 subtitle: Text(
-                  SupervisorAssignmentService.leaderLabel(leader),
+                  SupervisorAssignmentService.leaderLabel(leader, l10n),
                 ),
                 controlAffinity: ListTileControlAffinity.leading,
               ),

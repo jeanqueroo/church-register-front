@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// Aviso para un líder cuando se le asigna un integrante.
 class LeaderNotification {
   const LeaderNotification({
@@ -20,10 +22,10 @@ class LeaderNotification {
   final DateTime createdAt;
   final bool read;
 
-  String get title => 'Nuevo creyente asignado';
+  String localizedTitle(AppLocalizations l10n) => l10n.notificationNewMemberTitle;
 
-  String get body =>
-      'Se te asignó a $memberName. Toca para ver el detalle.';
+  String localizedBody(AppLocalizations l10n) =>
+      l10n.notificationNewMemberBody(memberName);
 
   Map<String, dynamic> toMap() {
     return {

@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 
 import '../models/church_profile.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/church_record.dart';
 
 class ChurchService {
@@ -127,26 +128,24 @@ class ChurchService {
         message.contains('terminated the upload session');
   }
 
-  static String messageFromException(Object e) {
+  static String messageFromException(Object e, AppLocalizations l10n) {
     if (e is FirebaseException) {
       if (_isStorageNotConfigured(e)) {
-        return 'Firebase Storage no está activo en el proyecto. '
-            'En Firebase Console → Storage, pulsa "Comenzar", '
-            'elige ubicación y vuelve a subir el logo.';
+        return l10n.churchServiceStorageNotConfigured;
       }
       switch (e.code) {
         case 'permission-denied':
-          return 'No tienes permiso para gestionar iglesias.';
+          return l10n.churchServicePermissionDenied;
         case 'not-found':
-          return 'La iglesia ya no existe.';
+          return l10n.churchServiceNotFound;
         case 'unauthorized':
-          return 'No autorizado para subir el logo. Revisa las reglas de Storage.';
+          return l10n.churchServiceUploadUnauthorized;
         case 'unavailable':
-          return 'Servicio no disponible. Revisa tu conexión.';
+          return l10n.serviceUnavailable;
         default:
-          return 'Error al guardar: ${e.message ?? e.code}';
+          return l10n.churchServiceSaveError(e.message ?? e.code);
       }
     }
-    return 'Error inesperado. Intenta de nuevo.';
+    return l10n.serviceGenericError;
   }
 }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../members/models/member_visit.dart';
 import '../models/visit_chart_point.dart';
 import '../models/visit_dashboard_filter.dart';
@@ -350,33 +351,30 @@ class VisitDashboardService {
     return '${_shortMonths[month - 1]} $yy';
   }
 
-  static String messageFromException(Object e) {
+  static String messageFromException(Object e, AppLocalizations l10n) {
     if (e is FirebaseException) {
       switch (e.code) {
         case 'permission-denied':
-          return 'No tienes permiso para ver el dashboard de visitas.';
+          return l10n.visitDashboardPermissionDenied;
         case 'failed-precondition':
           final message = e.message?.toLowerCase() ?? '';
           if (message.contains('building')) {
-            return 'El índice de visitas se está creando en Firebase. '
-                'Espera unos minutos y pulsa Actualizar.';
+            return l10n.visitDashboardIndexBuilding;
           }
-          return 'Falta un índice en Firestore para visitas. '
-              'Ejecuta: firebase deploy --only firestore:indexes';
+          return l10n.visitDashboardIndexMissing;
         case 'unavailable':
-          return 'Servicio no disponible. Revisa tu conexión.';
+          return l10n.serviceUnavailable;
         default:
-          return 'Error: ${e.message ?? e.code}';
+          return l10n.visitDashboardLoadError(e.message ?? e.code);
       }
     }
     final detail = e.toString().trim();
     if (detail.contains('LocaleDataException')) {
-      return 'Error al formatear fechas en el gráfico. '
-          'Reinicia la app (hot restart) e intenta de nuevo.';
+      return l10n.visitDashboardDateFormatError;
     }
     if (detail.isEmpty) {
-      return 'Error inesperado al cargar visitas (${e.runtimeType}).';
+      return l10n.visitDashboardLoadUnexpected('${e.runtimeType}');
     }
-    return 'Error al cargar visitas: $detail';
+    return l10n.visitDashboardLoadError(detail);
   }
 }

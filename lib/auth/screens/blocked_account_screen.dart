@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/access_block.dart';
 import '../services/auth_service.dart';
 
@@ -14,28 +16,28 @@ class BlockedAccountScreen extends StatelessWidget {
   final AuthService authService;
   final AccessBlock block;
 
-  String get _title {
+  String _title(AppLocalizations l10n) {
     switch (block.kind) {
       case AccessBlockKind.user:
-        return 'Cuenta bloqueada';
+        return l10n.blockedAccountUserTitle;
       case AccessBlockKind.church:
-        return 'Iglesia bloqueada';
+        return l10n.blockedAccountChurchTitle;
     }
   }
 
-  String get _message {
+  String _message(AppLocalizations l10n) {
     switch (block.kind) {
       case AccessBlockKind.user:
-        return 'Tu usuario fue suspendido. '
-            'Contacta al super administrador para reactivar tu acceso.';
+        return l10n.blockedAccountUserMessage;
       case AccessBlockKind.church:
-        return 'La iglesia asignada a tu cuenta está bloqueada. '
-            'No puedes usar el sistema hasta que el super administrador la reactive.';
+        return l10n.blockedAccountChurchMessage;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -51,13 +53,13 @@ class BlockedAccountScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  _title,
+                  _title(l10n),
                   style: Theme.of(context).textTheme.headlineSmall,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _message,
+                  _message(l10n),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -67,7 +69,7 @@ class BlockedAccountScreen extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: authService.signOut,
                   icon: const Icon(Icons.logout),
-                  label: const Text('Cerrar sesión'),
+                  label: Text(l10n.signOut),
                 ),
               ],
             ),

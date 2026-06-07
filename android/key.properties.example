@@ -1,4 +1,4 @@
-storePassword=TU_STORE_PASSWORD
-keyPassword=TU_KEY_PASSWORD
+storePassword=Vale0105}
+keyPassword=Vale0105}
 keyAlias=upload
 storeFile=app/upload-keystore.jks

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../models/church_record.dart';
 import '../services/church_service.dart';
 import 'register_church_screen.dart';
@@ -24,7 +25,7 @@ class ChurchesListScreen extends StatelessWidget {
     return RoleGate(
       permissions: permissions,
       allowed: permissions.canViewChurchesList,
-      deniedMessage: 'Solo el super administrador puede gestionar iglesias.',
+      deniedMessage: context.l10n.churchesDenied,
       child: _ChurchesListBody(
         updatedBy: updatedBy,
         permissions: permissions,
@@ -120,27 +121,25 @@ class _ChurchesListBodyState extends State<_ChurchesListBody> {
   Future<void> _confirmBlock(ChurchRecord record, {required bool block}) async {
     if (!widget.permissions.canBlockChurch || _actionInProgress) return;
 
-    final name = record.name.isNotEmpty ? record.name : '(Sin nombre)';
+    final l10n = context.l10n;
+    final name = record.name.isNotEmpty ? record.name : l10n.commonNoName;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(block ? 'Bloquear iglesia' : 'Desbloquear iglesia'),
+        title: Text(block ? l10n.churchesBlockTitle : l10n.churchesUnblockTitle),
         content: Text(
           block
-              ? '¿Bloquear "$name"?\n\n'
-                  'No se podrá asignar a nuevos administradores. '
-                  'Los administradores ya vinculados conservan su cuenta, '
-                  'pero la sede quedará inactiva.'
-              : '¿Desbloquear "$name" y volver a permitir su uso?',
+              ? l10n.churchesBlockConfirm(name)
+              : l10n.churchesUnblockConfirm(name),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(block ? 'Bloquear' : 'Desbloquear'),
+            child: Text(block ? l10n.commonBlock : l10n.commonUnblock),
           ),
         ],
       ),
@@ -156,10 +155,10 @@ class _ChurchesListBodyState extends State<_ChurchesListBody> {
         updatedBy: widget.updatedBy,
       );
       if (!mounted) return;
-      _showMessage(block ? 'Iglesia bloqueada' : 'Iglesia desbloqueada');
+      _showMessage(block ? l10n.churchesBlocked : l10n.churchesUnblocked);
     } catch (e) {
       if (!mounted) return;
-      _showMessage(ChurchService.messageFromException(e));
+      _showMessage(ChurchService.messageFromException(e, context.l10n));
     } finally {
       if (mounted) setState(() => _actionInProgress = false);
     }
@@ -178,15 +177,17 @@ class _ChurchesListBodyState extends State<_ChurchesListBody> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Iglesias'),
+        title: Text(l10n.churchesTitle),
       ),
       floatingActionButton: widget.permissions.canCreateChurch
           ? FloatingActionButton.extended(
               onPressed: _actionInProgress ? null : _openCreate,
               icon: const Icon(Icons.add),
-              label: const Text('Nueva'),
+              label: Text(l10n.commonNew),
             )
           : null,
       body: StreamBuilder<List<ChurchRecord>>(
@@ -202,8 +203,7 @@ class _ChurchesListBodyState extends State<_ChurchesListBody> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'No se pudo cargar las iglesias.\n'
-                  'Verifica Firestore y las reglas de la colección "churches".',
+                  l10n.churchesLoadError,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.error,
@@ -231,7 +231,7 @@ class _ChurchesListBodyState extends State<_ChurchesListBody> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Aún no hay iglesias registradas',
+                      l10n.churchesEmpty,
                       style: Theme.of(context).textTheme.titleMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -240,7 +240,7 @@ class _ChurchesListBodyState extends State<_ChurchesListBody> {
                       FilledButton.icon(
                         onPressed: _openCreate,
                         icon: const Icon(Icons.add),
-                        label: const Text('Registrar iglesia'),
+                        label: Text(l10n.churchesRegister),
                       ),
                   ],
                 ),
@@ -256,10 +256,10 @@ class _ChurchesListBodyState extends State<_ChurchesListBody> {
                 child: TextField(
                   controller: _searchController,
                   onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
-                    hintText: 'Buscar por nombre o dirección…',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    hintText: l10n.churchesSearchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -269,8 +269,8 @@ class _ChurchesListBodyState extends State<_ChurchesListBody> {
                   child: FilterChip(
                     label: Text(
                       _hideBlocked
-                          ? 'Mostrar bloqueadas ($blockedCount)'
-                          : 'Ocultar bloqueadas ($blockedCount)',
+                          ? l10n.churchesShowBlocked(blockedCount)
+                          : l10n.churchesHideBlocked(blockedCount),
                     ),
                     selected: _hideBlocked,
                     onSelected: _actionInProgress
@@ -283,8 +283,8 @@ class _ChurchesListBodyState extends State<_ChurchesListBody> {
                   child: Center(
                     child: Text(
                       _searchController.text.trim().isEmpty && _hideBlocked
-                          ? 'Todas las iglesias están bloqueadas'
-                          : 'No hay coincidencias',
+                          ? l10n.churchesAllBlocked
+                          : l10n.commonNoMatches,
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
@@ -331,14 +331,14 @@ class _ChurchesListBodyState extends State<_ChurchesListBody> {
                                 child: Text(
                                   record.name.isNotEmpty
                                       ? record.name
-                                      : '(Sin nombre)',
+                                      : l10n.commonNoName,
                                 ),
                               ),
                               if (blocked)
                                 Padding(
                                   padding: const EdgeInsets.only(left: 8),
                                   child: Chip(
-                                    label: const Text('Bloqueada'),
+                                    label: Text(l10n.commonBlockedFem),
                                     visualDensity: VisualDensity.compact,
                                     materialTapTargetSize:
                                         MaterialTapTargetSize.shrinkWrap,
@@ -366,15 +366,17 @@ class _ChurchesListBodyState extends State<_ChurchesListBody> {
                             onSelected: (value) =>
                                 _onMenuAction(value, record),
                             itemBuilder: (context) => [
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'edit',
-                                child: Text('Editar'),
+                                child: Text(l10n.commonEdit),
                               ),
                               if (widget.permissions.canBlockChurch)
                                 PopupMenuItem(
                                   value: blocked ? 'unblock' : 'block',
                                   child: Text(
-                                    blocked ? 'Desbloquear' : 'Bloquear',
+                                    blocked
+                                        ? l10n.commonUnblock
+                                        : l10n.commonBlock,
                                   ),
                                 ),
                             ],

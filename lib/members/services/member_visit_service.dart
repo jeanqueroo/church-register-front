@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../models/member_visit.dart';
 
 class MemberVisitService {
@@ -33,14 +34,17 @@ class MemberVisitService {
     await _visits(memberId).add(visit.toMap());
   }
 
-  static String messageFromFirestoreException(FirebaseException e) {
+  static String messageFromFirestoreException(
+    FirebaseException e,
+    AppLocalizations l10n,
+  ) {
     switch (e.code) {
       case 'permission-denied':
-        return 'No tienes permiso para registrar visitas.';
+        return l10n.visitServicePermissionDenied;
       case 'unavailable':
-        return 'Servicio no disponible. Revisa tu conexión.';
+        return l10n.serviceUnavailable;
       default:
-        return 'Error al guardar la visita. Intenta de nuevo.';
+        return l10n.visitServiceSaveError;
     }
   }
 }

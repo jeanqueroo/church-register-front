@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/utils/external_maps.dart';
+import '../../l10n/app_localizations.dart';
 import '../../leaders/models/church_leader.dart';
 import '../models/church_member.dart';
 
@@ -85,12 +87,11 @@ class _MembersMapViewState extends State<MembersMapView> {
   }
 
   Future<void> _openDirections(BuildContext ctx, ChurchMember member) async {
+    final l10n = ctx.l10n;
     final location = member.geoLocation;
     if (location == null) {
       ScaffoldMessenger.of(ctx).showSnackBar(
-        const SnackBar(
-          content: Text('Este integrante no tiene ubicación en el mapa'),
-        ),
+        SnackBar(content: Text(l10n.membersMapNoLocationSnack)),
       );
       return;
     }
@@ -102,11 +103,20 @@ class _MembersMapViewState extends State<MembersMapView> {
 
     if (!opened && ctx.mounted) {
       ScaffoldMessenger.of(ctx).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo abrir la navegación'),
-        ),
+        SnackBar(content: Text(l10n.membersMapNavigationFailed)),
       );
     }
+  }
+
+  List<String> _memberSheetParts(AppLocalizations l10n, ChurchMember member) {
+    return [
+      member.phone,
+      if (member.wantsVisit) l10n.membersMapRequestsVisit,
+      if (member.assignedDistanceKm != null)
+        l10n.membersMapDistanceFromLeader(
+          member.assignedDistanceKm!.toStringAsFixed(1),
+        ),
+    ];
   }
 
   void _showMemberSheet(ChurchMember member) {
@@ -114,13 +124,9 @@ class _MembersMapViewState extends State<MembersMapView> {
       context: context,
       showDragHandle: true,
       builder: (ctx) {
+        final sheetL10n = ctx.l10n;
         final address = member.formattedAddress;
-        final parts = <String>[
-          member.phone,
-          if (member.wantsVisit) 'Solicita visita',
-          if (member.assignedDistanceKm != null)
-            '${member.assignedDistanceKm!.toStringAsFixed(1)} km del líder',
-        ];
+        final parts = _memberSheetParts(sheetL10n, member);
 
         return SafeArea(
           child: Padding(
@@ -169,7 +175,7 @@ class _MembersMapViewState extends State<MembersMapView> {
                   OutlinedButton.icon(
                     onPressed: () => _openDirections(ctx, member),
                     icon: const Icon(Icons.directions_outlined),
-                    label: const Text('Cómo llegar'),
+                    label: Text(sheetL10n.membersMapGetDirections),
                   ),
                 if (member.geoLocation != null) const SizedBox(height: 8),
                 FilledButton(
@@ -177,7 +183,7 @@ class _MembersMapViewState extends State<MembersMapView> {
                     Navigator.pop(ctx);
                     widget.onMemberTap(member);
                   },
-                  child: const Text('Ver detalle'),
+                  child: Text(sheetL10n.membersMapViewDetail),
                 ),
               ],
             ),
@@ -187,7 +193,7 @@ class _MembersMapViewState extends State<MembersMapView> {
     );
   }
 
-  Set<Marker> _buildMarkers(BuildContext context) {
+  Set<Marker> _buildMarkers(AppLocalizations l10n) {
     final markers = <Marker>{};
     final leaderLoc = widget.leader?.geoLocation;
     if (leaderLoc != null) {
@@ -196,7 +202,10 @@ class _MembersMapViewState extends State<MembersMapView> {
           markerId: const MarkerId('leader'),
           position: LatLng(leaderLoc.latitude, leaderLoc.longitude),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-          infoWindow: InfoWindow(title: widget.leader!.fullName, snippet: 'Líder'),
+          infoWindow: InfoWindow(
+            title: widget.leader!.fullName,
+            snippet: l10n.membersMapLeaderLabel,
+          ),
         ),
       );
     }
@@ -219,6 +228,7 @@ class _MembersMapViewState extends State<MembersMapView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final located = _locatedMembers;
     final withoutLocation = widget.members.length - located.length;
     final hasAnyPoint = _allPoints.isNotEmpty;
@@ -242,14 +252,13 @@ class _MembersMapViewState extends State<MembersMapView> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Sin ubicaciones en el mapa',
+                l10n.membersMapEmptyTitle,
                 style: Theme.of(context).textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                'Los integrantes necesitan dirección con coordenadas '
-                'para aparecer en el mapa.',
+                l10n.membersMapEmptySubtitle,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -272,8 +281,7 @@ class _MembersMapViewState extends State<MembersMapView> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Text(
-                '$withoutLocation integrante${withoutLocation == 1 ? '' : 's'} '
-                'sin ubicación en el mapa',
+                l10n.membersMapMissingLocationCount(withoutLocation),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color:
                           Theme.of(context).colorScheme.onSecondaryContainer,
@@ -296,7 +304,7 @@ class _MembersMapViewState extends State<MembersMapView> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Marcador morado: ${widget.leader!.fullName} (líder)',
+                      l10n.membersMapLeaderMarker(widget.leader!.fullName),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
@@ -314,7 +322,7 @@ class _MembersMapViewState extends State<MembersMapView> {
               target: initialCenter,
               zoom: 12,
             ),
-            markers: _buildMarkers(context),
+            markers: _buildMarkers(l10n),
             onMapCreated: (controller) {
               _mapController = controller;
               _fitMap();

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/church_leader.dart';
 
 /// Campo de búsqueda para elegir un líder escribiendo nombre, célula, etc.
@@ -26,18 +28,18 @@ class LeaderSearchField extends StatefulWidget {
 class _LeaderSearchFieldState extends State<LeaderSearchField> {
   final _fieldKey = GlobalKey<FormFieldState<ChurchLeader>>();
 
-  static String leaderLabel(ChurchLeader leader) {
+  String _leaderLabel(ChurchLeader leader, AppLocalizations l10n) {
     final parts = <String>[leader.fullName];
     if (leader.cellCode != null) {
-      parts.add('Célula ${leader.cellCode}');
+      parts.add(l10n.leaderCellLabel(leader.cellCode!));
     }
     if (leader.gender != null) {
-      parts.add(leader.gender!.label);
+      parts.add(leader.gender!.localizedLabel(l10n));
     }
     return parts.join(' · ');
   }
 
-  static bool _matchesQuery(ChurchLeader leader, String query) {
+  bool _matchesQuery(ChurchLeader leader, String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return true;
 
@@ -67,13 +69,15 @@ class _LeaderSearchFieldState extends State<LeaderSearchField> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return FormField<ChurchLeader>(
       key: _fieldKey,
       initialValue: widget.selectedLeader,
       validator: widget.validator,
       builder: (field) {
         return Autocomplete<ChurchLeader>(
-          displayStringForOption: leaderLabel,
+          displayStringForOption: (leader) => _leaderLabel(leader, l10n),
           optionsMaxHeight: 260,
           optionsBuilder: (textEditingValue) {
             return _filter(textEditingValue.text);
@@ -84,7 +88,7 @@ class _LeaderSearchFieldState extends State<LeaderSearchField> {
           },
           fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
             final label = widget.selectedLeader != null
-                ? leaderLabel(widget.selectedLeader!)
+                ? _leaderLabel(widget.selectedLeader!, l10n)
                 : '';
             if (label.isNotEmpty && textController.text != label) {
               textController.text = label;
@@ -96,13 +100,13 @@ class _LeaderSearchFieldState extends State<LeaderSearchField> {
               enabled: widget.enabled,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
-                labelText: 'Buscar líder *',
-                hintText: 'Escribe letras del nombre o célula...',
+                labelText: l10n.leaderSearchLabel,
+                hintText: l10n.leaderSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: widget.selectedLeader != null
                     ? IconButton(
                         icon: const Icon(Icons.clear),
-                        tooltip: 'Quitar líder',
+                        tooltip: l10n.leaderSearchClear,
                         onPressed: widget.enabled ? _clearSelection : null,
                       )
                     : null,
@@ -114,7 +118,7 @@ class _LeaderSearchFieldState extends State<LeaderSearchField> {
                   field.didChange(null);
                   widget.onLeaderSelected(null);
                 } else if (widget.selectedLeader != null &&
-                    value != leaderLabel(widget.selectedLeader!)) {
+                    value != _leaderLabel(widget.selectedLeader!, l10n)) {
                   field.didChange(null);
                   widget.onLeaderSelected(null);
                 }
@@ -154,8 +158,9 @@ class _LeaderSearchFieldState extends State<LeaderSearchField> {
                         subtitle: Text(
                           [
                             if (leader.cellCode != null)
-                              'Célula ${leader.cellCode}',
-                            if (leader.gender != null) leader.gender!.label,
+                              l10n.leaderCellLabel(leader.cellCode!),
+                            if (leader.gender != null)
+                              leader.gender!.localizedLabel(l10n),
                           ].join(' · '),
                         ),
                         dense: true,

@@ -4,7 +4,9 @@ import '../../auth/models/user_profile.dart';
 import '../../auth/widgets/role_gate.dart';
 import '../../church/models/church_record.dart';
 import '../../church/services/church_service.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../supervisors/services/supervisor_assignment_service.dart';
 import '../models/visit_chart_point.dart';
@@ -60,7 +62,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
     _leaderService = widget.leaderService ?? LeaderService();
     _assignmentService =
         widget.assignmentService ?? SupervisorAssignmentService();
-    _initialize();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initialize());
   }
 
   Future<void> _initialize() async {
@@ -73,18 +75,19 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
       if (widget.session.permissions.isSuperAdmin) {
         _churches = await _churchService.fetchChurches();
       }
-      _filter = await _buildFilter();
+      if (!mounted) return;
+      _filter = await _buildFilter(context.l10n);
       await _loadData();
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = VisitDashboardService.messageFromException(e);
+        _error = VisitDashboardService.messageFromException(e, context.l10n);
       });
     }
   }
 
-  Future<VisitDashboardFilter> _buildFilter() async {
+  Future<VisitDashboardFilter> _buildFilter(AppLocalizations l10n) async {
     final permissions = widget.session.permissions;
 
     if (permissions.isSuperAdmin) {
@@ -94,7 +97,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
       return VisitDashboardFilter(
         churchId: _selectedChurchId,
         scopeLabel: church == null
-            ? 'Todas las iglesias'
+            ? l10n.dashboardScopeAllChurches
             : church.profile.name,
       );
     }
@@ -102,7 +105,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
     if (permissions.isAdmin) {
       return VisitDashboardFilter(
         churchId: permissions.churchId,
-        scopeLabel: 'Tu iglesia',
+        scopeLabel: l10n.dashboardScopeYourChurch,
       );
     }
 
@@ -113,7 +116,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
       return VisitDashboardFilter(
         churchId: permissions.churchId,
         leaderIds: leaderIds.toSet(),
-        scopeLabel: 'Tus líderes asignados',
+        scopeLabel: l10n.dashboardScopeYourLeaders,
       );
     }
 
@@ -180,7 +183,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = VisitDashboardService.messageFromException(e);
+        _error = VisitDashboardService.messageFromException(e, context.l10n);
       });
     }
   }
@@ -207,7 +210,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
 
   Future<void> _onChurchChanged(String? churchId) async {
     setState(() => _selectedChurchId = churchId);
-    _filter = await _buildFilter();
+    _filter = await _buildFilter(context.l10n);
     await _loadData();
   }
 
@@ -250,6 +253,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
       return const SizedBox.shrink();
     }
 
+    final l10n = context.l10n;
     final entries = _leaderCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -259,7 +263,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Visitas por líder',
+            l10n.dashboardVisitsByLeader,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -296,18 +300,19 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final permissions = widget.session.permissions;
+    final l10n = context.l10n;
 
     return RoleGate(
       permissions: permissions,
       allowed: permissions.canViewVisitsDashboard,
-      deniedMessage: 'No tienes permiso para ver el dashboard de visitas.',
+      deniedMessage: l10n.dashboardVisitsDenied,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Dashboard de visitas'),
+          title: Text(l10n.dashboardVisitsTitle),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: 'Actualizar',
+              tooltip: l10n.commonRefresh,
               onPressed: _loading ? null : _loadData,
             ),
           ],
@@ -318,6 +323,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
   }
 
   Widget _buildBody() {
+    final l10n = context.l10n;
     if (_loading && _chartPoints.isEmpty && _error == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -337,7 +343,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: _initialize,
-                child: const Text('Reintentar'),
+                child: Text(l10n.retry),
               ),
             ],
           ),
@@ -361,14 +367,13 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Sin líderes asignados',
+                l10n.dashboardNoAssignedLeadersTitle,
                 style: Theme.of(context).textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                'Cuando el administrador te asigne líderes, '
-                'verás aquí las estadísticas de sus visitas.',
+                l10n.dashboardNoAssignedLeadersVisits,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -390,22 +395,22 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
               child: ListTile(
                 leading: const Icon(Icons.insights_outlined),
                 title: Text(_filter!.scopeLabel!),
-                subtitle: Text(_periodLabel()),
+                subtitle: Text(_periodLabel(l10n)),
               ),
             ),
           if (widget.session.permissions.isSuperAdmin) ...[
             const SizedBox(height: 12),
             DropdownButtonFormField<String?>(
               initialValue: _selectedChurchId,
-              decoration: const InputDecoration(
-                labelText: 'Iglesia',
-                prefixIcon: Icon(Icons.church_outlined),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.dashboardChurchLabel,
+                prefixIcon: const Icon(Icons.church_outlined),
+                border: const OutlineInputBorder(),
               ),
               items: [
-                const DropdownMenuItem<String?>(
+                DropdownMenuItem<String?>(
                   value: null,
-                  child: Text('Todas las iglesias'),
+                  child: Text(l10n.dashboardScopeAllChurches),
                 ),
                 ..._churches.map(
                   (church) => DropdownMenuItem<String?>(
@@ -421,13 +426,13 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
           Row(
             children: [
               _summaryCard(
-                title: 'Total en el período',
+                title: l10n.dashboardTotalPeriod,
                 value: '$_totalVisits',
                 icon: Icons.event_available_outlined,
               ),
               const SizedBox(width: 12),
               _summaryCard(
-                title: 'Líderes con visitas',
+                title: l10n.dashboardLeadersWithVisits,
                 value: '${_leaderCounts.length}',
                 icon: Icons.groups_outlined,
               ),
@@ -439,7 +444,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
                 .map(
                   (period) => ButtonSegment(
                     value: period,
-                    label: Text(period.label),
+                    label: Text(period.localizedLabel(l10n)),
                   ),
                 )
                 .toList(),
@@ -456,7 +461,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Número de visitas',
+                    l10n.dashboardVisitCount,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -484,13 +489,13 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Lugares de visita más frecuentes',
+                    l10n.dashboardTopVisitPlaces,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                   ),
                   Text(
-                    'Por lugar de la visita',
+                    l10n.dashboardByVisitPlace,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -521,14 +526,14 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Peticiones de oración más comunes',
+                        l10n.dashboardTopPrayerRequests,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
                       ),
                       Text(
-                        'Textos repetidos en el período',
+                        l10n.dashboardPrayerRequestsSubtitle,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -544,8 +549,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
                 else
                   VisitRankedList(
                     items: _prayerRequestPoints,
-                    emptyMessage:
-                        'No hay peticiones de oración registradas en este período.',
+                    emptyMessage: l10n.dashboardNoPrayerRequests,
                   ),
               ],
             ),
@@ -557,14 +561,14 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
     );
   }
 
-  String _periodLabel() {
+  String _periodLabel(AppLocalizations l10n) {
     switch (_period) {
       case VisitChartPeriod.day:
-        return 'Últimos 14 días';
+        return l10n.dashboardPeriodLast14Days;
       case VisitChartPeriod.month:
-        return 'Últimos 12 meses';
+        return l10n.dashboardPeriodLast12Months;
       case VisitChartPeriod.year:
-        return 'Últimos 5 años';
+        return l10n.dashboardPeriodLast5Years;
     }
   }
 }

@@ -1,9 +1,26 @@
+import '../../l10n/app_localizations.dart';
+
 enum VisitPlace {
   casa,
   hospital,
   trabajo,
   iglesia,
   videollamada;
+
+  String localizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case VisitPlace.casa:
+        return l10n.visitPlaceHome;
+      case VisitPlace.hospital:
+        return l10n.visitPlaceHospital;
+      case VisitPlace.trabajo:
+        return l10n.visitPlaceWork;
+      case VisitPlace.iglesia:
+        return l10n.visitPlaceChurch;
+      case VisitPlace.videollamada:
+        return l10n.visitPlaceVideoCall;
+    }
+  }
 
   String get label {
     switch (this) {

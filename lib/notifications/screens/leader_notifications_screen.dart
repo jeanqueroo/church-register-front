@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../auth/models/user_profile.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/whatsapp_list_tile.dart';
 import '../../members/screens/member_detail_screen.dart';
@@ -49,15 +50,16 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
   }
 
   String _formatWhen(DateTime date) {
+    final l10n = context.l10n;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final day = DateTime(date.year, date.month, date.day);
     final time =
         '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
 
-    if (day == today) return 'Hoy $time';
+    if (day == today) return l10n.notificationsToday(time);
     if (day == today.subtract(const Duration(days: 1))) {
-      return 'Ayer $time';
+      return l10n.notificationsYesterday(time);
     }
     final d = date.day.toString().padLeft(2, '0');
     final m = date.month.toString().padLeft(2, '0');
@@ -75,9 +77,7 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
 
     if (member == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('El integrante ya no está disponible.'),
-        ),
+        SnackBar(content: Text(context.l10n.notificationsMemberUnavailable)),
       );
       return;
     }
@@ -97,16 +97,16 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final leaderId = widget.session.profile.leaderId;
     if (leaderId == null || leaderId.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Notificaciones')),
+        appBar: AppBar(title: Text(l10n.notificationsTitle)),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              'Tu cuenta no está vinculada a un líder. '
-              'Contacta al administrador.',
+              l10n.notificationsLeaderNotLinked,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
@@ -120,7 +120,7 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('Notificaciones'),
+        title: Text(l10n.notificationsTitle),
         actions: [
           StreamBuilder<List<LeaderNotification>>(
             stream: _notificationService.watchForLeader(leaderId),
@@ -131,7 +131,7 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
               return TextButton(
                 onPressed: () =>
                     _notificationService.markAllAsReadForLeader(leaderId),
-                child: const Text('Marcar leídas'),
+                child: Text(l10n.notificationsMarkRead),
               );
             },
           ),
@@ -148,9 +148,7 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'No se pudieron cargar las notificaciones. '
-                  'Revisa las reglas de Firestore para la colección '
-                  'notifications (ver FIREBASE_SETUP.md).',
+                  l10n.notificationsLoadError,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
@@ -175,13 +173,12 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No tienes notificaciones',
+                      l10n.notificationsEmptyTitle,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Cuando te asignen un integrante nuevo, '
-                      'aparecerá aquí.',
+                      l10n.notificationsEmptySubtitle,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,
@@ -199,9 +196,9 @@ class _LeaderNotificationsScreenState extends State<LeaderNotificationsScreen> {
               final notification = notifications[index];
               return WhatsappListTile(
                 icon: Icons.person_add_alt_1_outlined,
-                title: notification.title,
+                title: notification.localizedTitle(l10n),
                 subtitle:
-                    '${notification.body}\n${_formatWhen(notification.createdAt)}',
+                    '${notification.localizedBody(l10n)}\n${_formatWhen(notification.createdAt)}',
                 onTap: () => _openNotification(notification),
                 showDivider: index < notifications.length - 1,
                 highlighted: !notification.read,

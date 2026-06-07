@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../../church/services/church_service.dart';
 import '../../home/screens/home_screen.dart';
 import '../../leaders/services/leader_service.dart';
@@ -173,8 +174,9 @@ class _AuthGateState extends State<AuthGate> {
     } catch (_) {
       if (!mounted) return;
       if (_auth.currentUser?.uid != user.uid) return;
+      final profileError = context.l10n.profileLoadError;
       setState(() {
-        _profileError = 'No se pudo cargar tu perfil de usuario.';
+        _profileError = profileError;
         _loadingProfile = false;
       });
     }
@@ -204,6 +206,7 @@ class _AuthGateState extends State<AuthGate> {
         }
 
         if (_profileError != null) {
+          final l10n = context.l10n;
           return Scaffold(
             body: Center(
               child: Padding(
@@ -221,11 +224,11 @@ class _AuthGateState extends State<AuthGate> {
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () => _loadProfile(user),
-                      child: const Text('Reintentar'),
+                      child: Text(l10n.retry),
                     ),
                     TextButton(
                       onPressed: _auth.signOut,
-                      child: const Text('Cerrar sesión'),
+                      child: Text(l10n.signOut),
                     ),
                   ],
                 ),

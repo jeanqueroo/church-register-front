@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../core/locale/l10n_extensions.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/church_member.dart';
 import '../models/member_visit.dart';
 import '../models/spiritual_state.dart';
@@ -80,16 +82,17 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
   }
 
   Future<void> _save() async {
+    final l10n = context.l10n;
     if (!_formKey.currentState!.validate()) return;
     if (_prayerPerformed == null || _needsFollowUp == null) {
       setState(() {});
-      _showMessage('Indica si se realizó oración y si necesita seguimiento.');
+      _showMessage(l10n.visitRegPrayerFollowUpRequired);
       return;
     }
 
     final memberId = widget.member.id;
     if (memberId == null || memberId.isEmpty) {
-      _showMessage('El integrante no tiene identificador válido.');
+      _showMessage(l10n.visitRegInvalidMember);
       return;
     }
 
@@ -114,15 +117,15 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Visita registrada')),
+        SnackBar(content: Text(l10n.visitRegSaved)),
       );
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
       if (!mounted) return;
-      _showMessage(MemberVisitService.messageFromFirestoreException(e));
+      _showMessage(MemberVisitService.messageFromFirestoreException(e, context.l10n));
     } catch (e) {
       if (!mounted) return;
-      _showMessage('No se pudo registrar la visita.');
+      _showMessage(l10n.visitRegSaveFailed);
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -135,6 +138,7 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
   }
 
   Widget _yesNoSelector({
+    required AppLocalizations l10n,
     required String title,
     required bool? value,
     required ValueChanged<bool> onChanged,
@@ -150,9 +154,9 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
         ),
         const SizedBox(height: 8),
         SegmentedButton<bool>(
-          segments: const [
-            ButtonSegment(value: true, label: Text('Sí')),
-            ButtonSegment(value: false, label: Text('No')),
+          segments: [
+            ButtonSegment(value: true, label: Text(l10n.commonYes)),
+            ButtonSegment(value: false, label: Text(l10n.commonNo)),
           ],
           selected: value != null ? {value} : <bool>{},
           emptySelectionAllowed: true,
@@ -167,7 +171,7 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(
-              'Selecciona una opción',
+              l10n.visitRegSelectOption,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.error,
                   ),
@@ -179,13 +183,15 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return RoleGate(
       permissions: _permissions,
       allowed: _permissions.canRegisterMemberVisits,
-      deniedMessage: 'Solo el líder puede registrar visitas a sus integrantes.',
+      deniedMessage: l10n.visitRegDenied,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Registrar visita'),
+          title: Text(l10n.visitRegTitle),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -204,10 +210,10 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
                   ),
                   const SizedBox(height: 24),
                   InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Fecha de la visita *',
-                      prefixIcon: Icon(Icons.event_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.visitRegDate,
+                      prefixIcon: const Icon(Icons.event_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     child: InkWell(
                       onTap: _isSaving ? null : _pickVisitDate,
@@ -223,16 +229,16 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<VisitPlace>(
                     initialValue: _visitPlace,
-                    decoration: const InputDecoration(
-                      labelText: 'Lugar de la visita *',
-                      prefixIcon: Icon(Icons.place_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.visitRegPlace,
+                      prefixIcon: const Icon(Icons.place_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     items: VisitPlace.values
                         .map(
                           (place) => DropdownMenuItem(
                             value: place,
-                            child: Text(place.label),
+                            child: Text(place.localizedLabel(l10n)),
                           ),
                         )
                         .toList(),
@@ -240,22 +246,23 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
                         ? null
                         : (value) => setState(() => _visitPlace = value),
                     validator: (value) =>
-                        value == null ? 'Selecciona el lugar' : null,
+                        value == null ? l10n.visitRegSelectPlace : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _durationController,
                     enabled: !_isSaving,
-                    decoration: const InputDecoration(
-                      labelText: 'Duración aproximada de la visita',
-                      hintText: 'Ej: 30 min, 1 hora',
-                      prefixIcon: Icon(Icons.schedule_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.visitRegDuration,
+                      hintText: l10n.visitRegDurationHint,
+                      prefixIcon: const Icon(Icons.schedule_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 20),
                   _yesNoSelector(
-                    title: 'Se realizó oración *',
+                    l10n: l10n,
+                    title: l10n.visitRegPrayerTitle,
                     value: _prayerPerformed,
                     onChanged: (value) =>
                         setState(() => _prayerPerformed = value),
@@ -265,37 +272,38 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
                     controller: _prayerRequestsController,
                     enabled: !_isSaving,
                     maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Peticiones de oración',
-                      hintText: 'Opcional: motivos o peticiones compartidas',
+                    decoration: InputDecoration(
+                      labelText: l10n.visitRegPrayerRequests,
+                      hintText: l10n.visitRegPrayerRequestsHint,
                       alignLabelWithHint: true,
-                      prefixIcon: Icon(Icons.favorite_border),
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.favorite_border),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 20),
                   _yesNoSelector(
-                    title: 'Necesita seguimiento *',
+                    l10n: l10n,
+                    title: l10n.visitRegFollowUpTitle,
                     value: _needsFollowUp,
                     onChanged: (value) => setState(() => _needsFollowUp = value),
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<SpiritualState?>(
                     initialValue: _spiritualState,
-                    decoration: const InputDecoration(
-                      labelText: 'Estado espiritual (opcional)',
-                      prefixIcon: Icon(Icons.church_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.visitRegSpiritualState,
+                      prefixIcon: const Icon(Icons.church_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     items: [
-                      const DropdownMenuItem<SpiritualState?>(
+                      DropdownMenuItem<SpiritualState?>(
                         value: null,
-                        child: Text('Sin especificar'),
+                        child: Text(l10n.visitRegSpiritualUnspecified),
                       ),
                       ...SpiritualState.values.map(
                         (state) => DropdownMenuItem(
                           value: state,
-                          child: Text(state.label),
+                          child: Text(state.localizedLabel(l10n)),
                         ),
                       ),
                     ],
@@ -308,15 +316,15 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
                     controller: _commentController,
                     enabled: !_isSaving,
                     maxLines: 5,
-                    decoration: const InputDecoration(
-                      labelText: 'Comentario *',
-                      hintText: 'Resumen de la visita, temas tratados...',
+                    decoration: InputDecoration(
+                      labelText: l10n.visitRegComment,
+                      hintText: l10n.visitRegCommentHint,
                       alignLabelWithHint: true,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Escribe un comentario';
+                        return l10n.visitRegCommentRequired;
                       }
                       return null;
                     },
@@ -331,7 +339,9 @@ class _RegisterMemberVisitScreenState extends State<RegisterMemberVisitScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.save_outlined),
-                    label: Text(_isSaving ? 'Guardando...' : 'Guardar visita'),
+                    label: Text(
+                      _isSaving ? l10n.commonSaving : l10n.visitRegSaveButton,
+                    ),
                   ),
                 ],
               ),

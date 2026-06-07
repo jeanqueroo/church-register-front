@@ -8,6 +8,7 @@ import '../../address/services/google_places_service.dart';
 import '../../address/widgets/address_autocomplete_field.dart';
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/models/geo_location.dart';
 import '../../core/widgets/church_location_map_preview.dart';
 import '../../core/widgets/church_logo.dart';
@@ -124,9 +125,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo cargar los datos de la iglesia.'),
-          ),
+          SnackBar(content: Text(context.l10n.churchRegLoadError)),
         );
       }
     } finally {
@@ -169,11 +168,12 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
   }
 
   String? _validateAddress(String? value) {
+    final l10n = context.l10n;
     if (value == null || value.trim().isEmpty) {
-      return 'Busca y selecciona una dirección';
+      return l10n.addressSearchAndSelect;
     }
     if (!_isAddressValid) {
-      return 'Elige una dirección de la lista para ubicarla en el mapa';
+      return l10n.churchRegPickAddress;
     }
     return null;
   }
@@ -210,7 +210,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo seleccionar la imagen: $e')),
+        SnackBar(content: Text(context.l10n.churchRegImageError('$e'))),
       );
     }
   }
@@ -262,12 +262,11 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
       }
 
       if (!mounted) return;
+      final l10n = context.l10n;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            widget.createNew
-                ? 'Iglesia registrada'
-                : 'Datos de la iglesia guardados',
+            widget.createNew ? l10n.churchRegSaved : l10n.churchRegUpdated,
           ),
         ),
       );
@@ -275,7 +274,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ChurchService.messageFromException(e))),
+        SnackBar(content: Text(ChurchService.messageFromException(e, context.l10n))),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -314,6 +313,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final allowed = widget.createNew
         ? widget.permissions.canCreateChurch
         : widget.readOnly
@@ -322,12 +322,12 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
             : widget.permissions.canEditAnyChurch;
 
     final title = widget.createNew
-        ? 'Nueva iglesia'
+        ? l10n.churchRegNewTitle
         : widget.readOnly
-            ? 'Datos de la iglesia'
+            ? l10n.churchRegViewTitle
             : widget.permissions.isSuperAdmin
-                ? 'Editar iglesia'
-                : 'Datos de la iglesia';
+                ? l10n.churchRegEditTitle
+                : l10n.churchRegViewTitle;
 
     final lockedByBlock =
         _isBlocked && !widget.permissions.isSuperAdmin && !widget.createNew;
@@ -337,10 +337,10 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
       permissions: widget.permissions,
       allowed: allowed,
       deniedMessage: widget.createNew
-          ? 'Solo el super administrador puede crear iglesias.'
+          ? l10n.churchRegCreateDenied
           : widget.readOnly
-              ? 'No tienes permiso para ver los datos de esta iglesia.'
-              : 'No tienes permiso para editar los datos de esta iglesia.',
+              ? l10n.churchRegViewDenied
+              : l10n.churchRegEditDenied,
       child: Scaffold(
         appBar: AppBar(
           title: Text(title),
@@ -372,8 +372,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      'Esta iglesia está bloqueada. '
-                                      'Contacta al super administrador para reactivarla.',
+                                      l10n.churchRegBlocked,
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .colorScheme
@@ -387,13 +386,15 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
                           ),
                         if (lockedByBlock) const SizedBox(height: 16),
                         FormSectionTitle(
-                          widget.readOnly ? 'LOGO' : 'LOGO (opcional)',
+                          widget.readOnly
+                              ? l10n.churchRegLogo
+                              : l10n.churchRegLogoOptional,
                         ),
                         Center(child: _buildLogoPreview()),
                         if (!widget.readOnly) ...[
                           const SizedBox(height: 8),
                           Text(
-                            'Puedes guardar sin logo; se usará el predeterminado.',
+                            l10n.churchRegLogoHint,
                             textAlign: TextAlign.center,
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -410,20 +411,20 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
                                 onPressed:
                                     _saving || lockedByBlock ? null : _pickLogo,
                                 icon: const Icon(Icons.upload_outlined),
-                                label: const Text('Subir logo'),
+                                label: Text(l10n.churchRegUploadLogo),
                               ),
                               if (_pickedLogoBytes != null) ...[
                                 const SizedBox(width: 8),
                                 TextButton(
                                   onPressed: _saving ? null : _clearPickedLogo,
-                                  child: const Text('Quitar'),
+                                  child: Text(l10n.churchRegRemoveLogo),
                                 ),
                               ],
                             ],
                           ),
                         ],
                         const SizedBox(height: 24),
-                        const FormSectionTitle('INFORMACIÓN'),
+                        FormSectionTitle(l10n.churchRegSectionInfo),
                         TextFormField(
                           controller: _nameController,
                           readOnly: widget.readOnly,
@@ -431,8 +432,8 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
                           textCapitalization: TextCapitalization.words,
                           decoration: InputDecoration(
                             labelText: widget.readOnly
-                                ? 'Nombre de la iglesia'
-                                : 'Nombre de la iglesia *',
+                                ? l10n.churchRegName
+                                : l10n.churchRegNameRequired,
                             prefixIcon: const Icon(Icons.church_outlined),
                             border: const OutlineInputBorder(),
                             filled: widget.readOnly,
@@ -440,7 +441,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
                           validator: editable
                               ? (value) {
                                   if (value == null || value.trim().isEmpty) {
-                                    return 'Ingresa el nombre';
+                                    return l10n.churchRegNameValidation;
                                   }
                                   return null;
                                 }
@@ -453,10 +454,10 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
                             readOnly: true,
                             enabled: false,
                             maxLines: 2,
-                            decoration: const InputDecoration(
-                              labelText: 'Dirección',
-                              prefixIcon: Icon(Icons.location_on_outlined),
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.churchRegAddressSection,
+                              prefixIcon: const Icon(Icons.location_on_outlined),
+                              border: const OutlineInputBorder(),
                               filled: true,
                             ),
                           )
@@ -470,8 +471,8 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
                                     _addressController.text.trim() ==
                                         _loadedAddress &&
                                     _addressController.text.trim().length >= 3),
-                            labelText: 'Buscar dirección *',
-                            hintText: 'Escribe y elige una sugerencia…',
+                            labelText: l10n.addressSearchRequired,
+                            hintText: l10n.addressSearchHint,
                             onPlaceSelected: _onPlaceSelected,
                             validator: _validateAddress,
                           ),
@@ -493,7 +494,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
                                     ),
                                   )
                                 : const Icon(Icons.save_outlined),
-                            label: Text(_saving ? 'Guardando…' : 'Guardar'),
+                            label: Text(_saving ? l10n.commonSaving : l10n.commonSave),
                             style: FilledButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),

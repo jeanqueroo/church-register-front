@@ -1,3 +1,4 @@
+import '../../l10n/app_localizations.dart';
 import 'app_user_role.dart';
 
 /// Permisos efectivos según los roles del usuario (unión de varios roles).
@@ -31,14 +32,14 @@ class AppPermissions {
   bool get isSupervisor => roles.contains(AppUserRole.supervisor);
   bool get isLeader => roles.contains(AppUserRole.leader);
 
-  bool get canRegisterMember => isAdmin || isRegistrar || isSuperAdmin;
-  bool get canRegisterLeader => isAdmin || isSuperAdmin;
-  bool get canViewMembersList => isAdmin || isSuperAdmin || isRegistrar;
-  bool get canViewMembersByLeader => isAdmin || isSuperAdmin;
-  bool get canViewLeadersList => isAdmin || isSuperAdmin;
+  bool get canRegisterMember => isAdmin || isRegistrar;
+  bool get canRegisterLeader => isAdmin;
+  bool get canViewMembersList => isAdmin || isRegistrar;
+  bool get canViewMembersByLeader => isAdmin;
+  bool get canViewLeadersList => isAdmin;
   /// Admin sin rol supervisor: asignar líderes a supervisores.
   bool get canAssignSupervisorLeaders =>
-      (isAdmin || isSuperAdmin) && !isSupervisor;
+      (isAdmin) && !isSupervisor;
 
   /// Alias de [canAssignSupervisorLeaders] para el menú de asignación.
   bool get canViewSupervisorLeaderAssignments => canAssignSupervisorLeaders;
@@ -81,6 +82,10 @@ class AppPermissions {
   bool get canViewAdminsList => isSuperAdmin;
   bool get canEditAdmin => isSuperAdmin;
   bool get canBlockAdmin => isSuperAdmin;
+
+  List<String> roleLabelsFor(AppLocalizations l10n) =>
+      roles.map((role) => AppUserRole.localizedLabel(role, l10n)).toList()
+        ..sort();
 
   List<String> get roleLabels =>
       roles.map(AppUserRole.label).toList()..sort();
