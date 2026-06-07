@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../members/models/church_member.dart';
 import '../../members/models/member_visit.dart';
 import '../models/follow_up_person.dart';
@@ -180,6 +181,6 @@ class PastoralDashboardService {
   DateTime rangeEndFor(VisitChartPeriod period, DateTime now) =>
       _visitDashboardService.rangeEndFor(period, now);
 
-  static String messageFromException(Object e) =>
-      VisitDashboardService.messageFromException(e);
+  static String messageFromException(Object e, AppLocalizations l10n) =>
+      VisitDashboardService.messageFromException(e, l10n);
 }

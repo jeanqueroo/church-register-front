@@ -1,3 +1,5 @@
+import '../../l10n/app_localizations.dart';
+
 /// Identificadores de rol en Firestore (`users.roles`).
 class AppUserRole {
   AppUserRole._();
@@ -16,6 +18,23 @@ class AppUserRole {
     supervisor,
     registrar,
   ];
+
+  static String localizedLabel(String role, AppLocalizations l10n) {
+    switch (role) {
+      case superAdmin:
+        return l10n.roleSuperAdmin;
+      case admin:
+        return l10n.roleAdmin;
+      case registrar:
+        return l10n.roleRegistrar;
+      case supervisor:
+        return l10n.roleSupervisor;
+      case leader:
+        return l10n.roleLeader;
+      default:
+        return role;
+    }
+  }
 
   static String label(String role) {
     switch (role) {

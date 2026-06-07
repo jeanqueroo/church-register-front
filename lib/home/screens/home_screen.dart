@@ -4,6 +4,8 @@ import '../../auth/models/app_permissions.dart';
 import '../../auth/models/user_profile.dart';
 import '../../auth/screens/account_hub_screen.dart';
 import '../../auth/services/auth_service.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/church_logo.dart';
 import '../../core/widgets/whatsapp_list_tile.dart';
@@ -40,9 +42,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const _menuInicio = 'Inicio';
+  static const _menuHome = 'home';
 
-  String _selectedMenu = _menuInicio;
+  String _selectedMenuId = _menuHome;
   final _leaderService = LeaderService();
   final _notificationService = LeaderNotificationService();
 
@@ -75,20 +77,19 @@ class _HomeScreenState extends State<HomeScreen> {
     await auth.signOut();
   }
 
-  void _navigate(Widget screen, String menuLabel) {
-    setState(() => _selectedMenu = menuLabel);
+  void _navigate(Widget screen, String menuId) {
+    setState(() => _selectedMenuId = menuId);
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => screen),
     );
   }
 
   Future<void> _openMyAssignedMembers() async {
+    final l10n = context.l10n;
     final leaderId = widget.session.profile.leaderId;
     if (leaderId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tu cuenta de líder no está vinculada a un registro.'),
-        ),
+        SnackBar(content: Text(l10n.leaderAccountNotLinked)),
       );
       return;
     }
@@ -97,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     if (leader == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se encontró tu ficha de líder.')),
+        SnackBar(content: Text(l10n.leaderRecordNotFound)),
       );
       return;
     }
@@ -108,32 +109,34 @@ class _HomeScreenState extends State<HomeScreen> {
         registeredBy: _email,
         permissions: _permissions,
       ),
-      'Mis integrantes',
+      'myMembers',
     );
   }
 
-  List<SlideMenuItem> _buildMenuItems() {
+  List<SlideMenuItem> _buildMenuItems(AppLocalizations l10n) {
     final p = _permissions;
     final items = <SlideMenuItem>[
       SlideMenuItem(
+        id: _menuHome,
         icon: Icons.home_outlined,
-        label: _menuInicio,
-        onTap: () => setState(() => _selectedMenu = _menuInicio),
+        label: l10n.menuHome,
+        onTap: () => setState(() => _selectedMenuId = _menuHome),
       ),
     ];
 
     if (p.canRegisterMember) {
       items.add(
         SlideMenuItem(
+          id: 'newMember',
           icon: Icons.person_add_outlined,
-          label: 'Nuevo creyente',
+          label: l10n.menuNewMember,
           onTap: () => _navigate(
             RegisterMemberScreen(
               registeredBy: _email,
               churchId: _churchId,
               permissions: p,
             ),
-            'Registro de nuevo creyente',
+            'newMember',
           ),
         ),
       );
@@ -142,14 +145,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewMembersList) {
       items.add(
         SlideMenuItem(
+          id: 'members',
           icon: Icons.people_outlined,
-          label: 'Integrantes',
+          label: l10n.menuMembers,
           onTap: () => _navigate(
             MembersListScreen(
               registeredBy: _email,
               permissions: p,
             ),
-            'Integrantes',
+            'members',
           ),
         ),
       );
@@ -158,14 +162,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewMembersByLeader) {
       items.add(
         SlideMenuItem(
+          id: 'byLeader',
           icon: Icons.how_to_reg_outlined,
-          label: 'Por líder',
+          label: l10n.menuByLeader,
           onTap: () => _navigate(
             MembersByLeaderScreen(
               registeredBy: _email,
               permissions: p,
             ),
-            'Por líder',
+            'byLeader',
           ),
         ),
       );
@@ -174,8 +179,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewMyAssignedMembers) {
       items.add(
         SlideMenuItem(
+          id: 'myMembers',
           icon: Icons.group_outlined,
-          label: 'Mis integrantes',
+          label: l10n.menuMyMembers,
           onTap: _openMyAssignedMembers,
         ),
       );
@@ -184,15 +190,16 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canRegisterLeader) {
       items.add(
         SlideMenuItem(
+          id: 'newLeader',
           icon: Icons.supervisor_account_outlined,
-          label: 'Nuevo líder',
+          label: l10n.menuNewLeader,
           onTap: () => _navigate(
             RegisterLeaderScreen(
               registeredBy: _email,
               churchId: _churchId,
               permissions: p,
             ),
-            'Nuevo líder',
+            'newLeader',
           ),
         ),
       );
@@ -201,14 +208,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewLeadersList) {
       items.add(
         SlideMenuItem(
+          id: 'leaders',
           icon: Icons.groups_outlined,
-          label: 'Líderes',
+          label: l10n.menuLeaders,
           onTap: () => _navigate(
             LeadersListScreen(
               registeredBy: _email,
               permissions: p,
             ),
-            'Líderes',
+            'leaders',
           ),
         ),
       );
@@ -217,11 +225,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewMySupervisedLeaders) {
       items.add(
         SlideMenuItem(
+          id: 'mySupervisedLeaders',
           icon: Icons.account_tree_outlined,
-          label: 'Mis líderes asignados',
+          label: l10n.menuMySupervisedLeaders,
           onTap: () => _navigate(
             SupervisorMyLeadersScreen(session: widget.session),
-            'Mis líderes asignados',
+            'mySupervisedLeaders',
           ),
         ),
       );
@@ -230,11 +239,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewVisitsDashboard) {
       items.add(
         SlideMenuItem(
+          id: 'visitsDashboard',
           icon: Icons.bar_chart_outlined,
-          label: 'Dashboard de visitas',
+          label: l10n.menuVisitsDashboard,
           onTap: () => _navigate(
             VisitsDashboardScreen(session: widget.session),
-            'Dashboard de visitas',
+            'visitsDashboard',
           ),
         ),
       );
@@ -243,11 +253,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewPastoralDashboard) {
       items.add(
         SlideMenuItem(
+          id: 'pastoralDashboard',
           icon: Icons.favorite_outline,
-          label: 'Dashboard pastoral',
+          label: l10n.menuPastoralDashboard,
           onTap: () => _navigate(
             PastoralDashboardScreen(session: widget.session),
-            'Dashboard pastoral',
+            'pastoralDashboard',
           ),
         ),
       );
@@ -256,11 +267,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canAssignSupervisorLeaders) {
       items.add(
         SlideMenuItem(
+          id: 'supervisorLeaders',
           icon: Icons.manage_accounts_outlined,
-          label: 'Líderes por supervisor',
+          label: l10n.menuSupervisorLeaders,
           onTap: () => _navigate(
             SupervisorLeaderAssignmentsScreen(session: widget.session),
-            'Líderes por supervisor',
+            'supervisorLeaders',
           ),
         ),
       );
@@ -269,14 +281,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewChurchesList) {
       items.add(
         SlideMenuItem(
+          id: 'churches',
           icon: Icons.church_outlined,
-          label: 'Iglesias',
+          label: l10n.menuChurches,
           onTap: () => _navigate(
             ChurchesListScreen(
               updatedBy: _email,
               permissions: p,
             ),
-            'Iglesias',
+            'churches',
           ),
         ),
       );
@@ -285,14 +298,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewAdminsList) {
       items.add(
         SlideMenuItem(
+          id: 'admins',
           icon: Icons.admin_panel_settings_outlined,
-          label: 'Administradores',
+          label: l10n.menuAdmins,
           onTap: () => _navigate(
             AdminsListScreen(
               updatedBy: _email,
               permissions: p,
             ),
-            'Administradores',
+            'admins',
           ),
         ),
       );
@@ -301,14 +315,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canRegisterAdmin) {
       items.add(
         SlideMenuItem(
+          id: 'newAdmin',
           icon: Icons.person_add_alt_1_outlined,
-          label: 'Nuevo administrador',
+          label: l10n.menuNewAdmin,
           onTap: () => _navigate(
             RegisterAdminScreen(
               registeredBy: _email,
               permissions: p,
             ),
-            'Nuevo administrador',
+            'newAdmin',
           ),
         ),
       );
@@ -317,7 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return items;
   }
 
-  List<Widget> _buildQuickAccessList() {
+  List<Widget> _buildQuickAccessList(AppLocalizations l10n) {
     final p = _permissions;
     final entries = <({IconData icon, String title, String subtitle, VoidCallback onTap})>[];
 
@@ -333,157 +348,157 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canRegisterMember) {
       addEntry(
         icon: Icons.person_add_outlined,
-        title: 'Registro de nuevo creyente',
-        subtitle: 'Formulario de nuevo creyente',
+        title: l10n.quickNewMemberTitle,
+        subtitle: l10n.quickNewMemberSubtitle,
         onTap: () => _navigate(
           RegisterMemberScreen(
             registeredBy: _email,
             churchId: _churchId,
             permissions: p,
           ),
-          'Registro de nuevo creyente',
+          'newMember',
         ),
       );
     }
     if (p.canViewMembersList) {
       addEntry(
         icon: Icons.people_outlined,
-        title: 'Ver creyentes',
-        subtitle: 'Lista de integrantes registrados',
+        title: l10n.quickViewMembersTitle,
+        subtitle: l10n.quickViewMembersSubtitle,
         onTap: () => _navigate(
           MembersListScreen(registeredBy: _email, permissions: p),
-          'Integrantes',
+          'members',
         ),
       );
     }
     if (p.canViewMembersByLeader) {
       addEntry(
         icon: Icons.how_to_reg_outlined,
-        title: 'Integrantes por líder',
-        subtitle: 'Miembros asignados a cada líder',
+        title: l10n.quickMembersByLeaderTitle,
+        subtitle: l10n.quickMembersByLeaderSubtitle,
         onTap: () => _navigate(
           MembersByLeaderScreen(registeredBy: _email, permissions: p),
-          'Por líder',
+          'byLeader',
         ),
       );
     }
     if (p.canViewMyAssignedMembers) {
       addEntry(
         icon: Icons.group_outlined,
-        title: 'Mis integrantes asignados',
-        subtitle: 'Integrantes bajo tu liderazgo',
+        title: l10n.quickMyMembersTitle,
+        subtitle: l10n.quickMyMembersSubtitle,
         onTap: _openMyAssignedMembers,
       );
     }
     if (p.canRegisterLeader) {
       addEntry(
         icon: Icons.supervisor_account_outlined,
-        title: 'Registrar líder',
-        subtitle: 'Datos del liderazgo',
+        title: l10n.quickRegisterLeaderTitle,
+        subtitle: l10n.quickRegisterLeaderSubtitle,
         onTap: () => _navigate(
           RegisterLeaderScreen(
             registeredBy: _email,
             churchId: _churchId,
             permissions: p,
           ),
-          'Nuevo líder',
+          'newLeader',
         ),
       );
     }
     if (p.canViewLeadersList) {
       addEntry(
         icon: Icons.groups_outlined,
-        title: 'Ver líderes',
-        subtitle: 'Lista de líderes registrados',
+        title: l10n.quickViewLeadersTitle,
+        subtitle: l10n.quickViewLeadersSubtitle,
         onTap: () => _navigate(
           LeadersListScreen(registeredBy: _email, permissions: p),
-          'Líderes',
+          'leaders',
         ),
       );
     }
     if (p.canViewMySupervisedLeaders) {
       addEntry(
         icon: Icons.account_tree_outlined,
-        title: 'Mis líderes asignados',
-        subtitle: 'Líderes bajo tu supervisión',
+        title: l10n.quickMySupervisedLeadersTitle,
+        subtitle: l10n.quickMySupervisedLeadersSubtitle,
         onTap: () => _navigate(
           SupervisorMyLeadersScreen(session: widget.session),
-          'Mis líderes asignados',
+          'mySupervisedLeaders',
         ),
       );
     }
     if (p.canViewVisitsDashboard) {
       addEntry(
         icon: Icons.bar_chart_outlined,
-        title: 'Dashboard de visitas',
-        subtitle: 'Gráficas de visitas por día, mes y año',
+        title: l10n.quickVisitsDashboardTitle,
+        subtitle: l10n.quickVisitsDashboardSubtitle,
         onTap: () => _navigate(
           VisitsDashboardScreen(session: widget.session),
-          'Dashboard de visitas',
+          'visitsDashboard',
         ),
       );
     }
     if (p.canViewPastoralDashboard) {
       addEntry(
         icon: Icons.favorite_outline,
-        title: 'Dashboard pastoral',
-        subtitle: 'Seguimiento, nuevos creyentes y oración',
+        title: l10n.quickPastoralDashboardTitle,
+        subtitle: l10n.quickPastoralDashboardSubtitle,
         onTap: () => _navigate(
           PastoralDashboardScreen(session: widget.session),
-          'Dashboard pastoral',
+          'pastoralDashboard',
         ),
       );
     }
     if (p.canAssignSupervisorLeaders) {
       addEntry(
         icon: Icons.manage_accounts_outlined,
-        title: 'Líderes por supervisor',
-        subtitle: 'Asignar cartera de líderes a cada supervisor',
+        title: l10n.quickSupervisorLeadersTitle,
+        subtitle: l10n.quickSupervisorLeadersSubtitle,
         onTap: () => _navigate(
           SupervisorLeaderAssignmentsScreen(session: widget.session),
-          'Líderes por supervisor',
+          'supervisorLeaders',
         ),
       );
     }
     if (p.canViewChurchesList) {
       addEntry(
         icon: Icons.church_outlined,
-        title: 'Iglesias',
-        subtitle: 'Ver, editar y registrar sedes',
+        title: l10n.quickChurchesTitle,
+        subtitle: l10n.quickChurchesSubtitle,
         onTap: () => _navigate(
           ChurchesListScreen(
             updatedBy: _email,
             permissions: p,
           ),
-          'Iglesias',
+          'churches',
         ),
       );
     }
     if (p.canViewAdminsList) {
       addEntry(
         icon: Icons.admin_panel_settings_outlined,
-        title: 'Administradores',
-        subtitle: 'Ver, editar y bloquear cuentas',
+        title: l10n.quickAdminsTitle,
+        subtitle: l10n.quickAdminsSubtitle,
         onTap: () => _navigate(
           AdminsListScreen(
             updatedBy: _email,
             permissions: p,
           ),
-          'Administradores',
+          'admins',
         ),
       );
     }
     if (p.canRegisterAdmin) {
       addEntry(
         icon: Icons.person_add_alt_1_outlined,
-        title: 'Nuevo administrador',
-        subtitle: 'Asignar iglesia al administrador',
+        title: l10n.quickNewAdminTitle,
+        subtitle: l10n.quickNewAdminSubtitle,
         onTap: () => _navigate(
           RegisterAdminScreen(
             registeredBy: _email,
             permissions: p,
           ),
-          'Nuevo administrador',
+          'newAdmin',
         ),
       );
     }
@@ -500,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
   }
 
-  Widget? _buildNotificationsAction() {
+  Widget? _buildNotificationsAction(AppLocalizations l10n) {
     if (!_permissions.canViewLeaderNotifications) return null;
     final leaderId = widget.session.profile.leaderId;
     if (leaderId == null || leaderId.isEmpty) return null;
@@ -512,7 +527,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return Padding(
           padding: const EdgeInsets.only(right: 4),
           child: IconButton(
-            tooltip: 'Notificaciones',
+            tooltip: l10n.menuNotifications,
             icon: Badge(
               isLabelVisible: unread > 0,
               label: Text(unread > 9 ? '9+' : '$unread'),
@@ -520,7 +535,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             onPressed: () => _navigate(
               LeaderNotificationsScreen(session: widget.session),
-              'Notificaciones',
+              'notifications',
             ),
           ),
         );
@@ -528,7 +543,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAccountActionButton() {
+  Widget _buildAccountActionButton(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Material(
@@ -548,12 +563,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           child: IconButton(
-            tooltip: 'Mi cuenta',
+            tooltip: l10n.menuMyAccount,
             padding: EdgeInsets.zero,
             icon: const Icon(Icons.person, color: Colors.white, size: 22),
             onPressed: () => _navigate(
               AccountHubScreen(session: widget.session),
-              'Mi cuenta',
+              'myAccount',
             ),
           ),
         ),
@@ -563,15 +578,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final roleLabels =
+        widget.session.profile.permissions.roleLabelsFor(l10n);
+
     return SlideMenuScaffold(
       churchId: widget.session.profile.churchId,
-      selectedMenuLabel: _selectedMenu,
+      selectedMenuId: _selectedMenuId,
       onSignOut: _logout,
       actions: [
-        ?(_buildNotificationsAction()),
-        _buildAccountActionButton(),
+        ?(_buildNotificationsAction(l10n)),
+        _buildAccountActionButton(l10n),
       ],
-      menuItems: _buildMenuItems(),
+      menuItems: _buildMenuItems(l10n),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -598,7 +617,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         widget.session.resolvedDisplayName.isNotEmpty
                             ? widget.session.resolvedDisplayName
-                            : 'Bienvenido',
+                            : l10n.welcome,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFF111B21),
@@ -611,14 +630,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: AppColors.textSecondary,
                             ),
                       ),
-                      if (widget.session.profile.permissions.roleLabels
-                          .isNotEmpty) ...[
+                      if (roleLabels.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 6,
                           runSpacing: 4,
-                          children: widget
-                              .session.profile.permissions.roleLabels
+                          children: roleLabels
                               .map((label) => Chip(label: Text(label)))
                               .toList(),
                         ),
@@ -631,13 +648,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const Divider(height: 1, color: AppColors.divider),
           Expanded(
-            child: _buildQuickAccessList().isEmpty
+            child: _buildQuickAccessList(l10n).isEmpty
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Text(
-                        'No hay accesos disponibles para tu rol. '
-                        'Contacta al administrador.',
+                        l10n.noAccessForRole,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppColors.textSecondary,
@@ -646,7 +662,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   )
                 : ListView(
-                    children: _buildQuickAccessList(),
+                    children: _buildQuickAccessList(l10n),
                   ),
           ),
         ],

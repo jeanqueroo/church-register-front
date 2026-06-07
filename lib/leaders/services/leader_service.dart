@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../auth/models/app_user_role.dart';
 import '../../auth/services/user_profile_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/church_leader.dart';
 
 class LeaderService {
@@ -105,16 +106,19 @@ class LeaderService {
     return results.whereType<ChurchLeader>().toList();
   }
 
-  static String messageFromFirestoreException(FirebaseException e) {
+  static String messageFromFirestoreException(
+    FirebaseException e,
+    AppLocalizations l10n,
+  ) {
     switch (e.code) {
       case 'permission-denied':
-        return 'No tienes permiso para esta operación.';
+        return l10n.firestorePermissionDenied;
       case 'unavailable':
-        return 'Firestore no está disponible. Revisa tu conexión.';
+        return l10n.firestoreUnavailable;
       case 'not-found':
-        return 'El líder ya no existe.';
+        return l10n.firestoreLeaderNotFound;
       default:
-        return 'Error al procesar la solicitud. Intenta de nuevo.';
+        return l10n.firestoreGenericError;
     }
   }
 }

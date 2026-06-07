@@ -1,3 +1,5 @@
+import '../../l10n/app_localizations.dart';
+
 class VisitChartPoint {
   const VisitChartPoint({
     required this.label,
@@ -15,14 +17,14 @@ enum VisitChartPeriod {
   month,
   year;
 
-  String get label {
+  String localizedLabel(AppLocalizations l10n) {
     switch (this) {
       case VisitChartPeriod.day:
-        return 'Por día';
+        return l10n.chartPeriodDay;
       case VisitChartPeriod.month:
-        return 'Por mes';
+        return l10n.chartPeriodMonth;
       case VisitChartPeriod.year:
-        return 'Por año';
+        return l10n.chartPeriodYear;
     }
   }
 }

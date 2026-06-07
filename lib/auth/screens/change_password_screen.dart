@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../services/auth_service.dart';
 
 /// Formulario exclusivo para cambiar la contraseña de acceso.
@@ -57,14 +58,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         newPassword: _newPasswordController.text,
       );
       if (!mounted) return;
-      _showMessage('Contraseña actualizada correctamente');
+      _showMessage(context.l10n.changePasswordSuccess);
       Navigator.of(context).pop(true);
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      _showMessage(AuthService.messageFromFirebaseAuthException(e));
+      _showMessage(AuthService.messageFromFirebaseAuthException(e, context.l10n));
     } catch (_) {
       if (!mounted) return;
-      _showMessage('No se pudo cambiar la contraseña.');
+      _showMessage(context.l10n.authGenericError);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -72,9 +73,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cambiar contraseña'),
+        title: Text(l10n.changePasswordTitle),
       ),
       body: Form(
         key: _formKey,
@@ -82,8 +85,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           padding: const EdgeInsets.all(24),
           children: [
             Text(
-              'Ingresa tu contraseña actual y la nueva. '
-              'Este formulario no modifica tus datos personales.',
+              l10n.changePasswordSubtitle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -93,7 +95,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               controller: _currentPasswordController,
               obscureText: _obscureCurrent,
               decoration: InputDecoration(
-                labelText: 'Contraseña actual',
+                labelText: l10n.changePasswordCurrent,
                 prefixIcon: const Icon(Icons.lock_outline),
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
@@ -108,7 +110,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Ingresa tu contraseña actual';
+                  return l10n.changePasswordCurrentRequired;
                 }
                 return null;
               },
@@ -118,7 +120,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               controller: _newPasswordController,
               obscureText: _obscureNew,
               decoration: InputDecoration(
-                labelText: 'Nueva contraseña',
+                labelText: l10n.changePasswordNew,
                 prefixIcon: const Icon(Icons.lock_reset_outlined),
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
@@ -131,8 +133,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 ),
               ),
               validator: (value) {
-                if (value == null || value.length < 6) {
-                  return 'Mínimo 6 caracteres';
+                if (value == null || value.isEmpty) {
+                  return l10n.changePasswordNewRequired;
+                }
+                if (value.length < 6) {
+                  return l10n.passwordMinLength;
                 }
                 return null;
               },
@@ -142,7 +147,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               controller: _confirmPasswordController,
               obscureText: _obscureConfirm,
               decoration: InputDecoration(
-                labelText: 'Confirmar nueva contraseña',
+                labelText: l10n.changePasswordConfirm,
                 prefixIcon: const Icon(Icons.lock_reset_outlined),
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
@@ -156,8 +161,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 ),
               ),
               validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return l10n.changePasswordConfirmRequired;
+                }
                 if (value != _newPasswordController.text) {
-                  return 'Las contraseñas no coinciden';
+                  return l10n.changePasswordMismatch;
                 }
                 return null;
               },
@@ -171,7 +179,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       width: 22,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Cambiar contraseña'),
+                  : Text(l10n.changePasswordSubmit),
             ),
           ],
         ),

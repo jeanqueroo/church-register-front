@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../notifications/services/leader_notification_service.dart';
 import '../models/church_member.dart';
 
@@ -103,16 +104,19 @@ class MemberService {
     return _members.doc(id).delete();
   }
 
-  static String messageFromFirestoreException(FirebaseException e) {
+  static String messageFromFirestoreException(
+    FirebaseException e,
+    AppLocalizations l10n,
+  ) {
     switch (e.code) {
       case 'permission-denied':
-        return 'No tienes permiso para esta operación.';
+        return l10n.firestorePermissionDenied;
       case 'unavailable':
-        return 'Firestore no está disponible. Revisa tu conexión.';
+        return l10n.firestoreUnavailable;
       case 'not-found':
-        return 'El integrante ya no existe.';
+        return l10n.firestoreNotFound;
       default:
-        return 'Error al procesar la solicitud. Intenta de nuevo.';
+        return l10n.firestoreGenericError;
     }
   }
 }

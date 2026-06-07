@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../church/services/church_service.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../leaders/services/leader_service.dart';
 import '../models/admin_user_record.dart';
 import '../models/app_permissions.dart';
@@ -30,8 +31,7 @@ class AdminsListScreen extends StatelessWidget {
     return RoleGate(
       permissions: permissions,
       allowed: permissions.canViewAdminsList,
-      deniedMessage:
-          'Solo el super administrador puede gestionar administradores.',
+      deniedMessage: context.l10n.adminsDenied,
       child: _AdminsListBody(
         updatedBy: updatedBy,
         permissions: permissions,
@@ -92,10 +92,11 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
     try {
       final churches = await _churchService.fetchChurches();
       if (!mounted) return;
+      final noName = context.l10n.commonNoName;
       setState(() {
         _churchNames = {
           for (final c in churches)
-            c.id: c.name.isNotEmpty ? c.name : '(Sin nombre)',
+            c.id: c.name.isNotEmpty ? c.name : noName,
         };
       });
     } catch (_) {}
@@ -133,8 +134,9 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
   }
 
   String _churchLabel(String? churchId) {
-    if (churchId == null || churchId.isEmpty) return 'Sin iglesia asignada';
-    return _churchNames[churchId] ?? 'Iglesia ($churchId)';
+    final l10n = context.l10n;
+    if (churchId == null || churchId.isEmpty) return l10n.adminsNoChurch;
+    return _churchNames[churchId] ?? l10n.adminsChurchLabel(churchId);
   }
 
   void _openCreate() {
@@ -187,24 +189,24 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
   Future<void> _confirmBlock(AdminUserRecord admin, {required bool block}) async {
     if (!widget.permissions.canBlockAdmin || _actionInProgress) return;
 
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(block ? 'Bloquear administrador' : 'Desbloquear administrador'),
+        title: Text(block ? l10n.adminsBlockTitle : l10n.adminsUnblockTitle),
         content: Text(
           block
-              ? '¿Bloquear a "${admin.displayName}"?\n\n'
-                  'No podrá iniciar sesión hasta que lo desbloquees.'
-              : '¿Desbloquear a "${admin.displayName}" y permitir el acceso de nuevo?',
+              ? l10n.adminsBlockConfirm(admin.displayName)
+              : l10n.adminsUnblockConfirm(admin.displayName),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(block ? 'Bloquear' : 'Desbloquear'),
+            child: Text(block ? l10n.commonBlock : l10n.commonUnblock),
           ),
         ],
       ),
@@ -220,10 +222,10 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
         updatedBy: widget.updatedBy,
       );
       if (!mounted) return;
-      _showMessage(block ? 'Administrador bloqueado' : 'Administrador desbloqueado');
+      _showMessage(block ? l10n.adminsBlocked : l10n.adminsUnblocked);
     } catch (e) {
       if (!mounted) return;
-      _showMessage(UserProfileService.messageFromException(e));
+      _showMessage(UserProfileService.messageFromException(e, context.l10n));
     } finally {
       if (mounted) setState(() => _actionInProgress = false);
     }
@@ -242,15 +244,17 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Administradores'),
+        title: Text(l10n.adminsTitle),
       ),
       floatingActionButton: widget.permissions.canRegisterAdmin
           ? FloatingActionButton.extended(
               onPressed: _actionInProgress ? null : _openCreate,
               icon: const Icon(Icons.person_add_outlined),
-              label: const Text('Nuevo'),
+              label: Text(l10n.commonNew),
             )
           : null,
       body: StreamBuilder<List<AdminUserRecord>>(
@@ -266,8 +270,7 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'No se pudo cargar los administradores.\n'
-                  'Verifica Firestore y el índice de la colección "users".',
+                  l10n.adminsLoadError,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
@@ -294,7 +297,7 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Aún no hay administradores registrados',
+                      l10n.adminsEmpty,
                       style: Theme.of(context).textTheme.titleMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -303,7 +306,7 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
                       FilledButton.icon(
                         onPressed: _openCreate,
                         icon: const Icon(Icons.person_add_outlined),
-                        label: const Text('Registrar administrador'),
+                        label: Text(l10n.adminsRegister),
                       ),
                   ],
                 ),
@@ -319,10 +322,10 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
                 child: TextField(
                   controller: _searchController,
                   onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
-                    hintText: 'Buscar por nombre, correo o iglesia…',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    hintText: l10n.adminsSearchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -332,8 +335,8 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
                   child: FilterChip(
                     label: Text(
                       _hideBlocked
-                          ? 'Mostrar bloqueados ($blockedCount)'
-                          : 'Ocultar bloqueados ($blockedCount)',
+                          ? l10n.adminsShowBlocked(blockedCount)
+                          : l10n.adminsHideBlocked(blockedCount),
                     ),
                     selected: _hideBlocked,
                     onSelected: _actionInProgress
@@ -346,8 +349,8 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
                   child: Center(
                     child: Text(
                       _searchController.text.trim().isEmpty && _hideBlocked
-                          ? 'Todos los administradores están bloqueados'
-                          : 'No hay coincidencias',
+                          ? l10n.adminsAllBlocked
+                          : l10n.commonNoMatches,
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
@@ -388,7 +391,7 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
                                 Padding(
                                   padding: const EdgeInsets.only(left: 8),
                                   child: Chip(
-                                    label: const Text('Bloqueado'),
+                                    label: Text(l10n.commonBlocked),
                                     visualDensity: VisualDensity.compact,
                                     materialTapTargetSize:
                                         MaterialTapTargetSize.shrinkWrap,
@@ -420,15 +423,17 @@ class _AdminsListBodyState extends State<_AdminsListBody> {
                             enabled: !_actionInProgress,
                             onSelected: (value) => _onMenuAction(value, admin),
                             itemBuilder: (context) => [
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'edit',
-                                child: Text('Editar'),
+                                child: Text(l10n.commonEdit),
                               ),
                               if (widget.permissions.canBlockAdmin)
                                 PopupMenuItem(
                                   value: blocked ? 'unblock' : 'block',
                                   child: Text(
-                                    blocked ? 'Desbloquear' : 'Bloquear',
+                                    blocked
+                                        ? l10n.commonUnblock
+                                        : l10n.commonBlock,
                                   ),
                                 ),
                             ],

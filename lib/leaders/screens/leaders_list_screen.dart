@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../core/locale/l10n_extensions.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/church_leader.dart';
 import '../services/leader_service.dart';
 import '../services/leaders_excel_export_service.dart';
@@ -65,7 +67,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
     super.dispose();
   }
 
-  bool _matchesSearch(ChurchLeader leader, String query) {
+  bool _matchesSearch(ChurchLeader leader, String query, AppLocalizations l10n) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return true;
     final haystack = [
@@ -75,7 +77,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
       leader.cellCode,
       leader.mobilePhone,
       leader.email,
-      leader.churchOffice?.label,
+      leader.churchOffice?.localizedLabel(l10n),
     ].whereType<String>().join(' ').toLowerCase();
     return haystack.contains(q);
   }
@@ -119,9 +121,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo exportar el listado. Intenta de nuevo.'),
-        ),
+        SnackBar(content: Text(context.l10n.commonExportError)),
       );
     } finally {
       if (mounted) setState(() => _exporting = false);
@@ -129,27 +129,26 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
   }
 
   Future<void> _confirmDelete(BuildContext context, ChurchLeader leader) async {
+    final l10n = context.l10n;
     final id = leader.id;
     if (id == null) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar líder'),
-        content: Text(
-          '¿Eliminar a ${leader.fullName}? Esta acción no se puede deshacer.',
-        ),
+        title: Text(l10n.leadersListDeleteTitle),
+        content: Text(l10n.commonDeleteConfirm(leader.fullName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
-            child: const Text('Eliminar'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),
@@ -161,13 +160,13 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
       await (widget.leaderService ?? LeaderService()).deleteLeader(id);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Líder eliminado')),
+        SnackBar(content: Text(l10n.leadersListDeleted)),
       );
     } on FirebaseException catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(LeaderService.messageFromFirestoreException(e)),
+          content: Text(LeaderService.messageFromFirestoreException(e, context.l10n)),
         ),
       );
     }
@@ -175,6 +174,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final service = widget.leaderService ?? LeaderService();
 
     return StreamBuilder<List<ChurchLeader>>(
@@ -182,16 +182,16 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
       builder: (context, snapshot) {
         final leaders = snapshot.data ?? [];
         final filtered = leaders
-            .where((l) => _matchesSearch(l, _searchController.text))
+            .where((l) => _matchesSearch(l, _searchController.text, l10n))
             .toList();
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Líderes'),
+            title: Text(l10n.leadersListTitle),
             actions: [
               if (snapshot.hasData && leaders.isNotEmpty)
                 IconButton(
-                  tooltip: 'Descargar Excel',
+                  tooltip: l10n.membersListExportExcel,
                   onPressed: _exporting || filtered.isEmpty
                       ? null
                       : () => _exportToExcel(filtered),
@@ -220,7 +220,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                     );
                   },
                   icon: const Icon(Icons.person_add),
-                  label: const Text('Nuevo'),
+                  label: Text(l10n.commonNew),
                 )
               : null,
           body: Builder(
@@ -234,8 +234,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'No se pudo cargar la lista.\n'
-                  'Verifica Firestore y las reglas de la colección "leaders".',
+                  l10n.leadersListLoadError,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.error,
@@ -259,7 +258,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Aún no hay líderes registrados',
+                      l10n.leadersListEmpty,
                       style: Theme.of(context).textTheme.titleMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -277,10 +276,10 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                 child: TextField(
                   controller: _searchController,
                   onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
-                    hintText: 'Buscar por nombre, teléfono, correo o célula…',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    hintText: l10n.leadersListSearchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -288,7 +287,7 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                 Expanded(
                   child: Center(
                     child: Text(
-                      'No hay coincidencias',
+                      l10n.commonNoMatches,
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
@@ -302,8 +301,10 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                     itemBuilder: (context, index) {
               final leader = filtered[index];
               final parts = <String>[
-                if (leader.churchOffice != null) leader.churchOffice!.label,
-                if (leader.cellCode != null) 'Célula ${leader.cellCode}',
+                if (leader.churchOffice != null)
+                  leader.churchOffice!.localizedLabel(l10n),
+                if (leader.cellCode != null)
+                  l10n.leadersListCellPrefix(leader.cellCode!),
                 leader.mobilePhone,
                 if (leader.email != null) leader.email!,
               ];
@@ -342,24 +343,24 @@ class _LeadersListBodyState extends State<_LeadersListBody> {
                       }
                     },
                     itemBuilder: (_) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'view',
-                        child: Text('Ver detalle'),
+                        child: Text(l10n.leadersListViewLeader),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'members',
-                        child: Text('Ver integrantes asignados'),
+                        child: Text(l10n.leadersListViewMembers),
                       ),
                       if (widget.permissions.canManageAll) ...[
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'edit',
-                          child: Text('Editar'),
+                          child: Text(l10n.commonEdit),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'delete',
                           child: Text(
-                            'Eliminar',
-                            style: TextStyle(color: Colors.red),
+                            l10n.commonDelete,
+                            style: const TextStyle(color: Colors.red),
                           ),
                         ),
                       ],

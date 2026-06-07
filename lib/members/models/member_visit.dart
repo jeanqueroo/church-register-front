@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../l10n/app_localizations.dart';
 import 'spiritual_state.dart';
 import 'visit_place.dart';
 
@@ -84,6 +85,22 @@ class MemberVisit {
     if (value is Timestamp) return value.toDate();
     if (value is DateTime) return value;
     return null;
+  }
+
+  List<String> summaryLinesFor(AppLocalizations l10n) {
+    String yesNo(bool value) => value ? l10n.commonYes : l10n.commonNo;
+    return [
+      visitPlace.localizedLabel(l10n),
+      if (approximateDuration != null && approximateDuration!.trim().isNotEmpty)
+        l10n.visitDuration(approximateDuration!.trim()),
+      l10n.visitPrayer(yesNo(prayerPerformed)),
+      if (prayerRequests != null && prayerRequests!.trim().isNotEmpty)
+        l10n.visitRequests(prayerRequests!.trim()),
+      l10n.visitFollowUp(yesNo(needsFollowUp)),
+      if (spiritualState != null)
+        l10n.visitSpiritualState(spiritualState!.localizedLabel(l10n)),
+      comment,
+    ];
   }
 
   List<String> get summaryLines {

@@ -9,6 +9,7 @@ import '../../auth/services/auth_service.dart';
 import '../../auth/services/user_profile_service.dart';
 import '../../auth/widgets/assignable_roles_section.dart';
 import '../../address/widgets/address_fields_section.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
 import '../../core/widgets/form_section_title.dart';
@@ -159,13 +160,14 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
 
   Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = context.l10n;
 
     if (_churchOffice == null) {
-      _showMessage('Selecciona el cargo en la iglesia');
+      _showMessage(l10n.leaderRegSelectChurchOffice);
       return;
     }
     if (_selectedRoles.isEmpty) {
-      _showMessage('Selecciona al menos un rol en la app');
+      _showMessage(l10n.leaderRegSelectAtLeastOneRole);
       return;
     }
 
@@ -182,9 +184,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
 
       if (location == null) {
         if (mounted) {
-          _showMessage(
-            'No se pudo ubicar la dirección. Selecciónala del autocompletado.',
-          );
+          _showMessage(l10n.memberAddressGeocodeFailed);
         }
         return;
       }
@@ -200,7 +200,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         if (authUserId == null) {
           throw FirebaseAuthException(
             code: 'unknown',
-            message: 'No se pudo crear el usuario',
+            message: l10n.authCreateUserFailed,
           );
         }
 
@@ -251,9 +251,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         );
 
         if (!mounted) return;
-        _showMessage(
-          'Líder registrado. Puede ingresar con su correo y contraseña.',
-        );
+        _showMessage(l10n.leaderRegSuccessWithLogin);
         Navigator.of(context).pop(true);
         return;
       }
@@ -306,19 +304,19 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
       }
 
       if (!mounted) return;
-      _showMessage('Líder actualizado correctamente');
+      _showMessage(l10n.leaderRegUpdatedSuccess);
       Navigator.of(context).pop(true);
     } on FirebaseAuthException catch (e) {
       if (mounted) {
-        _showMessage(AuthService.messageFromFirebaseAuthException(e));
+        _showMessage(AuthService.messageFromFirebaseAuthException(e, context.l10n));
       }
     } on FirebaseException catch (e) {
       if (mounted) {
-        _showMessage(LeaderService.messageFromFirestoreException(e));
+        _showMessage(LeaderService.messageFromFirestoreException(e, context.l10n));
       }
     } catch (_) {
       if (mounted) {
-        _showMessage('Error inesperado al guardar.');
+        _showMessage(context.l10n.memberSaveUnexpectedError);
       }
     } finally {
       if (mounted) {
@@ -329,6 +327,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final permissions = widget._permissions;
     return RoleGate(
       permissions: permissions,
@@ -336,11 +335,11 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           ? permissions.canManageAll
           : permissions.canRegisterLeader,
       deniedMessage: widget.isEditing
-          ? 'Solo el administrador puede editar líderes.'
-          : 'No tienes permiso para registrar líderes.',
+          ? l10n.leaderRegEditDenied
+          : l10n.leaderRegRegisterDenied,
       child: Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Editar líder' : 'Nuevo líder'),
+        title: Text(widget.isEditing ? l10n.leaderRegEditTitle : l10n.leaderRegNewTitle),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -350,35 +349,35 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const FormSectionTitle('DATOS DEL LIDERAZGO'),
+                FormSectionTitle(l10n.leaderDetailSectionLeadership),
                 TextFormField(
                   controller: _lastNameController,
                   textCapitalization: TextCapitalization.words,
                   enabled: !_isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Apellido *',
-                    prefixIcon: Icon(Icons.person_outline),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.leaderRegLastName,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Ingresa el apellido' : null,
+                      v == null || v.trim().isEmpty ? l10n.leaderRegLastNameRequired : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _firstNameController,
                   textCapitalization: TextCapitalization.words,
                   enabled: !_isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombres *',
-                    prefixIcon: Icon(Icons.person_outline),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.leaderRegFirstNames,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Ingresa los nombres' : null,
+                      v == null || v.trim().isEmpty ? l10n.leaderRegFirstNamesRequired : null,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Género',
+                  l10n.memberGender,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
@@ -388,7 +387,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                   spacing: 8,
                   children: LeaderGender.values.map((g) {
                     return FilterChip(
-                      label: Text(g.label),
+                      label: Text(g.localizedLabel(l10n)),
                       selected: _gender == g,
                       onSelected: _isLoading
                           ? null
@@ -409,19 +408,19 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                     setState(() => _leaderLocation = location);
                   },
                 ),
-                const FormSectionTitle('CARGO EN LA IGLESIA'),
+                FormSectionTitle(l10n.leaderRegSectionChurchOffice),
                 DropdownButtonFormField<ChurchOffice>(
                   initialValue: _churchOffice,
-                  decoration: const InputDecoration(
-                    labelText: 'Cargo *',
-                    prefixIcon: Icon(Icons.church_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.leaderRegChurchOffice,
+                    prefixIcon: const Icon(Icons.church_outlined),
+                    border: const OutlineInputBorder(),
                   ),
                   items: ChurchOffice.values
                       .map(
                         (office) => DropdownMenuItem(
                           value: office,
-                          child: Text(office.label),
+                          child: Text(office.localizedLabel(l10n)),
                         ),
                       )
                       .toList(),
@@ -429,10 +428,10 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                       ? null
                       : (value) => setState(() => _churchOffice = value),
                   validator: (value) =>
-                      value == null ? 'Selecciona el cargo' : null,
+                      value == null ? l10n.leaderRegSelectChurchOfficeField : null,
                 ),
                 const SizedBox(height: 24),
-                const FormSectionTitle('ROLES EN LA APP'),
+                FormSectionTitle(l10n.leaderDetailSectionRoles),
                 if (_loadingRoles)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
@@ -448,8 +447,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      'Sin cuenta de acceso: los roles se aplicarán cuando '
-                      'se cree el usuario.',
+                      l10n.leaderRegNoAccessAccountHint,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
@@ -458,16 +456,16 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                     ),
                   ),
                 const SizedBox(height: 24),
-                const FormSectionTitle('CÉLULA Y CONTACTO'),
+                FormSectionTitle(l10n.leaderDetailSectionCellContact),
                 TextFormField(
                   controller: _cellCodeController,
                   enabled: !_isLoading,
                   textCapitalization: TextCapitalization.characters,
-                  decoration: const InputDecoration(
-                    labelText: 'Célula',
-                    hintText: 'Ej: Ñ10, E4, L4',
-                    prefixIcon: Icon(Icons.groups_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.leaderRegCell,
+                    hintText: l10n.leaderRegCellHint,
+                    prefixIcon: const Icon(Icons.groups_outlined),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -475,22 +473,21 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                   controller: _mobilePhoneController,
                   keyboardType: TextInputType.phone,
                   enabled: !_isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Celular / Móvil *',
-                    hintText: 'Ej: 15-1234-5678',
-                    prefixIcon: Icon(Icons.phone_android_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.leaderDetailMobile,
+                    prefixIcon: const Icon(Icons.phone_android_outlined),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Ingresa el celular' : null,
+                      v == null || v.trim().isEmpty ? l10n.leaderRegMobileRequired : null,
                 ),
                 const SizedBox(height: 24),
-                const FormSectionTitle('ACCESO A LA APP'),
+                FormSectionTitle(l10n.leaderRegSectionAppAccess),
                 if (!widget.isEditing)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Text(
-                      'El líder ingresará con su correo como usuario.',
+                      l10n.leaderRegEmailLoginHint,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
@@ -509,14 +506,14 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                       widget.leaderToEdit?.authUserId != null,
                   decoration: InputDecoration(
                     labelText: widget.isEditing
-                        ? 'Correo (usuario de acceso)'
-                        : 'Correo (usuario de acceso) *',
+                        ? l10n.leaderRegEmailLabel
+                        : l10n.leaderRegEmailLabelRequired,
                     prefixIcon: const Icon(Icons.email_outlined),
                     border: const OutlineInputBorder(),
                     helperText: widget.isEditing &&
                             widget.leaderToEdit?.authUserId != null
-                        ? 'La cuenta ya fue creada; el correo no se puede cambiar aquí'
-                        : 'Será el usuario para iniciar sesión',
+                        ? l10n.leaderRegEmailLockedHelper
+                        : l10n.leaderRegEmailLoginHelper,
                   ),
                   validator: (v) {
                     if (widget.isEditing &&
@@ -524,9 +521,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                       return null;
                     }
                     if (v == null || v.trim().isEmpty) {
-                      return 'Ingresa el correo del líder';
+                      return l10n.leaderRegEmailRequired;
                     }
-                    if (!v.contains('@')) return 'Correo no válido';
+                    if (!v.contains('@')) return l10n.emailInvalid;
                     return null;
                   },
                 ),
@@ -537,7 +534,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                     obscureText: _obscurePassword,
                     enabled: !_isLoading,
                     decoration: InputDecoration(
-                      labelText: 'Contraseña *',
+                      labelText: l10n.passwordLabel,
                       prefixIcon: const Icon(Icons.lock_outlined),
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
@@ -555,10 +552,10 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                     ),
                     validator: (v) {
                       if (v == null || v.isEmpty) {
-                        return 'Ingresa una contraseña';
+                        return l10n.leaderRegPasswordRequired;
                       }
                       if (v.length < 6) {
-                        return 'Mínimo 6 caracteres';
+                        return l10n.passwordMinLength;
                       }
                       return null;
                     },
@@ -569,7 +566,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                     obscureText: _obscureConfirmPassword,
                     enabled: !_isLoading,
                     decoration: InputDecoration(
-                      labelText: 'Confirmar contraseña *',
+                      labelText: l10n.changePasswordConfirm,
                       prefixIcon: const Icon(Icons.lock_outlined),
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
@@ -588,7 +585,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                     ),
                     validator: (v) {
                       if (v != _passwordController.text) {
-                        return 'Las contraseñas no coinciden';
+                        return l10n.changePasswordMismatch;
                       }
                       return null;
                     },
@@ -606,10 +603,10 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                       : const Icon(Icons.save_outlined),
                   label: Text(
                     _isLoading
-                        ? 'Guardando...'
+                        ? l10n.commonSaving
                         : widget.isEditing
-                            ? 'Guardar cambios'
-                            : 'Registrar líder',
+                            ? l10n.memberSaveChanges
+                            : l10n.leaderRegSubmitButton,
                   ),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../church/screens/register_church_screen.dart';
+import '../../core/locale/language_settings_screen.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/whatsapp_list_tile.dart';
 import '../models/user_profile.dart';
@@ -18,10 +20,11 @@ class AccountHubScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final name = session.resolvedDisplayName.isNotEmpty
         ? session.resolvedDisplayName
-        : 'Usuario';
-    final roles = session.profile.permissions.roleLabels;
+        : l10n.user;
+    final roles = session.profile.permissions.roleLabelsFor(l10n);
     final permissions = session.profile.permissions;
     final churchId = session.profile.churchId;
     final showChurchData = permissions.canViewChurchData;
@@ -30,7 +33,7 @@ class AccountHubScreen extends StatelessWidget {
         permissions.isSupervisor;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mi cuenta')),
+      appBar: AppBar(title: Text(l10n.myAccount)),
       backgroundColor: AppColors.chatBackground,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -85,7 +88,7 @@ class AccountHubScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Roles en el sistema',
+                    l10n.systemRoles,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: AppColors.textSecondary,
                           fontWeight: FontWeight.w600,
@@ -133,10 +136,10 @@ class AccountHubScreen extends StatelessWidget {
                 children: [
                   WhatsappListTile(
                     icon: Icons.person_outline,
-                    title: 'Datos personales',
+                    title: l10n.personalData,
                     subtitle: editsFullPersonalData
-                        ? 'Nombre, dirección y teléfono'
-                        : 'Nombre de tu perfil',
+                        ? l10n.personalDataSubtitleFull
+                        : l10n.personalDataSubtitleName,
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
@@ -149,8 +152,8 @@ class AccountHubScreen extends StatelessWidget {
                   if (showChurchData)
                     WhatsappListTile(
                       icon: Icons.church_outlined,
-                      title: 'Datos de la iglesia',
-                      subtitle: 'Consulta los datos de tu sede',
+                      title: l10n.churchData,
+                      subtitle: l10n.churchDataSubtitle,
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute<void>(
@@ -166,12 +169,24 @@ class AccountHubScreen extends StatelessWidget {
                     ),
                   WhatsappListTile(
                     icon: Icons.lock_outline,
-                    title: 'Cambiar contraseña',
-                    subtitle: 'Actualiza la clave de acceso',
+                    title: l10n.changePassword,
+                    subtitle: l10n.changePasswordSubtitle,
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
                           builder: (_) => const ChangePasswordScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  WhatsappListTile(
+                    icon: Icons.translate_outlined,
+                    title: l10n.language,
+                    subtitle: l10n.languageSubtitle,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const LanguageSettingsScreen(),
                         ),
                       );
                     },

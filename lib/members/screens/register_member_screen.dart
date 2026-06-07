@@ -5,10 +5,12 @@ import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
 import '../../address/services/geocoding_service.dart';
 import '../../address/widgets/address_fields_section.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
 import '../../core/widgets/church_display_name.dart';
 import '../../core/widgets/form_section_title.dart';
+import '../../l10n/app_localizations.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../leaders/widgets/leader_search_field.dart';
@@ -89,7 +91,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   ChurchLeader? _selectedLeader;
   String? _pendingLeaderId;
 
-  static const _weekDays = [
+  static const _cellDayStorageValues = [
     'Lunes',
     'Martes',
     'Miércoles',
@@ -98,6 +100,17 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     'Sábado',
     'Domingo',
   ];
+
+  List<({String value, String label})> _cellDayOptions(AppLocalizations l10n) =>
+      [
+        (value: _cellDayStorageValues[0], label: l10n.weekdayMonday),
+        (value: _cellDayStorageValues[1], label: l10n.weekdayTuesday),
+        (value: _cellDayStorageValues[2], label: l10n.weekdayWednesday),
+        (value: _cellDayStorageValues[3], label: l10n.weekdayThursday),
+        (value: _cellDayStorageValues[4], label: l10n.weekdayFriday),
+        (value: _cellDayStorageValues[5], label: l10n.weekdaySaturday),
+        (value: _cellDayStorageValues[6], label: l10n.weekdaySunday),
+      ];
 
   @override
   void initState() {
@@ -288,6 +301,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     required String label,
     required String value,
     required VoidCallback onTap,
+    required String clearDateLabel,
     VoidCallback? onClear,
   }) {
     return Column(
@@ -317,7 +331,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: _isLoading ? null : onClear,
-              child: const Text('Quitar fecha'),
+              child: Text(clearDateLabel),
             ),
           ),
         ],
@@ -339,30 +353,27 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final l10n = context.l10n;
+
     if (widget._permissions.isRegistrar &&
         (_effectiveChurchId == null || _effectiveChurchId!.isEmpty)) {
-      _showMessage(
-        'Tu cuenta no tiene iglesia asignada. Contacta al administrador.',
-      );
+      _showMessage(l10n.memberNoChurchAssigned);
       return;
     }
 
     if (_manualLeader && _selectedLeader == null) {
-      _showMessage('Selecciona un líder de la lista');
+      _showMessage(l10n.memberSelectLeaderFromList);
       return;
     }
 
     if (!_manualLeader && _wantsVisit && _gender == null) {
-      _showMessage('Selecciona el género para asignar un líder automático');
+      _showMessage(l10n.memberGenderForAutoLeader);
       return;
     }
 
     if (_needsAddressForAssignment &&
         (!_includeAddress || _streetController.text.trim().isEmpty)) {
-      _showMessage(
-        'Activa "Incluir dirección" y selecciona una dirección del buscador '
-        'para asignar un líder automático.',
-      );
+      _showMessage(l10n.memberAddressRequiredAutoLeader);
       return;
     }
 
@@ -397,9 +408,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       } else if (_wantsVisit) {
         if (location == null) {
           if (mounted) {
-            _showMessage(
-              'No se pudo ubicar la dirección. Selecciónala del autocompletado.',
-            );
+            _showMessage(l10n.memberAddressGeocodeFailed);
           }
           return;
         }
@@ -484,33 +493,34 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       if (!mounted) return;
 
       if (widget.isEditing) {
-        _showMessage('Creyente actualizado correctamente');
+        _showMessage(l10n.memberUpdatedSuccess);
       } else if (assignedLeaderName != null) {
         final cellText = assignedLeaderCellCode != null
-            ? ' (Célula $assignedLeaderCellCode)'
+            ? l10n.memberCellCodeSuffix(assignedLeaderCellCode)
             : '';
         final distanceText = assignedDistanceKm != null
-            ? ' · ${assignedDistanceKm.toStringAsFixed(1)} km'
+            ? l10n.memberDistanceKm(assignedDistanceKm.toStringAsFixed(1))
             : '';
         _showMessage(
-          'Creyente registrado. Líder: '
-          '$assignedLeaderName$cellText$distanceText',
+          l10n.memberRegisteredWithLeader(
+            assignedLeaderName,
+            cellText,
+            distanceText,
+          ),
         );
       } else if (_wantsVisit && !_manualLeader) {
-        _showMessage(
-          'Creyente registrado. No hay líder del mismo género con dirección cercana.',
-        );
+        _showMessage(l10n.memberRegisteredNoNearbyLeader);
       } else {
-        _showMessage('Creyente registrado correctamente');
+        _showMessage(l10n.memberRegisteredSuccess);
       }
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
       if (mounted) {
-        _showMessage(MemberService.messageFromFirestoreException(e));
+        _showMessage(MemberService.messageFromFirestoreException(e, l10n));
       }
     } catch (_) {
       if (mounted) {
-        _showMessage('Error inesperado al guardar.');
+        _showMessage(l10n.memberSaveUnexpectedError);
       }
     } finally {
       if (mounted) {
@@ -519,14 +529,14 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     }
   }
 
-  Widget _leaderAssignmentSection() {
+  Widget _leaderAssignmentSection(AppLocalizations l10n) {
     final filtered = _leadersForPicker;
     final pickerLeaders = filtered.isNotEmpty ? filtered : _leaders;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const FormSectionTitle('LÍDER ASIGNADO'),
+        FormSectionTitle(l10n.memberSectionAssignedLeader),
         SwitchListTile(
           value: _manualLeader,
           onChanged: _isLoading
@@ -542,13 +552,13 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                     }
                   });
                 },
-          title: const Text('Elegir líder manualmente'),
+          title: Text(l10n.memberManualLeader),
           subtitle: Text(
             _manualLeader
-                ? 'Busca y elige un líder escribiendo su nombre'
+                ? l10n.memberManualLeaderSubtitle
                 : _wantsVisit
-                    ? 'Se asignará el líder más cercano del mismo género'
-                    : 'Sin líder hasta que actives visita o elijas uno',
+                    ? l10n.memberAutoLeaderSubtitle
+                    : l10n.memberNoLeaderSubtitle,
           ),
           secondary: const Icon(Icons.supervisor_account_outlined),
         ),
@@ -561,8 +571,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
             )
           else if (_leaders.isEmpty)
             Text(
-              'No hay líderes con rol de líder en la app. '
-              'Asigna el rol Líder al registrar un líder.',
+              l10n.memberNoLeadersAvailable,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.error,
                   ),
@@ -575,14 +584,15 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
               enabled: !_isLoading,
               onLeaderSelected: (leader) =>
                   setState(() => _selectedLeader = leader),
-              validator: (value) =>
-                  _manualLeader && value == null ? 'Selecciona un líder' : null,
+              validator: (value) => _manualLeader && value == null
+                  ? l10n.memberSelectLeader
+                  : null,
             ),
           if (_gender != null && pickerLeaders.length < _leaders.length)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
-                'Mostrando líderes compatibles con el género seleccionado.',
+                l10n.memberCompatibleLeadersHint,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -605,12 +615,12 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     _memberLocation = null;
   }
 
-  Widget _genderSelector() {
+  Widget _genderSelector(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          _wantsVisit ? 'Género *' : 'Género',
+          _wantsVisit ? l10n.memberGenderRequired : l10n.memberGender,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
@@ -620,7 +630,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
           spacing: 8,
           children: LeaderGender.values.map((g) {
             return FilterChip(
-              label: Text(g.label),
+              label: Text(g.localizedLabel(l10n)),
               selected: _gender == g,
               onSelected: _isLoading
                   ? null
@@ -642,20 +652,21 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   @override
   Widget build(BuildContext context) {
     final permissions = widget._permissions;
+    final l10n = context.l10n;
+    final cellDayOptions = _cellDayOptions(l10n);
+
     return RoleGate(
       permissions: permissions,
       allowed: widget.isEditing
           ? permissions.canManageMembers
           : permissions.canRegisterMember,
       deniedMessage: widget.isEditing
-          ? 'No tienes permiso para editar creyentes.'
-          : 'No tienes permiso para registrar creyentes.',
+          ? l10n.memberNoPermissionEdit
+          : l10n.memberNoPermissionRegister,
       child: Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.isEditing
-              ? 'Editar creyente'
-              : 'Registro de nuevo creyente',
+          widget.isEditing ? l10n.memberEditTitle : l10n.memberRegisterTitle,
         ),
       ),
       body: SafeArea(
@@ -678,39 +689,41 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                 ),
                 const SizedBox(height: 16),
                 _dateField(
-                  label: 'Fecha',
+                  label: l10n.memberFormDate,
                   value: _formatDate(_formDate),
                   onTap: _pickFormDate,
+                  clearDateLabel: l10n.memberClearDate,
                 ),
-                const FormSectionTitle('DATOS PERSONALES'),
+                FormSectionTitle(l10n.memberSectionPersonalData),
                 TextFormField(
                   controller: _firstNameController,
                   textCapitalization: TextCapitalization.words,
                   enabled: !_isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre *',
-                    prefixIcon: Icon(Icons.person_outline),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.memberFirstName,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: const OutlineInputBorder(),
                   ),
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Ingresa el nombre' : null,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? l10n.memberFirstNameRequired
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _lastNameController,
                   textCapitalization: TextCapitalization.words,
                   enabled: !_isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Apellidos *',
-                    prefixIcon: Icon(Icons.person_outline),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.memberLastName,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty
-                      ? 'Ingresa los apellidos'
+                      ? l10n.memberLastNameRequired
                       : null,
                 ),
                 const SizedBox(height: 12),
-                _genderSelector(),
+                _genderSelector(l10n),
                 const SizedBox(height: 16),
                 SwitchListTile(
                   value: _includeAddress,
@@ -724,11 +737,11 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                             }
                           });
                         },
-                  title: const Text('Incluir dirección'),
+                  title: Text(l10n.memberIncludeAddress),
                   subtitle: Text(
                     _needsAddressForAssignment
-                        ? 'Requerida para asignar un líder automático'
-                        : 'Opcional: datos de domicilio del creyente',
+                        ? l10n.memberAddressRequiredForLeader
+                        : l10n.memberAddressOptional,
                   ),
                   secondary: const Icon(Icons.location_on_outlined),
                 ),
@@ -754,31 +767,33 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   enabled: !_isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Teléfono *',
-                    prefixIcon: Icon(Icons.phone_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.memberPhone,
+                    prefixIcon: const Icon(Icons.phone_outlined),
+                    border: const OutlineInputBorder(),
                   ),
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Ingresa el teléfono' : null,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? l10n.memberPhoneRequired
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 FormField<DateTime>(
                   key: _birthDateFieldKey,
                   initialValue: _birthDate,
                   validator: (value) =>
-                      value == null ? 'Selecciona la fecha de nacimiento' : null,
+                      value == null ? l10n.memberBirthDateRequired : null,
                   builder: (field) {
                     final age = _ageFromBirthDate(_birthDate);
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _dateField(
-                          label: 'Fecha de nacimiento *',
+                          label: l10n.memberBirthDate,
                           value: _birthDate != null
                               ? _formatDate(_birthDate!)
-                              : 'Seleccionar fecha',
+                              : l10n.memberSelectDate,
                           onTap: _pickBirthDate,
+                          clearDateLabel: l10n.memberClearDate,
                         ),
                         if (field.hasError) ...[
                           const SizedBox(height: 4),
@@ -793,7 +808,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                         const SizedBox(height: 16),
                         InputDecorator(
                           decoration: InputDecoration(
-                            labelText: 'Edad *',
+                            labelText: l10n.memberAge,
                             prefixIcon: const Icon(Icons.cake_outlined),
                             border: const OutlineInputBorder(),
                             filled: true,
@@ -805,7 +820,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                                 : null,
                           ),
                           child: Text(
-                            age != null ? '$age años' : '—',
+                            age != null ? l10n.memberAgeYears(age) : '—',
                             style: TextStyle(
                               color: age != null
                                   ? Theme.of(context).colorScheme.onSurface
@@ -824,13 +839,13 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   controller: _occupationController,
                   textCapitalization: TextCapitalization.words,
                   enabled: !_isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Ocupación *',
-                    prefixIcon: Icon(Icons.work_outline),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.memberOccupation,
+                    prefixIcon: const Icon(Icons.work_outline),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty
-                      ? 'Ingresa la ocupación'
+                      ? l10n.memberOccupationRequired
                       : null,
                 ),
                 const SizedBox(height: 12),
@@ -838,13 +853,13 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   key: _maritalStatusFieldKey,
                   initialValue: _maritalStatus,
                   validator: (value) =>
-                      value == null ? 'Selecciona el estado civil' : null,
+                      value == null ? l10n.memberMaritalStatusRequired : null,
                   builder: (field) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Estado civil *',
+                          l10n.memberMaritalStatus,
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w500,
@@ -857,7 +872,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                           children: MaritalStatus.values.map((status) {
                             final selected = _maritalStatus == status;
                             return FilterChip(
-                              label: Text(status.label),
+                              label: Text(status.localizedLabel(l10n)),
                               selected: selected,
                               onSelected: _isLoading
                                   ? null
@@ -883,16 +898,21 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                     );
                   },
                 ),
-                const FormSectionTitle('HORARIO PARA CÉLULA'),
+                FormSectionTitle(l10n.memberSectionCellSchedule),
                 DropdownButtonFormField<String>(
                   initialValue: _cellDay,
-                  decoration: const InputDecoration(
-                    labelText: 'Día',
-                    prefixIcon: Icon(Icons.event_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.memberCellDay,
+                    prefixIcon: const Icon(Icons.event_outlined),
+                    border: const OutlineInputBorder(),
                   ),
-                  items: _weekDays
-                      .map((d) => DropdownMenuItem(value: d, child: Text(d)))
+                  items: cellDayOptions
+                      .map(
+                        (day) => DropdownMenuItem(
+                          value: day.value,
+                          child: Text(day.label),
+                        ),
+                      )
                       .toList(),
                   onChanged: _isLoading
                       ? null
@@ -903,15 +923,15 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   onTap: _isLoading ? null : _pickCellTime,
                   borderRadius: BorderRadius.circular(4),
                   child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Horario',
-                      prefixIcon: Icon(Icons.access_time_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.memberCellTime,
+                      prefixIcon: const Icon(Icons.access_time_outlined),
+                      border: const OutlineInputBorder(),
                       filled: true,
                     ),
                     child: Text(
                       _cellTimeController.text.isEmpty
-                          ? 'Seleccionar hora'
+                          ? l10n.memberSelectTime
                           : _cellTimeController.text,
                       style: TextStyle(
                         color: _cellTimeController.text.isEmpty
@@ -926,13 +946,13 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   controller: _cellZoneController,
                   textCapitalization: TextCapitalization.words,
                   enabled: !_isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Zona',
-                    prefixIcon: Icon(Icons.map_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.memberCellZone,
+                    prefixIcon: const Icon(Icons.map_outlined),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
-                const FormSectionTitle('VISITA'),
+                FormSectionTitle(l10n.memberSectionVisit),
                 SwitchListTile(
                   value: _wantsVisit,
                   onChanged: _isLoading
@@ -943,23 +963,21 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                               _includeAddress = true;
                             }
                           }),
-                  title: const Text('Desea ser visitado'),
-                  subtitle: const Text(
-                    'Indica si la persona solicita una visita domiciliaria',
-                  ),
+                  title: Text(l10n.memberWantsVisit),
+                  subtitle: Text(l10n.memberWantsVisitSubtitle),
                   secondary: const Icon(Icons.home_outlined),
                 ),
                 const SizedBox(height: 8),
-                _leaderAssignmentSection(),
-                const FormSectionTitle('OBSERVACIONES'),
+                _leaderAssignmentSection(l10n),
+                FormSectionTitle(l10n.memberSectionObservations),
                 TextFormField(
                   controller: _observationsController,
                   enabled: !_isLoading,
                   maxLines: 4,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
-                    hintText: 'Notas adicionales...',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    hintText: l10n.memberObservationsHint,
+                    border: const OutlineInputBorder(),
                     alignLabelWithHint: true,
                   ),
                 ),
@@ -968,10 +986,10 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   controller: _volunteerController,
                   textCapitalization: TextCapitalization.words,
                   enabled: !_isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Voluntario',
-                    prefixIcon: Icon(Icons.volunteer_activism_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.memberVolunteer,
+                    prefixIcon: const Icon(Icons.volunteer_activism_outlined),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -986,10 +1004,10 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                       : const Icon(Icons.save_outlined),
                   label: Text(
                     _isLoading
-                        ? 'Guardando...'
+                        ? l10n.memberSaving
                         : widget.isEditing
-                            ? 'Guardar cambios'
-                            : 'Registrar creyente',
+                            ? l10n.memberSaveChanges
+                            : l10n.memberRegisterButton,
                   ),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),

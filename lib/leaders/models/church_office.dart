@@ -1,3 +1,5 @@
+import '../../l10n/app_localizations.dart';
+
 /// Cargo en la iglesia (campo `churchOffice` en Firestore / `leaders`).
 enum ChurchOffice {
   lideres('lideres', 'Líderes'),
@@ -10,6 +12,21 @@ enum ChurchOffice {
 
   final String code;
   final String label;
+
+  String localizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case ChurchOffice.lideres:
+        return l10n.churchOfficeLeader;
+      case ChurchOffice.ancianoMenor:
+        return l10n.churchOfficeJuniorElder;
+      case ChurchOffice.anciano:
+        return l10n.churchOfficeElder;
+      case ChurchOffice.ancianoMayor:
+        return l10n.churchOfficeSeniorElder;
+      case ChurchOffice.voluntario:
+        return l10n.churchOfficeVolunteer;
+    }
+  }
 
   static ChurchOffice? fromCode(String? code) {
     if (code == null || code.isEmpty) return null;

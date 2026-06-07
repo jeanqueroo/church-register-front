@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../firebase_options.dart';
 
 class AuthService {
@@ -71,31 +72,34 @@ class AuthService {
     return _auth.sendPasswordResetEmail(email: email.trim());
   }
 
-  static String messageFromFirebaseAuthException(FirebaseAuthException e) {
+  static String messageFromFirebaseAuthException(
+    FirebaseAuthException e,
+    AppLocalizations l10n,
+  ) {
     switch (e.code) {
       case 'invalid-email':
-        return 'El correo electrónico no es válido.';
+        return l10n.authInvalidEmail;
       case 'user-disabled':
-        return 'Esta cuenta ha sido deshabilitada.';
+        return l10n.authUserDisabled;
       case 'user-not-found':
-        return 'No existe una cuenta con este correo.';
+        return l10n.authUserNotFound;
       case 'wrong-password':
       case 'invalid-credential':
-        return 'Correo o contraseña incorrectos.';
+        return l10n.authWrongPassword;
       case 'email-already-in-use':
-        return 'Ya existe una cuenta con este correo.';
+        return l10n.authEmailInUse;
       case 'weak-password':
-        return 'La contraseña debe tener al menos 6 caracteres.';
+        return l10n.authWeakPassword;
       case 'requires-recent-login':
-        return 'Por seguridad, vuelve a iniciar sesión e intenta de nuevo.';
+        return l10n.authRequiresRecentLogin;
       case 'too-many-requests':
-        return 'Demasiados intentos. Intenta más tarde.';
+        return l10n.authTooManyRequests;
       case 'network-request-failed':
-        return 'Sin conexión. Revisa tu internet.';
+        return l10n.authNetworkError;
       case 'operation-not-allowed':
-        return 'El registro por correo no está habilitado en Firebase.';
+        return l10n.authOperationNotAllowed;
       default:
-        return 'Error de autenticación. Intenta de nuevo.';
+        return l10n.authGenericError;
     }
   }
 }

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../../auth/models/app_permissions.dart';
 import '../../auth/models/app_user_role.dart';
 import '../../auth/services/user_profile_service.dart';
+import '../../core/locale/l10n_extensions.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/church_leader.dart';
 import '../services/leader_service.dart';
 import 'leader_assigned_members_screen.dart';
@@ -41,27 +43,26 @@ class LeaderDetailScreen extends StatelessWidget {
   }
 
   Future<void> _delete(BuildContext context) async {
+    final l10n = context.l10n;
     final id = leader.id;
     if (id == null) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar líder'),
-        content: Text(
-          '¿Eliminar a ${leader.fullName}? Esta acción no se puede deshacer.',
-        ),
+        title: Text(l10n.leadersListDeleteTitle),
+        content: Text(l10n.commonDeleteConfirm(leader.fullName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
-            child: const Text('Eliminar'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),
@@ -73,21 +74,63 @@ class LeaderDetailScreen extends StatelessWidget {
       await (leaderService ?? LeaderService()).deleteLeader(id);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Líder eliminado')),
+        SnackBar(content: Text(l10n.leaderDetailDeleted)),
       );
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(LeaderService.messageFromFirestoreException(e)),
+          content: Text(LeaderService.messageFromFirestoreException(e, context.l10n)),
         ),
       );
     }
   }
 
+  List<_Row> _leadershipRows(AppLocalizations l10n) {
+    return [
+      _Row(l10n.leaderDetailLastName, leader.lastName),
+      _Row(l10n.leaderDetailFirstNames, leader.firstName),
+      _Row(
+        l10n.memberDetailGender,
+        leader.gender?.localizedLabel(l10n),
+      ),
+      _Row(
+        l10n.leaderDetailChurchOffice,
+        leader.churchOffice?.localizedLabel(l10n),
+      ),
+    ];
+  }
+
+  List<_Row> _addressRows(AppLocalizations l10n) {
+    return [
+      _Row(l10n.addressStreetOptional, leader.street),
+      _Row(l10n.addressNumber, leader.streetNumber),
+      _Row(l10n.addressNeighborhood, leader.neighborhood),
+      _Row(l10n.addressLocality, leader.locality),
+      _Row(l10n.addressStateProvince, leader.stateProvince),
+      _Row(l10n.addressPostalCode, leader.postalCode),
+    ];
+  }
+
+  List<_Row> _cellContactRows(AppLocalizations l10n) {
+    return [
+      _Row(l10n.memberDetailCell, leader.cellCode),
+      _Row(l10n.emailLabel, leader.email),
+      _Row(l10n.leaderDetailMobile, leader.mobilePhone),
+    ];
+  }
+
+  List<_Row> _registrationRows(AppLocalizations l10n) {
+    return [
+      _Row(l10n.memberDetailRegisteredBy, leader.registeredBy),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(leader.fullName),
@@ -95,12 +138,12 @@ class LeaderDetailScreen extends StatelessWidget {
           if (_permissions.canManageAll) ...[
             IconButton(
               icon: const Icon(Icons.edit_outlined),
-              tooltip: 'Editar',
+              tooltip: l10n.commonEdit,
               onPressed: () => _edit(context),
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              tooltip: 'Eliminar',
+              tooltip: l10n.commonDelete,
               onPressed: () => _delete(context),
             ),
           ],
@@ -110,40 +153,22 @@ class LeaderDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         children: [
           _Section(
-            title: 'Datos del liderazgo',
-            rows: [
-              _Row('Apellido', leader.lastName),
-              _Row('Nombres', leader.firstName),
-              _Row('Género', leader.gender?.label),
-              _Row('Cargo en la iglesia', leader.churchOffice?.label),
-            ],
+            title: l10n.leaderDetailSectionLeadership,
+            rows: _leadershipRows(l10n),
           ),
           if (leader.authUserId != null && leader.authUserId!.isNotEmpty)
-            _LeaderRolesSection(authUserId: leader.authUserId!),
+            _LeaderRolesSection(authUserId: leader.authUserId!, l10n: l10n),
           _Section(
-            title: 'Dirección',
-            rows: [
-              _Row('Calle', leader.street),
-              _Row('Número', leader.streetNumber),
-              _Row('Barrio', leader.neighborhood),
-              _Row('Localidad / Partido', leader.locality),
-              _Row('Estado / Provincia', leader.stateProvince),
-              _Row('Código postal', leader.postalCode),
-            ],
+            title: l10n.memberDetailSectionAddress,
+            rows: _addressRows(l10n),
           ),
           _Section(
-            title: 'Célula y contacto',
-            rows: [
-              _Row('Célula', leader.cellCode),
-              _Row('Correo', leader.email),
-              _Row('Celular / Móvil', leader.mobilePhone),
-            ],
+            title: l10n.leaderDetailSectionCellContact,
+            rows: _cellContactRows(l10n),
           ),
           _Section(
-            title: 'Registro',
-            rows: [
-              _Row('Registrado por', leader.registeredBy),
-            ],
+            title: l10n.memberDetailSectionRegistration,
+            rows: _registrationRows(l10n),
           ),
           if (_permissions.canManageAll ||
               _permissions.isLeader ||
@@ -162,7 +187,7 @@ class LeaderDetailScreen extends StatelessWidget {
                 );
               },
               icon: const Icon(Icons.people_outlined),
-              label: const Text('Ver integrantes asignados'),
+              label: Text(l10n.leaderDetailViewMembers),
             ),
             const SizedBox(height: 12),
           ],
@@ -170,13 +195,13 @@ class LeaderDetailScreen extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => _edit(context),
               icon: const Icon(Icons.edit_outlined),
-              label: const Text('Editar líder'),
+              label: Text(l10n.leaderDetailEditLeader),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: () => _delete(context),
               icon: const Icon(Icons.delete_outline),
-              label: const Text('Eliminar líder'),
+              label: Text(l10n.leaderDetailDeleteLeader),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error,
                 side: BorderSide(color: Theme.of(context).colorScheme.error),
@@ -190,9 +215,13 @@ class LeaderDetailScreen extends StatelessWidget {
 }
 
 class _LeaderRolesSection extends StatelessWidget {
-  const _LeaderRolesSection({required this.authUserId});
+  const _LeaderRolesSection({
+    required this.authUserId,
+    required this.l10n,
+  });
 
   final String authUserId;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -210,10 +239,13 @@ class _LeaderRolesSection extends StatelessWidget {
             : <String>[];
         if (roles.isEmpty) return const SizedBox.shrink();
 
-        final labels = roles.map(AppUserRole.label).toList()..sort();
+        final labels = roles
+            .map((role) => AppUserRole.localizedLabel(role, l10n))
+            .toList()
+          ..sort();
         return _Section(
-          title: 'Roles en la app',
-          rows: [_Row('Permisos', labels.join(', '))],
+          title: l10n.leaderDetailSectionRoles,
+          rows: [_Row(l10n.leaderDetailPermissions, labels.join(', '))],
         );
       },
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../models/member_visit.dart';
 import '../services/member_visit_service.dart';
 
@@ -28,6 +29,7 @@ class MemberVisitsSection extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final l10n = context.l10n;
     final service = visitService ?? MemberVisitService();
 
     return Padding(
@@ -36,7 +38,7 @@ class MemberVisitsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Visitas registradas',
+            l10n.memberVisitsTitle,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -59,7 +61,7 @@ class MemberVisitsSection extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      'No se pudieron cargar las visitas.',
+                      l10n.memberVisitsLoadError,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),
@@ -74,7 +76,7 @@ class MemberVisitsSection extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      'Aún no hay visitas registradas.',
+                      l10n.memberVisitsEmpty,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color:
                                 Theme.of(context).colorScheme.onSurfaceVariant,
@@ -93,15 +95,18 @@ class MemberVisitsSection extends StatelessWidget {
                           leading: const Icon(Icons.event_note_outlined),
                           title: Text(_formatDate(visit.visitDate)),
                           subtitle: Text(
-                            '${visit.visitPlace.label}'
-                            '${visit.needsFollowUp ? ' · Requiere seguimiento' : ''}',
+                            visit.visitPlace.localizedLabel(l10n) +
+                                (visit.needsFollowUp
+                                    ? l10n.memberVisitsNeedsFollowUp
+                                    : ''),
                           ),
                           children: [
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 0, 16, 16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: visit.summaryLines.map((line) {
+                                children: visit.summaryLinesFor(l10n).map((line) {
                                   return Padding(
                                     padding: const EdgeInsets.only(bottom: 6),
                                     child: Text(

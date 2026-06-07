@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/models/geo_location.dart';
 import '../models/address_place.dart';
 import '../services/google_places_service.dart';
@@ -14,8 +15,8 @@ class AddressAutocompleteField extends StatefulWidget {
     this.enabled = true,
     this.onPlaceSelected,
     this.onCoordinatesSelected,
-    this.labelText = 'Buscar dirección',
-    this.hintText = 'Escribe y elige una sugerencia...',
+    this.labelText,
+    this.hintText,
     this.placesService,
     this.validator,
     this.showInlineMapPreview = true,
@@ -26,8 +27,8 @@ class AddressAutocompleteField extends StatefulWidget {
   final bool enabled;
   final void Function(AddressPlace place)? onPlaceSelected;
   final void Function(GeoLocation location)? onCoordinatesSelected;
-  final String labelText;
-  final String hintText;
+  final String? labelText;
+  final String? hintText;
   final GooglePlacesService? placesService;
   final FormFieldValidator<String>? validator;
   final bool showInlineMapPreview;
@@ -107,10 +108,8 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
     if (!_service.isConfigured) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Configura la API key de Google Maps en maps_api_key.dart',
-            ),
+          SnackBar(
+            content: Text(context.l10n.addressAutocompleteApiKey),
           ),
         );
       }
@@ -133,8 +132,8 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
         _isSearching = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudieron cargar sugerencias de Google Maps.'),
+        SnackBar(
+          content: Text(context.l10n.addressAutocompleteLoadError),
         ),
       );
     }
@@ -163,6 +162,8 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -174,8 +175,8 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
           validator: widget.validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: InputDecoration(
-            labelText: widget.labelText,
-            hintText: widget.hintText,
+            labelText: widget.labelText ?? l10n.addressSearchOptional,
+            hintText: widget.hintText ?? l10n.addressSearchHint,
             prefixIcon: const Icon(Icons.search),
             suffixIcon: _isSearching
                 ? const Padding(

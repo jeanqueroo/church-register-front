@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../services/pastoral_dashboard_service.dart';
 
@@ -13,6 +14,7 @@ class PrayerPercentageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final percentage = stats.percentage;
     final displayPercent = percentage == percentage.roundToDouble()
         ? '${percentage.round()}%'
@@ -30,7 +32,7 @@ class PrayerPercentageCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Visitas con oración',
+                    l10n.dashboardPrayerVisitsTitle,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -59,9 +61,11 @@ class PrayerPercentageCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               stats.totalVisits == 0
-                  ? 'Sin visitas en el período seleccionado.'
-                  : '${stats.prayerVisits} de ${stats.totalVisits} visitas '
-                      'incluyeron oración.',
+                  ? l10n.dashboardPrayerVisitsEmpty
+                  : l10n.dashboardPrayerVisitsSummary(
+                      stats.prayerVisits,
+                      stats.totalVisits,
+                    ),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),

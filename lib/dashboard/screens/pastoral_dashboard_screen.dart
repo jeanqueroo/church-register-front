@@ -5,7 +5,9 @@ import '../../auth/models/user_profile.dart';
 import '../../auth/widgets/role_gate.dart';
 import '../../church/models/church_record.dart';
 import '../../church/services/church_service.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../members/screens/member_detail_screen.dart';
 import '../../members/services/member_service.dart';
@@ -71,7 +73,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
     _memberService = widget.memberService ?? MemberService();
     _assignmentService =
         widget.assignmentService ?? SupervisorAssignmentService();
-    _initialize();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initialize());
   }
 
   Future<void> _initialize() async {
@@ -84,18 +86,19 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
       if (widget.session.permissions.isSuperAdmin) {
         _churches = await _churchService.fetchChurches();
       }
-      _filter = await _buildFilter();
+      if (!mounted) return;
+      _filter = await _buildFilter(context.l10n);
       await _loadData();
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = PastoralDashboardService.messageFromException(e);
+        _error = PastoralDashboardService.messageFromException(e, context.l10n);
       });
     }
   }
 
-  Future<VisitDashboardFilter> _buildFilter() async {
+  Future<VisitDashboardFilter> _buildFilter(AppLocalizations l10n) async {
     final permissions = widget.session.permissions;
 
     if (permissions.isSuperAdmin) {
@@ -105,7 +108,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
       return VisitDashboardFilter(
         churchId: _selectedChurchId,
         scopeLabel: church == null
-            ? 'Todas las iglesias'
+            ? l10n.dashboardScopeAllChurches
             : church.profile.name,
       );
     }
@@ -113,7 +116,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
     if (permissions.isAdmin) {
       return VisitDashboardFilter(
         churchId: permissions.churchId,
-        scopeLabel: 'Tu iglesia',
+        scopeLabel: l10n.dashboardScopeYourChurch,
       );
     }
 
@@ -124,7 +127,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
       return VisitDashboardFilter(
         churchId: permissions.churchId,
         leaderIds: leaderIds.toSet(),
-        scopeLabel: 'Tus líderes asignados',
+        scopeLabel: l10n.dashboardScopeYourLeaders,
       );
     }
 
@@ -194,7 +197,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = PastoralDashboardService.messageFromException(e);
+        _error = PastoralDashboardService.messageFromException(e, context.l10n);
       });
     }
   }
@@ -215,7 +218,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
 
   Future<void> _onChurchChanged(String? churchId) async {
     setState(() => _selectedChurchId = churchId);
-    _filter = await _buildFilter();
+    _filter = await _buildFilter(context.l10n);
     await _loadData();
   }
 
@@ -224,7 +227,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
     if (!mounted) return;
     if (member == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se encontró el integrante.')),
+        SnackBar(content: Text(context.l10n.dashboardMemberNotFound)),
       );
       return;
     }
@@ -243,6 +246,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
   String _formatDate(DateTime date) => DateFormat('dd/MM/yyyy').format(date);
 
   Widget _buildFollowUpSection() {
+    final l10n = context.l10n;
     return Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -253,13 +257,13 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Personas que requieren seguimiento',
+                  l10n.dashboardFollowUpTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                 ),
                 Text(
-                  'Marcadas en visitas del período',
+                  l10n.dashboardFollowUpSubtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -276,7 +280,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
             Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                'No hay personas con seguimiento pendiente en este período.',
+                l10n.dashboardFollowUpEmpty,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,
@@ -300,9 +304,13 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
                     title: Text(_followUpPeople[i].memberName),
                     subtitle: Text(
                       [
-                        'Visita: ${_formatDate(_followUpPeople[i].visitDate)}',
+                        l10n.dashboardVisitOnDate(
+                          _formatDate(_followUpPeople[i].visitDate),
+                        ),
                         if (_followUpPeople[i].leaderName != null)
-                          'Líder: ${_followUpPeople[i].leaderName}',
+                          l10n.dashboardLeaderPrefix(
+                            _followUpPeople[i].leaderName!,
+                          ),
                       ].join('\n'),
                     ),
                     trailing: const Icon(Icons.chevron_right),
@@ -319,18 +327,19 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final permissions = widget.session.permissions;
+    final l10n = context.l10n;
 
     return RoleGate(
       permissions: permissions,
       allowed: permissions.canViewPastoralDashboard,
-      deniedMessage: 'No tienes permiso para ver el dashboard pastoral.',
+      deniedMessage: l10n.dashboardPastoralDenied,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Dashboard pastoral'),
+          title: Text(l10n.dashboardPastoralTitle),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: 'Actualizar',
+              tooltip: l10n.commonRefresh,
               onPressed: _loading ? null : _loadData,
             ),
           ],
@@ -341,6 +350,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
   }
 
   Widget _buildBody() {
+    final l10n = context.l10n;
     if (_loading && _newMemberPoints.isEmpty && _error == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -360,7 +370,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: _initialize,
-                child: const Text('Reintentar'),
+                child: Text(l10n.retry),
               ),
             ],
           ),
@@ -384,14 +394,13 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Sin líderes asignados',
+                l10n.dashboardNoAssignedLeadersTitle,
                 style: Theme.of(context).textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                'Cuando el administrador te asigne líderes, '
-                'verás aquí el seguimiento pastoral.',
+                l10n.dashboardNoAssignedLeadersPastoral,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -413,22 +422,22 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
               child: ListTile(
                 leading: const Icon(Icons.favorite_outline),
                 title: Text(_filter!.scopeLabel!),
-                subtitle: Text(_periodLabel()),
+                subtitle: Text(_periodLabel(l10n)),
               ),
             ),
           if (widget.session.permissions.isSuperAdmin) ...[
             const SizedBox(height: 12),
             DropdownButtonFormField<String?>(
               initialValue: _selectedChurchId,
-              decoration: const InputDecoration(
-                labelText: 'Iglesia',
-                prefixIcon: Icon(Icons.church_outlined),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.dashboardChurchLabel,
+                prefixIcon: const Icon(Icons.church_outlined),
+                border: const OutlineInputBorder(),
               ),
               items: [
-                const DropdownMenuItem<String?>(
+                DropdownMenuItem<String?>(
                   value: null,
-                  child: Text('Todas las iglesias'),
+                  child: Text(l10n.dashboardScopeAllChurches),
                 ),
                 ..._churches.map(
                   (church) => DropdownMenuItem<String?>(
@@ -446,7 +455,7 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
                 .map(
                   (period) => ButtonSegment(
                     value: period,
-                    label: Text(period.label),
+                    label: Text(period.localizedLabel(l10n)),
                   ),
                 )
                 .toList(),
@@ -473,13 +482,13 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Nuevos creyentes',
+                    l10n.dashboardNewMembersTitle,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                   ),
                   Text(
-                    '$_newMembersCount registrados en el período',
+                    l10n.dashboardNewMembersCount(_newMembersCount),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -504,14 +513,14 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
     );
   }
 
-  String _periodLabel() {
+  String _periodLabel(AppLocalizations l10n) {
     switch (_period) {
       case VisitChartPeriod.day:
-        return 'Últimos 14 días';
+        return l10n.dashboardPeriodLast14Days;
       case VisitChartPeriod.month:
-        return 'Últimos 12 meses';
+        return l10n.dashboardPeriodLast12Months;
       case VisitChartPeriod.year:
-        return 'Últimos 5 años';
+        return l10n.dashboardPeriodLast5Years;
     }
   }
 }

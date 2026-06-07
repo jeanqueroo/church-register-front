@@ -1,0 +1,956 @@
+{
+  "@@locale": "es",
+  "menuHome": "Inicio",
+  "menuNewMember": "Nuevo creyente",
+  "menuMembers": "Integrantes",
+  "menuByLeader": "Por líder",
+  "menuMyMembers": "Mis integrantes",
+  "menuNewLeader": "Nuevo líder",
+  "menuLeaders": "Líderes",
+  "menuMySupervisedLeaders": "Mis líderes asignados",
+  "menuVisitsDashboard": "Dashboard de visitas",
+  "menuPastoralDashboard": "Dashboard pastoral",
+  "menuSupervisorLeaders": "Líderes por supervisor",
+  "menuChurches": "Iglesias",
+  "menuAdmins": "Administradores",
+  "menuNewAdmin": "Nuevo administrador",
+  "menuNotifications": "Notificaciones",
+  "menuMyAccount": "Mi cuenta",
+  "menuRegisterNewMember": "Registro de nuevo creyente",
+  "quickNewMemberTitle": "Registro de nuevo creyente",
+  "quickNewMemberSubtitle": "Formulario de nuevo creyente",
+  "quickViewMembersTitle": "Ver creyentes",
+  "quickViewMembersSubtitle": "Lista de integrantes registrados",
+  "quickMembersByLeaderTitle": "Integrantes por líder",
+  "quickMembersByLeaderSubtitle": "Miembros asignados a cada líder",
+  "quickMyMembersTitle": "Mis integrantes asignados",
+  "quickMyMembersSubtitle": "Integrantes bajo tu liderazgo",
+  "quickRegisterLeaderTitle": "Registrar líder",
+  "quickRegisterLeaderSubtitle": "Datos del liderazgo",
+  "quickViewLeadersTitle": "Ver líderes",
+  "quickViewLeadersSubtitle": "Lista de líderes registrados",
+  "quickMySupervisedLeadersTitle": "Mis líderes asignados",
+  "quickMySupervisedLeadersSubtitle": "Líderes bajo tu supervisión",
+  "quickVisitsDashboardTitle": "Dashboard de visitas",
+  "quickVisitsDashboardSubtitle": "Gráficas de visitas por día, mes y año",
+  "quickPastoralDashboardTitle": "Dashboard pastoral",
+  "quickPastoralDashboardSubtitle": "Seguimiento, nuevos creyentes y oración",
+  "quickSupervisorLeadersTitle": "Líderes por supervisor",
+  "quickSupervisorLeadersSubtitle": "Asignar cartera de líderes a cada supervisor",
+  "quickChurchesTitle": "Iglesias",
+  "quickChurchesSubtitle": "Ver, editar y registrar sedes",
+  "quickAdminsTitle": "Administradores",
+  "quickAdminsSubtitle": "Ver, editar y bloquear cuentas",
+  "quickNewAdminTitle": "Nuevo administrador",
+  "quickNewAdminSubtitle": "Asignar iglesia al administrador",
+  "signOut": "Cerrar sesión",
+  "menuTooltip": "Menú",
+  "welcome": "Bienvenido",
+  "user": "Usuario",
+  "noAccessForRole": "No hay accesos disponibles para tu rol. Contacta al administrador.",
+  "leaderAccountNotLinked": "Tu cuenta de líder no está vinculada a un registro.",
+  "leaderRecordNotFound": "No se encontró tu ficha de líder.",
+  "retry": "Reintentar",
+  "profileLoadError": "No se pudo cargar tu perfil de usuario.",
+  "loginSubtitle": "Inicia sesión para continuar",
+  "emailLabel": "Correo electrónico",
+  "passwordLabel": "Contraseña",
+  "emailRequired": "Ingresa tu correo",
+  "emailInvalid": "Correo no válido",
+  "passwordRequired": "Ingresa tu contraseña",
+  "passwordMinLength": "Mínimo 6 caracteres",
+  "forgotPassword": "¿Olvidaste tu contraseña?",
+  "signIn": "Iniciar sesión",
+  "loginUnexpectedError": "Error inesperado al iniciar sesión.",
+  "forgotPasswordEnterEmail": "Ingresa tu correo para recuperar la contraseña",
+  "forgotPasswordEmailSent": "Revisa tu correo para restablecer la contraseña",
+  "forgotPasswordSendFailed": "No se pudo enviar el correo de recuperación.",
+  "myAccount": "Mi cuenta",
+  "systemRoles": "Roles en el sistema",
+  "personalData": "Datos personales",
+  "personalDataSubtitleFull": "Nombre, dirección y teléfono",
+  "personalDataSubtitleName": "Nombre de tu perfil",
+  "churchData": "Datos de la iglesia",
+  "churchDataSubtitle": "Consulta los datos de tu sede",
+  "changePassword": "Cambiar contraseña",
+  "changePasswordSubtitle": "Actualiza la clave de acceso",
+  "language": "Idioma",
+  "languageSubtitle": "Español, inglés o idioma del sistema",
+  "languageSettingsTitle": "Idioma",
+  "languageSystem": "Idioma del sistema",
+  "languageSystemSubtitle": "Usa la configuración de tu dispositivo",
+  "languageSpanish": "Español",
+  "languageEnglish": "English",
+  "roleSuperAdmin": "Super administrador",
+  "roleAdmin": "Administrador de iglesia",
+  "roleRegistrar": "Registrador",
+  "roleSupervisor": "Supervisor",
+  "roleLeader": "Líder",
+  "authInvalidEmail": "El correo electrónico no es válido.",
+  "authUserDisabled": "Esta cuenta ha sido deshabilitada.",
+  "authUserNotFound": "No existe una cuenta con este correo.",
+  "authWrongPassword": "Correo o contraseña incorrectos.",
+  "authEmailInUse": "Ya existe una cuenta con este correo.",
+  "authWeakPassword": "La contraseña debe tener al menos 6 caracteres.",
+  "authRequiresRecentLogin": "Por seguridad, vuelve a iniciar sesión e intenta de nuevo.",
+  "authTooManyRequests": "Demasiados intentos. Intenta más tarde.",
+  "authNetworkError": "Sin conexión. Revisa tu internet.",
+  "authOperationNotAllowed": "El registro por correo no está habilitado en Firebase.",
+  "authGenericError": "Error de autenticación. Intenta de nuevo.",
+  "memberRegisterTitle": "Registro de nuevo creyente",
+  "memberEditTitle": "Editar creyente",
+  "memberNoPermissionRegister": "No tienes permiso para registrar creyentes.",
+  "memberNoPermissionEdit": "No tienes permiso para editar creyentes.",
+  "memberFormDate": "Fecha",
+  "memberSectionPersonalData": "DATOS PERSONALES",
+  "memberFirstName": "Nombre *",
+  "memberFirstNameRequired": "Ingresa el nombre",
+  "memberLastName": "Apellidos *",
+  "memberLastNameRequired": "Ingresa los apellidos",
+  "memberGenderRequired": "Género *",
+  "memberGender": "Género",
+  "memberIncludeAddress": "Incluir dirección",
+  "memberAddressRequiredForLeader": "Requerida para asignar un líder automático",
+  "memberAddressOptional": "Opcional: datos de domicilio del creyente",
+  "memberPhone": "Teléfono *",
+  "memberPhoneRequired": "Ingresa el teléfono",
+  "memberBirthDate": "Fecha de nacimiento *",
+  "memberBirthDateRequired": "Selecciona la fecha de nacimiento",
+  "memberSelectDate": "Seleccionar fecha",
+  "memberClearDate": "Quitar fecha",
+  "memberAge": "Edad *",
+  "memberAgeYears": "{age} años",
+  "@memberAgeYears": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "memberOccupation": "Ocupación *",
+  "memberOccupationRequired": "Ingresa la ocupación",
+  "memberMaritalStatus": "Estado civil *",
+  "memberMaritalStatusRequired": "Selecciona el estado civil",
+  "memberSectionCellSchedule": "HORARIO PARA CÉLULA",
+  "memberCellDay": "Día",
+  "memberCellTime": "Horario",
+  "memberSelectTime": "Seleccionar hora",
+  "memberCellZone": "Zona",
+  "memberSectionVisit": "VISITA",
+  "memberWantsVisit": "Desea ser visitado",
+  "memberWantsVisitSubtitle": "Indica si la persona solicita una visita domiciliaria",
+  "memberSectionObservations": "OBSERVACIONES",
+  "memberObservationsHint": "Notas adicionales...",
+  "memberVolunteer": "Voluntario",
+  "memberSaving": "Guardando...",
+  "memberSaveChanges": "Guardar cambios",
+  "memberRegisterButton": "Registrar creyente",
+  "memberSectionAssignedLeader": "LÍDER ASIGNADO",
+  "memberManualLeader": "Elegir líder manualmente",
+  "memberManualLeaderSubtitle": "Busca y elige un líder escribiendo su nombre",
+  "memberAutoLeaderSubtitle": "Se asignará el líder más cercano del mismo género",
+  "memberNoLeaderSubtitle": "Sin líder hasta que actives visita o elijas uno",
+  "memberNoLeadersAvailable": "No hay líderes con rol de líder en la app. Asigna el rol Líder al registrar un líder.",
+  "memberSelectLeader": "Selecciona un líder",
+  "memberSelectLeaderFromList": "Selecciona un líder de la lista",
+  "memberGenderForAutoLeader": "Selecciona el género para asignar un líder automático",
+  "memberCompatibleLeadersHint": "Mostrando líderes compatibles con el género seleccionado.",
+  "memberNoChurchAssigned": "Tu cuenta no tiene iglesia asignada. Contacta al administrador.",
+  "memberAddressRequiredAutoLeader": "Activa \"Incluir dirección\" y selecciona una dirección del buscador para asignar un líder automático.",
+  "memberAddressGeocodeFailed": "No se pudo ubicar la dirección. Selecciónala del autocompletado.",
+  "memberUpdatedSuccess": "Creyente actualizado correctamente",
+  "memberRegisteredSuccess": "Creyente registrado correctamente",
+  "memberRegisteredWithLeader": "Creyente registrado. Líder: {leader}{cell}{distance}",
+  "@memberRegisteredWithLeader": {
+    "placeholders": {
+      "leader": {
+        "type": "String"
+      },
+      "cell": {
+        "type": "String"
+      },
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "memberRegisteredNoNearbyLeader": "Creyente registrado. No hay líder del mismo género con dirección cercana.",
+  "memberSaveUnexpectedError": "Error inesperado al guardar.",
+  "memberCellCodeSuffix": " (Célula {code})",
+  "@memberCellCodeSuffix": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "memberDistanceKm": " · {km} km",
+  "@memberDistanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "genderMale": "Hombre (H)",
+  "genderFemale": "Mujer (M)",
+  "maritalSingle": "Soltero/a",
+  "maritalMarried": "Casado/a",
+  "maritalConcubino": "Concubino/a",
+  "maritalDivorced": "Divorciado/a",
+  "maritalWidowed": "Viudo/a",
+  "weekdayMonday": "Lunes",
+  "weekdayTuesday": "Martes",
+  "weekdayWednesday": "Miércoles",
+  "weekdayThursday": "Jueves",
+  "weekdayFriday": "Viernes",
+  "weekdaySaturday": "Sábado",
+  "weekdaySunday": "Domingo",
+  "addressSection": "DIRECCIÓN",
+  "addressSearchRequired": "Buscar dirección *",
+  "addressSearchOptional": "Buscar dirección",
+  "addressSearchHint": "Escribe y elige una sugerencia...",
+  "addressSearchAndSelect": "Busca y selecciona una dirección",
+  "addressMustPickFromList": "Debes elegir una dirección de la lista",
+  "addressAutoFilledHint": "Se completa al buscar dirección",
+  "addressStreetRequired": "Calle *",
+  "addressStreetOptional": "Calle",
+  "addressNumber": "Número",
+  "addressPostalCode": "Código postal",
+  "addressNeighborhood": "Barrio",
+  "addressLocality": "Localidad / Partido",
+  "addressStateProvince": "Estado / Provincia",
+  "leaderSearchLabel": "Buscar líder *",
+  "leaderSearchHint": "Escribe letras del nombre o célula...",
+  "leaderSearchClear": "Quitar líder",
+  "leaderCellLabel": "Célula {code}",
+  "@leaderCellLabel": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "firestorePermissionDenied": "No tienes permiso para esta operación.",
+  "firestoreUnavailable": "Firestore no está disponible. Revisa tu conexión.",
+  "firestoreNotFound": "El integrante ya no existe.",
+  "firestoreGenericError": "Error al procesar la solicitud. Intenta de nuevo.",
+  "commonYes": "Sí",
+  "commonNo": "No",
+  "commonCancel": "Cancelar",
+  "commonDelete": "Eliminar",
+  "commonEdit": "Editar",
+  "memberDetailSectionPersonal": "Datos personales",
+  "memberDetailSectionAddress": "Dirección",
+  "memberDetailSectionLeader": "Líder asignado",
+  "memberDetailSectionCellSchedule": "Horario para célula",
+  "memberDetailSectionObservations": "Observaciones",
+  "memberDetailSectionRegistration": "Registro",
+  "memberDetailFirstName": "Nombre",
+  "memberDetailLastName": "Apellidos",
+  "memberDetailGender": "Género",
+  "memberDetailPhone": "Teléfono",
+  "memberDetailBirthDate": "Fecha de nacimiento",
+  "memberDetailAge": "Edad",
+  "memberDetailOccupation": "Ocupación",
+  "memberDetailMaritalStatus": "Estado civil",
+  "memberDetailWantsVisit": "Desea ser visitado",
+  "memberDetailLeaderName": "Nombre",
+  "memberDetailCell": "Célula",
+  "memberDetailDistance": "Distancia",
+  "memberDetailDistanceKm": "{km} km",
+  "@memberDetailDistanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "memberDetailCellDay": "Día",
+  "memberDetailCellTime": "Horario",
+  "memberDetailCellZone": "Zona",
+  "memberDetailFormDate": "Fecha del formulario",
+  "memberDetailVolunteer": "Voluntario",
+  "memberDetailRegisteredBy": "Registrado por",
+  "memberDetailDeleteTitle": "Eliminar integrante",
+  "memberDetailDeleteConfirm": "¿Eliminar a {name}? Esta acción no se puede deshacer.",
+  "@memberDetailDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "memberDetailDeletedSuccess": "Integrante eliminado",
+  "memberDetailRegisterVisit": "Registrar visita",
+  "memberDetailEditMember": "Editar integrante",
+  "memberDetailDeleteMember": "Eliminar integrante",
+  "memberVisitsTitle": "Visitas registradas",
+  "memberVisitsLoadError": "No se pudieron cargar las visitas.",
+  "memberVisitsEmpty": "Aún no hay visitas registradas.",
+  "memberVisitsNeedsFollowUp": " · Requiere seguimiento",
+  "visitDuration": "Duración: {value}",
+  "@visitDuration": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "visitPrayer": "Oración: {value}",
+  "@visitPrayer": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "visitRequests": "Peticiones: {value}",
+  "@visitRequests": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "visitFollowUp": "Seguimiento: {value}",
+  "@visitFollowUp": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "visitSpiritualState": "Estado: {value}",
+  "@visitSpiritualState": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "visitPlaceHome": "Casa",
+  "visitPlaceHospital": "Hospital",
+  "visitPlaceWork": "Trabajo",
+  "visitPlaceChurch": "Iglesia",
+  "visitPlaceVideoCall": "Videollamada",
+  "spiritualNewBeliever": "Nuevo creyente",
+  "spiritualInDiscipleship": "En discipulado",
+  "spiritualActiveMember": "Miembro activo",
+  "spiritualDistant": "Alejado",
+  "spiritualFrequentVisitor": "Visitante frecuente",
+  "membersMapNoLocationSnack": "Este integrante no tiene ubicación en el mapa",
+  "membersMapNavigationFailed": "No se pudo abrir la navegación",
+  "membersMapRequestsVisit": "Solicita visita",
+  "membersMapDistanceFromLeader": "{km} km del líder",
+  "@membersMapDistanceFromLeader": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "membersMapGetDirections": "Cómo llegar",
+  "membersMapViewDetail": "Ver detalle",
+  "membersMapLeaderLabel": "Líder",
+  "membersMapEmptyTitle": "Sin ubicaciones en el mapa",
+  "membersMapEmptySubtitle": "Los integrantes necesitan dirección con coordenadas para aparecer en el mapa.",
+  "membersMapMissingLocationCount": "{count, plural, =1{1 integrante sin ubicación en el mapa} other{{count} integrantes sin ubicación en el mapa}}",
+  "@membersMapMissingLocationCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "membersMapLeaderMarker": "Marcador morado: {name} (líder)",
+  "@membersMapLeaderMarker": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commonBack": "Volver",
+  "commonSave": "Guardar",
+  "commonSaving": "Guardando...",
+  "commonNew": "Nuevo",
+  "commonRefresh": "Actualizar",
+  "commonUnblock": "Desbloquear",
+  "commonBlock": "Bloquear",
+  "commonBlocked": "Bloqueado",
+  "commonBlockedFem": "Bloqueada",
+  "commonUnblocked": "Desbloqueado",
+  "commonUnblockedFem": "Desbloqueada",
+  "commonNoMatches": "No hay coincidencias",
+  "commonNoName": "(Sin nombre)",
+  "commonLoadListError": "No se pudo cargar la lista.",
+  "commonExportError": "No se pudo exportar el listado. Intenta de nuevo.",
+  "commonDeleteConfirm": "¿Eliminar a {name}? Esta acción no se puede deshacer.",
+  "@commonDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accessDeniedTitle": "Acceso restringido",
+  "accessDeniedDefault": "No tienes permiso para ver esta sección.",
+  "blockedAccountUserTitle": "Cuenta bloqueada",
+  "blockedAccountChurchTitle": "Iglesia bloqueada",
+  "blockedAccountUserMessage": "Tu usuario fue suspendido. Contacta al super administrador para reactivar tu acceso.",
+  "blockedAccountChurchMessage": "La iglesia asignada a tu cuenta está bloqueada. No puedes usar el sistema hasta que el super administrador la reactive.",
+  "membersListTitle": "Creyentes",
+  "membersListExportExcel": "Descargar Excel",
+  "membersListDeleteTitle": "Eliminar creyente",
+  "membersListDeleted": "Creyente eliminado",
+  "membersListLoadError": "No se pudo cargar la lista.\nVerifica Firestore en Firebase Console.",
+  "membersListEmptyTitle": "Aún no hay creyentes registrados",
+  "membersListEmptySubtitle": "Pulsa \"Nuevo\" para registrar al primero.",
+  "membersListSearchHint": "Buscar por nombre, teléfono, líder o localidad…",
+  "membersListLeaderPrefix": "Líder: {name}",
+  "@membersListLeaderPrefix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "membersListDatePrefix": "Fecha: {date}",
+  "@membersListDatePrefix": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "membersByLeaderTitle": "Integrantes por líder",
+  "membersByLeaderEmpty": "No hay integrantes registrados",
+  "membersByLeaderAssignedCount": "{assigned} de {total} integrantes con líder asignado",
+  "@membersByLeaderAssignedCount": {
+    "placeholders": {
+      "assigned": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "membersByLeaderMemberCount": "{count, plural, =1{1 integrante} other{{count} integrantes}}",
+  "@membersByLeaderMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "membersByLeaderRegistrationDate": "Registro: {date}",
+  "@membersByLeaderRegistrationDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderAssignedTitle": "Integrantes asignados",
+  "leaderAssignedTabList": "Lista",
+  "leaderAssignedTabMap": "Mapa",
+  "leaderAssignedCount": "{count, plural, =1{1 integrante asignado} other{{count} integrantes asignados}}",
+  "@leaderAssignedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderAssignedCellSuffix": "· Célula {code}",
+  "@leaderAssignedCellSuffix": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderAssignedEmptyTitle": "Sin integrantes asignados",
+  "leaderAssignedEmptySubtitle": "Los integrantes con visita activada y dirección aparecerán aquí al registrarse.",
+  "leaderAssignedNoMapLocation": "Sin ubicación en mapa",
+  "leaderAssignedRegisterVisit": "Registrar visita",
+  "leaderAssignedLoadError": "No se pudo cargar los integrantes.",
+  "leadersListTitle": "Líderes",
+  "leadersListDeleteTitle": "Eliminar líder",
+  "leadersListDeleted": "Líder eliminado",
+  "leadersListLoadError": "No se pudo cargar la lista. Verifica Firestore y las reglas de la colección \"leaders\".",
+  "leadersListEmpty": "Aún no hay líderes registrados",
+  "leadersListSearchHint": "Buscar por nombre, teléfono, correo o célula…",
+  "leadersListCellPrefix": "Célula {code}",
+  "@leadersListCellPrefix": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "leadersListViewMembers": "Ver integrantes asignados",
+  "leadersListViewLeader": "Ver líder",
+  "leaderDetailEditLeader": "Editar líder",
+  "leaderDetailDeleteLeader": "Eliminar líder",
+  "leaderDetailViewMembers": "Ver integrantes asignados",
+  "leaderDetailSectionLeadership": "Datos del liderazgo",
+  "leaderDetailSectionCellContact": "Célula y contacto",
+  "leaderDetailSectionRoles": "Roles en la app",
+  "leaderDetailLastName": "Apellido",
+  "leaderDetailFirstNames": "Nombres",
+  "leaderDetailChurchOffice": "Cargo en la iglesia",
+  "leaderDetailMobile": "Celular / Móvil",
+  "leaderDetailPermissions": "Permisos",
+  "leaderDetailDeleted": "Líder eliminado",
+  "leadersMapNoLocationSnack": "Este líder no tiene ubicación en el mapa",
+  "leadersMapEmptyTitle": "Sin ubicaciones en el mapa",
+  "leadersMapEmptySubtitle": "Los líderes necesitan dirección con coordenadas para aparecer en el mapa.",
+  "leadersMapMissingLocationCount": "{count, plural, =1{1 líder sin ubicación en el mapa} other{{count} líderes sin ubicación en el mapa}}",
+  "@leadersMapMissingLocationCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadersMapViewLeader": "Ver líder",
+  "supervisorMyLeadersTitle": "Mis líderes asignados",
+  "supervisorMyLeadersDenied": "No tienes permiso para ver tus líderes asignados.",
+  "supervisorMyLeadersCount": "{count, plural, =1{1 líder bajo tu supervisión} other{{count} líderes bajo tu supervisión}}",
+  "@supervisorMyLeadersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supervisorMyLeadersSearchHint": "Buscar líder",
+  "supervisorMyLeadersEmptyTitle": "Sin líderes asignados",
+  "supervisorMyLeadersEmptySubtitle": "El administrador te asignará líderes cuando corresponda.",
+  "supervisorMyLeadersNoSearchResults": "Ningún líder coincide con la búsqueda.",
+  "supervisorMyLeadersViewMembers": "Creyentes",
+  "supervisorAssignmentsTitle": "Líderes por supervisor",
+  "supervisorAssignmentsDeniedSupervisor": "Los supervisores no pueden acceder a esta pantalla. Usa «Mis líderes asignados» para ver tu cartera.",
+  "supervisorAssignmentsDeniedAdmin": "Solo el administrador puede asignar líderes a supervisores.",
+  "supervisorAssignmentsNoSupervisors": "No hay supervisores en tu iglesia",
+  "supervisorAssignmentsNoSupervisorsHint": "Al registrar un líder, asigna el rol Supervisor en la app.",
+  "supervisorAssignmentsSelectSupervisor": "Selecciona supervisor *",
+  "supervisorAssignmentsAssignedLeaders": "Líderes asignados ({count})",
+  "@supervisorAssignmentsAssignedLeaders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supervisorAssignmentsSearchLeader": "Buscar líder",
+  "supervisorAssignmentsNoLeaders": "No hay líderes registrados en tu iglesia.",
+  "supervisorAssignmentsNoLeaderMatches": "Ningún líder coincide con la búsqueda.",
+  "supervisorAssignmentsNoLeadersAvailable": "No hay líderes disponibles para asignar.",
+  "supervisorAssignmentsSelectSupervisorError": "Selecciona un supervisor",
+  "supervisorAssignmentsConflict": "No se puede guardar: un líder ya pertenece a {name}",
+  "@supervisorAssignmentsConflict": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "supervisorAssignmentsSaved": "Líderes asignados correctamente",
+  "dashboardVisitsTitle": "Dashboard de visitas",
+  "dashboardPastoralTitle": "Dashboard pastoral",
+  "dashboardVisitsDenied": "No tienes permiso para ver el dashboard de visitas.",
+  "dashboardPastoralDenied": "No tienes permiso para ver el dashboard pastoral.",
+  "dashboardScopeAllChurches": "Todas las iglesias",
+  "dashboardScopeYourChurch": "Tu iglesia",
+  "dashboardScopeYourLeaders": "Tus líderes asignados",
+  "dashboardChurchLabel": "Iglesia",
+  "dashboardNoAssignedLeadersTitle": "Sin líderes asignados",
+  "dashboardNoAssignedLeadersVisits": "Cuando el administrador te asigne líderes, verás aquí las estadísticas de sus visitas.",
+  "dashboardNoAssignedLeadersPastoral": "Cuando el administrador te asigne líderes, verás aquí el seguimiento pastoral.",
+  "dashboardTotalPeriod": "Total en el período",
+  "dashboardLeadersWithVisits": "Líderes con visitas",
+  "dashboardVisitCount": "Número de visitas",
+  "dashboardTopVisitPlaces": "Lugares de visita más frecuentes",
+  "dashboardByVisitPlace": "Por lugar de la visita",
+  "dashboardTopPrayerRequests": "Peticiones de oración más comunes",
+  "dashboardPrayerRequestsSubtitle": "Textos repetidos en el período",
+  "dashboardNoPrayerRequests": "No hay peticiones de oración registradas en este período.",
+  "dashboardVisitsByLeader": "Visitas por líder",
+  "dashboardPeriodLast14Days": "Últimos 14 días",
+  "dashboardPeriodLast12Months": "Últimos 12 meses",
+  "dashboardPeriodLast5Years": "Últimos 5 años",
+  "dashboardFollowUpTitle": "Personas que requieren seguimiento",
+  "dashboardFollowUpSubtitle": "Marcadas en visitas del período",
+  "dashboardFollowUpEmpty": "No hay personas con seguimiento pendiente en este período.",
+  "dashboardVisitOnDate": "Visita: {date}",
+  "@dashboardVisitOnDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardLeaderPrefix": "Líder: {name}",
+  "@dashboardLeaderPrefix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardMemberNotFound": "No se encontró el integrante.",
+  "dashboardNewMembersTitle": "Nuevos creyentes",
+  "dashboardNewMembersCount": "{count} registrados en el período",
+  "@dashboardNewMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardPrayerVisitsTitle": "Visitas con oración",
+  "dashboardPrayerVisitsEmpty": "Sin visitas en el período seleccionado.",
+  "dashboardPrayerVisitsSummary": "{withPrayer} de {total} visitas incluyeron oración.",
+  "@dashboardPrayerVisitsSummary": {
+    "placeholders": {
+      "withPrayer": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardNoData": "Sin datos para mostrar",
+  "chartPeriodDay": "Por día",
+  "chartPeriodMonth": "Por mes",
+  "chartPeriodYear": "Por año",
+  "notificationsTitle": "Notificaciones",
+  "notificationsLeaderNotLinked": "Tu cuenta no está vinculada a un líder. Contacta al administrador.",
+  "notificationsMarkRead": "Marcar leídas",
+  "notificationsLoadError": "No se pudieron cargar las notificaciones. Revisa las reglas de Firestore.",
+  "notificationsEmptyTitle": "No tienes notificaciones",
+  "notificationsEmptySubtitle": "Cuando te asignen un integrante nuevo, aparecerá aquí.",
+  "notificationsMemberUnavailable": "El integrante ya no está disponible.",
+  "notificationsToday": "Hoy {time}",
+  "@notificationsToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsYesterday": "Ayer {time}",
+  "@notificationsYesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationNewMemberTitle": "Nuevo creyente asignado",
+  "notificationNewMemberBody": "Se te asignó a {name}. Toca para ver el detalle.",
+  "@notificationNewMemberBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationMemberFallback": "Integrante",
+  "visitRegDenied": "Solo el líder puede registrar visitas a sus integrantes.",
+  "visitRegTitle": "Registrar visita",
+  "visitRegPrayerFollowUpRequired": "Indica si se realizó oración y si necesita seguimiento.",
+  "visitRegInvalidMember": "El integrante no tiene identificador válido.",
+  "visitRegSaved": "Visita registrada",
+  "visitRegSaveFailed": "No se pudo registrar la visita.",
+  "visitRegSelectOption": "Selecciona una opción",
+  "visitRegDate": "Fecha de la visita *",
+  "visitRegPlace": "Lugar de la visita *",
+  "visitRegSelectPlace": "Selecciona el lugar",
+  "visitRegDuration": "Duración aproximada de la visita",
+  "visitRegDurationHint": "Ej: 30 min, 1 hora",
+  "visitRegPrayerTitle": "Se realizó oración *",
+  "visitRegPrayerRequests": "Peticiones de oración",
+  "visitRegPrayerRequestsHint": "Opcional: motivos o peticiones compartidas",
+  "visitRegFollowUpTitle": "Necesita seguimiento *",
+  "visitRegSpiritualState": "Estado espiritual (opcional)",
+  "visitRegSpiritualUnspecified": "Sin especificar",
+  "visitRegComment": "Comentario *",
+  "visitRegCommentHint": "Resumen de la visita, temas tratados...",
+  "visitRegCommentRequired": "Escribe un comentario",
+  "visitRegSaveButton": "Guardar visita",
+  "addressAutocompleteApiKey": "Configura la API key de Google Maps en maps_api_key.dart",
+  "addressAutocompleteLoadError": "No se pudieron cargar sugerencias de Google Maps.",
+  "leaderNoLeaderAssigned": "Sin líder asignado",
+  "leaderFallbackName": "Líder",
+  "serviceGenericError": "Error inesperado. Intenta de nuevo.",
+  "serviceUnavailable": "Servicio no disponible. Revisa tu conexión.",
+  "servicePermissionDenied": "No tienes permiso para esta operación.",
+  "visitServicePermissionDenied": "No tienes permiso para registrar visitas.",
+  "visitServiceSaveError": "Error al guardar la visita. Intenta de nuevo.",
+  "visitDashboardPermissionDenied": "No tienes permiso para ver el dashboard de visitas.",
+  "visitDashboardIndexBuilding": "El índice de visitas se está creando en Firebase. Espera unos minutos e intenta de nuevo.",
+  "visitDashboardIndexMissing": "Falta un índice en Firestore para visitas. Ejecuta: firebase deploy --only firestore:indexes",
+  "visitDashboardDateFormatError": "Error al formatear fechas en el gráfico. Reinicia la app e intenta de nuevo.",
+  "visitDashboardLoadUnexpected": "Error inesperado al cargar visitas ({code}).",
+  "@visitDashboardLoadUnexpected": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "visitDashboardLoadError": "Error al cargar visitas: {message}",
+  "@visitDashboardLoadError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "churchOfficeLeader": "Líderes",
+  "churchOfficeJuniorElder": "Anciano menor",
+  "churchOfficeElder": "Anciano",
+  "churchOfficeSeniorElder": "Anciano mayor",
+  "churchOfficeVolunteer": "Voluntario",
+  "assignableRolesRegistrarExclusive": "El rol Registrador es exclusivo: no se puede combinar con otros.",
+  "assignableRolesHint": "Marca los permisos de acceso en la aplicación. Puedes combinar Líder y Supervisor en la misma cuenta. El rol Registrador debe ir solo.",
+  "adminsDenied": "Solo el super administrador puede gestionar administradores.",
+  "adminsTitle": "Administradores",
+  "adminsNoChurch": "Sin iglesia asignada",
+  "adminsChurchLabel": "Iglesia ({id})",
+  "@adminsChurchLabel": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "adminsBlockTitle": "Bloquear administrador",
+  "adminsUnblockTitle": "Desbloquear administrador",
+  "adminsBlockConfirm": "¿Bloquear a \"{name}\"? No podrá iniciar sesión hasta que lo desbloquees.",
+  "@adminsBlockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminsUnblockConfirm": "¿Desbloquear a \"{name}\" y permitir el acceso de nuevo?",
+  "@adminsUnblockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminsBlocked": "Administrador bloqueado",
+  "adminsUnblocked": "Administrador desbloqueado",
+  "adminsLoadError": "No se pudo cargar los administradores. Verifica Firestore y el índice de la colección \"users\".",
+  "adminsEmpty": "Aún no hay administradores registrados",
+  "adminsRegister": "Registrar administrador",
+  "adminsSearchHint": "Buscar por nombre, correo o iglesia…",
+  "adminsShowBlocked": "Mostrar bloqueados ({count})",
+  "@adminsShowBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminsHideBlocked": "Ocultar bloqueados ({count})",
+  "@adminsHideBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminsAllBlocked": "Todos los administradores están bloqueados",
+  "churchesDenied": "Solo el super administrador puede gestionar iglesias.",
+  "churchesTitle": "Iglesias",
+  "churchesBlockTitle": "Bloquear iglesia",
+  "churchesUnblockTitle": "Desbloquear iglesia",
+  "churchesBlockConfirm": "¿Bloquear \"{name}\"? No se podrá asignar a nuevos administradores hasta que la desbloquees.",
+  "@churchesBlockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "churchesUnblockConfirm": "¿Desbloquear \"{name}\" y volver a permitir su uso?",
+  "@churchesUnblockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "churchesBlocked": "Iglesia bloqueada",
+  "churchesUnblocked": "Iglesia desbloqueada",
+  "churchesLoadError": "No se pudo cargar las iglesias. Verifica Firestore y las reglas de la colección \"churches\".",
+  "churchesEmpty": "Aún no hay iglesias registradas",
+  "churchesRegister": "Registrar iglesia",
+  "churchesSearchHint": "Buscar por nombre o dirección…",
+  "churchesShowBlocked": "Mostrar bloqueadas ({count})",
+  "@churchesShowBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "churchesHideBlocked": "Ocultar bloqueadas ({count})",
+  "@churchesHideBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "churchesAllBlocked": "Todas las iglesias están bloqueadas",
+  "churchRegLoadError": "No se pudo cargar los datos de la iglesia.",
+  "churchRegPickAddress": "Elige una dirección de la lista para ubicarla en el mapa",
+  "churchRegImageError": "No se pudo seleccionar la imagen: {error}",
+  "@churchRegImageError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "churchRegSaved": "Iglesia registrada",
+  "churchRegUpdated": "Datos de la iglesia guardados",
+  "churchRegNewTitle": "Nueva iglesia",
+  "churchRegViewTitle": "Datos de la iglesia",
+  "churchRegEditTitle": "Editar iglesia",
+  "churchRegCreateDenied": "Solo el super administrador puede crear iglesias.",
+  "churchRegViewDenied": "No tienes permiso para ver los datos de esta iglesia.",
+  "churchRegEditDenied": "No tienes permiso para editar los datos de esta iglesia.",
+  "churchRegBlocked": "Esta iglesia está bloqueada. Contacta al super administrador para reactivarla.",
+  "churchRegLogo": "LOGO",
+  "churchRegLogoOptional": "LOGO (opcional)",
+  "churchRegLogoHint": "Puedes guardar sin logo; se usará el predeterminado.",
+  "churchRegUploadLogo": "Subir logo",
+  "churchRegRemoveLogo": "Quitar",
+  "churchRegSectionInfo": "INFORMACIÓN",
+  "churchRegName": "Nombre de la iglesia",
+  "churchRegNameRequired": "Nombre de la iglesia *",
+  "churchRegNameValidation": "Ingresa el nombre",
+  "churchRegAddressSection": "Dirección",
+  "churchSearchLabel": "Iglesia *",
+  "churchSearchClear": "Quitar selección",
+  "churchSearchTitle": "Seleccionar iglesia",
+  "churchSearchHint": "Buscar por nombre o dirección…",
+  "churchSearchEmpty": "No hay iglesias disponibles",
+  "churchSearchNoMatches": "No hay coincidencias para \"{query}\"",
+  "@churchSearchNoMatches": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "changePasswordTitle": "Cambiar contraseña",
+  "changePasswordCurrent": "Contraseña actual *",
+  "changePasswordNew": "Nueva contraseña *",
+  "changePasswordConfirm": "Confirmar contraseña *",
+  "changePasswordCurrentRequired": "Ingresa tu contraseña actual",
+  "changePasswordNewRequired": "Ingresa la nueva contraseña",
+  "changePasswordConfirmRequired": "Confirma la nueva contraseña",
+  "changePasswordMismatch": "Las contraseñas no coinciden",
+  "changePasswordSuccess": "Contraseña actualizada",
+  "changePasswordSubmit": "Actualizar contraseña",
+  "editPersonalDataTitle": "Datos personales",
+  "editPersonalDataSaved": "Datos guardados",
+  "editPersonalDataRoles": "Roles en el sistema",
+  "pushChannelName": "Asignación de integrantes",
+  "pushChannelDescription": "Avisos cuando te asignan un integrante",
+  "authCreateUserFailed": "No se pudo crear el usuario",
+  "firestoreLeaderNotFound": "El líder ya no existe.",
+  "leaderRegNewTitle": "Nuevo líder",
+  "leaderRegEditTitle": "Editar líder",
+  "leaderRegSelectChurchOffice": "Selecciona el cargo en la iglesia",
+  "leaderRegSelectAtLeastOneRole": "Selecciona al menos un rol en la app",
+  "leaderRegSuccessWithLogin": "Líder registrado. Puede ingresar con su correo y contraseña.",
+  "leaderRegUpdatedSuccess": "Líder actualizado correctamente",
+  "leaderRegEditDenied": "Solo el administrador puede editar líderes.",
+  "leaderRegRegisterDenied": "No tienes permiso para registrar líderes.",
+  "leaderRegSectionChurchOffice": "CARGO EN LA IGLESIA",
+  "leaderRegChurchOffice": "Cargo *",
+  "leaderRegSelectChurchOfficeField": "Selecciona el cargo",
+  "leaderRegNoAccessAccountHint": "Sin cuenta de acceso: los roles se aplicarán cuando se cree el usuario.",
+  "leaderRegCell": "Célula",
+  "leaderRegCellHint": "Ej: Ñ10, E4, L4",
+  "leaderRegMobileRequired": "Ingresa el celular",
+  "leaderRegSectionAppAccess": "ACCESO A LA APP",
+  "leaderRegEmailLoginHint": "El líder ingresará con su correo como usuario.",
+  "leaderRegEmailLabel": "Correo (usuario de acceso)",
+  "leaderRegEmailLabelRequired": "Correo (usuario de acceso) *",
+  "leaderRegEmailLockedHelper": "La cuenta ya fue creada; el correo no se puede cambiar aquí",
+  "leaderRegEmailLoginHelper": "Será el usuario para iniciar sesión",
+  "leaderRegEmailRequired": "Ingresa el correo del líder",
+  "leaderRegPasswordRequired": "Ingresa una contraseña",
+  "leaderRegSubmitButton": "Registrar líder",
+  "leaderRegLastName": "Apellido *",
+  "leaderRegLastNameRequired": "Ingresa el apellido",
+  "leaderRegFirstNames": "Nombres *",
+  "leaderRegFirstNamesRequired": "Ingresa los nombres",
+  "adminRegNewTitle": "Nuevo administrador",
+  "adminRegEditTitle": "Editar administrador",
+  "adminRegNoChurches": "No hay iglesias activas. Crea una o desbloquea una existente.",
+  "adminRegCreateChurch": "Crear iglesia",
+  "adminRegSelectChurch": "Selecciona una iglesia",
+  "adminRegNewChurch": "Nueva iglesia",
+  "adminRegChurchCreated": "Iglesia creada. Selecciónala en la lista.",
+  "adminRegSelectChurchForAdmin": "Selecciona la iglesia para este administrador.",
+  "adminRegUpdated": "Administrador actualizado",
+  "adminRegSuccess": "Administrador registrado correctamente",
+  "adminRegSaveProfileError": "Error al guardar el perfil.",
+  "adminRegRegisterError": "Error al registrar: {error}",
+  "@adminRegRegisterError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "adminRegEditDenied": "Solo el super administrador puede editar administradores.",
+  "adminRegRegisterDenied": "Solo el super administrador puede registrar administradores de iglesia.",
+  "adminRegSectionAccount": "CUENTA",
+  "adminRegEmailLockedHelper": "El correo de inicio de sesión no se puede cambiar desde aquí.",
+  "adminRegSectionChurch": "IGLESIA ASIGNADA",
+  "adminRegChurchHint": "Este administrador solo gestionará la iglesia seleccionada.",
+  "adminRegPasswordRequired": "Ingresa la contraseña",
+  "adminRegRegisterButton": "Registrar administrador",
+  "editPersonalDataSectionName": "NOMBRE",
+  "editPersonalDataSectionContact": "CONTACTO",
+  "churchServiceStorageNotConfigured": "Firebase Storage no está activo en el proyecto. En Firebase Console → Storage, pulsa \"Comenzar\", elige ubicación y vuelve a subir el logo.",
+  "churchServicePermissionDenied": "No tienes permiso para gestionar iglesias.",
+  "churchServiceNotFound": "La iglesia ya no existe.",
+  "churchServiceUploadUnauthorized": "No autorizado para subir el logo. Revisa las reglas de Storage.",
+  "churchServiceSaveError": "Error al guardar: {message}",
+  "@churchServiceSaveError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "userProfileAdminPermissionDenied": "No tienes permiso para gestionar administradores.",
+  "userProfileError": "Error: {message}",
+  "@userProfileError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "supervisorServicePermissionDenied": "No tienes permiso para asignar líderes a supervisores."
+}

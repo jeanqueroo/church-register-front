@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/models/app_user_role.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../members/models/church_member.dart';
 import '../../members/screens/member_detail_screen.dart';
@@ -101,8 +102,10 @@ class _LeaderAssignedMembersScreenState
   }
 
   Widget _buildHeader(BuildContext context, int count) {
-    final cellLabel =
-        widget.leader.cellCode != null ? ' · Célula ${widget.leader.cellCode}' : '';
+    final l10n = context.l10n;
+    final cellSuffix = widget.leader.cellCode != null
+        ? ' ${l10n.leaderAssignedCellSuffix(widget.leader.cellCode!)}'
+        : '';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -130,8 +133,7 @@ class _LeaderAssignedMembersScreenState
                           ),
                     ),
                     Text(
-                      '$count integrante${count == 1 ? '' : 's'} asignado'
-                      '${count == 1 ? '' : 's'}$cellLabel',
+                      '${l10n.leaderAssignedCount(count)}$cellSuffix',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color:
                                 Theme.of(context).colorScheme.onSurfaceVariant,
@@ -148,6 +150,7 @@ class _LeaderAssignedMembersScreenState
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = context.l10n;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -161,14 +164,13 @@ class _LeaderAssignedMembersScreenState
             ),
             const SizedBox(height: 16),
             Text(
-              'Sin integrantes asignados',
+              l10n.leaderAssignedEmptyTitle,
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Los integrantes con visita activada y dirección '
-              'aparecerán aquí al registrarse.',
+              l10n.leaderAssignedEmptySubtitle,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -181,6 +183,7 @@ class _LeaderAssignedMembersScreenState
   }
 
   Widget _buildListTab(BuildContext context, List<ChurchMember> assigned) {
+    final l10n = context.l10n;
     if (assigned.isEmpty) {
       return _buildEmptyState(context);
     }
@@ -193,11 +196,15 @@ class _LeaderAssignedMembersScreenState
         final member = assigned[index];
         final parts = <String>[
           member.phone,
-          if (member.wantsVisit) 'Solicita visita',
-          'Registro: ${_formatDate(member.registeredAt)}',
+          if (member.wantsVisit) l10n.membersMapRequestsVisit,
+          l10n.membersByLeaderRegistrationDate(
+            _formatDate(member.registeredAt),
+          ),
           if (member.assignedDistanceKm != null)
-            '${member.assignedDistanceKm!.toStringAsFixed(1)} km',
-          if (member.geoLocation == null) 'Sin ubicación en mapa',
+            l10n.memberDetailDistanceKm(
+              member.assignedDistanceKm!.toStringAsFixed(1),
+            ),
+          if (member.geoLocation == null) l10n.leaderAssignedNoMapLocation,
         ];
 
         final canRegisterVisit = widget.leader.id != null &&
@@ -220,7 +227,7 @@ class _LeaderAssignedMembersScreenState
                 if (canRegisterVisit)
                   IconButton(
                     icon: const Icon(Icons.event_note_outlined),
-                    tooltip: 'Registrar visita',
+                    tooltip: l10n.leaderAssignedRegisterVisit,
                     onPressed: () => _openRegisterVisit(context, member),
                   ),
                 const Icon(Icons.chevron_right),
@@ -235,18 +242,26 @@ class _LeaderAssignedMembersScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Integrantes asignados'),
+        title: Text(l10n.leaderAssignedTitle),
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white.withValues(alpha: 0.65),
           indicatorColor: AppColors.accent,
           indicatorWeight: 3,
-          tabs: const [
-            Tab(icon: Icon(Icons.list_outlined), text: 'Lista'),
-            Tab(icon: Icon(Icons.map_outlined), text: 'Mapa'),
+          tabs: [
+            Tab(
+              icon: const Icon(Icons.list_outlined),
+              text: l10n.leaderAssignedTabList,
+            ),
+            Tab(
+              icon: const Icon(Icons.map_outlined),
+              text: l10n.leaderAssignedTabMap,
+            ),
           ],
         ),
       ),
@@ -267,7 +282,7 @@ class _LeaderAssignedMembersScreenState
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'No se pudo cargar los integrantes.',
+                  l10n.leaderAssignedLoadError,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.error,

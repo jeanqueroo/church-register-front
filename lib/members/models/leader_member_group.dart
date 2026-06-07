@@ -1,3 +1,4 @@
+import '../../l10n/app_localizations.dart';
 import 'church_member.dart';
 
 /// Integrantes agrupados bajo un mismo líder asignado.
@@ -17,6 +18,12 @@ class LeaderMemberGroup {
   final bool isUnassigned;
 
   int get count => members.length;
+
+  String localizedDisplayName(AppLocalizations l10n) {
+    if (isUnassigned) return l10n.leaderNoLeaderAssigned;
+    if (leaderName.trim().isEmpty) return l10n.leaderFallbackName;
+    return leaderName;
+  }
 }
 
 const _unassignedKey = '__unassigned__';
@@ -42,7 +49,7 @@ List<LeaderMemberGroup> groupMembersByLeader(List<ChurchMember> members) {
         : leaderName!.toLowerCase();
 
     buckets.putIfAbsent(key, () => []).add(member);
-    names[key] = leaderName ?? 'Líder';
+    names[key] = leaderName ?? '';
     cells[key] = member.assignedLeaderCellCode;
   }
 
@@ -64,7 +71,7 @@ List<LeaderMemberGroup> groupMembersByLeader(List<ChurchMember> members) {
     groups.add(
       LeaderMemberGroup(
         leaderKey: _unassignedKey,
-        leaderName: 'Sin líder asignado',
+        leaderName: '',
         members: unassigned,
         isUnassigned: true,
       ),

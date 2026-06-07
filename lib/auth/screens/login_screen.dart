@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/church_logo.dart';
 import '../services/auth_service.dart';
@@ -47,6 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+    final l10n = context.l10n;
 
     try {
       await _authService.signInWithEmailAndPassword(
@@ -55,11 +57,11 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } on FirebaseAuthException catch (e) {
       if (mounted) {
-        _showMessage(AuthService.messageFromFirebaseAuthException(e));
+        _showMessage(AuthService.messageFromFirebaseAuthException(e, l10n));
       }
     } catch (_) {
       if (mounted) {
-        _showMessage('Error inesperado al iniciar sesión.');
+        _showMessage(l10n.loginUnexpectedError);
       }
     } finally {
       if (mounted) {
@@ -69,9 +71,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _onForgotPassword() async {
+    final l10n = context.l10n;
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      _showMessage('Ingresa tu correo para recuperar la contraseña');
+      _showMessage(l10n.forgotPasswordEnterEmail);
       return;
     }
 
@@ -79,14 +82,14 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _authService.sendPasswordResetEmail(email);
       if (!mounted) return;
-      _showMessage('Revisa tu correo para restablecer la contraseña');
+      _showMessage(l10n.forgotPasswordEmailSent);
     } on FirebaseAuthException catch (e) {
       if (mounted) {
-        _showMessage(AuthService.messageFromFirebaseAuthException(e));
+        _showMessage(AuthService.messageFromFirebaseAuthException(e, l10n));
       }
     } catch (_) {
       if (mounted) {
-        _showMessage('No se pudo enviar el correo de recuperación.');
+        _showMessage(l10n.forgotPasswordSendFailed);
       }
     } finally {
       if (mounted) {
@@ -98,6 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: AppColors.chatBackground,
@@ -114,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Center(child: ChurchLogo(size: 140)),
                   const SizedBox(height: 24),
                   Text(
-                    'Inicia sesión para continuar',
+                    l10n.loginSubtitle,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
@@ -127,18 +131,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     textInputAction: TextInputAction.next,
                     autocorrect: false,
                     enabled: !_isLoading,
-                    decoration: const InputDecoration(
-                      labelText: 'Correo electrónico',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.emailLabel,
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Ingresa tu correo';
+                        return l10n.emailRequired;
                       }
                       final email = value.trim();
                       if (!email.contains('@') || !email.contains('.')) {
-                        return 'Correo no válido';
+                        return l10n.emailInvalid;
                       }
                       return null;
                     },
@@ -151,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     enabled: !_isLoading,
                     onFieldSubmitted: (_) => _onLogin(),
                     decoration: InputDecoration(
-                      labelText: 'Contraseña',
+                      labelText: l10n.passwordLabel,
                       prefixIcon: const Icon(Icons.lock_outlined),
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
@@ -171,10 +175,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Ingresa tu contraseña';
+                        return l10n.passwordRequired;
                       }
                       if (value.length < 6) {
-                        return 'Mínimo 6 caracteres';
+                        return l10n.passwordMinLength;
                       }
                       return null;
                     },
@@ -184,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _isLoading ? null : _onForgotPassword,
-                      child: const Text('¿Olvidaste tu contraseña?'),
+                      child: Text(l10n.forgotPassword),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -199,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 22,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Iniciar sesión'),
+                        : Text(l10n.signIn),
                   ),
                 ],
               ),

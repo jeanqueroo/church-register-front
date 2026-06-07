@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/admin_user_record.dart';
 import '../models/app_user_role.dart';
 import '../models/user_profile.dart';
+import '../../l10n/app_localizations.dart';
 
 class UserProfileService {
   UserProfileService({FirebaseFirestore? firestore})
@@ -100,18 +101,18 @@ class UserProfileService {
     });
   }
 
-  static String messageFromException(Object e) {
+  static String messageFromException(Object e, AppLocalizations l10n) {
     if (e is FirebaseException) {
       switch (e.code) {
         case 'permission-denied':
-          return 'No tienes permiso para gestionar administradores.';
+          return l10n.userProfileAdminPermissionDenied;
         case 'unavailable':
-          return 'Servicio no disponible. Revisa tu conexión.';
+          return l10n.serviceUnavailable;
         default:
-          return 'Error: ${e.message ?? e.code}';
+          return l10n.userProfileError(e.message ?? e.code);
       }
     }
-    return 'Error inesperado. Intenta de nuevo.';
+    return l10n.serviceGenericError;
   }
 
   Future<DocumentSnapshot<Map<String, dynamic>>?> fetchProfileDoc(String uid) async {

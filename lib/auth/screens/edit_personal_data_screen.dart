@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../../address/services/geocoding_service.dart';
 import '../../address/widgets/address_fields_section.dart';
 import '../../core/models/geo_location.dart';
@@ -183,7 +184,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
 
         if (_editsFullLeaderFields) {
           if (leader == null || leaderId == null || leaderId.isEmpty) {
-            _showMessage('No se encontró tu ficha de datos.');
+            _showMessage(context.l10n.leaderRecordNotFound);
             return;
           }
 
@@ -196,9 +197,8 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
           }
 
           if (location == null) {
-            _showMessage(
-              'No se pudo ubicar la dirección. Selecciónala del autocompletado.',
-            );
+            if (!mounted) return;
+            _showMessage(context.l10n.memberAddressGeocodeFailed);
             return;
           }
 
@@ -272,18 +272,18 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
           }
         }
       } else {
-        _showMessage('No se encontró tu ficha de datos.');
+        _showMessage(context.l10n.leaderRecordNotFound);
         return;
       }
       if (!mounted) return;
-      _showMessage('Datos personales actualizados');
+      _showMessage(context.l10n.editPersonalDataSaved);
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
       if (!mounted) return;
       _showMessage(_messageFromFirestore(e));
     } catch (_) {
       if (!mounted) return;
-      _showMessage('No se pudieron guardar los datos.');
+      _showMessage(context.l10n.serviceGenericError);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -292,40 +292,41 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
   String _messageFromFirestore(FirebaseException e) {
     switch (e.code) {
       case 'permission-denied':
-        return 'No tienes permiso para actualizar tu perfil.';
+        return context.l10n.servicePermissionDenied;
       default:
-        return LeaderService.messageFromFirestoreException(e);
+        return LeaderService.messageFromFirestoreException(e, context.l10n);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final roleLabels = widget.session.profile.permissions.roleLabels;
+    final l10n = context.l10n;
+    final roleLabels = widget.session.profile.permissions.roleLabelsFor(l10n);
 
     if (_usesLeaderRecord && _loadingLeader) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Datos personales')),
+        appBar: AppBar(title: Text(l10n.editPersonalDataTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_usesLeaderRecord && _leader == null && _editsFullLeaderFields) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Datos personales')),
+        appBar: AppBar(title: Text(l10n.editPersonalDataTitle)),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'No se encontró tu ficha de datos.',
+                Text(
+                  l10n.leaderRecordNotFound,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: _loadLeader,
-                  child: const Text('Reintentar'),
+                  child: Text(l10n.retry),
                 ),
               ],
             ),
@@ -336,7 +337,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Datos personales'),
+        title: Text(l10n.editPersonalDataTitle),
       ),
       body: Form(
         key: _formKey,
@@ -345,30 +346,28 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
           children: [
             Text(
               _editsFullLeaderFields
-                  ? 'Actualiza tu nombre, dirección y teléfono. '
-                      'Para cambiar la contraseña usa «Cambiar contraseña» en Mi cuenta.'
-                  : 'Actualiza tu nombre en tu ficha. Para cambiar la contraseña usa '
-                      '«Cambiar contraseña» en Mi cuenta.',
+                  ? l10n.personalDataSubtitleFull
+                  : l10n.personalDataSubtitleName,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
             ),
             const SizedBox(height: 24),
             if (_usesLeaderRecord) ...[
-              if (!_editsFullLeaderFields) const FormSectionTitle('NOMBRE'),
+              if (!_editsFullLeaderFields) FormSectionTitle(l10n.editPersonalDataSectionName),
               if (!_editsFullLeaderFields) ...[
                 TextFormField(
                   controller: _firstNameController,
                   textCapitalization: TextCapitalization.words,
                   enabled: !_isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre *',
-                    prefixIcon: Icon(Icons.person_outline),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.memberFirstName,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Ingresa tu nombre';
+                      return l10n.memberFirstNameRequired;
                     }
                     return null;
                   },
@@ -378,14 +377,14 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                   controller: _lastNameController,
                   textCapitalization: TextCapitalization.words,
                   enabled: !_isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Apellido *',
-                    prefixIcon: Icon(Icons.person_outline),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.memberLastName,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Ingresa tu apellido';
+                      return l10n.memberLastNameRequired;
                     }
                     return null;
                   },
@@ -394,19 +393,19 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
               ],
             ],
             if (_editsFullLeaderFields) ...[
-              const FormSectionTitle('NOMBRE'),
+              FormSectionTitle(l10n.editPersonalDataSectionName),
               TextFormField(
                 controller: _firstNameController,
                 textCapitalization: TextCapitalization.words,
                 enabled: !_isLoading,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre *',
-                  prefixIcon: Icon(Icons.person_outline),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.memberFirstName,
+                  prefixIcon: const Icon(Icons.person_outline),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Ingresa tu nombre';
+                    return l10n.memberFirstNameRequired;
                   }
                   return null;
                 },
@@ -416,14 +415,14 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                 controller: _lastNameController,
                 textCapitalization: TextCapitalization.words,
                 enabled: !_isLoading,
-                decoration: const InputDecoration(
-                  labelText: 'Apellido *',
-                  prefixIcon: Icon(Icons.person_outline),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.memberLastName,
+                  prefixIcon: const Icon(Icons.person_outline),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Ingresa tu apellido';
+                    return l10n.memberLastNameRequired;
                   }
                   return null;
                 },
@@ -441,20 +440,20 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                   setState(() => _leaderLocation = location);
                 },
               ),
-              const FormSectionTitle('CONTACTO'),
+              FormSectionTitle(l10n.editPersonalDataSectionContact),
               TextFormField(
                 controller: _mobilePhoneController,
                 keyboardType: TextInputType.phone,
                 enabled: !_isLoading,
-                decoration: const InputDecoration(
-                  labelText: 'Celular / Móvil *',
+                decoration: InputDecoration(
+                  labelText: '${l10n.leaderDetailMobile} *',
                   hintText: 'Ej: 15-1234-5678',
-                  prefixIcon: Icon(Icons.phone_android_outlined),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.phone_android_outlined),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Ingresa tu número de teléfono';
+                    return l10n.memberPhoneRequired;
                   }
                   return null;
                 },
@@ -464,17 +463,16 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
             TextFormField(
               controller: _emailController,
               readOnly: true,
-              decoration: const InputDecoration(
-                labelText: 'Correo de inicio de sesión',
-                prefixIcon: Icon(Icons.email_outlined),
-                border: OutlineInputBorder(),
-                helperText: 'El correo de acceso no se modifica desde aquí',
+              decoration: InputDecoration(
+                labelText: l10n.emailLabel,
+                prefixIcon: const Icon(Icons.email_outlined),
+                border: const OutlineInputBorder(),
               ),
             ),
             if (roleLabels.isNotEmpty) ...[
               const SizedBox(height: 24),
               Text(
-                'Roles en el sistema',
+                l10n.editPersonalDataRoles,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -487,13 +485,6 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                     .map((label) => Chip(label: Text(label)))
                     .toList(),
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Los roles solo puede modificarlos un administrador.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
             ],
             const SizedBox(height: 32),
             FilledButton(
@@ -504,7 +495,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                       width: 22,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Guardar datos'),
+                  : Text(l10n.commonSave),
             ),
           ],
         ),

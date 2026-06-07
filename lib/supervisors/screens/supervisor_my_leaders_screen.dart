@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/user_profile.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/screens/leader_assigned_members_screen.dart';
@@ -84,7 +85,10 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _loadError = SupervisorAssignmentService.messageFromException(e);
+        _loadError = SupervisorAssignmentService.messageFromException(
+          e,
+          context.l10n,
+        );
       });
     }
   }
@@ -132,6 +136,7 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
   }
 
   Widget _buildSummaryCard() {
+    final l10n = context.l10n;
     return Card(
       child: ListTile(
         leading: const CircleAvatar(
@@ -142,27 +147,26 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
               ? widget.session.resolvedDisplayName
               : widget.session.email,
         ),
-        subtitle: Text(
-          '${_leaders.length} líder${_leaders.length == 1 ? '' : 'es'} '
-          'bajo tu supervisión',
-        ),
+        subtitle: Text(l10n.supervisorMyLeadersCount(_leaders.length)),
       ),
     );
   }
 
   Widget _buildSearchField() {
+    final l10n = context.l10n;
     return TextField(
       controller: _searchController,
-      decoration: const InputDecoration(
-        labelText: 'Buscar líder',
-        prefixIcon: Icon(Icons.search),
-        border: OutlineInputBorder(),
+      decoration: InputDecoration(
+        labelText: l10n.supervisorMyLeadersSearchHint,
+        prefixIcon: const Icon(Icons.search),
+        border: const OutlineInputBorder(),
       ),
       onChanged: (_) => setState(() {}),
     );
   }
 
   Widget _buildEmptyState() {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 32),
       child: Column(
@@ -174,13 +178,13 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'Sin líderes asignados',
+            l10n.supervisorMyLeadersEmptyTitle,
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
-            'El administrador te asignará líderes cuando corresponda.',
+            l10n.supervisorMyLeadersEmptySubtitle,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -192,10 +196,11 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
   }
 
   Widget _buildNoSearchResults() {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 32),
       child: Text(
-        'Ningún líder coincide con la búsqueda.',
+        l10n.supervisorMyLeadersNoSearchResults,
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -205,6 +210,7 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
   }
 
   Widget _buildLeaderCard(ChurchLeader leader) {
+    final l10n = context.l10n;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -223,7 +229,7 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
               ),
               title: Text(leader.fullName),
               subtitle: Text(
-                SupervisorAssignmentService.leaderLabel(leader),
+                SupervisorAssignmentService.leaderLabel(leader, l10n),
               ),
             ),
             Padding(
@@ -234,7 +240,7 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
                     child: OutlinedButton.icon(
                       onPressed: () => _openLeaderDetail(leader),
                       icon: const Icon(Icons.person_outline),
-                      label: const Text('Ver líder'),
+                      label: Text(l10n.leadersListViewLeader),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -242,7 +248,7 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
                     child: FilledButton.icon(
                       onPressed: () => _openLeaderMembers(leader),
                       icon: const Icon(Icons.people_outline),
-                      label: const Text('Creyentes'),
+                      label: Text(l10n.supervisorMyLeadersViewMembers),
                     ),
                   ),
                 ],
@@ -268,13 +274,15 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return RoleGate(
       permissions: widget.session.permissions,
       allowed: widget.session.permissions.canViewMySupervisedLeaders,
-      deniedMessage: 'No tienes permiso para ver tus líderes asignados.',
+      deniedMessage: l10n.supervisorMyLeadersDenied,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Mis líderes asignados'),
+          title: Text(l10n.supervisorMyLeadersTitle),
           bottom: _loading || _loadError != null || _leaders.isEmpty
               ? null
               : TabBar(
@@ -283,9 +291,15 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
                   unselectedLabelColor: Colors.white.withValues(alpha: 0.65),
                   indicatorColor: AppColors.accent,
                   indicatorWeight: 3,
-                  tabs: const [
-                    Tab(icon: Icon(Icons.list_outlined), text: 'Lista'),
-                    Tab(icon: Icon(Icons.map_outlined), text: 'Mapa'),
+                  tabs: [
+                    Tab(
+                      icon: const Icon(Icons.list_outlined),
+                      text: l10n.leaderAssignedTabList,
+                    ),
+                    Tab(
+                      icon: const Icon(Icons.map_outlined),
+                      text: l10n.leaderAssignedTabMap,
+                    ),
                   ],
                 ),
         ),
@@ -295,6 +309,8 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
   }
 
   Widget _buildBody() {
+    final l10n = context.l10n;
+
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -314,7 +330,7 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: _loadLeaders,
-                child: const Text('Reintentar'),
+                child: Text(l10n.retry),
               ),
             ],
           ),

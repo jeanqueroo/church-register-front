@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../core/locale/l10n_extensions.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/church_member.dart';
 import '../models/leader_member_group.dart';
 import '../services/member_service.dart';
@@ -55,11 +57,12 @@ class _MembersByLeaderBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final service = memberService ?? MemberService();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Integrantes por líder'),
+        title: Text(l10n.membersByLeaderTitle),
       ),
       body: StreamBuilder<List<ChurchMember>>(
         stream: service.watchMembers(churchId: permissions.churchId),
@@ -73,7 +76,7 @@ class _MembersByLeaderBody extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'No se pudo cargar la lista.',
+                  l10n.commonLoadListError,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.error,
@@ -99,7 +102,7 @@ class _MembersByLeaderBody extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No hay integrantes registrados',
+                      l10n.membersByLeaderEmpty,
                       style: Theme.of(context).textTheme.titleMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -135,8 +138,10 @@ class _MembersByLeaderBody extends StatelessWidget {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            '$assignedCount de ${members.length} integrantes '
-                            'con líder asignado',
+                            l10n.membersByLeaderAssignedCount(
+                              assignedCount,
+                              members.length,
+                            ),
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
@@ -153,6 +158,7 @@ class _MembersByLeaderBody extends StatelessWidget {
                     final group = groups[index];
                     return _LeaderGroupTile(
                       group: group,
+                      l10n: l10n,
                       formatDate: _formatDate,
                       onMemberTap: (member) {
                         Navigator.of(context).push(
@@ -181,11 +187,13 @@ class _MembersByLeaderBody extends StatelessWidget {
 class _LeaderGroupTile extends StatefulWidget {
   const _LeaderGroupTile({
     required this.group,
+    required this.l10n,
     required this.formatDate,
     required this.onMemberTap,
   });
 
   final LeaderMemberGroup group;
+  final AppLocalizations l10n;
   final String Function(DateTime) formatDate;
   final void Function(ChurchMember member) onMemberTap;
 
@@ -198,10 +206,11 @@ class _LeaderGroupTileState extends State<_LeaderGroupTile> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = widget.l10n;
     final group = widget.group;
     final subtitleParts = <String>[
-      '${group.count} integrante${group.count == 1 ? '' : 's'}',
-      if (group.cellCode != null) 'Célula ${group.cellCode}',
+      l10n.membersByLeaderMemberCount(group.count),
+      if (group.cellCode != null) l10n.leaderCellLabel(group.cellCode!),
     ];
 
     return Card(
@@ -224,7 +233,7 @@ class _LeaderGroupTileState extends State<_LeaderGroupTile> {
               ),
             ),
             title: Text(
-              group.leaderName,
+              group.localizedDisplayName(l10n),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             subtitle: Text(subtitleParts.join(' · ')),
@@ -239,11 +248,15 @@ class _LeaderGroupTileState extends State<_LeaderGroupTile> {
             ...group.members.map((member) {
               final parts = <String>[
                 member.phone,
-                if (member.wantsVisit) 'Solicita visita',
-                'Registro: ${widget.formatDate(member.registeredAt)}',
+                if (member.wantsVisit) l10n.membersMapRequestsVisit,
+                l10n.membersByLeaderRegistrationDate(
+                  widget.formatDate(member.registeredAt),
+                ),
                 if (member.locality != null) member.locality!,
                 if (member.assignedDistanceKm != null)
-                  '${member.assignedDistanceKm!.toStringAsFixed(1)} km',
+                  l10n.memberDetailDistanceKm(
+                    member.assignedDistanceKm!.toStringAsFixed(1),
+                  ),
               ];
 
               return ListTile(

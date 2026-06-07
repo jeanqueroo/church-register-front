@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
 import '../models/church_member.dart';
@@ -119,9 +120,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo exportar el listado. Intenta de nuevo.'),
-        ),
+        SnackBar(content: Text(context.l10n.commonExportError)),
       );
     } finally {
       if (mounted) setState(() => _exporting = false);
@@ -129,27 +128,26 @@ class _MembersListBodyState extends State<_MembersListBody> {
   }
 
   Future<void> _confirmDelete(BuildContext context, ChurchMember member) async {
+    final l10n = context.l10n;
     final id = member.id;
     if (id == null) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar Creyente'),
-        content: Text(
-          '¿Eliminar a ${member.fullName}? Esta acción no se puede deshacer.',
-        ),
+        title: Text(l10n.membersListDeleteTitle),
+        content: Text(l10n.commonDeleteConfirm(member.fullName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
-            child: const Text('Eliminar'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),
@@ -161,13 +159,13 @@ class _MembersListBodyState extends State<_MembersListBody> {
       await (widget.memberService ?? MemberService()).deleteMember(id);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Creyente eliminado')),
+        SnackBar(content: Text(l10n.membersListDeleted)),
       );
     } on FirebaseException catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(MemberService.messageFromFirestoreException(e)),
+          content: Text(MemberService.messageFromFirestoreException(e, context.l10n)),
         ),
       );
     }
@@ -175,6 +173,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final service = widget.memberService ?? MemberService();
 
     return StreamBuilder<List<ChurchMember>>(
@@ -187,11 +186,11 @@ class _MembersListBodyState extends State<_MembersListBody> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Creyentes'),
+            title: Text(l10n.membersListTitle),
             actions: [
               if (snapshot.hasData && members.isNotEmpty)
                 IconButton(
-                  tooltip: 'Descargar Excel',
+                  tooltip: l10n.membersListExportExcel,
                   onPressed: _exporting || filtered.isEmpty
                       ? null
                       : () => _exportToExcel(filtered),
@@ -220,7 +219,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
                     );
                   },
                   icon: const Icon(Icons.person_add),
-                  label: const Text('Nuevo'),
+                  label: Text(l10n.commonNew),
                 )
               : null,
           body: Builder(
@@ -234,7 +233,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'No se pudo cargar la lista.\nVerifica Firestore en Firebase Console.',
+                  l10n.membersListLoadError,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.error,
@@ -258,13 +257,13 @@ class _MembersListBodyState extends State<_MembersListBody> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Aún no hay Creyentes registrados',
+                      l10n.membersListEmptyTitle,
                       style: Theme.of(context).textTheme.titleMedium,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Pulsa "Nuevo" para registrar al primero.',
+                      l10n.membersListEmptySubtitle,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color:
@@ -285,11 +284,10 @@ class _MembersListBodyState extends State<_MembersListBody> {
                 child: TextField(
                   controller: _searchController,
                   onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
-                    hintText:
-                        'Buscar por nombre, teléfono, líder o localidad…',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    hintText: l10n.membersListSearchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -297,7 +295,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
                 Expanded(
                   child: Center(
                     child: Text(
-                      'No hay coincidencias',
+                      l10n.commonNoMatches,
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
@@ -313,9 +311,9 @@ class _MembersListBodyState extends State<_MembersListBody> {
               final subtitleParts = <String>[
                 member.phone,
                 if (member.assignedLeaderName != null)
-                  'Líder: ${member.assignedLeaderName}',
+                  l10n.membersListLeaderPrefix(member.assignedLeaderName!),
                 if (member.locality != null) member.locality!,
-                'Fecha: ${_formatDate(member.formDate)}',
+                l10n.membersListDatePrefix(_formatDate(member.formDate)),
               ];
 
               return Card(
@@ -350,20 +348,20 @@ class _MembersListBodyState extends State<_MembersListBody> {
                       }
                     },
                     itemBuilder: (_) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'view',
-                        child: Text('Ver detalle'),
+                        child: Text(l10n.membersMapViewDetail),
                       ),
                       if (widget.permissions.canManageMembers) ...[
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'edit',
-                          child: Text('Editar'),
+                          child: Text(l10n.commonEdit),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'delete',
                           child: Text(
-                            'Eliminar',
-                            style: TextStyle(color: Colors.red),
+                            l10n.commonDelete,
+                            style: const TextStyle(color: Colors.red),
                           ),
                         ),
                       ],

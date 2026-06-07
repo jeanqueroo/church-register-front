@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale/l10n_extensions.dart';
 import '../../core/models/geo_location.dart';
 import '../../core/widgets/form_section_title.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/address_place.dart';
 import 'address_autocomplete_field.dart';
 
@@ -59,18 +61,18 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
     super.dispose();
   }
 
-  String? _validateStreet(String? value) {
+  String? _validateStreet(String? value, AppLocalizations l10n) {
     if (!widget.requireAddress) return null;
     if (value == null || value.trim().isEmpty) {
-      return 'Busca y selecciona una dirección';
+      return l10n.addressSearchAndSelect;
     }
     return null;
   }
 
-  String? _validateSearch(String? value) {
+  String? _validateSearch(String? value, AppLocalizations l10n) {
     if (!widget.requireAddress) return null;
     if (widget.streetController.text.trim().isEmpty) {
-      return 'Debes elegir una dirección de la lista';
+      return l10n.addressMustPickFromList;
     }
     return null;
   }
@@ -95,6 +97,7 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
   InputDecoration _lockedDecoration(
     BuildContext context, {
     required String labelText,
+    required AppLocalizations l10n,
     IconData? prefixIcon,
   }) {
     return InputDecoration(
@@ -103,36 +106,42 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
       border: const OutlineInputBorder(),
       filled: true,
       fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-      hintText: 'Se completa al buscar dirección',
+      hintText: l10n.addressAutoFilledHint,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (widget.showSectionTitle) const FormSectionTitle('DIRECCIÓN'),
+        if (widget.showSectionTitle) FormSectionTitle(l10n.addressSection),
         AddressAutocompleteField(
           controller: _searchController,
           enabled: widget.enabled,
           onPlaceSelected: _applyPlace,
           suggestionsLocked: _suggestionsLocked,
           labelText: widget.requireAddress
-              ? 'Buscar dirección *'
-              : 'Buscar dirección',
-          validator: _validateSearch,
+              ? l10n.addressSearchRequired
+              : l10n.addressSearchOptional,
+          hintText: l10n.addressSearchHint,
+          validator: (value) => _validateSearch(value, l10n),
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: widget.streetController,
           readOnly: true,
           enabled: widget.enabled,
-          validator: _validateStreet,
+          validator: (value) => _validateStreet(value, l10n),
           autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: _lockedDecoration(
             context,
-            labelText: widget.requireAddress ? 'Calle *' : 'Calle',
+            labelText: widget.requireAddress
+                ? l10n.addressStreetRequired
+                : l10n.addressStreetOptional,
+            l10n: l10n,
             prefixIcon: Icons.signpost_outlined,
           ),
         ),
@@ -146,7 +155,11 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
                 controller: widget.streetNumberController,
                 readOnly: true,
                 enabled: widget.enabled,
-                decoration: _lockedDecoration(context, labelText: 'Número'),
+                decoration: _lockedDecoration(
+                  context,
+                  labelText: l10n.addressNumber,
+                  l10n: l10n,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -158,7 +171,8 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
                 enabled: widget.enabled,
                 decoration: _lockedDecoration(
                   context,
-                  labelText: 'Código postal',
+                  labelText: l10n.addressPostalCode,
+                  l10n: l10n,
                 ),
               ),
             ),
@@ -169,10 +183,10 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
           controller: widget.neighborhoodController,
           textCapitalization: TextCapitalization.words,
           enabled: widget.enabled,
-          decoration: const InputDecoration(
-            labelText: 'Barrio',
-            prefixIcon: Icon(Icons.location_city_outlined),
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.addressNeighborhood,
+            prefixIcon: const Icon(Icons.location_city_outlined),
+            border: const OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 16),
@@ -182,7 +196,8 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
           enabled: widget.enabled,
           decoration: _lockedDecoration(
             context,
-            labelText: 'Localidad / Partido',
+            labelText: l10n.addressLocality,
+            l10n: l10n,
             prefixIcon: Icons.map_outlined,
           ),
         ),
@@ -193,7 +208,8 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
           enabled: widget.enabled,
           decoration: _lockedDecoration(
             context,
-            labelText: 'Estado / Provincia',
+            labelText: l10n.addressStateProvince,
+            l10n: l10n,
             prefixIcon: Icons.public_outlined,
           ),
         ),

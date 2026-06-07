@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../locale/l10n_extensions.dart';
 import '../theme/app_theme.dart';
 import 'church_display_name.dart';
 
 class SlideMenuItem {
   const SlideMenuItem({
+    required this.id,
     required this.icon,
     required this.label,
     required this.onTap,
   });
 
+  final String id;
   final IconData icon;
   final String label;
   final VoidCallback onTap;
@@ -24,7 +27,7 @@ class SlideMenuScaffold extends StatefulWidget {
     required this.body,
     required this.menuItems,
     required this.onSignOut,
-    this.selectedMenuLabel,
+    this.selectedMenuId,
     this.actions,
     this.floatingActionButton,
   });
@@ -34,7 +37,7 @@ class SlideMenuScaffold extends StatefulWidget {
   final Widget body;
   final List<SlideMenuItem> menuItems;
   final VoidCallback onSignOut;
-  final String? selectedMenuLabel;
+  final String? selectedMenuId;
   final List<Widget>? actions;
   final Widget? floatingActionButton;
 
@@ -89,8 +92,14 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final drawerWidth = MediaQuery.sizeOf(context).width * 0.85;
-    final headerLabel = widget.selectedMenuLabel ??
+    final selectedId =
+        widget.selectedMenuId ?? widget.menuItems.firstOrNull?.id ?? 'home';
+    final headerLabel = widget.menuItems
+        .where((item) => item.id == selectedId)
+        .map((item) => item.label)
+        .firstOrNull ??
         (widget.menuItems.isNotEmpty ? widget.menuItems.first.label : '');
 
     return Scaffold(
@@ -153,7 +162,7 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
                               (item) => _DrawerMenuTile(
                                 icon: item.icon,
                                 label: item.label,
-                                isActive: item.label == headerLabel,
+                                isActive: item.id == selectedId,
                                 onTap: () => _onItemTap(item),
                               ),
                             ),
@@ -163,7 +172,7 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
                       const Divider(height: 1, color: AppColors.divider),
                       _DrawerMenuTile(
                         icon: Icons.logout_rounded,
-                        label: 'Cerrar sesión',
+                        label: l10n.signOut,
                         iconColor: Colors.red.shade700,
                         onTap: () {
                           _closeMenu();
@@ -201,6 +210,7 @@ class _WhatsappAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Material(
       color: AppColors.primary,
       child: SafeArea(
@@ -212,7 +222,7 @@ class _WhatsappAppBar extends StatelessWidget implements PreferredSizeWidget {
               IconButton(
                 icon: const Icon(Icons.menu_rounded, color: Colors.white),
                 onPressed: onMenuPressed,
-                tooltip: 'Menú',
+                tooltip: l10n.menuTooltip,
               ),
               Expanded(
                 child: ChurchDisplayName(

@@ -1,3 +1,5 @@
+import '../../l10n/app_localizations.dart';
+
 enum LeaderGender {
   hombre,
   mujer;
@@ -8,6 +10,15 @@ enum LeaderGender {
         return 'H';
       case LeaderGender.mujer:
         return 'M';
+    }
+  }
+
+  String localizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case LeaderGender.hombre:
+        return l10n.genderMale;
+      case LeaderGender.mujer:
+        return l10n.genderFemale;
     }
   }
 

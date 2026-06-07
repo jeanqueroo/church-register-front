@@ -4,6 +4,7 @@ import '../../auth/models/app_user_role.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/services/leader_service.dart';
 import '../models/supervisor_account.dart';
+import '../../l10n/app_localizations.dart';
 
 class SupervisorAssignmentService {
   SupervisorAssignmentService({
@@ -97,25 +98,25 @@ class SupervisorAssignmentService {
     return enriched;
   }
 
-  static String leaderLabel(ChurchLeader leader) {
+  static String leaderLabel(ChurchLeader leader, AppLocalizations l10n) {
     final parts = <String>[leader.fullName];
     if (leader.cellCode != null) {
-      parts.add('Célula ${leader.cellCode}');
+      parts.add(l10n.leaderCellLabel(leader.cellCode!));
     }
     return parts.join(' · ');
   }
 
-  static String messageFromException(Object e) {
+  static String messageFromException(Object e, AppLocalizations l10n) {
     if (e is FirebaseException) {
       switch (e.code) {
         case 'permission-denied':
-          return 'No tienes permiso para asignar líderes a supervisores.';
+          return l10n.supervisorServicePermissionDenied;
         case 'unavailable':
-          return 'Servicio no disponible. Revisa tu conexión.';
+          return l10n.serviceUnavailable;
         default:
-          return 'Error: ${e.message ?? e.code}';
+          return l10n.userProfileError(e.message ?? e.code);
       }
     }
-    return 'Error inesperado. Intenta de nuevo.';
+    return l10n.serviceGenericError;
   }
 }
