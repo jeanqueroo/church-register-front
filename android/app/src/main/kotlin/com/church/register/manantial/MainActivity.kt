@@ -1,4 +1,4 @@
-package com.church.register.church_registe
+package com.church.register.manantial
 
 import io.flutter.embedding.android.FlutterActivity
 

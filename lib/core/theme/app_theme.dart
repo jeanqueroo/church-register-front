@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// Nombre visible de la aplicación.
-const String appDisplayName = 'Iglesia de Dios';
+const String appDisplayName = 'Manantial de Bendiciones';
 
 /// Paleta inspirada en WhatsApp.
 class AppColors {

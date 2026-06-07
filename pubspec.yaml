@@ -62,6 +62,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   firebase_core_platform_interface: ^7.0.1
   flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.4
 
 # Icono de la app (Android e iOS). Cambia image_path y ejecuta:
 #   dart run flutter_launcher_icons
@@ -72,6 +73,19 @@ flutter_launcher_icons:
   adaptive_icon_background: "#075E54"
   adaptive_icon_foreground: assets/images/logo_iglesia.png
   remove_alpha_ios: true
+
+# Splash nativo (Android e iOS). Cambia color/image y ejecuta:
+#   dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#075E54"
+  image: assets/images/logo_iglesia.png
+  android_12:
+    color: "#075E54"
+    image: assets/images/logo_iglesia.png
+    icon_background_color: "#075E54"
+  android: true
+  ios: true
+  web: false
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

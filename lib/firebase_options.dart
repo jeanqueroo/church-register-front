@@ -21,7 +21,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyANYcA8s0GlHDLxfv1sVfhHLzZ8-eacvSU',
-    appId: '1:1096220304922:android:d60cb69bb0d952ba4713a3',
+    appId: '1:1096220304922:android:e9e8a6af687016364713a3',
     messagingSenderId: '1096220304922',
     projectId: 'church-register-ce4de',
     storageBucket: 'church-register-ce4de.firebasestorage.app',
