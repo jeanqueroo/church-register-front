@@ -11,14 +11,15 @@ class LanguageSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final palette = context.churchPalette;
     final controller = AppLocaleScope.of(context);
     final selected = controller.preference;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.languageSettingsTitle)),
-      backgroundColor: AppColors.chatBackground,
+      backgroundColor: palette.scaffoldBackground,
       body: ColoredBox(
-        color: AppColors.surface,
+        color: palette.surface,
         child: ListView(
           children: [
             _LanguageTile(
@@ -72,7 +73,7 @@ class _LanguageTile extends StatelessWidget {
       onTap: onTap,
       showDivider: showDivider,
       trailing: selected
-          ? const Icon(Icons.check_circle, color: AppColors.primary)
+          ? Icon(Icons.check_circle, color: context.churchPalette.primary)
           : null,
     );
   }

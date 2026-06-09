@@ -52,6 +52,7 @@ dependencies:
   google_maps_flutter: ^2.14.2
   url_launcher: ^6.3.2
   fl_chart: ^1.2.0
+  google_fonts: ^8.1.0
 
 dev_dependencies:
   flutter_test:
@@ -73,19 +74,19 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: assets/images/logo_iglesia.png
-  adaptive_icon_background: "#075E54"
+  adaptive_icon_background: "#1B3A5C"
   adaptive_icon_foreground: assets/images/logo_iglesia.png
   remove_alpha_ios: true
 
 # Splash nativo (Android e iOS). Cambia color/image y ejecuta:
 #   dart run flutter_native_splash:create
 flutter_native_splash:
-  color: "#075E54"
+  color: "#1B3A5C"
   image: assets/images/logo_iglesia.png
   android_12:
-    color: "#075E54"
+    color: "#1B3A5C"
     image: assets/images/logo_iglesia.png
-    icon_background_color: "#075E54"
+    icon_background_color: "#1B3A5C"
   android: true
   ios: true
   web: false

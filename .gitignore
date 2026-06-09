@@ -51,6 +51,9 @@ app.*.map.json
 # Env files / local config (evitar subir credenciales)
 .env
 .env.*
+android/key.properties
+**/upload-keystore.jks
+*.jks
 
 # App bundles generados localmente
 *.apk
@@ -58,3 +61,6 @@ app.*.map.json
 
 # Firebase (por ahora no versionar)
 /android/app/google-services.json
+.firebase/
+firebase-debug.log
+firebase-debug.*.log

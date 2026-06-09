@@ -6,8 +6,10 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 LOGO = ROOT / "assets" / "images" / "logo_iglesia.png"
 OUT = Path(__file__).resolve().parent
-BRAND = "#075E54"
-BRAND_RGB = (7, 94, 84)
+BRAND = "#1B3A5C"
+BRAND_RGB = (27, 58, 92)
+# Zona segura Play Store: keyline 75 % → ~384 px en canvas 512 px.
+PLAY_ICON_SAFE_PX = 384
 
 
 def load_logo(max_size: int) -> Image.Image:
@@ -23,9 +25,10 @@ def paste_center(base: Image.Image, overlay: Image.Image) -> None:
 
 
 def generate_icon() -> Path:
+    """Icono 512×512 para Play Console (32-bit PNG, < 1 MB, zona segura 384 px)."""
     size = 512
-    canvas = Image.new("RGB", (size, size), BRAND_RGB)
-    logo = load_logo(420)
+    canvas = Image.new("RGBA", (size, size), BRAND_RGB + (255,))
+    logo = load_logo(PLAY_ICON_SAFE_PX - 24)
     paste_center(canvas, logo)
     out = OUT / "play-store-icon-512.png"
     canvas.save(out, "PNG", optimize=True)
@@ -50,8 +53,8 @@ def generate_banner() -> Path:
     canvas = Image.new("RGB", (width, height), BRAND_RGB)
     draw = ImageDraw.Draw(canvas)
 
-    # Acento sutil en la esquina inferior derecha.
-    accent = (18, 140, 126)
+    # Acento dorado (plantilla Manantial).
+    accent = (201, 162, 39)
     draw.ellipse((760, 220, 1120, 580), fill=accent)
 
     logo = load_logo(260)
@@ -64,7 +67,7 @@ def generate_banner() -> Path:
 
     text_x = 380
     draw.text((text_x, 170), title, fill="white", font=title_font)
-    draw.text((text_x, 245), subtitle, fill=(220, 245, 240), font=subtitle_font)
+    draw.text((text_x, 245), subtitle, fill=(232, 236, 242), font=subtitle_font)
 
     features = [
         "Integrantes y líderes",
@@ -74,7 +77,7 @@ def generate_banner() -> Path:
     feature_font = _font(22)
     y = 310
     for line in features:
-        draw.ellipse((text_x, y + 8, text_x + 10, y + 18), fill=(37, 211, 102))
+        draw.ellipse((text_x, y + 8, text_x + 10, y + 18), fill=(212, 175, 55))
         draw.text((text_x + 22, y), line, fill="white", font=feature_font)
         y += 38
 

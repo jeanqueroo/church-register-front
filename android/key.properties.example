@@ -1,4 +1,17 @@
-storePassword=Vale0105}
-keyPassword=Vale0105}
+# Copia este archivo a android/key.properties (NO lo subas a git).
+# Rutas relativas a la carpeta android/
+#
+# Si el .jks está en la raíz del proyecto:
+#   storeFile=../upload-keystore.jks
+# Si lo copiaste a android/app/:
+#   storeFile=app/upload-keystore.jks
+#
+# Generar keystore (Windows PowerShell):
+#   keytool -genkey -v -keystore $env:USERPROFILE\upload-keystore.jks -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+# Docs: https://docs.flutter.dev/deployment/android
+
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
 keyAlias=upload
-storeFile=app/upload-keystore.jks
+storeFile=../upload-keystore.jks

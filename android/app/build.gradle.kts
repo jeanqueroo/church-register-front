@@ -15,6 +15,19 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+val releaseKeystoreFile = keystoreProperties["storeFile"]
+    ?.toString()
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?.let { rootProject.file(it) }
+
+val hasReleaseKeystore =
+    keystorePropertiesFile.exists() &&
+        releaseKeystoreFile?.exists() == true &&
+        !keystoreProperties["keyAlias"].toString().isNullOrBlank() &&
+        !keystoreProperties["keyPassword"].toString().isNullOrBlank() &&
+        !keystoreProperties["storePassword"].toString().isNullOrBlank()
+
 android {
     namespace = "com.church.register.manantial"
     compileSdk = flutter.compileSdkVersion
@@ -33,11 +46,13 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = keystoreProperties["storeFile"]?.let { rootProject.file(it) }
-            storePassword = keystoreProperties["storePassword"] as String
+        if (hasReleaseKeystore) {
+            create("release") {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = releaseKeystoreFile
+                storePassword = keystoreProperties["storePassword"] as String
+            }
         }
     }
 
@@ -51,7 +66,7 @@ android {
 
     buildTypes {
         release {
-            signingConfig = if (keystorePropertiesFile.exists()) {
+            signingConfig = if (hasReleaseKeystore) {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")

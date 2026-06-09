@@ -31,6 +31,8 @@ class MembersExcelExportService {
         TextCellValue(member.lastName),
         TextCellValue(member.firstName),
         TextCellValue(member.gender?.label ?? ''),
+        TextCellValue(member.idDocumentType?.label ?? ''),
+        TextCellValue(member.idDocumentNumber ?? ''),
         TextCellValue(member.phone),
         TextCellValue(
           member.birthDate != null
@@ -95,6 +97,8 @@ class MembersExcelExportService {
     'Apellido',
     'Nombre',
     'Género',
+    'Tipo documento',
+    'Número documento',
     'Teléfono',
     'Fecha de nacimiento',
     'Edad',

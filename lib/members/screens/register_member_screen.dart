@@ -15,6 +15,7 @@ import '../../leaders/models/church_leader.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../leaders/widgets/leader_search_field.dart';
 import '../models/church_member.dart';
+import '../models/id_document_type.dart';
 import '../models/marital_status.dart';
 import '../services/leader_assignment_service.dart';
 import '../services/member_service.dart';
@@ -58,6 +59,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   final _maritalStatusFieldKey = GlobalKey<FormFieldState<MaritalStatus>>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
+  final _idDocumentNumberController = TextEditingController();
   final _streetController = TextEditingController();
   final _streetNumberController = TextEditingController();
   final _neighborhoodController = TextEditingController();
@@ -79,6 +81,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   DateTime _formDate = DateTime.now();
   DateTime? _birthDate;
   LeaderGender? _gender;
+  IdDocumentType? _idDocumentType;
   MaritalStatus? _maritalStatus;
   String? _cellDay;
   GeoLocation? _memberLocation;
@@ -165,6 +168,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   void _loadMember(ChurchMember member) {
     _firstNameController.text = member.firstName;
     _lastNameController.text = member.lastName;
+    _idDocumentNumberController.text = member.idDocumentNumber ?? '';
     _streetController.text = member.street ?? '';
     _streetNumberController.text = member.streetNumber ?? '';
     _neighborhoodController.text = member.neighborhood ?? '';
@@ -180,6 +184,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     _formDate = member.formDate;
     _birthDate = member.birthDate;
     _gender = member.gender;
+    _idDocumentType = member.idDocumentType;
     _maritalStatus = member.maritalStatus;
     _cellDay = member.cellDay;
     _wantsVisit = member.wantsVisit;
@@ -200,6 +205,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _idDocumentNumberController.dispose();
     _streetController.dispose();
     _streetNumberController.dispose();
     _neighborhoodController.dispose();
@@ -453,6 +459,10 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         latitude: location?.latitude,
         longitude: location?.longitude,
         phone: _phoneController.text.trim(),
+        idDocumentType: _idDocumentType,
+        idDocumentNumber: _idDocumentNumberController.text.trim().isEmpty
+            ? null
+            : _idDocumentNumberController.text.trim(),
         birthDate: _birthDate!,
         occupation: _occupationController.text.trim(),
         maritalStatus: _maritalStatus!,
@@ -615,6 +625,35 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     _memberLocation = null;
   }
 
+  Widget _idDocumentTypeSelector(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.memberIdDocumentType,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: IdDocumentType.values.map((type) {
+            return FilterChip(
+              label: Text(type.localizedLabel(l10n)),
+              selected: _idDocumentType == type,
+              onSelected: _isLoading
+                  ? null
+                  : (v) => setState(() {
+                        _idDocumentType = v ? type : null;
+                      }),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
   Widget _genderSelector(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -721,6 +760,19 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   validator: (v) => v == null || v.trim().isEmpty
                       ? l10n.memberLastNameRequired
                       : null,
+                ),
+                const SizedBox(height: 12),
+                _idDocumentTypeSelector(l10n),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _idDocumentNumberController,
+                  enabled: !_isLoading,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    labelText: l10n.memberIdDocumentNumber,
+                    prefixIcon: const Icon(Icons.badge_outlined),
+                    border: const OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 _genderSelector(l10n),
