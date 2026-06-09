@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../core/firebase/app_check_bootstrap.dart';
 import '../models/church_profile.dart';
 import '../../l10n/app_localizations.dart';
 import '../models/church_record.dart';
@@ -23,13 +24,7 @@ class ChurchService {
   final CollectionReference<Map<String, dynamic>> _churches;
   final FirebaseStorage _storage;
 
-  static FirebaseStorage _defaultStorage() {
-    final bucket = Firebase.app().options.storageBucket;
-    if (bucket != null && bucket.isNotEmpty) {
-      return FirebaseStorage.instanceFor(bucket: bucket);
-    }
-    return FirebaseStorage.instance;
-  }
+  static FirebaseStorage _defaultStorage() => FirebaseStorage.instance;
 
   String _resolveChurchId(String? churchId) =>
       churchId != null && churchId.isNotEmpty ? churchId : mainChurchId;
@@ -89,11 +84,20 @@ class ChurchService {
     required String churchId,
     String? contentType,
   }) async {
+    await ensureAppCheckTokenForUpload();
+
     final id = _resolveChurchId(churchId);
     final ref = _storage.ref().child('church_profiles/$id/logo.jpg');
+    if (kDebugMode) {
+      final bucket = _storage.bucket;
+      debugPrint('Storage upload → gs://$bucket/church_profiles/$id/logo.jpg');
+    }
     await ref.putData(
       bytes,
-      SettableMetadata(contentType: contentType ?? 'image/jpeg'),
+      SettableMetadata(
+        contentType: contentType ?? 'image/jpeg',
+        cacheControl: 'public,max-age=86400',
+      ),
     );
     return ref.getDownloadURL();
   }
@@ -128,8 +132,27 @@ class ChurchService {
         message.contains('terminated the upload session');
   }
 
+  static bool _isAppCheckError(FirebaseException e) {
+    final message = (e.message ?? '').toLowerCase();
+    return message.contains('app check') ||
+        e.code == 'app-check-token-invalid' ||
+        e.code == 'app-check-token-missing' ||
+        e.code == 'app-check-throttled' ||
+        e.code == 'app-check' ||
+        e.code == 'failed-precondition' ||
+        message.contains('too many attempts') ||
+        message.contains('placeholder token');
+  }
+
   static String messageFromException(Object e, AppLocalizations l10n) {
     if (e is FirebaseException) {
+      if (e.code == 'app-check-throttled' ||
+          (e.message ?? '').toLowerCase().contains('too many attempts')) {
+        return l10n.churchServiceAppCheckThrottled;
+      }
+      if (_isAppCheckError(e)) {
+        return l10n.churchServiceAppCheckError;
+      }
       if (_isStorageNotConfigured(e)) {
         return l10n.churchServiceStorageNotConfigured;
       }

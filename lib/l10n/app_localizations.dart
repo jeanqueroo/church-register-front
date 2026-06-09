@@ -1290,6 +1290,18 @@ abstract class AppLocalizations {
   /// **'Escribe y elige una sugerencia...'**
   String get addressSearchHint;
 
+  /// No description provided for @addressSearchTapToChange.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca aquí para cambiar la dirección...'**
+  String get addressSearchTapToChange;
+
+  /// No description provided for @addressChangeButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar dirección'**
+  String get addressChangeButton;
+
   /// No description provided for @addressSearchAndSelect.
   ///
   /// In es, this message translates to:
@@ -3725,6 +3737,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No autorizado para subir el logo. Revisa las reglas de Storage.'**
   String get churchServiceUploadUnauthorized;
+
+  /// No description provided for @churchServiceAppCheckError.
+  ///
+  /// In es, this message translates to:
+  /// **'App Check no configurado. En desarrollo: busca en logcat \"App Check debug token\", regístralo en Firebase Console → App Check → Android, cierra la app y vuelve a abrirla.'**
+  String get churchServiceAppCheckError;
+
+  /// No description provided for @churchServiceAppCheckThrottled.
+  ///
+  /// In es, this message translates to:
+  /// **'App Check bloqueado por demasiados intentos. Espera 15 minutos, registra el token de depuración en Firebase Console, o desactiva temporalmente App Check en Storage.'**
+  String get churchServiceAppCheckThrottled;
 
   /// No description provided for @churchServiceSaveError.
   ///

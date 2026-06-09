@@ -639,6 +639,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addressSearchHint => 'Type and pick a suggestion...';
 
   @override
+  String get addressSearchTapToChange => 'Tap here to change the address...';
+
+  @override
+  String get addressChangeButton => 'Change address';
+
+  @override
   String get addressSearchAndSelect => 'Search and select an address';
 
   @override
@@ -2054,6 +2060,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get churchServiceUploadUnauthorized =>
       'Not authorized to upload the logo. Check Storage rules.';
+
+  @override
+  String get churchServiceAppCheckError =>
+      'App Check is not configured. In development: find \"App Check debug token\" in logcat, register it in Firebase Console → App Check → Android, then fully restart the app.';
+
+  @override
+  String get churchServiceAppCheckThrottled =>
+      'App Check blocked due to too many attempts. Wait 15 minutes, register the debug token in Firebase Console, or temporarily disable App Check enforcement on Storage.';
 
   @override
   String churchServiceSaveError(String message) {

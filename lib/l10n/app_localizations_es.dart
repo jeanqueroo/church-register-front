@@ -643,6 +643,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get addressSearchHint => 'Escribe y elige una sugerencia...';
 
   @override
+  String get addressSearchTapToChange =>
+      'Toca aquí para cambiar la dirección...';
+
+  @override
+  String get addressChangeButton => 'Cambiar dirección';
+
+  @override
   String get addressSearchAndSelect => 'Busca y selecciona una dirección';
 
   @override
@@ -2062,6 +2069,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get churchServiceUploadUnauthorized =>
       'No autorizado para subir el logo. Revisa las reglas de Storage.';
+
+  @override
+  String get churchServiceAppCheckError =>
+      'App Check no configurado. En desarrollo: busca en logcat \"App Check debug token\", regístralo en Firebase Console → App Check → Android, cierra la app y vuelve a abrirla.';
+
+  @override
+  String get churchServiceAppCheckThrottled =>
+      'App Check bloqueado por demasiados intentos. Espera 15 minutos, registra el token de depuración en Firebase Console, o desactiva temporalmente App Check en Storage.';
 
   @override
   String churchServiceSaveError(String message) {

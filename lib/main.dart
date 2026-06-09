@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'auth/widgets/auth_gate.dart';
+import 'core/firebase/app_check_bootstrap.dart';
 import 'core/locale/locale_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
@@ -19,6 +20,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await activateFirebaseAppCheck();
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   final localeController = await LocaleController.load();
   final themeController = await ThemeController.load();

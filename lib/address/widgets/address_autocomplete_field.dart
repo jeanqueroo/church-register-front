@@ -21,6 +21,7 @@ class AddressAutocompleteField extends StatefulWidget {
     this.validator,
     this.showInlineMapPreview = true,
     this.suggestionsLocked = false,
+    this.onTapWhenLocked,
   });
 
   final TextEditingController controller;
@@ -33,6 +34,7 @@ class AddressAutocompleteField extends StatefulWidget {
   final FormFieldValidator<String>? validator;
   final bool showInlineMapPreview;
   final bool suggestionsLocked;
+  final VoidCallback? onTapWhenLocked;
 
   @override
   State<AddressAutocompleteField> createState() =>
@@ -174,6 +176,9 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
           textCapitalization: TextCapitalization.sentences,
           validator: widget.validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
+          onTap: widget.enabled && widget.suggestionsLocked
+              ? widget.onTapWhenLocked
+              : null,
           decoration: InputDecoration(
             labelText: widget.labelText ?? l10n.addressSearchOptional,
             hintText: widget.hintText ?? l10n.addressSearchHint,

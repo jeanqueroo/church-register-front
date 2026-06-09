@@ -812,6 +812,9 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                     onStreetCoordinatesSelected: (location) {
                       setState(() => _memberLocation = location);
                     },
+                    onAddressCleared: () {
+                      setState(() => _memberLocation = null);
+                    },
                   ),
                 ],
                 const SizedBox(height: 16),

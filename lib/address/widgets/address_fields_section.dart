@@ -19,6 +19,7 @@ class AddressFieldsSection extends StatefulWidget {
     this.enabled = true,
     this.showSectionTitle = true,
     this.onStreetCoordinatesSelected,
+    this.onAddressCleared,
     this.initialSearchText,
     this.requireAddress = true,
   });
@@ -32,6 +33,7 @@ class AddressFieldsSection extends StatefulWidget {
   final bool enabled;
   final bool showSectionTitle;
   final void Function(GeoLocation location)? onStreetCoordinatesSelected;
+  final VoidCallback? onAddressCleared;
   final String? initialSearchText;
   final bool requireAddress;
 
@@ -42,6 +44,8 @@ class AddressFieldsSection extends StatefulWidget {
 class _AddressFieldsSectionState extends State<AddressFieldsSection> {
   final _searchController = TextEditingController();
   bool _suggestionsLocked = false;
+
+  bool get _hasAddressData => widget.streetController.text.trim().isNotEmpty;
 
   @override
   void initState() {
@@ -75,6 +79,23 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
       return l10n.addressMustPickFromList;
     }
     return null;
+  }
+
+  void _clearAddressFields() {
+    widget.streetController.clear();
+    widget.streetNumberController.clear();
+    widget.neighborhoodController.clear();
+    widget.localityController.clear();
+    widget.postalCodeController.clear();
+    widget.onAddressCleared?.call();
+  }
+
+  void _unlockAddressSearch({bool clearFields = false}) {
+    setState(() => _suggestionsLocked = false);
+    if (clearFields) {
+      _searchController.clear();
+      _clearAddressFields();
+    }
   }
 
   void _applyPlace(AddressPlace place) {
@@ -123,12 +144,26 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
           enabled: widget.enabled,
           onPlaceSelected: _applyPlace,
           suggestionsLocked: _suggestionsLocked,
+          onTapWhenLocked: () => _unlockAddressSearch(),
           labelText: widget.requireAddress
               ? l10n.addressSearchRequired
               : l10n.addressSearchOptional,
-          hintText: l10n.addressSearchHint,
+          hintText: _suggestionsLocked && _hasAddressData
+              ? l10n.addressSearchTapToChange
+              : l10n.addressSearchHint,
           validator: (value) => _validateSearch(value, l10n),
         ),
+        if (_suggestionsLocked && _hasAddressData && widget.enabled) ...[
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => _unlockAddressSearch(clearFields: true),
+              icon: const Icon(Icons.edit_location_alt_outlined, size: 20),
+              label: Text(l10n.addressChangeButton),
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         TextFormField(
           controller: widget.streetController,

@@ -175,6 +175,54 @@ Activa **Storage** y publica reglas:
 firebase deploy --only firestore:rules,storage
 ```
 
+## App Check (obligatorio para subir el logo)
+
+Si al guardar la iglesia con logo ves en logcat:
+
+`Error getting App Check token; using placeholder token instead`
+
+o `No AppCheckProvider`, Firebase **Storage** tiene App Check activo y la app debe enviar un token válido.
+
+La app ya llama a `activateFirebaseAppCheck()` al iniciar (`lib/core/firebase/app_check_bootstrap.dart`).
+
+### Desarrollo (debug en emulador o dispositivo)
+
+1. Ejecuta `flutter run` e inicia sesión.
+2. En **logcat** busca una línea como:  
+   `App Check debug token: XXXXXXXX-...`
+3. Firebase Console → **Build → App Check** → tu app **Android** → **Manage debug tokens** → pega el token → Guardar.
+4. Vuelve a intentar subir el logo.
+
+### Producción (Play Store)
+
+- La app usa **Play Integrity** en builds `release`.
+- En App Check, registra el proveedor **Play Integrity** para Android.
+- La app debe estar firmada y, para pruebas reales de Integrity, instalada desde Play (internal testing) o con licencia de Play en el dispositivo.
+
+### Error «Too many attempts»
+
+Firebase limita los reintentos de App Check. Si ves ese mensaje:
+
+1. **Cierra la app por completo** (no solo minimizar).
+2. Espera **15–30 minutos** sin abrir la app.
+3. Registra el **debug token** en Firebase Console (pasos de arriba).
+4. Vuelve a abrir la app e intenta subir el logo **una vez**.
+
+O desactiva temporalmente **Enforcement** en App Check → Storage.
+
+### Error 404 al subir logo (`terminated the upload session`)
+
+Suele ser **Storage no activado** o **App Check** rechazando la subida.
+
+1. Firebase Console → **Build → Storage** → si pide **Comenzar / Get started**, créalo (elige ubicación, p. ej. `us-central1`).
+2. Publica reglas: `firebase deploy --only storage`
+3. Confirma el bucket: `church-register-ce4de.firebasestorage.app`
+4. Revisa App Check (debug token o desactivar enforcement en pruebas).
+
+### Si no quieres App Check (solo pruebas)
+
+En Firebase Console → App Check → **Storage** → desactiva **Enforcement** (menos seguro; no recomendado en producción).
+
 ## Mi cuenta (datos y contraseña)
 
 Todos los usuarios autenticados pueden abrir **Mi cuenta** desde el menú:

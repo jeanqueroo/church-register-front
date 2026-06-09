@@ -439,6 +439,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                 onStreetCoordinatesSelected: (location) {
                   setState(() => _leaderLocation = location);
                 },
+                onAddressCleared: () {
+                  setState(() => _leaderLocation = null);
+                },
               ),
               FormSectionTitle(l10n.editPersonalDataSectionContact),
               TextFormField(

@@ -407,6 +407,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                   onStreetCoordinatesSelected: (location) {
                     setState(() => _leaderLocation = location);
                   },
+                  onAddressCleared: () {
+                    setState(() => _leaderLocation = null);
+                  },
                 ),
                 FormSectionTitle(l10n.leaderRegSectionChurchOffice),
                 DropdownButtonFormField<ChurchOffice>(
