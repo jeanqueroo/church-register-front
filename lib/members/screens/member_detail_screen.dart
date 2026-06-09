@@ -214,6 +214,11 @@ class MemberDetailScreen extends StatelessWidget {
         l10n.memberDetailGender,
         member.gender?.localizedLabel(l10n),
       ),
+      _Row(
+        l10n.memberDetailIdDocument,
+        member.idDocumentType?.localizedLabel(l10n),
+      ),
+      _Row(l10n.memberDetailIdDocumentNumber, member.idDocumentNumber),
       _Row(l10n.memberDetailPhone, member.phone),
       _Row(l10n.memberDetailBirthDate, _formatDate(member.birthDate)),
       _Row(

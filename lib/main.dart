@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'auth/widgets/auth_gate.dart';
 import 'core/locale/locale_controller.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_controller.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -20,27 +21,41 @@ Future<void> main() async {
   );
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   final localeController = await LocaleController.load();
-  runApp(ChurchRegisterApp(localeController: localeController));
+  final themeController = await ThemeController.load();
+  runApp(ChurchRegisterApp(
+    localeController: localeController,
+    themeController: themeController,
+  ));
 }
 
 class ChurchRegisterApp extends StatelessWidget {
-  const ChurchRegisterApp({super.key, required this.localeController});
+  const ChurchRegisterApp({
+    super.key,
+    required this.localeController,
+    required this.themeController,
+  });
 
   final LocaleController localeController;
+  final ThemeController themeController;
 
   @override
   Widget build(BuildContext context) {
-    return AppLocaleScope(
-      controller: localeController,
-      child: ListenableBuilder(
-        listenable: localeController,
-        builder: (context, _) {
-          return MaterialApp(
-            navigatorKey: rootNavigatorKey,
-            title: appDisplayName,
-            debugShowCheckedModeBanner: false,
-            theme: buildChurchTheme(),
-            locale: localeController.locale,
+    return AppThemeScope(
+      controller: themeController,
+      child: AppLocaleScope(
+        controller: localeController,
+        child: ListenableBuilder(
+          listenable: Listenable.merge([localeController, themeController]),
+          builder: (context, _) {
+            return MaterialApp(
+              navigatorKey: rootNavigatorKey,
+              title: appDisplayName,
+              debugShowCheckedModeBanner: false,
+              theme: buildChurchTheme(palette: themeController.lightPalette),
+              darkTheme:
+                  buildChurchDarkTheme(palette: themeController.darkPalette),
+              themeMode: themeController.themeMode,
+              locale: localeController.locale,
             localeListResolutionCallback: (locales, supportedLocales) {
               return localeController.resolveLocale(locales?.first);
             },
@@ -51,9 +66,10 @@ class ChurchRegisterApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const AuthGate(),
-          );
-        },
+              home: const AuthGate(),
+            );
+          },
+        ),
       ),
     );
   }

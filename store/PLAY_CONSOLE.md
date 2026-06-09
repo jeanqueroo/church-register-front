@@ -19,38 +19,85 @@ Registro Manantial Iglesia
 ## Descripción corta (máx. 80 caracteres)
 
 ```
-Gestión pastoral: integrantes, líderes, visitas y reportes para la iglesia.
+Gestión pastoral: integrantes, líderes, visitas, mapas y reportes de iglesia.
 ```
 
-(79 caracteres)
+(77 caracteres)
 
 ---
 
-## Descripción completa
+## Descripción completa (máx. 4000 caracteres)
 
 ```
-Manantial de Bendiciones es la aplicación oficial de gestión pastoral de la iglesia. Está pensada para el equipo autorizado: administradores, registradores, supervisores y líderes de célula.
+Manantial de Bendiciones es la aplicación oficial de gestión pastoral de la iglesia. Está diseñada para el equipo autorizado — administradores, registradores, supervisores y líderes de célula — que necesitan organizar el cuidado de las personas, el seguimiento de visitas y la coordinación entre sedes.
+
+¿PARA QUIÉN ES ESTA APP?
+
+No es una aplicación para el público general. El acceso está restringido mediante cuenta y contraseña. Cada usuario ve únicamente la información permitida por su rol dentro de su iglesia o sede asignada.
 
 ¿QUÉ PUEDES HACER?
 
-• Registrar y consultar integrantes (creyentes) con datos de contacto, célula y dirección.
-• Gestionar líderes y asignaciones entre supervisores y líderes.
-• Registrar visitas pastorales: lugar, duración, oración, peticiones y seguimiento.
-• Ver mapas de integrantes y líderes, con opción de abrir la ruta en Google Maps.
-• Consultar dashboards de visitas y seguimiento pastoral (por día, mes o año).
-• Recibir notificaciones cuando se te asignen nuevos integrantes.
-• Exportar listados de líderes cuando tu rol lo permita.
+INTEGRANTES (CREYENTES)
+• Registrar y consultar integrantes con datos personales, contacto, documento de identidad, célula y dirección.
+• Buscar y filtrar listados; ver detalle completo de cada persona.
+• Consultar integrantes por líder o los asignados a tu propia célula.
+• Visualizar ubicaciones en mapa e iniciar ruta hacia la dirección con Google Maps.
+• Exportar listados a Excel cuando tu rol lo permita.
 
-ROLES Y ACCESO
+LÍDERES Y SUPERVISORES
+• Registrar y administrar líderes de célula con datos de contacto, zona y ubicación.
+• Asignar integrantes a líderes; sugerencia automática por proximidad geográfica cuando hay dirección.
+• Gestionar la relación entre supervisores y los líderes bajo su cuidado.
+• Ver líderes en lista o en mapa interactivo, con identificación visual por género.
 
-Cada usuario accede con su cuenta y ve solo la información permitida por su rol: superadministrador, administrador de iglesia, registrador, supervisor o líder. La app no está destinada al público general.
+VISITAS PASTORALES
+• Registrar visitas: lugar, duración, oración, peticiones y seguimiento espiritual.
+• Llevar un historial ordenado del acompañamiento pastoral a cada integrante.
+• Dar continuidad al cuidado pastoral con registros claros y accesibles.
 
-SEGURIDAD
+DASHBOARDS Y REPORTES
+• Dashboard de visitas con gráficas por día, mes y año.
+• Dashboard pastoral con métricas de seguimiento y actividad del equipo.
+• Visualiza tendencias y avances del trabajo pastoral en distintos periodos.
+• Toma de decisiones basada en datos reales de la congregación.
 
-Los datos se almacenan de forma segura en la nube (Firebase) con acceso restringido por autenticación y reglas de permisos.
+NOTIFICACIONES
+• Recibe avisos dentro de la app cuando se te asignen nuevos integrantes.
+• Notificaciones push en el dispositivo para no perder asignaciones importantes.
+• Mantente informado aunque no tengas la aplicación abierta.
 
-Para soporte o consultas sobre privacidad, escribe a contacto@manantialdebendiciones.org
+ADMINISTRACIÓN Y MULTI-IGLESIA
+• Gestión de iglesias y sedes para organizaciones con varias congregaciones.
+• Registro de administradores y configuración de accesos por sede.
+• Administración de cuentas y roles: superadministrador, administrador de iglesia, registrador, supervisor y líder.
+• Interfaz disponible en español e inglés.
+
+ROLES Y PERMISOS
+
+Cada función respeta permisos definidos por rol. Un líder consulta y atiende a sus integrantes; un supervisor coordina a sus líderes asignados; un registrador puede dar de alta creyentes; un administrador configura su iglesia y usuarios. Así se protege la privacidad de cada persona y se mantiene el orden pastoral en el ministerio.
+
+SEGURIDAD Y PRIVACIDAD
+
+Los datos se almacenan de forma segura en la nube (Google Firebase) con autenticación, comunicación cifrada (HTTPS) y reglas de acceso por usuario y rol. La política de privacidad está disponible en nuestra web oficial. No vendemos ni compartimos datos con terceros con fines comerciales.
+
+EXPERIENCIA DE USO
+
+Interfaz clara pensada para el trabajo diario del equipo pastoral: menú lateral con accesos rápidos, búsquedas, mapas integrados y formularios organizados por secciones. Ideal para registrar visitas en el terreno, consultar datos antes de una reunión de célula o revisar el avance del mes desde el dashboard.
+
+REQUISITOS
+
+• Conexión a internet para sincronizar información.
+• Cuenta autorizada proporcionada por la administración de la iglesia.
+• Dispositivo Android compatible con Google Play.
+
+SOPORTE
+
+Para consultas, soporte técnico o privacidad: contacto@manantialdebendiciones.org
+
+Descarga Manantial de Bendiciones y lleva el registro pastoral de tu iglesia con claridad, orden y cuidado por cada integrante de la congregación.
 ```
+
+(3872 caracteres)
 
 ---
 
@@ -77,14 +124,22 @@ contacto@manantialdebendiciones.org
 
 ## Política de privacidad (URL obligatoria)
 
-1. Publica el archivo `store/privacy-policy.html` en un sitio accesible (GitHub Pages, Firebase Hosting, web de la iglesia, etc.).
-2. Usa la URL pública en Play Console, por ejemplo:
+1. Edita el HTML en `hosting/public/privacy-policy.html`.
+2. Despliega en Firebase Hosting:
+
+```powershell
+scripts\build.bat 15
+```
+
+3. Usa esta URL en Play Console (tras el primer deploy):
 
 ```
-https://manantialdebendiciones.org/privacy-policy.html
+https://church-register-ce4de.web.app/privacy-policy
 ```
 
-3. Antes de publicar, **cambia el correo** en `privacy-policy.html` si no es el definitivo.
+Vista previa local: `scripts\build.bat 16`
+
+4. Antes de publicar, **cambia el correo** en `hosting/public/privacy-policy.html` si no es el definitivo.
 
 ---
 
@@ -92,8 +147,10 @@ https://manantialdebendiciones.org/privacy-policy.html
 
 | Archivo | Uso en Play Console |
 |---------|---------------------|
-| `store/play-store-icon-512.png` | Icono de la aplicación (512 × 512 px) |
+| `store/play-store-icon-512.png` | Icono de la aplicación (512 × 512 px, PNG 32-bit, &lt; 1 MB) |
 | `store/play-store-feature-graphic-1024x500.png` | Gráfico de funciones / banner (1024 × 500 px) |
+
+**Icono Play Store:** sube `store/play-store-icon-512.png` en *Presencia en la tienda → Icono de la aplicación*. Debe ser cuadrado 512×512, PNG o JPEG &lt; 1 MB, sin esquinas redondeadas ni sombras (Google las aplica solo). No incluir texto promocional, precios ni badges.
 
 Regenerar:
 

@@ -4,6 +4,7 @@ import '../../church/screens/register_church_screen.dart';
 import '../../core/locale/language_settings_screen.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/theme_settings_screen.dart';
 import '../../core/widgets/whatsapp_list_tile.dart';
 import '../models/user_profile.dart';
 import 'change_password_screen.dart';
@@ -21,6 +22,7 @@ class AccountHubScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final palette = context.churchPalette;
     final name = session.resolvedDisplayName.isNotEmpty
         ? session.resolvedDisplayName
         : l10n.user;
@@ -34,13 +36,13 @@ class AccountHubScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.myAccount)),
-      backgroundColor: AppColors.chatBackground,
+      backgroundColor: palette.scaffoldBackground,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
             width: double.infinity,
-            color: AppColors.primary,
+            color: palette.primary,
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
             child: Column(
               children: [
@@ -82,7 +84,7 @@ class AccountHubScreen extends StatelessWidget {
           if (roles.isNotEmpty)
             Container(
               width: double.infinity,
-              color: AppColors.surface,
+              color: palette.surface,
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,7 +92,7 @@ class AccountHubScreen extends StatelessWidget {
                   Text(
                     l10n.systemRoles,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: palette.textSecondary,
                           fontWeight: FontWeight.w600,
                         ),
                   ),
@@ -106,16 +108,16 @@ class AccountHubScreen extends StatelessWidget {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.bubbleOutgoing,
+                              color: palette.bubbleOutgoing,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: AppColors.primary.withValues(alpha: 0.2),
+                                color: palette.primary.withValues(alpha: 0.2),
                               ),
                             ),
                             child: Text(
                               label,
-                              style: const TextStyle(
-                                color: AppColors.primaryDark,
+                              style: TextStyle(
+                                color: palette.primaryDark,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -128,10 +130,10 @@ class AccountHubScreen extends StatelessWidget {
               ),
             ),
           if (roles.isNotEmpty)
-            const Divider(height: 1, color: AppColors.divider),
+            Divider(height: 1, color: palette.divider),
           Expanded(
             child: ColoredBox(
-              color: AppColors.surface,
+              color: palette.surface,
               child: ListView(
                 children: [
                   WhatsappListTile(
@@ -187,6 +189,18 @@ class AccountHubScreen extends StatelessWidget {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
                           builder: (_) => const LanguageSettingsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  WhatsappListTile(
+                    icon: Icons.palette_outlined,
+                    title: l10n.theme,
+                    subtitle: l10n.themeSubtitle,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const ThemeSettingsScreen(),
                         ),
                       );
                     },

@@ -102,8 +102,10 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
         .firstOrNull ??
         (widget.menuItems.isNotEmpty ? widget.menuItems.first.label : '');
 
+    final palette = context.churchPalette;
+
     return Scaffold(
-      backgroundColor: AppColors.chatBackground,
+      backgroundColor: palette.scaffoldBackground,
       floatingActionButton: widget.floatingActionButton,
       body: Stack(
         children: [
@@ -141,7 +143,7 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
               alignment: Alignment.centerLeft,
               child: Material(
                 elevation: 8,
-                color: AppColors.surface,
+                color: palette.surface,
                 child: SizedBox(
                   width: drawerWidth,
                   height: MediaQuery.sizeOf(context).height,
@@ -169,7 +171,7 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
                           ],
                         ),
                       ),
-                      const Divider(height: 1, color: AppColors.divider),
+                      Divider(height: 1, color: palette.divider),
                       _DrawerMenuTile(
                         icon: Icons.logout_rounded,
                         label: l10n.signOut,
@@ -211,8 +213,9 @@ class _WhatsappAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final palette = context.churchPalette;
     return Material(
-      color: AppColors.primary,
+      color: palette.primary,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -260,8 +263,9 @@ class _DrawerProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.churchPalette;
     return Container(
-      color: AppColors.primary,
+      color: palette.primary,
       padding: EdgeInsets.only(
         top: MediaQuery.paddingOf(context).top + 8,
         left: 8,
@@ -329,8 +333,9 @@ class _DrawerMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.churchPalette;
     return Material(
-      color: isActive ? AppColors.selectedTile : Colors.transparent,
+      color: isActive ? palette.selectedTile : Colors.transparent,
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -339,7 +344,7 @@ class _DrawerMenuTile extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                color: iconColor ?? AppColors.textSecondary,
+                color: iconColor ?? palette.textSecondary,
                 size: 24,
               ),
               const SizedBox(width: 28),
@@ -347,7 +352,7 @@ class _DrawerMenuTile extends StatelessWidget {
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: iconColor ?? const Color(0xFF111B21),
+                    color: iconColor ?? palette.onSurface,
                     fontSize: 16,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                   ),

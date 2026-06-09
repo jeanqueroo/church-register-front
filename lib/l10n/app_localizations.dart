@@ -584,6 +584,108 @@ abstract class AppLocalizations {
   /// **'English'**
   String get languageEnglish;
 
+  /// No description provided for @theme.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema'**
+  String get theme;
+
+  /// No description provided for @themeSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Claro, oscuro o según el sistema'**
+  String get themeSubtitle;
+
+  /// No description provided for @themeSettingsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema de la app'**
+  String get themeSettingsTitle;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In es, this message translates to:
+  /// **'Según el sistema'**
+  String get themeSystem;
+
+  /// No description provided for @themeSystemSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Usa la configuración de tu dispositivo'**
+  String get themeSystemSubtitle;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In es, this message translates to:
+  /// **'Claro'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In es, this message translates to:
+  /// **'Oscuro'**
+  String get themeDark;
+
+  /// No description provided for @themeColorSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Paleta de colores'**
+  String get themeColorSection;
+
+  /// No description provided for @themeModeSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo de visualización'**
+  String get themeModeSection;
+
+  /// No description provided for @templateManantial.
+  ///
+  /// In es, this message translates to:
+  /// **'Manantial'**
+  String get templateManantial;
+
+  /// No description provided for @templateManantialSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Azul profundo y dorado — recomendado'**
+  String get templateManantialSubtitle;
+
+  /// No description provided for @templateWhatsapp.
+  ///
+  /// In es, this message translates to:
+  /// **'Verde mensajería'**
+  String get templateWhatsapp;
+
+  /// No description provided for @templateWhatsappSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo WhatsApp, el anterior de la app'**
+  String get templateWhatsappSubtitle;
+
+  /// No description provided for @templatePeace.
+  ///
+  /// In es, this message translates to:
+  /// **'Paz'**
+  String get templatePeace;
+
+  /// No description provided for @templatePeaceSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Índigo suave y tonos calmados'**
+  String get templatePeaceSubtitle;
+
+  /// No description provided for @templateTraditional.
+  ///
+  /// In es, this message translates to:
+  /// **'Tradicional'**
+  String get templateTraditional;
+
+  /// No description provided for @templateTraditionalSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Vino y crema, elegante'**
+  String get templateTraditionalSubtitle;
+
   /// No description provided for @roleSuperAdmin.
   ///
   /// In es, this message translates to:
@@ -739,6 +841,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ingresa los apellidos'**
   String get memberLastNameRequired;
+
+  /// No description provided for @memberIdDocumentType.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento'**
+  String get memberIdDocumentType;
+
+  /// No description provided for @memberIdDocumentNumber.
+  ///
+  /// In es, this message translates to:
+  /// **'Número de documento'**
+  String get memberIdDocumentNumber;
+
+  /// No description provided for @idDocumentDni.
+  ///
+  /// In es, this message translates to:
+  /// **'DNI'**
+  String get idDocumentDni;
+
+  /// No description provided for @idDocumentPassport.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasaporte'**
+  String get idDocumentPassport;
+
+  /// No description provided for @idDocumentOther.
+  ///
+  /// In es, this message translates to:
+  /// **'Otro'**
+  String get idDocumentOther;
 
   /// No description provided for @memberGenderRequired.
   ///
@@ -1355,6 +1487,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Teléfono'**
   String get memberDetailPhone;
+
+  /// No description provided for @memberDetailIdDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento'**
+  String get memberDetailIdDocument;
+
+  /// No description provided for @memberDetailIdDocumentNumber.
+  ///
+  /// In es, this message translates to:
+  /// **'Número de documento'**
+  String get memberDetailIdDocumentNumber;
 
   /// No description provided for @memberDetailBirthDate.
   ///

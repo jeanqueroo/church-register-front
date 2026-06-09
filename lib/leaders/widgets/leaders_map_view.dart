@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../core/locale/l10n_extensions.dart';
+import '../../core/models/leader_gender.dart';
 import '../../core/utils/external_maps.dart';
 import '../../l10n/app_localizations.dart';
 import '../models/church_leader.dart';
@@ -178,6 +179,41 @@ class _LeadersMapViewState extends State<LeadersMapView> {
     );
   }
 
+  double _markerHue(LeaderGender? gender) {
+    switch (gender) {
+      case LeaderGender.hombre:
+        return BitmapDescriptor.hueBlue;
+      case LeaderGender.mujer:
+        return BitmapDescriptor.hueRose;
+      case null:
+        return BitmapDescriptor.hueOrange;
+    }
+  }
+
+  Widget _buildGenderLegend(AppLocalizations l10n) {
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Wrap(
+          spacing: 16,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            _LegendItem(
+              hue: BitmapDescriptor.hueBlue,
+              label: l10n.genderMale,
+            ),
+            _LegendItem(
+              hue: BitmapDescriptor.hueRose,
+              label: l10n.genderFemale,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Set<Marker> _buildMarkers(AppLocalizations l10n) {
     final markers = <Marker>{};
 
@@ -189,7 +225,7 @@ class _LeadersMapViewState extends State<LeadersMapView> {
           markerId: MarkerId('leader-$id'),
           position: LatLng(leader.latitude!, leader.longitude!),
           icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueViolet,
+            _markerHue(leader.gender),
           ),
           infoWindow: InfoWindow(
             title: leader.fullName,
@@ -252,6 +288,7 @@ class _LeadersMapViewState extends State<LeadersMapView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _buildGenderLegend(l10n),
         if (withoutLocation > 0)
           Material(
             color: Theme.of(context).colorScheme.secondaryContainer,
@@ -278,6 +315,35 @@ class _LeadersMapViewState extends State<LeadersMapView> {
               _fitMap();
             },
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LegendItem extends StatelessWidget {
+  const _LegendItem({
+    required this.hue,
+    required this.label,
+  });
+
+  final double hue;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.location_on,
+          size: 18,
+          color: HSVColor.fromAHSV(1, hue, 1, 0.85).toColor(),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
     );

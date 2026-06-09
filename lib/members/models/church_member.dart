@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
+import 'id_document_type.dart';
 import 'marital_status.dart';
 
 class ChurchMember {
@@ -19,6 +20,8 @@ class ChurchMember {
     this.latitude,
     this.longitude,
     required this.phone,
+    this.idDocumentType,
+    this.idDocumentNumber,
     this.birthDate,
     this.occupation,
     this.maritalStatus,
@@ -51,6 +54,8 @@ class ChurchMember {
   final double? latitude;
   final double? longitude;
   final String phone;
+  final IdDocumentType? idDocumentType;
+  final String? idDocumentNumber;
   final DateTime? birthDate;
   final String? occupation;
   final MaritalStatus? maritalStatus;
@@ -114,6 +119,8 @@ class ChurchMember {
       'latitude': latitude,
       'longitude': longitude,
       'phone': phone,
+      'idDocumentType': idDocumentType?.name,
+      'idDocumentNumber': idDocumentNumber,
       'birthDate': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
       'occupation': occupation,
       'maritalStatus': maritalStatus?.name,
@@ -173,6 +180,9 @@ class ChurchMember {
       latitude: (data['latitude'] as num?)?.toDouble(),
       longitude: (data['longitude'] as num?)?.toDouble(),
       phone: data['phone'] as String? ?? '',
+      idDocumentType:
+          IdDocumentType.fromString(data['idDocumentType'] as String?),
+      idDocumentNumber: data['idDocumentNumber'] as String?,
       birthDate: (data['birthDate'] as Timestamp?)?.toDate(),
       occupation: data['occupation'] as String?,
       maritalStatus: MaritalStatus.fromString(data['maritalStatus'] as String?),

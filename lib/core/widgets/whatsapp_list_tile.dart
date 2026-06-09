@@ -27,11 +27,12 @@ class WhatsappListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.churchPalette;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Material(
-          color: AppColors.surface,
+          color: palette.surface,
           child: InkWell(
             onTap: onTap,
             child: Padding(
@@ -40,8 +41,8 @@ class WhatsappListTile extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 26,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                    child: Icon(icon, color: AppColors.primary, size: 26),
+                    backgroundColor: palette.primary.withValues(alpha: 0.12),
+                    child: Icon(icon, color: palette.primary, size: 26),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -55,7 +56,7 @@ class WhatsappListTile extends StatelessWidget {
                             fontWeight: highlighted
                                 ? FontWeight.w600
                                 : FontWeight.w500,
-                            color: const Color(0xFF111B21),
+                            color: palette.onSurface,
                           ),
                         ),
                         if (subtitle != null) ...[
@@ -64,9 +65,9 @@ class WhatsappListTile extends StatelessWidget {
                             subtitle!,
                             maxLines: subtitleMaxLines,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: AppColors.textSecondary,
+                              color: palette.textSecondary,
                             ),
                           ),
                         ],
@@ -83,11 +84,11 @@ class WhatsappListTile extends StatelessWidget {
           ),
         ),
         if (showDivider)
-          const Divider(
+          Divider(
             height: 1,
             indent: 72,
             endIndent: 0,
-            color: AppColors.divider,
+            color: palette.divider,
           ),
       ],
     );

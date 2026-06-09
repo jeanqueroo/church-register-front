@@ -260,6 +260,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
+  String get theme => 'Theme';
+
+  @override
+  String get themeSubtitle => 'Light, dark or follow system';
+
+  @override
+  String get themeSettingsTitle => 'App theme';
+
+  @override
+  String get themeSystem => 'System default';
+
+  @override
+  String get themeSystemSubtitle => 'Uses your device settings';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get themeColorSection => 'Color palette';
+
+  @override
+  String get themeModeSection => 'Display mode';
+
+  @override
+  String get templateManantial => 'Manantial';
+
+  @override
+  String get templateManantialSubtitle => 'Deep blue and gold — recommended';
+
+  @override
+  String get templateWhatsapp => 'Messaging green';
+
+  @override
+  String get templateWhatsappSubtitle =>
+      'WhatsApp style, the previous app look';
+
+  @override
+  String get templatePeace => 'Peace';
+
+  @override
+  String get templatePeaceSubtitle => 'Soft indigo and calm tones';
+
+  @override
+  String get templateTraditional => 'Traditional';
+
+  @override
+  String get templateTraditionalSubtitle => 'Wine and cream, elegant';
+
+  @override
   String get roleSuperAdmin => 'Super administrator';
 
   @override
@@ -340,6 +392,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get memberLastNameRequired => 'Enter the last name';
+
+  @override
+  String get memberIdDocumentType => 'ID document';
+
+  @override
+  String get memberIdDocumentNumber => 'Document number';
+
+  @override
+  String get idDocumentDni => 'National ID (DNI)';
+
+  @override
+  String get idDocumentPassport => 'Passport';
+
+  @override
+  String get idDocumentOther => 'Other';
 
   @override
   String get memberGenderRequired => 'Gender *';
@@ -675,6 +742,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get memberDetailPhone => 'Phone';
+
+  @override
+  String get memberDetailIdDocument => 'Document';
+
+  @override
+  String get memberDetailIdDocumentNumber => 'Document number';
 
   @override
   String get memberDetailBirthDate => 'Date of birth';
