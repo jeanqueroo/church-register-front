@@ -636,7 +636,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           spacing: 6,
                           runSpacing: 4,
                           children: roleLabels
-                              .map((label) => Chip(label: Text(label)))
+                              .map(
+                                (label) => Chip(
+                                  label: Text(
+                                    label,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.onSurface,
+                                    ),
+                                  ),
+                                  side: const BorderSide(
+                                    color: AppColors.primary,
+                                    width: 2,
+                                  ),
+                                  backgroundColor:
+                                      AppColors.primary.withValues(alpha: 0.1),
+                                ),
+                              )
                               .toList(),
                         ),
                       ],

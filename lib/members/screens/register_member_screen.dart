@@ -484,6 +484,9 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         assignedLeaderCellCode: assignedLeaderCellCode,
         assignedDistanceKm: assignedDistanceKm,
         wantsVisit: _wantsVisit,
+        isNewBeliever: widget.isEditing
+            ? (widget.memberToEdit?.isNewBeliever ?? false)
+            : true,
         formDate: _formDate,
         registeredAt: widget.memberToEdit?.registeredAt ?? DateTime.now(),
         registeredBy: widget.memberToEdit?.registeredBy ?? widget.registeredBy,

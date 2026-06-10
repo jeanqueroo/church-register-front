@@ -1604,6 +1604,9 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get churchOfficePastor => 'Pastor';
+
+  @override
   String get churchOfficeLeader => 'Líderes';
 
   @override
@@ -1979,6 +1982,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get leaderRegFirstNamesRequired => 'Ingresa los nombres';
+
+  @override
+  String get leaderRegBirthDate => 'Fecha de nacimiento';
+
+  @override
+  String get leaderRegAge => 'Edad';
 
   @override
   String get adminRegNewTitle => 'Nuevo administrador';

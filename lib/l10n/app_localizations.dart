@@ -2910,6 +2910,12 @@ abstract class AppLocalizations {
   /// **'Error al cargar visitas: {message}'**
   String visitDashboardLoadError(String message);
 
+  /// No description provided for @churchOfficePastor.
+  ///
+  /// In es, this message translates to:
+  /// **'Pastor'**
+  String get churchOfficePastor;
+
   /// No description provided for @churchOfficeLeader.
   ///
   /// In es, this message translates to:
@@ -3581,6 +3587,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ingresa los nombres'**
   String get leaderRegFirstNamesRequired;
+
+  /// No description provided for @leaderRegBirthDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha de nacimiento'**
+  String get leaderRegBirthDate;
+
+  /// No description provided for @leaderRegAge.
+  ///
+  /// In es, this message translates to:
+  /// **'Edad'**
+  String get leaderRegAge;
 
   /// No description provided for @adminRegNewTitle.
   ///

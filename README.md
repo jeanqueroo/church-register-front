@@ -7,7 +7,8 @@ Aplicación Flutter de **gestión pastoral** para la iglesia: integrantes, líde
 | **Nombre en tienda** | Manantial de Bendiciones |
 | **Package Android** | `com.church.register.manantial` |
 | **Bundle iOS** (pendiente alinear) | `com.church.register.churchRegister` |
-| **Versión actual** | `1.0.0+1` (`pubspec.yaml`) |
+| **Versión actual** | Ver `pubspec.yaml` (ej. `1.0.2+3`) |
+| **Guía de despliegue** | [`DESPLIEGUE.md`](DESPLIEGUE.md) |
 | **Proyecto Firebase** | `church-register-ce4de` |
 | **Contacto** | contacto@manantialdebendiciones.org |
 
@@ -273,21 +274,11 @@ En **Windows** solo Android. Para App Store hace falta **Mac + Xcode + cuenta Ap
 
 ---
 
-## Versionado
+## Versionado y despliegue
 
-Editar en `pubspec.yaml`:
+Guía completa (versiones para Play Console, AAB, hosting, checklist): **[`DESPLIEGUE.md`](DESPLIEGUE.md)**
 
-```yaml
-version: 1.0.0+1   # 1.0.0 = versionName, 1 = versionCode
-```
-
-Incrementa el número después de `+` en cada subida a Play Store.
-
-También puedes forzar en build:
-
-```powershell
-flutter build appbundle --release --build-name=1.0.1 --build-number=2
-```
+Resumen: en `pubspec.yaml`, `version: 1.0.2+3` → `1.0.2` es lo que ven los usuarios; `3` es el código que **debe subir** en cada release.
 
 ---
 

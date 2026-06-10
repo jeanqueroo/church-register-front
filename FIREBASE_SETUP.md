@@ -187,11 +187,40 @@ La app ya llama a `activateFirebaseAppCheck()` al iniciar (`lib/core/firebase/ap
 
 ### Desarrollo (debug en emulador o dispositivo)
 
-1. Ejecuta `flutter run` e inicia sesión.
-2. En **logcat** busca una línea como:  
-   `App Check debug token: XXXXXXXX-...`
-3. Firebase Console → **Build → App Check** → tu app **Android** → **Manage debug tokens** → pega el token → Guardar.
-4. Vuelve a intentar subir el logo.
+El token **no aparece** en la consola de `flutter run`. Usa uno de estos métodos:
+
+#### Método A — Generar token en Firebase (recomendado)
+
+1. [Firebase Console → App Check](https://console.firebase.google.com/project/church-register-ce4de/appcheck) → app **Android** → **Manage debug tokens**.
+2. **Add debug token** → **Generate token** → copia el UUID.
+3. Ejecuta la app con ese token:
+
+```powershell
+flutter run --dart-define=APP_CHECK_DEBUG_TOKEN=PEGAR-TOKEN-AQUI
+```
+
+4. Cierra y vuelve a abrir la app si ya estaba corriendo.
+5. Intenta subir el logo de la iglesia.
+
+#### Método B — Buscar en logcat (Android)
+
+Con el teléfono/emulador conectado por USB:
+
+```powershell
+adb logcat -s DebugAppCheckProvider
+```
+
+En otra terminal: `flutter run`. Busca una línea como:
+
+```
+D DebugAppCheckProvider: Enter this debug secret into the allow list...: XXXXXXXX-...
+```
+
+- Usa **Android Studio → Logcat** (no la pestaña Run de Flutter).
+- Filtro: `DebugAppCheckProvider` o `AppCheck`.
+- Si no sale: desinstala la app, `flutter run` de nuevo y toca algo que use Firebase (login, subir logo).
+
+Registra el token en Firebase Console → App Check → **Manage debug tokens** → **Add**.
 
 ### Producción (Play Store)
 
@@ -257,3 +286,6 @@ No requiere configuración en Google Cloud. Nominatim pide uso moderado (máx. ~
 1. Añade app iOS en Firebase con bundle ID `com.church.register.churchRegister`.
 2. Descarga `GoogleService-Info.plist` en `ios/Runner/`.
 3. Vuelve a ejecutar `flutterfire configure`.
+
+flutter run --dart-define=0ccd78b5-d996-46d4-a7b9-d84c7eaa44f7
+

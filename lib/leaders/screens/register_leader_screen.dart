@@ -13,6 +13,8 @@ import '../../core/locale/l10n_extensions.dart';
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
 import '../../core/widgets/form_section_title.dart';
+import '../../l10n/app_localizations.dart';
+import '../../members/models/id_document_type.dart';
 import '../models/church_leader.dart';
 import '../models/church_office.dart';
 import '../services/leader_service.dart';
@@ -58,6 +60,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _mobilePhoneController = TextEditingController();
+  final _idDocumentNumberController = TextEditingController();
 
   late final LeaderService _leaderService;
   final _authService = AuthService();
@@ -65,6 +68,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
   final _geocodingService = GeocodingService();
 
   LeaderGender? _gender;
+  IdDocumentType? _idDocumentType;
+  DateTime? _birthDate;
   ChurchOffice? _churchOffice;
   Set<String> _selectedRoles = {AppUserRole.leader};
   GeoLocation? _leaderLocation;
@@ -119,6 +124,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _emailController.text = leader.email ?? '';
     _mobilePhoneController.text = leader.mobilePhone;
     _gender = leader.gender;
+    _idDocumentType = leader.idDocumentType;
+    _idDocumentNumberController.text = leader.idDocumentNumber ?? '';
+    _birthDate = leader.birthDate;
     _churchOffice = leader.churchOffice;
     _leaderLocation = leader.geoLocation;
   }
@@ -138,7 +146,121 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _mobilePhoneController.dispose();
+    _idDocumentNumberController.dispose();
     super.dispose();
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
+  }
+
+  Future<void> _pickDate({
+    required DateTime initial,
+    required DateTime firstDate,
+    required DateTime lastDate,
+    required void Function(DateTime) onPicked,
+  }) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+    if (picked != null) onPicked(picked);
+  }
+
+  Future<void> _pickBirthDate() async {
+    final now = DateTime.now();
+    await _pickDate(
+      initial: _birthDate ?? DateTime(now.year - 25),
+      firstDate: DateTime(1920),
+      lastDate: now,
+      onPicked: (d) => setState(() => _birthDate = d),
+    );
+  }
+
+  int? _ageFromBirthDate(DateTime? date) {
+    if (date == null) return null;
+    final now = DateTime.now();
+    var years = now.year - date.year;
+    if (now.month < date.month ||
+        (now.month == date.month && now.day < date.day)) {
+      years--;
+    }
+    return years;
+  }
+
+  Widget _dateField({
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+    required String clearDateLabel,
+    VoidCallback? onClear,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InkWell(
+          onTap: _isLoading ? null : onTap,
+          borderRadius: BorderRadius.circular(4),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: label,
+              prefixIcon: const Icon(Icons.calendar_today_outlined),
+              border: const OutlineInputBorder(),
+              filled: true,
+            ),
+            child: Text(
+              value,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ),
+        if (onClear != null) ...[
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: _isLoading ? null : onClear,
+              child: Text(clearDateLabel),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _idDocumentTypeSelector(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.memberIdDocumentType,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: IdDocumentType.values.map((type) {
+            return FilterChip(
+              label: Text(type.localizedLabel(l10n)),
+              selected: _idDocumentType == type,
+              onSelected: _isLoading
+                  ? null
+                  : (v) => setState(() {
+                        _idDocumentType = v ? type : null;
+                      }),
+            );
+          }).toList(),
+        ),
+      ],
+    );
   }
 
   void _showMessage(String message) {
@@ -217,6 +339,11 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
               ? null
               : _cellCodeController.text.trim(),
           gender: _gender,
+          idDocumentType: _idDocumentType,
+          idDocumentNumber: _idDocumentNumberController.text.trim().isEmpty
+              ? null
+              : _idDocumentNumberController.text.trim(),
+          birthDate: _birthDate,
           neighborhood: _neighborhoodController.text.trim().isEmpty
               ? null
               : _neighborhoodController.text.trim(),
@@ -270,6 +397,11 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
             ? null
             : _cellCodeController.text.trim(),
         gender: _gender,
+        idDocumentType: _idDocumentType,
+        idDocumentNumber: _idDocumentNumberController.text.trim().isEmpty
+            ? null
+            : _idDocumentNumberController.text.trim(),
+        birthDate: _birthDate,
         neighborhood: _neighborhoodController.text.trim().isEmpty
             ? null
             : _neighborhoodController.text.trim(),
@@ -395,6 +527,51 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                     );
                   }).toList(),
                 ),
+                const SizedBox(height: 16),
+                _idDocumentTypeSelector(l10n),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _idDocumentNumberController,
+                  enabled: !_isLoading,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    labelText: l10n.memberIdDocumentNumber,
+                    prefixIcon: const Icon(Icons.badge_outlined),
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _dateField(
+                  label: l10n.leaderRegBirthDate,
+                  value: _birthDate != null
+                      ? _formatDate(_birthDate!)
+                      : l10n.memberSelectDate,
+                  onTap: _pickBirthDate,
+                  clearDateLabel: l10n.memberClearDate,
+                  onClear: _birthDate != null
+                      ? () => setState(() => _birthDate = null)
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: l10n.leaderRegAge,
+                    prefixIcon: const Icon(Icons.cake_outlined),
+                    border: const OutlineInputBorder(),
+                    filled: true,
+                    fillColor:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                  ),
+                  child: Text(
+                    _ageFromBirthDate(_birthDate) != null
+                        ? l10n.memberAgeYears(_ageFromBirthDate(_birthDate)!)
+                        : '—',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 AddressFieldsSection(
                   streetController: _streetController,
                   streetNumberController: _streetNumberController,

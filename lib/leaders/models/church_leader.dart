@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
+import '../../members/models/id_document_type.dart';
 import 'church_office.dart';
 
 class ChurchLeader {
@@ -13,6 +14,9 @@ class ChurchLeader {
     this.streetNumber,
     this.cellCode,
     this.gender,
+    this.idDocumentType,
+    this.idDocumentNumber,
+    this.birthDate,
     this.neighborhood,
     this.locality,
     this.stateProvince,
@@ -35,6 +39,9 @@ class ChurchLeader {
   final String? streetNumber;
   final String? cellCode;
   final LeaderGender? gender;
+  final IdDocumentType? idDocumentType;
+  final String? idDocumentNumber;
+  final DateTime? birthDate;
   final String? neighborhood;
   final String? locality;
   final String? stateProvince;
@@ -57,6 +64,17 @@ class ChurchLeader {
     return GeoLocation(latitude: latitude!, longitude: longitude!);
   }
 
+  int? get age {
+    if (birthDate == null) return null;
+    final now = DateTime.now();
+    var years = now.year - birthDate!.year;
+    if (now.month < birthDate!.month ||
+        (now.month == birthDate!.month && now.day < birthDate!.day)) {
+      years--;
+    }
+    return years;
+  }
+
   String get formattedAddress {
     return [
       street,
@@ -76,6 +94,9 @@ class ChurchLeader {
       'streetNumber': streetNumber,
       'cellCode': cellCode,
       'gender': gender?.code,
+      'idDocumentType': idDocumentType?.name,
+      'idDocumentNumber': idDocumentNumber,
+      'birthDate': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
       'neighborhood': neighborhood,
       'locality': locality,
       'stateProvince': stateProvince,
@@ -104,6 +125,10 @@ class ChurchLeader {
       streetNumber: data['streetNumber'] as String?,
       cellCode: data['cellCode'] as String?,
       gender: LeaderGender.fromCode(data['gender'] as String?),
+      idDocumentType:
+          IdDocumentType.fromString(data['idDocumentType'] as String?),
+      idDocumentNumber: data['idDocumentNumber'] as String?,
+      birthDate: (data['birthDate'] as Timestamp?)?.toDate(),
       neighborhood: data['neighborhood'] as String?,
       locality: data['locality'] as String?,
       stateProvince: data['stateProvince'] as String?,

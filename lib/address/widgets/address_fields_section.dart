@@ -65,14 +65,6 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
     super.dispose();
   }
 
-  String? _validateStreet(String? value, AppLocalizations l10n) {
-    if (!widget.requireAddress) return null;
-    if (value == null || value.trim().isEmpty) {
-      return l10n.addressSearchAndSelect;
-    }
-    return null;
-  }
-
   String? _validateSearch(String? value, AppLocalizations l10n) {
     if (!widget.requireAddress) return null;
     if (widget.streetController.text.trim().isEmpty) {
@@ -115,22 +107,6 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
     widget.onStreetCoordinatesSelected?.call(place.location);
   }
 
-  InputDecoration _lockedDecoration(
-    BuildContext context, {
-    required String labelText,
-    required AppLocalizations l10n,
-    IconData? prefixIcon,
-  }) {
-    return InputDecoration(
-      labelText: labelText,
-      prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
-      border: const OutlineInputBorder(),
-      filled: true,
-      fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-      hintText: l10n.addressAutoFilledHint,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -164,90 +140,6 @@ class _AddressFieldsSectionState extends State<AddressFieldsSection> {
             ),
           ),
         ],
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: widget.streetController,
-          readOnly: true,
-          enabled: widget.enabled,
-          validator: (value) => _validateStreet(value, l10n),
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: _lockedDecoration(
-            context,
-            labelText: widget.requireAddress
-                ? l10n.addressStreetRequired
-                : l10n.addressStreetOptional,
-            l10n: l10n,
-            prefixIcon: Icons.signpost_outlined,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 2,
-              child: TextFormField(
-                controller: widget.streetNumberController,
-                readOnly: true,
-                enabled: widget.enabled,
-                decoration: _lockedDecoration(
-                  context,
-                  labelText: l10n.addressNumber,
-                  l10n: l10n,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 3,
-              child: TextFormField(
-                controller: widget.postalCodeController,
-                readOnly: true,
-                enabled: widget.enabled,
-                decoration: _lockedDecoration(
-                  context,
-                  labelText: l10n.addressPostalCode,
-                  l10n: l10n,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: widget.neighborhoodController,
-          textCapitalization: TextCapitalization.words,
-          enabled: widget.enabled,
-          decoration: InputDecoration(
-            labelText: l10n.addressNeighborhood,
-            prefixIcon: const Icon(Icons.location_city_outlined),
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: widget.localityController,
-          readOnly: true,
-          enabled: widget.enabled,
-          decoration: _lockedDecoration(
-            context,
-            labelText: l10n.addressLocality,
-            l10n: l10n,
-            prefixIcon: Icons.map_outlined,
-          ),
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: widget.stateProvinceController,
-          readOnly: true,
-          enabled: widget.enabled,
-          decoration: _lockedDecoration(
-            context,
-            labelText: l10n.addressStateProvince,
-            l10n: l10n,
-            prefixIcon: Icons.public_outlined,
-          ),
-        ),
       ],
     );
   }

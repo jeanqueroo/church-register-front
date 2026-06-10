@@ -739,6 +739,7 @@
       }
     }
   },
+  "churchOfficePastor": "Pastor",
   "churchOfficeLeader": "Líderes",
   "churchOfficeJuniorElder": "Anciano menor",
   "churchOfficeElder": "Anciano",
@@ -928,6 +929,8 @@
   "leaderRegLastNameRequired": "Ingresa el apellido",
   "leaderRegFirstNames": "Nombres *",
   "leaderRegFirstNamesRequired": "Ingresa los nombres",
+  "leaderRegBirthDate": "Fecha de nacimiento",
+  "leaderRegAge": "Edad",
   "adminRegNewTitle": "Nuevo administrador",
   "adminRegEditTitle": "Editar administrador",
   "adminRegNoChurches": "No hay iglesias activas. Crea una o desbloquea una existente.",

@@ -739,6 +739,7 @@
       }
     }
   },
+  "churchOfficePastor": "Pastor",
   "churchOfficeLeader": "Leaders",
   "churchOfficeJuniorElder": "Junior elder",
   "churchOfficeElder": "Elder",
@@ -928,6 +929,8 @@
   "leaderRegLastNameRequired": "Enter the last name",
   "leaderRegFirstNames": "First names *",
   "leaderRegFirstNamesRequired": "Enter the first names",
+  "leaderRegBirthDate": "Date of birth",
+  "leaderRegAge": "Age",
   "adminRegNewTitle": "New administrator",
   "adminRegEditTitle": "Edit administrator",
   "adminRegNoChurches": "No active churches. Create one or unblock an existing church.",

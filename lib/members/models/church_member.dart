@@ -35,6 +35,7 @@ class ChurchMember {
     this.assignedLeaderCellCode,
     this.assignedDistanceKm,
     this.wantsVisit = true,
+    this.isNewBeliever = false,
     required this.formDate,
     required this.registeredAt,
     required this.registeredBy,
@@ -69,6 +70,8 @@ class ChurchMember {
   final String? assignedLeaderCellCode;
   final double? assignedDistanceKm;
   final bool wantsVisit;
+  /// `true` al registrar por primera vez; se conserva en ediciones posteriores.
+  final bool isNewBeliever;
   final DateTime formDate;
   final DateTime registeredAt;
   final String registeredBy;
@@ -134,6 +137,7 @@ class ChurchMember {
       'assignedLeaderCellCode': assignedLeaderCellCode,
       'assignedDistanceKm': assignedDistanceKm,
       'wantsVisit': wantsVisit,
+      'isNewBeliever': isNewBeliever,
       'formDate': Timestamp.fromDate(formDate),
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
@@ -196,6 +200,7 @@ class ChurchMember {
       assignedLeaderCellCode: data['assignedLeaderCellCode'] as String?,
       assignedDistanceKm: (data['assignedDistanceKm'] as num?)?.toDouble(),
       wantsVisit: data['wantsVisit'] as bool? ?? true,
+      isNewBeliever: data['isNewBeliever'] as bool? ?? false,
       formDate: (data['formDate'] as Timestamp?)?.toDate() ??
           (data['registeredAt'] as Timestamp).toDate(),
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),

@@ -31,6 +31,14 @@ class LeadersExcelExportService {
         TextCellValue(leader.firstName),
         TextCellValue(leader.churchOffice?.label ?? ''),
         TextCellValue(leader.gender?.label ?? ''),
+        TextCellValue(leader.idDocumentType?.label ?? ''),
+        TextCellValue(leader.idDocumentNumber ?? ''),
+        TextCellValue(
+          leader.birthDate != null
+              ? DateFormat('dd/MM/yyyy').format(leader.birthDate!)
+              : '',
+        ),
+        TextCellValue(leader.age?.toString() ?? ''),
         TextCellValue(leader.cellCode ?? ''),
         TextCellValue(leader.mobilePhone),
         TextCellValue(leader.email ?? ''),
@@ -76,6 +84,10 @@ class LeadersExcelExportService {
     'Nombre',
     'Cargo',
     'Género',
+    'Documento',
+    'Número documento',
+    'Fecha nacimiento',
+    'Edad',
     'Célula',
     'Teléfono móvil',
     'Correo',

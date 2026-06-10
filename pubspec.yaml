@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.1+2
+version: 1.0.2+3
 
 environment:
   sdk: ^3.9.2
@@ -74,20 +74,20 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/images/logo_iglesia.png
+  image_path: assets/images/logo_manantial_splash_1024.png
   adaptive_icon_background: "#1B3A5C"
-  adaptive_icon_foreground: assets/images/logo_iglesia.png
+  adaptive_icon_foreground: assets/images/logo_manantial_splash_1024.png
   remove_alpha_ios: true
 
 # Splash nativo (Android e iOS). Cambia color/image y ejecuta:
 #   dart run flutter_native_splash:create
 flutter_native_splash:
-  color: "#1B3A5C"
-  image: assets/images/logo_iglesia.png
+  color: "#0B1F4D"
+  image: assets/images/flutter_splash_1152.png
   android_12:
-    color: "#1B3A5C"
-    image: assets/images/logo_iglesia.png
-    icon_background_color: "#1B3A5C"
+    color: "#0B1F4D"
+    image: assets/images/android12_splash.png
+    icon_background_color: "#ffffff"
   android: true
   ios: true
   web: false

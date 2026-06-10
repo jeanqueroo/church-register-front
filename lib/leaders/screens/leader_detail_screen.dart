@@ -87,10 +87,27 @@ class LeaderDetailScreen extends StatelessWidget {
     }
   }
 
+  String _formatDate(DateTime? date) {
+    if (date == null) return '—';
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
+  }
+
   List<_Row> _leadershipRows(AppLocalizations l10n) {
     return [
       _Row(l10n.leaderDetailLastName, leader.lastName),
       _Row(l10n.leaderDetailFirstNames, leader.firstName),
+      _Row(
+        l10n.memberDetailIdDocument,
+        leader.idDocumentType?.localizedLabel(l10n),
+      ),
+      _Row(l10n.memberDetailIdDocumentNumber, leader.idDocumentNumber),
+      _Row(l10n.memberDetailBirthDate, _formatDate(leader.birthDate)),
+      _Row(
+        l10n.memberDetailAge,
+        leader.age != null ? l10n.memberAgeYears(leader.age!) : null,
+      ),
       _Row(
         l10n.memberDetailGender,
         leader.gender?.localizedLabel(l10n),

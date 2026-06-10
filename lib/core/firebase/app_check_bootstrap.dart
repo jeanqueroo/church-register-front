@@ -1,12 +1,20 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+
+import '../config/app_check_debug_token.dart';
 
 /// Activa App Check para Storage, Firestore y demás servicios Firebase.
 Future<void> activateFirebaseAppCheck() async {
+  final androidDebug = kDebugMode
+      ? AndroidDebugProvider(
+          debugToken:
+              appCheckDebugToken.isNotEmpty ? appCheckDebugToken : null,
+        )
+      : null;
+
   await FirebaseAppCheck.instance.activate(
     providerAndroid: kDebugMode
-        ? const AndroidDebugProvider()
+        ? androidDebug!
         : const AndroidPlayIntegrityProvider(),
     providerApple: kDebugMode
         ? const AppleDebugProvider()
@@ -15,7 +23,7 @@ Future<void> activateFirebaseAppCheck() async {
   await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(true);
 
   if (kDebugMode) {
-    await _logDebugTokenHint();
+    _logDebugTokenHint();
   }
 }
 
@@ -23,7 +31,11 @@ Future<void> activateFirebaseAppCheck() async {
 /// Lanza [FirebaseException] con código `app-check` si no hay token válido.
 Future<void> ensureAppCheckTokenForUpload() async {
   try {
-    final token = await FirebaseAppCheck.instance.getToken(true);
+    // Usar caché primero; forzar refresh solo si hace falta (evita throttling).
+    var token = await FirebaseAppCheck.instance.getToken(false);
+    if (token == null || token.isEmpty) {
+      token = await FirebaseAppCheck.instance.getToken(true);
+    }
     if (token == null || token.isEmpty) {
       throw FirebaseException(
         plugin: 'firebase_app_check',
@@ -51,17 +63,19 @@ bool _isThrottled(FirebaseException e) {
   return message.contains('too many attempts');
 }
 
-Future<void> _logDebugTokenHint() async {
-  try {
-    await FirebaseAppCheck.instance.getToken(true);
-  } on FirebaseException catch (e) {
+void _logDebugTokenHint() {
+  if (appCheckDebugToken.isNotEmpty) {
     debugPrint(
-      'App Check DEBUG: ${e.message ?? e.code}. '
-      'Busca en logcat "App Check debug token" y regístralo en '
-      'Firebase Console → App Check → Android → Manage debug tokens. '
-      'Luego cierra la app por completo y vuelve a abrirla.',
+      'App Check DEBUG: usando token fijo (APP_CHECK_DEBUG_TOKEN). '
+      'Debe estar registrado en Firebase Console → App Check → Android.',
     );
-  } catch (e) {
-    debugPrint('App Check DEBUG error: $e');
+    return;
   }
+  debugPrint(
+    'App Check DEBUG: el token NO sale en la consola de Flutter. Opciones:\n'
+    '  1) Terminal: adb logcat -s DebugAppCheckProvider\n'
+    '  2) Firebase Console → App Check → Android → Manage debug tokens → '
+    'Generate token, luego:\n'
+    '     flutter run --dart-define=APP_CHECK_DEBUG_TOKEN=TU-TOKEN',
+  );
 }
