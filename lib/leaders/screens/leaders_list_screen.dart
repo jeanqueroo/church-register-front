@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -62,22 +64,58 @@ class _LeadersListBody extends StatefulWidget {
 class _LeadersListBodyState extends State<_LeadersListBody>
     with SingleTickerProviderStateMixin {
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
   final _excelExportService = LeadersExcelExportService();
   late final TabController _tabController;
   bool _exporting = false;
+  bool _hideBlocked = false;
+  bool _actionInProgress = false;
+  List<ChurchLeader> _leaders = [];
+  bool _loading = true;
+  Object? _loadError;
+  StreamSubscription<List<ChurchLeader>>? _leadersSubscription;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    final service = widget.leaderService ?? LeaderService();
+    _leadersSubscription = service
+        .watchLeaders(churchId: widget.permissions.churchId)
+        .listen(
+          (leaders) {
+            if (!mounted) return;
+            setState(() {
+              _leaders = leaders;
+              _loading = false;
+              _loadError = null;
+            });
+          },
+          onError: (Object error) {
+            if (!mounted) return;
+            setState(() {
+              _loading = false;
+              _loadError = error;
+            });
+          },
+        );
   }
 
   @override
   void dispose() {
+    _leadersSubscription?.cancel();
     _tabController.dispose();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
+
+  int get _blockedCount => _leaders.where((l) => l.isBlocked).length;
+
+  List<ChurchLeader> _filteredLeaders(AppLocalizations l10n) => _leaders
+      .where((l) => !_hideBlocked || !l.isBlocked)
+      .where((l) => _matchesSearch(l, _searchController.text, l10n))
+      .toList();
 
   bool _matchesSearch(ChurchLeader leader, String query, AppLocalizations l10n) {
     final q = query.trim().toLowerCase();
@@ -140,7 +178,13 @@ class _LeadersListBodyState extends State<_LeadersListBody>
     }
   }
 
-  Future<void> _confirmDelete(BuildContext context, ChurchLeader leader) async {
+  Future<void> _confirmBlock(
+    BuildContext context,
+    ChurchLeader leader, {
+    required bool block,
+  }) async {
+    if (!widget.permissions.canManageAll || _actionInProgress) return;
+
     final l10n = context.l10n;
     final id = leader.id;
     if (id == null) return;
@@ -148,8 +192,12 @@ class _LeadersListBodyState extends State<_LeadersListBody>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.leadersListDeleteTitle),
-        content: Text(l10n.commonDeleteConfirm(leader.fullName)),
+        title: Text(block ? l10n.leadersBlockTitle : l10n.leadersUnblockTitle),
+        content: Text(
+          block
+              ? l10n.leadersBlockConfirm(leader.fullName)
+              : l10n.leadersUnblockConfirm(leader.fullName),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -157,10 +205,7 @@ class _LeadersListBodyState extends State<_LeadersListBody>
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-            ),
-            child: Text(l10n.commonDelete),
+            child: Text(block ? l10n.commonBlock : l10n.commonUnblock),
           ),
         ],
       ),
@@ -168,11 +213,17 @@ class _LeadersListBodyState extends State<_LeadersListBody>
 
     if (confirmed != true || !context.mounted) return;
 
+    setState(() => _actionInProgress = true);
     try {
-      await (widget.leaderService ?? LeaderService()).deleteLeader(id);
+      await (widget.leaderService ?? LeaderService()).setLeaderBlocked(
+        id: id,
+        blocked: block,
+        authUserId: leader.authUserId,
+        updatedBy: widget.registeredBy,
+      );
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.leadersListDeleted)),
+        SnackBar(content: Text(block ? l10n.leadersBlocked : l10n.leadersUnblocked)),
       );
     } on FirebaseException catch (e) {
       if (!context.mounted) return;
@@ -181,6 +232,8 @@ class _LeadersListBodyState extends State<_LeadersListBody>
           content: Text(LeaderService.messageFromFirestoreException(e, context.l10n)),
         ),
       );
+    } finally {
+      if (mounted) setState(() => _actionInProgress = false);
     }
   }
 
@@ -199,7 +252,9 @@ class _LeadersListBodyState extends State<_LeadersListBody>
 
   Widget _buildSearchField(AppLocalizations l10n) {
     return TextField(
+      key: const ValueKey('leaders_list_search'),
       controller: _searchController,
+      focusNode: _searchFocusNode,
       onChanged: (_) => setState(() {}),
       decoration: InputDecoration(
         hintText: l10n.leadersListSearchHint,
@@ -229,8 +284,11 @@ class _LeadersListBodyState extends State<_LeadersListBody>
     if (filtered.isEmpty) {
       return Center(
         child: Text(
-          l10n.commonNoMatches,
+          _searchController.text.trim().isEmpty && _hideBlocked
+              ? l10n.leadersAllBlocked
+              : l10n.commonNoMatches,
           style: Theme.of(context).textTheme.bodyLarge,
+          textAlign: TextAlign.center,
         ),
       );
     }
@@ -250,7 +308,12 @@ class _LeadersListBodyState extends State<_LeadersListBody>
           if (leader.email != null) leader.email!,
         ];
 
+        final blocked = leader.isBlocked;
+
         return Card(
+          color: blocked
+              ? Theme.of(context).colorScheme.surfaceContainerHighest
+              : null,
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: _avatarColor(leader.gender),
@@ -260,9 +323,31 @@ class _LeadersListBodyState extends State<_LeadersListBody>
                     : '?',
               ),
             ),
-            title: Text('${leader.lastName}, ${leader.firstName}'),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text('${leader.lastName}, ${leader.firstName}'),
+                ),
+                if (blocked)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Chip(
+                      label: Text(l10n.commonBlocked),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.errorContainer,
+                      labelStyle: TextStyle(
+                        fontSize: 11,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             subtitle: Text(parts.join(' · ')),
             trailing: PopupMenuButton<String>(
+              enabled: !_actionInProgress,
               onSelected: (value) {
                 switch (value) {
                   case 'view':
@@ -271,8 +356,10 @@ class _LeadersListBodyState extends State<_LeadersListBody>
                     _openAssignedMembers(context, leader);
                   case 'edit':
                     _openEdit(context, leader);
-                  case 'delete':
-                    _confirmDelete(context, leader);
+                  case 'block':
+                    _confirmBlock(context, leader, block: true);
+                  case 'unblock':
+                    _confirmBlock(context, leader, block: false);
                 }
               },
               itemBuilder: (_) => [
@@ -290,19 +377,111 @@ class _LeadersListBodyState extends State<_LeadersListBody>
                     child: Text(l10n.commonEdit),
                   ),
                   PopupMenuItem(
-                    value: 'delete',
+                    value: blocked ? 'unblock' : 'block',
                     child: Text(
-                      l10n.commonDelete,
-                      style: const TextStyle(color: Colors.red),
+                      blocked ? l10n.commonUnblock : l10n.commonBlock,
                     ),
                   ),
                 ],
               ],
             ),
-            onTap: () => _openLeaderDetail(context, leader),
+            onTap: _actionInProgress
+                ? null
+                : () => _openLeaderDetail(context, leader),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    AppLocalizations l10n,
+    LeaderService service,
+    List<ChurchLeader> filtered,
+  ) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_loadError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            l10n.leadersListLoadError,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_leaders.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.supervisor_account_outlined,
+                size: 64,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.leadersListEmpty,
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: _buildSearchField(l10n),
+        ),
+        if (_blockedCount > 0)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FilterChip(
+                label: Text(
+                  _hideBlocked
+                      ? l10n.leadersShowBlocked(_blockedCount)
+                      : l10n.leadersHideBlocked(_blockedCount),
+                ),
+                selected: _hideBlocked,
+                onSelected: _actionInProgress
+                    ? null
+                    : (v) => setState(() => _hideBlocked = v),
+              ),
+            ),
+          ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildListTab(context, filtered, service, l10n),
+              LeadersMapView(
+                leaders: filtered,
+                onLeaderTap: (leader) => _openLeaderDetail(context, leader),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -310,144 +489,67 @@ class _LeadersListBodyState extends State<_LeadersListBody>
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final service = widget.leaderService ?? LeaderService();
+    final filtered = _filteredLeaders(l10n);
 
-    return StreamBuilder<List<ChurchLeader>>(
-      stream: service.watchLeaders(churchId: widget.permissions.churchId),
-      builder: (context, snapshot) {
-        final leaders = snapshot.data ?? [];
-        final filtered = leaders
-            .where((l) => _matchesSearch(l, _searchController.text, l10n))
-            .toList();
-
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(l10n.leadersListTitle),
-            actions: [
-              if (snapshot.hasData && leaders.isNotEmpty)
-                IconButton(
-                  tooltip: l10n.membersListExportExcel,
-                  onPressed: _exporting || filtered.isEmpty
-                      ? null
-                      : () => _exportToExcel(filtered),
-                  icon: _exporting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.download_outlined),
-                ),
-            ],
-            bottom: leaders.isEmpty
-                ? null
-                : TabBar(
-                    controller: _tabController,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white.withValues(alpha: 0.65),
-                    indicatorColor: AppColors.accent,
-                    indicatorWeight: 3,
-                    tabs: [
-                      Tab(
-                        icon: const Icon(Icons.list_outlined),
-                        text: l10n.leaderAssignedTabList,
-                      ),
-                      Tab(
-                        icon: const Icon(Icons.map_outlined),
-                        text: l10n.leaderAssignedTabMap,
-                      ),
-                    ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.leadersListTitle),
+        actions: [
+          if (!_loading && _leaders.isNotEmpty)
+            IconButton(
+              tooltip: l10n.membersListExportExcel,
+              onPressed: _exporting || filtered.isEmpty
+                  ? null
+                  : () => _exportToExcel(filtered),
+              icon: _exporting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.download_outlined),
+            ),
+        ],
+        bottom: _leaders.isEmpty
+            ? null
+            : TabBar(
+                controller: _tabController,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white.withValues(alpha: 0.65),
+                indicatorColor: AppColors.accent,
+                indicatorWeight: 3,
+                tabs: [
+                  Tab(
+                    icon: const Icon(Icons.list_outlined),
+                    text: l10n.leaderAssignedTabList,
                   ),
-          ),
-          floatingActionButton: widget.permissions.canRegisterLeader
-              ? FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => RegisterLeaderScreen(
-                          registeredBy: widget.registeredBy,
-                          churchId: widget.permissions.churchId,
-                          leaderService: service,
-                          permissions: widget.permissions,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.person_add),
-                  label: Text(l10n.commonNew),
-                )
-              : null,
-          body: Builder(
-            builder: (context) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  l10n.leadersListLoadError,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
+                  Tab(
+                    icon: const Icon(Icons.map_outlined),
+                    text: l10n.leaderAssignedTabMap,
                   ),
-                ),
+                ],
               ),
-            );
-          }
-
-          if (leaders.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.supervisor_account_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButton: widget.permissions.canRegisterLeader
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => RegisterLeaderScreen(
+                      registeredBy: widget.registeredBy,
+                      churchId: widget.permissions.churchId,
+                      leaderService: service,
+                      permissions: widget.permissions,
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      l10n.leadersListEmpty,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                child: _buildSearchField(l10n),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildListTab(context, filtered, service, l10n),
-                    LeadersMapView(
-                      leaders: filtered,
-                      onLeaderTap: (leader) =>
-                          _openLeaderDetail(context, leader),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-            },
-          ),
-        );
-      },
+                  ),
+                );
+              },
+              icon: const Icon(Icons.person_add),
+              label: Text(l10n.commonNew),
+            )
+          : null,
+      body: _buildBody(context, l10n, service, filtered),
     );
   }
 }

@@ -50,6 +50,7 @@ class LeadersExcelExportService {
         TextCellValue(leader.postalCode ?? ''),
         TextCellValue(leader.formattedAddress),
         TextCellValue(dateFormat.format(leader.registeredAt)),
+        TextCellValue(leader.isBlocked ? 'Bloqueado' : 'Activo'),
       ]);
     }
 
@@ -99,6 +100,7 @@ class LeadersExcelExportService {
     'C.P.',
     'Dirección completa',
     'Fecha de registro',
+    'Estado',
   ];
 }
 

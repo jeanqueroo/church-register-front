@@ -119,6 +119,14 @@
   "memberNoPermissionRegister": "You do not have permission to register members.",
   "memberNoPermissionEdit": "You do not have permission to edit members.",
   "memberFormDate": "Date",
+  "memberEntrySource": "Where did the believer join? *",
+  "memberEntrySourceRequired": "Select where the believer joined",
+  "memberDetailEntrySource": "Where they joined",
+  "entrySourceCampaignOutside": "Outreach campaign",
+  "entrySourceHospital": "Hospital",
+  "entrySourceEvangelism": "Evangelism",
+  "entrySourceMotherChurch": "Mother church",
+  "entrySourceDaughterChurch": "Daughter church",
   "memberSectionPersonalData": "PERSONAL DATA",
   "memberFirstName": "First name *",
   "memberFirstNameRequired": "Enter the first name",
@@ -504,8 +512,43 @@
   "leaderAssignedRegisterVisit": "Register visit",
   "leaderAssignedLoadError": "Could not load members.",
   "leadersListTitle": "Leaders",
-  "leadersListDeleteTitle": "Delete leader",
-  "leadersListDeleted": "Leader deleted",
+  "leadersBlockTitle": "Block leader",
+  "leadersUnblockTitle": "Unblock leader",
+  "leadersBlockConfirm": "Block \"{name}\"? They will not be able to sign in or be assigned to new members until you unblock them.",
+  "@leadersBlockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leadersUnblockConfirm": "Unblock \"{name}\" and allow access again?",
+  "@leadersUnblockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leadersBlocked": "Leader blocked",
+  "leadersUnblocked": "Leader unblocked",
+  "leadersShowBlocked": "Show blocked ({count})",
+  "@leadersShowBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadersHideBlocked": "Hide blocked ({count})",
+  "@leadersHideBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadersAllBlocked": "All leaders are blocked",
   "leadersListLoadError": "Could not load the list. Check Firestore and the \"leaders\" collection rules.",
   "leadersListEmpty": "No leaders registered yet",
   "leadersListSearchHint": "Search by name, phone, email or cell group…",
@@ -520,7 +563,8 @@
   "leadersListViewMembers": "View assigned members",
   "leadersListViewLeader": "View leader",
   "leaderDetailEditLeader": "Edit leader",
-  "leaderDetailDeleteLeader": "Delete leader",
+  "leaderDetailBlockLeader": "Block leader",
+  "leaderDetailUnblockLeader": "Unblock leader",
   "leaderDetailViewMembers": "View assigned members",
   "leaderDetailSectionLeadership": "Leadership data",
   "leaderDetailSectionCellContact": "Cell group and contact",
@@ -530,7 +574,6 @@
   "leaderDetailChurchOffice": "Church office",
   "leaderDetailMobile": "Mobile phone",
   "leaderDetailPermissions": "Permissions",
-  "leaderDetailDeleted": "Leader deleted",
   "leadersMapNoLocationSnack": "This leader has no location on the map",
   "leadersMapEmptyTitle": "No locations on the map",
   "leadersMapEmptySubtitle": "Leaders need an address with coordinates to appear on the map.",
@@ -590,6 +633,7 @@
   "dashboardPastoralTitle": "Pastoral dashboard",
   "dashboardVisitsDenied": "You do not have permission to view the visits dashboard.",
   "dashboardPastoralDenied": "You do not have permission to view the pastoral dashboard.",
+  "dashboardAdminMissingChurch": "Your administrator account has no church assigned. Contact the super administrator or add \"superadmin\" to roles in Firebase.",
   "dashboardScopeAllChurches": "All churches",
   "dashboardScopeYourChurch": "Your church",
   "dashboardScopeYourLeaders": "Your assigned leaders",
@@ -746,6 +790,7 @@
   "churchOfficeSeniorElder": "Senior elder",
   "churchOfficeVolunteer": "Volunteer",
   "assignableRolesRegistrarExclusive": "The Registrar role is exclusive and cannot be combined with others.",
+  "assignableRolesVolunteerOnly": "As a volunteer, only the Registrar role can be assigned.",
   "assignableRolesHint": "Select app access permissions. You can combine Leader and Supervisor on one account. Registrar must be alone.",
   "adminsDenied": "Only the super administrator can manage administrators.",
   "adminsTitle": "Administrators",

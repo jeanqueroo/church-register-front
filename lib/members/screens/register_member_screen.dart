@@ -17,6 +17,7 @@ import '../../leaders/widgets/leader_search_field.dart';
 import '../models/church_member.dart';
 import '../models/id_document_type.dart';
 import '../models/marital_status.dart';
+import '../models/member_entry_source.dart';
 import '../services/leader_assignment_service.dart';
 import '../services/member_service.dart';
 
@@ -57,6 +58,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   final _formKey = GlobalKey<FormState>();
   final _birthDateFieldKey = GlobalKey<FormFieldState<DateTime>>();
   final _maritalStatusFieldKey = GlobalKey<FormFieldState<MaritalStatus>>();
+  final _entrySourceFieldKey = GlobalKey<FormFieldState<MemberEntrySource>>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _idDocumentNumberController = TextEditingController();
@@ -83,6 +85,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   LeaderGender? _gender;
   IdDocumentType? _idDocumentType;
   MaritalStatus? _maritalStatus;
+  MemberEntrySource? _entrySource;
   String? _cellDay;
   GeoLocation? _memberLocation;
   bool _wantsVisit = true;
@@ -186,6 +189,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     _gender = member.gender;
     _idDocumentType = member.idDocumentType;
     _maritalStatus = member.maritalStatus;
+    _entrySource = member.entrySource;
     _cellDay = member.cellDay;
     _wantsVisit = member.wantsVisit;
     _includeAddress = member.street != null && member.street!.trim().isNotEmpty;
@@ -487,6 +491,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         isNewBeliever: widget.isEditing
             ? (widget.memberToEdit?.isNewBeliever ?? false)
             : true,
+        entrySource: _entrySource,
         formDate: _formDate,
         registeredAt: widget.memberToEdit?.registeredAt ?? DateTime.now(),
         registeredBy: widget.memberToEdit?.registeredBy ?? widget.registeredBy,
@@ -735,6 +740,56 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   value: _formatDate(_formDate),
                   onTap: _pickFormDate,
                   clearDateLabel: l10n.memberClearDate,
+                ),
+                const SizedBox(height: 16),
+                FormField<MemberEntrySource>(
+                  key: _entrySourceFieldKey,
+                  initialValue: _entrySource,
+                  validator: (value) =>
+                      value == null ? l10n.memberEntrySourceRequired : null,
+                  builder: (field) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          l10n.memberEntrySource,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: MemberEntrySource.values.map((source) {
+                            final selected = _entrySource == source;
+                            return FilterChip(
+                              label: Text(source.localizedLabel(l10n)),
+                              selected: selected,
+                              onSelected: _isLoading
+                                  ? null
+                                  : (value) {
+                                      final picked = value ? source : null;
+                                      setState(() => _entrySource = picked);
+                                      field.didChange(picked);
+                                    },
+                            );
+                          }).toList(),
+                        ),
+                        if (field.hasError) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            field.errorText!,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
                 ),
                 FormSectionTitle(l10n.memberSectionPersonalData),
                 TextFormField(

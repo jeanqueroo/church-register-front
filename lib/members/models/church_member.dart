@@ -4,6 +4,7 @@ import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
 import 'id_document_type.dart';
 import 'marital_status.dart';
+import 'member_entry_source.dart';
 
 class ChurchMember {
   const ChurchMember({
@@ -36,6 +37,7 @@ class ChurchMember {
     this.assignedDistanceKm,
     this.wantsVisit = true,
     this.isNewBeliever = false,
+    this.entrySource,
     required this.formDate,
     required this.registeredAt,
     required this.registeredBy,
@@ -72,6 +74,7 @@ class ChurchMember {
   final bool wantsVisit;
   /// `true` al registrar por primera vez; se conserva en ediciones posteriores.
   final bool isNewBeliever;
+  final MemberEntrySource? entrySource;
   final DateTime formDate;
   final DateTime registeredAt;
   final String registeredBy;
@@ -138,6 +141,7 @@ class ChurchMember {
       'assignedDistanceKm': assignedDistanceKm,
       'wantsVisit': wantsVisit,
       'isNewBeliever': isNewBeliever,
+      'entrySource': entrySource?.name,
       'formDate': Timestamp.fromDate(formDate),
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
@@ -201,6 +205,8 @@ class ChurchMember {
       assignedDistanceKm: (data['assignedDistanceKm'] as num?)?.toDouble(),
       wantsVisit: data['wantsVisit'] as bool? ?? true,
       isNewBeliever: data['isNewBeliever'] as bool? ?? false,
+      entrySource:
+          MemberEntrySource.fromString(data['entrySource'] as String?),
       formDate: (data['formDate'] as Timestamp?)?.toDate() ??
           (data['registeredAt'] as Timestamp).toDate(),
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),

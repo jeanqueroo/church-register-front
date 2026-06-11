@@ -239,6 +239,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
               registeredBy: leader.registeredBy,
               churchId: leader.churchId,
               churchOffice: leader.churchOffice,
+              isBlocked: leader.isBlocked,
             ),
           );
         } else {

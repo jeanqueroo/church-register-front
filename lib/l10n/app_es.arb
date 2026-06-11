@@ -119,6 +119,14 @@
   "memberNoPermissionRegister": "No tienes permiso para registrar creyentes.",
   "memberNoPermissionEdit": "No tienes permiso para editar creyentes.",
   "memberFormDate": "Fecha",
+  "memberEntrySource": "¿Dónde entró el creyente? *",
+  "memberEntrySourceRequired": "Selecciona dónde entró el creyente",
+  "memberDetailEntrySource": "Dónde entró",
+  "entrySourceCampaignOutside": "Campaña fuera de la iglesia",
+  "entrySourceHospital": "Hospital",
+  "entrySourceEvangelism": "Evangelismo",
+  "entrySourceMotherChurch": "Iglesia madre",
+  "entrySourceDaughterChurch": "Iglesia hija",
   "memberSectionPersonalData": "DATOS PERSONALES",
   "memberFirstName": "Nombre *",
   "memberFirstNameRequired": "Ingresa el nombre",
@@ -504,8 +512,43 @@
   "leaderAssignedRegisterVisit": "Registrar visita",
   "leaderAssignedLoadError": "No se pudo cargar los integrantes.",
   "leadersListTitle": "Líderes",
-  "leadersListDeleteTitle": "Eliminar líder",
-  "leadersListDeleted": "Líder eliminado",
+  "leadersBlockTitle": "Bloquear líder",
+  "leadersUnblockTitle": "Desbloquear líder",
+  "leadersBlockConfirm": "¿Bloquear a \"{name}\"? No podrá iniciar sesión ni asignarse a nuevos integrantes hasta que lo desbloquees.",
+  "@leadersBlockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leadersUnblockConfirm": "¿Desbloquear a \"{name}\" y permitir el acceso de nuevo?",
+  "@leadersUnblockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leadersBlocked": "Líder bloqueado",
+  "leadersUnblocked": "Líder desbloqueado",
+  "leadersShowBlocked": "Mostrar bloqueados ({count})",
+  "@leadersShowBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadersHideBlocked": "Ocultar bloqueados ({count})",
+  "@leadersHideBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadersAllBlocked": "Todos los líderes están bloqueados",
   "leadersListLoadError": "No se pudo cargar la lista. Verifica Firestore y las reglas de la colección \"leaders\".",
   "leadersListEmpty": "Aún no hay líderes registrados",
   "leadersListSearchHint": "Buscar por nombre, teléfono, correo o célula…",
@@ -520,7 +563,8 @@
   "leadersListViewMembers": "Ver integrantes asignados",
   "leadersListViewLeader": "Ver líder",
   "leaderDetailEditLeader": "Editar líder",
-  "leaderDetailDeleteLeader": "Eliminar líder",
+  "leaderDetailBlockLeader": "Bloquear líder",
+  "leaderDetailUnblockLeader": "Desbloquear líder",
   "leaderDetailViewMembers": "Ver integrantes asignados",
   "leaderDetailSectionLeadership": "Datos del liderazgo",
   "leaderDetailSectionCellContact": "Célula y contacto",
@@ -530,7 +574,6 @@
   "leaderDetailChurchOffice": "Cargo en la iglesia",
   "leaderDetailMobile": "Celular / Móvil",
   "leaderDetailPermissions": "Permisos",
-  "leaderDetailDeleted": "Líder eliminado",
   "leadersMapNoLocationSnack": "Este líder no tiene ubicación en el mapa",
   "leadersMapEmptyTitle": "Sin ubicaciones en el mapa",
   "leadersMapEmptySubtitle": "Los líderes necesitan dirección con coordenadas para aparecer en el mapa.",
@@ -590,6 +633,7 @@
   "dashboardPastoralTitle": "Dashboard pastoral",
   "dashboardVisitsDenied": "No tienes permiso para ver el dashboard de visitas.",
   "dashboardPastoralDenied": "No tienes permiso para ver el dashboard pastoral.",
+  "dashboardAdminMissingChurch": "Tu cuenta de administrador no tiene iglesia asignada. Contacta al super administrador o agrega \"superadmin\" en roles en Firebase.",
   "dashboardScopeAllChurches": "Todas las iglesias",
   "dashboardScopeYourChurch": "Tu iglesia",
   "dashboardScopeYourLeaders": "Tus líderes asignados",
@@ -746,6 +790,7 @@
   "churchOfficeSeniorElder": "Anciano mayor",
   "churchOfficeVolunteer": "Voluntario",
   "assignableRolesRegistrarExclusive": "El rol Registrador es exclusivo: no se puede combinar con otros.",
+  "assignableRolesVolunteerOnly": "Como voluntario, solo se puede asignar el rol Registrador.",
   "assignableRolesHint": "Marca los permisos de acceso en la aplicación. Puedes combinar Líder y Supervisor en la misma cuenta. El rol Registrador debe ir solo.",
   "adminsDenied": "Solo el super administrador puede gestionar administradores.",
   "adminsTitle": "Administradores",

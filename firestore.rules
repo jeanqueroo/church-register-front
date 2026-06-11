@@ -69,7 +69,7 @@ service cloud.firestore {
 
     // Admin, superadmin o registrador: creyentes, líderes y avisos al asignar.
     function canManageChurchRecords() {
-      return isAppAdmin() || isRegistrar();
+      return isAppAdmin() || isRegistrar() || isSupervisor() || isLeader();
     }
 
     function isAssignedLeaderForMember() {

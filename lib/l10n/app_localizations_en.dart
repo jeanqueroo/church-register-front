@@ -379,6 +379,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memberFormDate => 'Date';
 
   @override
+  String get memberEntrySource => 'Where did the believer join? *';
+
+  @override
+  String get memberEntrySourceRequired => 'Select where the believer joined';
+
+  @override
+  String get memberDetailEntrySource => 'Where they joined';
+
+  @override
+  String get entrySourceCampaignOutside => 'Outreach campaign';
+
+  @override
+  String get entrySourceHospital => 'Hospital';
+
+  @override
+  String get entrySourceEvangelism => 'Evangelism';
+
+  @override
+  String get entrySourceMotherChurch => 'Mother church';
+
+  @override
+  String get entrySourceDaughterChurch => 'Daughter church';
+
+  @override
   String get memberSectionPersonalData => 'PERSONAL DATA';
 
   @override
@@ -1115,10 +1139,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leadersListTitle => 'Leaders';
 
   @override
-  String get leadersListDeleteTitle => 'Delete leader';
+  String get leadersBlockTitle => 'Block leader';
 
   @override
-  String get leadersListDeleted => 'Leader deleted';
+  String get leadersUnblockTitle => 'Unblock leader';
+
+  @override
+  String leadersBlockConfirm(String name) {
+    return 'Block \"$name\"? They will not be able to sign in or be assigned to new members until you unblock them.';
+  }
+
+  @override
+  String leadersUnblockConfirm(String name) {
+    return 'Unblock \"$name\" and allow access again?';
+  }
+
+  @override
+  String get leadersBlocked => 'Leader blocked';
+
+  @override
+  String get leadersUnblocked => 'Leader unblocked';
+
+  @override
+  String leadersShowBlocked(int count) {
+    return 'Show blocked ($count)';
+  }
+
+  @override
+  String leadersHideBlocked(int count) {
+    return 'Hide blocked ($count)';
+  }
+
+  @override
+  String get leadersAllBlocked => 'All leaders are blocked';
 
   @override
   String get leadersListLoadError =>
@@ -1146,7 +1199,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaderDetailEditLeader => 'Edit leader';
 
   @override
-  String get leaderDetailDeleteLeader => 'Delete leader';
+  String get leaderDetailBlockLeader => 'Block leader';
+
+  @override
+  String get leaderDetailUnblockLeader => 'Unblock leader';
 
   @override
   String get leaderDetailViewMembers => 'View assigned members';
@@ -1174,9 +1230,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaderDetailPermissions => 'Permissions';
-
-  @override
-  String get leaderDetailDeleted => 'Leader deleted';
 
   @override
   String get leadersMapNoLocationSnack =>
@@ -1305,6 +1358,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardPastoralDenied =>
       'You do not have permission to view the pastoral dashboard.';
+
+  @override
+  String get dashboardAdminMissingChurch =>
+      'Your administrator account has no church assigned. Contact the super administrator or add \"superadmin\" to roles in Firebase.';
 
   @override
   String get dashboardScopeAllChurches => 'All churches';
@@ -1615,6 +1672,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get assignableRolesRegistrarExclusive =>
       'The Registrar role is exclusive and cannot be combined with others.';
+
+  @override
+  String get assignableRolesVolunteerOnly =>
+      'As a volunteer, only the Registrar role can be assigned.';
 
   @override
   String get assignableRolesHint =>

@@ -30,6 +30,7 @@ class ChurchLeader {
     required this.registeredBy,
     this.churchId,
     this.churchOffice,
+    this.isBlocked = false,
   });
 
   final String? id;
@@ -55,6 +56,7 @@ class ChurchLeader {
   final String registeredBy;
   final String? churchId;
   final ChurchOffice? churchOffice;
+  final bool isBlocked;
 
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
@@ -110,6 +112,7 @@ class ChurchLeader {
       'registeredBy': registeredBy,
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
       if (churchOffice != null) 'churchOffice': churchOffice!.code,
+      'isBlocked': isBlocked,
     };
   }
 
@@ -142,6 +145,7 @@ class ChurchLeader {
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,
       churchOffice: ChurchOffice.fromCode(data['churchOffice'] as String?),
+      isBlocked: data['isBlocked'] as bool? ?? false,
     );
   }
 }

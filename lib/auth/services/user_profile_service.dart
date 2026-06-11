@@ -94,6 +94,14 @@ class UserProfileService {
     required bool blocked,
     required String updatedBy,
   }) {
+    return setUserBlocked(uid: uid, blocked: blocked, updatedBy: updatedBy);
+  }
+
+  Future<void> setUserBlocked({
+    required String uid,
+    required bool blocked,
+    required String updatedBy,
+  }) {
     return _users.doc(uid).update({
       'isBlocked': blocked,
       'updatedAt': FieldValue.serverTimestamp(),

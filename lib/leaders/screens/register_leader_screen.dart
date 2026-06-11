@@ -99,8 +99,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         final roles = AppUserRole.parseList(doc.data()?['roles']);
         if (roles.isNotEmpty) {
           setState(() {
-            _selectedRoles =
-                AppUserRole.sanitizeForLeaderRegistration(roles).toSet();
+            _selectedRoles = leader.churchOffice == ChurchOffice.voluntario
+                ? {AppUserRole.registrar}
+                : AppUserRole.sanitizeForLeaderRegistration(roles).toSet();
           });
         }
       }
@@ -129,6 +130,21 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _birthDate = leader.birthDate;
     _churchOffice = leader.churchOffice;
     _leaderLocation = leader.geoLocation;
+    if (_churchOffice == ChurchOffice.voluntario) {
+      _selectedRoles = {AppUserRole.registrar};
+    }
+  }
+
+  void _onChurchOfficeChanged(ChurchOffice? value) {
+    setState(() {
+      _churchOffice = value;
+      if (value == ChurchOffice.voluntario) {
+        _selectedRoles = {AppUserRole.registrar};
+      } else if (_selectedRoles.length == 1 &&
+          _selectedRoles.contains(AppUserRole.registrar)) {
+        _selectedRoles = {AppUserRole.leader};
+      }
+    });
   }
 
   @override
@@ -292,6 +308,11 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
       _showMessage(l10n.leaderRegSelectAtLeastOneRole);
       return;
     }
+    if (_churchOffice == ChurchOffice.voluntario &&
+        _selectedRoles != {AppUserRole.registrar}) {
+      _showMessage(l10n.assignableRolesVolunteerOnly);
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -423,6 +444,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         registeredBy: widget.leaderToEdit?.registeredBy ?? widget.registeredBy,
         churchId: widget.leaderToEdit?.churchId ?? widget.churchId,
         churchOffice: _churchOffice,
+        isBlocked: widget.leaderToEdit?.isBlocked ?? false,
       );
 
       await _leaderService.updateLeader(leader);
@@ -604,9 +626,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                         ),
                       )
                       .toList(),
-                  onChanged: _isLoading
-                      ? null
-                      : (value) => setState(() => _churchOffice = value),
+                  onChanged: _isLoading ? null : _onChurchOfficeChanged,
                   validator: (value) =>
                       value == null ? l10n.leaderRegSelectChurchOfficeField : null,
                 ),
@@ -621,6 +641,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                   AssignableRolesSection(
                     selectedRoles: _selectedRoles,
                     enabled: !_isLoading,
+                    allowedRoles: _churchOffice == ChurchOffice.voluntario
+                        ? const [AppUserRole.registrar]
+                        : null,
                     onChanged: (roles) => setState(() => _selectedRoles = roles),
                   ),
                 if (widget.isEditing && widget.leaderToEdit?.authUserId == null)

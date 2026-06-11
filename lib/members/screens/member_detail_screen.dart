@@ -273,6 +273,10 @@ class MemberDetailScreen extends StatelessWidget {
 
   List<_Row> _registrationRows(AppLocalizations l10n) {
     return [
+      _Row(
+        l10n.memberDetailEntrySource,
+        member.entrySource?.localizedLabel(l10n),
+      ),
       _Row(l10n.memberDetailFormDate, _formatDate(member.formDate)),
       _Row(l10n.memberDetailVolunteer, member.volunteer),
       _Row(l10n.memberDetailRegisteredBy, member.registeredBy),

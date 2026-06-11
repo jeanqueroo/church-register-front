@@ -16,6 +16,7 @@ import '../models/follow_up_person.dart';
 import '../models/visit_chart_point.dart';
 import '../models/visit_dashboard_filter.dart';
 import '../services/pastoral_dashboard_service.dart';
+import '../widgets/dashboard_church_filter.dart';
 import '../widgets/prayer_percentage_card.dart';
 import '../widgets/visit_count_bar_chart.dart';
 
@@ -114,8 +115,12 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
     }
 
     if (permissions.isAdmin) {
+      final churchId = permissions.churchId?.trim();
+      if (churchId == null || churchId.isEmpty) {
+        throw StateError(l10n.dashboardAdminMissingChurch);
+      }
       return VisitDashboardFilter(
-        churchId: permissions.churchId,
+        churchId: churchId,
         scopeLabel: l10n.dashboardScopeYourChurch,
       );
     }
@@ -421,32 +426,23 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.favorite_outline),
-                title: Text(_filter!.scopeLabel!),
+                title: Text(
+                  _filter!.scopeLabel!,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
                 subtitle: Text(_periodLabel(l10n)),
               ),
             ),
           if (widget.session.permissions.isSuperAdmin) ...[
             const SizedBox(height: 12),
-            DropdownButtonFormField<String?>(
-              initialValue: _selectedChurchId,
-              decoration: InputDecoration(
-                labelText: l10n.dashboardChurchLabel,
-                prefixIcon: const Icon(Icons.church_outlined),
-                border: const OutlineInputBorder(),
-              ),
-              items: [
-                DropdownMenuItem<String?>(
-                  value: null,
-                  child: Text(l10n.dashboardScopeAllChurches),
-                ),
-                ..._churches.map(
-                  (church) => DropdownMenuItem<String?>(
-                    value: church.id,
-                    child: Text(church.profile.name),
-                  ),
-                ),
-              ],
-              onChanged: _loading ? null : _onChurchChanged,
+            DashboardChurchFilter(
+              churches: _churches,
+              selectedChurchId: _selectedChurchId,
+              enabled: !_loading,
+              allChurchesLabel: l10n.dashboardScopeAllChurches,
+              churchLabel: l10n.dashboardChurchLabel,
+              onChanged: _onChurchChanged,
             ),
           ],
           const SizedBox(height: 16),

@@ -55,10 +55,16 @@ class AppUserRole {
 
   static List<String> parseList(dynamic value) {
     if (value is List) {
-      return value.map((e) => e.toString()).where((r) => all.contains(r)).toList();
+      return value
+          .map((e) => e.toString().trim().toLowerCase())
+          .where((r) => all.contains(r))
+          .toList();
     }
-    if (value is String && value.isNotEmpty && all.contains(value)) {
-      return [value];
+    if (value is String) {
+      final role = value.trim().toLowerCase();
+      if (role.isNotEmpty && all.contains(role)) {
+        return [role];
+      }
     }
     return [];
   }

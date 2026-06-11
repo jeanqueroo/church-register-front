@@ -11,7 +11,7 @@ import '../services/leader_service.dart';
 import 'leader_assigned_members_screen.dart';
 import 'register_leader_screen.dart';
 
-class LeaderDetailScreen extends StatelessWidget {
+class LeaderDetailScreen extends StatefulWidget {
   const LeaderDetailScreen({
     super.key,
     required this.leader,
@@ -25,16 +25,26 @@ class LeaderDetailScreen extends StatelessWidget {
   final LeaderService? leaderService;
   final AppPermissions? permissions;
 
+  @override
+  State<LeaderDetailScreen> createState() => _LeaderDetailScreenState();
+}
+
+class _LeaderDetailScreenState extends State<LeaderDetailScreen> {
+  late bool _isBlocked = widget.leader.isBlocked;
+  bool _actionInProgress = false;
+
   AppPermissions get _permissions =>
-      permissions ?? AppPermissions.fromRoles([]);
+      widget.permissions ?? AppPermissions.fromRoles([]);
+
+  ChurchLeader get leader => widget.leader;
 
   Future<void> _edit(BuildContext context) async {
     await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
         builder: (_) => RegisterLeaderScreen(
-          registeredBy: registeredBy,
+          registeredBy: widget.registeredBy,
           churchId: _permissions.churchId,
-          leaderService: leaderService,
+          leaderService: widget.leaderService,
           leaderToEdit: leader,
           permissions: _permissions,
         ),
@@ -42,7 +52,9 @@ class LeaderDetailScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _delete(BuildContext context) async {
+  Future<void> _toggleBlock(BuildContext context, {required bool block}) async {
+    if (!_permissions.canManageAll || _actionInProgress) return;
+
     final l10n = context.l10n;
     final id = leader.id;
     if (id == null) return;
@@ -50,8 +62,12 @@ class LeaderDetailScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.leadersListDeleteTitle),
-        content: Text(l10n.commonDeleteConfirm(leader.fullName)),
+        title: Text(block ? l10n.leadersBlockTitle : l10n.leadersUnblockTitle),
+        content: Text(
+          block
+              ? l10n.leadersBlockConfirm(leader.fullName)
+              : l10n.leadersUnblockConfirm(leader.fullName),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -59,31 +75,36 @@ class LeaderDetailScreen extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-            ),
-            child: Text(l10n.commonDelete),
+            child: Text(block ? l10n.commonBlock : l10n.commonUnblock),
           ),
         ],
       ),
     );
 
-    if (confirmed != true || !context.mounted) return;
+    if (confirmed != true || !mounted) return;
 
+    setState(() => _actionInProgress = true);
     try {
-      await (leaderService ?? LeaderService()).deleteLeader(id);
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.leaderDetailDeleted)),
+      await (widget.leaderService ?? LeaderService()).setLeaderBlocked(
+        id: id,
+        blocked: block,
+        authUserId: leader.authUserId,
+        updatedBy: widget.registeredBy,
       );
-      Navigator.of(context).pop(true);
+      if (!mounted) return;
+      setState(() => _isBlocked = block);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(block ? l10n.leadersBlocked : l10n.leadersUnblocked)),
+      );
     } on FirebaseException catch (e) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(LeaderService.messageFromFirestoreException(e, context.l10n)),
         ),
       );
+    } finally {
+      if (mounted) setState(() => _actionInProgress = false);
     }
   }
 
@@ -156,12 +177,14 @@ class LeaderDetailScreen extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               tooltip: l10n.commonEdit,
-              onPressed: () => _edit(context),
+              onPressed: _actionInProgress ? null : () => _edit(context),
             ),
             IconButton(
-              icon: const Icon(Icons.delete_outline),
-              tooltip: l10n.commonDelete,
-              onPressed: () => _delete(context),
+              icon: Icon(_isBlocked ? Icons.lock_open_outlined : Icons.block_outlined),
+              tooltip: _isBlocked ? l10n.commonUnblock : l10n.commonBlock,
+              onPressed: _actionInProgress
+                  ? null
+                  : () => _toggleBlock(context, block: !_isBlocked),
             ),
           ],
         ],
@@ -169,6 +192,26 @@ class LeaderDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
+          if (_isBlocked)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Card(
+                color: Theme.of(context).colorScheme.errorContainer,
+                child: ListTile(
+                  leading: Icon(
+                    Icons.block,
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+                  title: Text(
+                    l10n.commonBlocked,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           _Section(
             title: l10n.leaderDetailSectionLeadership,
             rows: _leadershipRows(l10n),
@@ -197,7 +240,7 @@ class LeaderDetailScreen extends StatelessWidget {
                   MaterialPageRoute<void>(
                     builder: (_) => LeaderAssignedMembersScreen(
                       leader: leader,
-                      registeredBy: registeredBy,
+                      registeredBy: widget.registeredBy,
                       permissions: _permissions,
                     ),
                   ),
@@ -216,12 +259,16 @@ class LeaderDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
-              onPressed: () => _delete(context),
-              icon: const Icon(Icons.delete_outline),
-              label: Text(l10n.leaderDetailDeleteLeader),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error,
-                side: BorderSide(color: Theme.of(context).colorScheme.error),
+              onPressed: _actionInProgress
+                  ? null
+                  : () => _toggleBlock(context, block: !_isBlocked),
+              icon: Icon(
+                _isBlocked ? Icons.lock_open_outlined : Icons.block_outlined,
+              ),
+              label: Text(
+                _isBlocked
+                    ? l10n.leaderDetailUnblockLeader
+                    : l10n.leaderDetailBlockLeader,
               ),
             ),
           ],

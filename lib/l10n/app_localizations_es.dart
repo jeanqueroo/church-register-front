@@ -381,6 +381,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String get memberFormDate => 'Fecha';
 
   @override
+  String get memberEntrySource => '¿Dónde entró el creyente? *';
+
+  @override
+  String get memberEntrySourceRequired => 'Selecciona dónde entró el creyente';
+
+  @override
+  String get memberDetailEntrySource => 'Dónde entró';
+
+  @override
+  String get entrySourceCampaignOutside => 'Campaña fuera de la iglesia';
+
+  @override
+  String get entrySourceHospital => 'Hospital';
+
+  @override
+  String get entrySourceEvangelism => 'Evangelismo';
+
+  @override
+  String get entrySourceMotherChurch => 'Iglesia madre';
+
+  @override
+  String get entrySourceDaughterChurch => 'Iglesia hija';
+
+  @override
   String get memberSectionPersonalData => 'DATOS PERSONALES';
 
   @override
@@ -1121,10 +1145,39 @@ class AppLocalizationsEs extends AppLocalizations {
   String get leadersListTitle => 'Líderes';
 
   @override
-  String get leadersListDeleteTitle => 'Eliminar líder';
+  String get leadersBlockTitle => 'Bloquear líder';
 
   @override
-  String get leadersListDeleted => 'Líder eliminado';
+  String get leadersUnblockTitle => 'Desbloquear líder';
+
+  @override
+  String leadersBlockConfirm(String name) {
+    return '¿Bloquear a \"$name\"? No podrá iniciar sesión ni asignarse a nuevos integrantes hasta que lo desbloquees.';
+  }
+
+  @override
+  String leadersUnblockConfirm(String name) {
+    return '¿Desbloquear a \"$name\" y permitir el acceso de nuevo?';
+  }
+
+  @override
+  String get leadersBlocked => 'Líder bloqueado';
+
+  @override
+  String get leadersUnblocked => 'Líder desbloqueado';
+
+  @override
+  String leadersShowBlocked(int count) {
+    return 'Mostrar bloqueados ($count)';
+  }
+
+  @override
+  String leadersHideBlocked(int count) {
+    return 'Ocultar bloqueados ($count)';
+  }
+
+  @override
+  String get leadersAllBlocked => 'Todos los líderes están bloqueados';
 
   @override
   String get leadersListLoadError =>
@@ -1152,7 +1205,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get leaderDetailEditLeader => 'Editar líder';
 
   @override
-  String get leaderDetailDeleteLeader => 'Eliminar líder';
+  String get leaderDetailBlockLeader => 'Bloquear líder';
+
+  @override
+  String get leaderDetailUnblockLeader => 'Desbloquear líder';
 
   @override
   String get leaderDetailViewMembers => 'Ver integrantes asignados';
@@ -1180,9 +1236,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get leaderDetailPermissions => 'Permisos';
-
-  @override
-  String get leaderDetailDeleted => 'Líder eliminado';
 
   @override
   String get leadersMapNoLocationSnack =>
@@ -1311,6 +1364,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dashboardPastoralDenied =>
       'No tienes permiso para ver el dashboard pastoral.';
+
+  @override
+  String get dashboardAdminMissingChurch =>
+      'Tu cuenta de administrador no tiene iglesia asignada. Contacta al super administrador o agrega \"superadmin\" en roles en Firebase.';
 
   @override
   String get dashboardScopeAllChurches => 'Todas las iglesias';
@@ -1624,6 +1681,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get assignableRolesRegistrarExclusive =>
       'El rol Registrador es exclusivo: no se puede combinar con otros.';
+
+  @override
+  String get assignableRolesVolunteerOnly =>
+      'Como voluntario, solo se puede asignar el rol Registrador.';
 
   @override
   String get assignableRolesHint =>

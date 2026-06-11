@@ -812,6 +812,54 @@ abstract class AppLocalizations {
   /// **'Fecha'**
   String get memberFormDate;
 
+  /// No description provided for @memberEntrySource.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Dónde entró el creyente? *'**
+  String get memberEntrySource;
+
+  /// No description provided for @memberEntrySourceRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona dónde entró el creyente'**
+  String get memberEntrySourceRequired;
+
+  /// No description provided for @memberDetailEntrySource.
+  ///
+  /// In es, this message translates to:
+  /// **'Dónde entró'**
+  String get memberDetailEntrySource;
+
+  /// No description provided for @entrySourceCampaignOutside.
+  ///
+  /// In es, this message translates to:
+  /// **'Campaña fuera de la iglesia'**
+  String get entrySourceCampaignOutside;
+
+  /// No description provided for @entrySourceHospital.
+  ///
+  /// In es, this message translates to:
+  /// **'Hospital'**
+  String get entrySourceHospital;
+
+  /// No description provided for @entrySourceEvangelism.
+  ///
+  /// In es, this message translates to:
+  /// **'Evangelismo'**
+  String get entrySourceEvangelism;
+
+  /// No description provided for @entrySourceMotherChurch.
+  ///
+  /// In es, this message translates to:
+  /// **'Iglesia madre'**
+  String get entrySourceMotherChurch;
+
+  /// No description provided for @entrySourceDaughterChurch.
+  ///
+  /// In es, this message translates to:
+  /// **'Iglesia hija'**
+  String get entrySourceDaughterChurch;
+
   /// No description provided for @memberSectionPersonalData.
   ///
   /// In es, this message translates to:
@@ -2106,17 +2154,59 @@ abstract class AppLocalizations {
   /// **'Líderes'**
   String get leadersListTitle;
 
-  /// No description provided for @leadersListDeleteTitle.
+  /// No description provided for @leadersBlockTitle.
   ///
   /// In es, this message translates to:
-  /// **'Eliminar líder'**
-  String get leadersListDeleteTitle;
+  /// **'Bloquear líder'**
+  String get leadersBlockTitle;
 
-  /// No description provided for @leadersListDeleted.
+  /// No description provided for @leadersUnblockTitle.
   ///
   /// In es, this message translates to:
-  /// **'Líder eliminado'**
-  String get leadersListDeleted;
+  /// **'Desbloquear líder'**
+  String get leadersUnblockTitle;
+
+  /// No description provided for @leadersBlockConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Bloquear a \"{name}\"? No podrá iniciar sesión ni asignarse a nuevos integrantes hasta que lo desbloquees.'**
+  String leadersBlockConfirm(String name);
+
+  /// No description provided for @leadersUnblockConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Desbloquear a \"{name}\" y permitir el acceso de nuevo?'**
+  String leadersUnblockConfirm(String name);
+
+  /// No description provided for @leadersBlocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Líder bloqueado'**
+  String get leadersBlocked;
+
+  /// No description provided for @leadersUnblocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Líder desbloqueado'**
+  String get leadersUnblocked;
+
+  /// No description provided for @leadersShowBlocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar bloqueados ({count})'**
+  String leadersShowBlocked(int count);
+
+  /// No description provided for @leadersHideBlocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar bloqueados ({count})'**
+  String leadersHideBlocked(int count);
+
+  /// No description provided for @leadersAllBlocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos los líderes están bloqueados'**
+  String get leadersAllBlocked;
 
   /// No description provided for @leadersListLoadError.
   ///
@@ -2160,11 +2250,17 @@ abstract class AppLocalizations {
   /// **'Editar líder'**
   String get leaderDetailEditLeader;
 
-  /// No description provided for @leaderDetailDeleteLeader.
+  /// No description provided for @leaderDetailBlockLeader.
   ///
   /// In es, this message translates to:
-  /// **'Eliminar líder'**
-  String get leaderDetailDeleteLeader;
+  /// **'Bloquear líder'**
+  String get leaderDetailBlockLeader;
+
+  /// No description provided for @leaderDetailUnblockLeader.
+  ///
+  /// In es, this message translates to:
+  /// **'Desbloquear líder'**
+  String get leaderDetailUnblockLeader;
 
   /// No description provided for @leaderDetailViewMembers.
   ///
@@ -2219,12 +2315,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Permisos'**
   String get leaderDetailPermissions;
-
-  /// No description provided for @leaderDetailDeleted.
-  ///
-  /// In es, this message translates to:
-  /// **'Líder eliminado'**
-  String get leaderDetailDeleted;
 
   /// No description provided for @leadersMapNoLocationSnack.
   ///
@@ -2411,6 +2501,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No tienes permiso para ver el dashboard pastoral.'**
   String get dashboardPastoralDenied;
+
+  /// No description provided for @dashboardAdminMissingChurch.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu cuenta de administrador no tiene iglesia asignada. Contacta al super administrador o agrega \"superadmin\" en roles en Firebase.'**
+  String get dashboardAdminMissingChurch;
 
   /// No description provided for @dashboardScopeAllChurches.
   ///
@@ -2951,6 +3047,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'El rol Registrador es exclusivo: no se puede combinar con otros.'**
   String get assignableRolesRegistrarExclusive;
+
+  /// No description provided for @assignableRolesVolunteerOnly.
+  ///
+  /// In es, this message translates to:
+  /// **'Como voluntario, solo se puede asignar el rol Registrador.'**
+  String get assignableRolesVolunteerOnly;
 
   /// No description provided for @assignableRolesHint.
   ///

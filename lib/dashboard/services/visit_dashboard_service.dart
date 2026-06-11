@@ -352,6 +352,9 @@ class VisitDashboardService {
   }
 
   static String messageFromException(Object e, AppLocalizations l10n) {
+    if (e is StateError && e.message.isNotEmpty) {
+      return e.message;
+    }
     if (e is FirebaseException) {
       switch (e.code) {
         case 'permission-denied':

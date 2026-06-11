@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale/l10n_extensions.dart';
 import '../../auth/models/app_permissions.dart';
+import '../../l10n/app_localizations.dart';
 import '../../auth/widgets/role_gate.dart';
 import '../models/church_member.dart';
 import '../services/member_service.dart';
@@ -56,14 +59,50 @@ class _MembersListBody extends StatefulWidget {
 
 class _MembersListBodyState extends State<_MembersListBody> {
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
   final _excelExportService = MembersExcelExportService();
   bool _exporting = false;
+  List<ChurchMember> _members = [];
+  bool _loading = true;
+  Object? _loadError;
+  StreamSubscription<List<ChurchMember>>? _membersSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    final service = widget.memberService ?? MemberService();
+    _membersSubscription = service
+        .watchMembers(churchId: widget.permissions.churchId)
+        .listen(
+          (members) {
+            if (!mounted) return;
+            setState(() {
+              _members = members;
+              _loading = false;
+              _loadError = null;
+            });
+          },
+          onError: (Object error) {
+            if (!mounted) return;
+            setState(() {
+              _loading = false;
+              _loadError = error;
+            });
+          },
+        );
+  }
 
   @override
   void dispose() {
+    _membersSubscription?.cancel();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
+
+  List<ChurchMember> get _filteredMembers => _members
+      .where((m) => _matchesSearch(m, _searchController.text))
+      .toList();
 
   bool _matchesSearch(ChurchMember member, String query) {
     final q = query.trim().toLowerCase();
@@ -81,6 +120,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
       member.occupation,
       member.volunteer,
       member.maritalStatus?.label,
+      member.entrySource?.label,
       member.gender?.label,
     ].whereType<String>().join(' ').toLowerCase();
     return haystack.contains(q);
@@ -171,205 +211,60 @@ class _MembersListBodyState extends State<_MembersListBody> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final service = widget.memberService ?? MemberService();
+  Widget _buildSearchField(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: TextField(
+        key: const ValueKey('members_list_search'),
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        onChanged: (_) => setState(() {}),
+        decoration: InputDecoration(
+          hintText: l10n.membersListSearchHint,
+          prefixIcon: const Icon(Icons.search),
+          border: const OutlineInputBorder(),
+        ),
+      ),
+    );
+  }
 
-    return StreamBuilder<List<ChurchMember>>(
-      stream: service.watchMembers(churchId: widget.permissions.churchId),
-      builder: (context, snapshot) {
-        final members = snapshot.data ?? [];
-        final filtered = members
-            .where((m) => _matchesSearch(m, _searchController.text))
-            .toList();
+  Widget _buildMemberList(
+    BuildContext context,
+    AppLocalizations l10n,
+    MemberService service,
+    List<ChurchMember> filtered,
+  ) {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+      itemCount: filtered.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final member = filtered[index];
+        final subtitleParts = <String>[
+          member.phone,
+          if (member.assignedLeaderName != null)
+            l10n.membersListLeaderPrefix(member.assignedLeaderName!),
+          if (member.locality != null) member.locality!,
+          l10n.membersListDatePrefix(_formatDate(member.formDate)),
+        ];
 
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(l10n.membersListTitle),
-            actions: [
-              if (snapshot.hasData && members.isNotEmpty)
-                IconButton(
-                  tooltip: l10n.membersListExportExcel,
-                  onPressed: _exporting || filtered.isEmpty
-                      ? null
-                      : () => _exportToExcel(filtered),
-                  icon: _exporting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.download_outlined),
-                ),
-            ],
-          ),
-          floatingActionButton: widget.permissions.canRegisterMember
-              ? FloatingActionButton.extended(
-                  onPressed: () async {
-                    await Navigator.of(context).push<bool>(
+        return Card(
+          child: ListTile(
+            leading: CircleAvatar(
+              child: Text(
+                member.fullName.isNotEmpty
+                    ? member.fullName[0].toUpperCase()
+                    : '?',
+              ),
+            ),
+            title: Text(member.fullName),
+            subtitle: Text(subtitleParts.join(' · ')),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'view':
+                    Navigator.of(context).push<bool>(
                       MaterialPageRoute<bool>(
-                        builder: (_) => RegisterMemberScreen(
-                          registeredBy: widget.registeredBy,
-                          churchId: widget.permissions.churchId,
-                          memberService: service,
-                          permissions: widget.permissions,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.person_add),
-                  label: Text(l10n.commonNew),
-                )
-              : null,
-          body: Builder(
-            builder: (context) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  l10n.membersListLoadError,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
-              ),
-            );
-          }
-
-          if (members.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.people_outline,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      l10n.membersListEmptyTitle,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.membersListEmptySubtitle,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: l10n.membersListSearchHint,
-                    prefixIcon: const Icon(Icons.search),
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-              ),
-              if (filtered.isEmpty)
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      l10n.commonNoMatches,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ),
-                )
-              else
-                Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-              final member = filtered[index];
-              final subtitleParts = <String>[
-                member.phone,
-                if (member.assignedLeaderName != null)
-                  l10n.membersListLeaderPrefix(member.assignedLeaderName!),
-                if (member.locality != null) member.locality!,
-                l10n.membersListDatePrefix(_formatDate(member.formDate)),
-              ];
-
-              return Card(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Text(
-                      member.fullName.isNotEmpty
-                          ? member.fullName[0].toUpperCase()
-                          : '?',
-                    ),
-                  ),
-                  title: Text(member.fullName),
-                  subtitle: Text(subtitleParts.join(' · ')),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'view':
-                          Navigator.of(context).push<bool>(
-                            MaterialPageRoute<bool>(
-                              builder: (_) => MemberDetailScreen(
-                                member: member,
-                                registeredBy: widget.registeredBy,
-                                memberService: service,
-                                permissions: widget.permissions,
-                              ),
-                            ),
-                          );
-                        case 'edit':
-                          _openEdit(context, member);
-                        case 'delete':
-                          _confirmDelete(context, member);
-                      }
-                    },
-                    itemBuilder: (_) => [
-                      PopupMenuItem(
-                        value: 'view',
-                        child: Text(l10n.membersMapViewDetail),
-                      ),
-                      if (widget.permissions.canManageMembers) ...[
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: Text(l10n.commonEdit),
-                        ),
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Text(
-                            l10n.commonDelete,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
                         builder: (_) => MemberDetailScreen(
                           member: member,
                           registeredBy: widget.registeredBy,
@@ -378,18 +273,170 @@ class _MembersListBodyState extends State<_MembersListBody> {
                         ),
                       ),
                     );
-                  },
+                  case 'edit':
+                    _openEdit(context, member);
+                  case 'delete':
+                    _confirmDelete(context, member);
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: 'view',
+                  child: Text(l10n.membersMapViewDetail),
                 ),
-              );
-            },
+                if (widget.permissions.canManageMembers) ...[
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Text(l10n.commonEdit),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text(
+                      l10n.commonDelete,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => MemberDetailScreen(
+                    member: member,
+                    registeredBy: widget.registeredBy,
+                    memberService: service,
+                    permissions: widget.permissions,
                   ),
                 ),
-            ],
-          );
+              );
             },
           ),
         );
       },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final service = widget.memberService ?? MemberService();
+    final filtered = _filteredMembers;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.membersListTitle),
+        actions: [
+          if (!_loading && _members.isNotEmpty)
+            IconButton(
+              tooltip: l10n.membersListExportExcel,
+              onPressed: _exporting || filtered.isEmpty
+                  ? null
+                  : () => _exportToExcel(filtered),
+              icon: _exporting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.download_outlined),
+            ),
+        ],
+      ),
+      floatingActionButton: widget.permissions.canRegisterMember
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                await Navigator.of(context).push<bool>(
+                  MaterialPageRoute<bool>(
+                    builder: (_) => RegisterMemberScreen(
+                      registeredBy: widget.registeredBy,
+                      churchId: widget.permissions.churchId,
+                      memberService: service,
+                      permissions: widget.permissions,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.person_add),
+              label: Text(l10n.commonNew),
+            )
+          : null,
+      body: _buildBody(context, l10n, service, filtered),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    AppLocalizations l10n,
+    MemberService service,
+    List<ChurchMember> filtered,
+  ) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_loadError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            l10n.membersListLoadError,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_members.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.people_outline,
+                size: 64,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.membersListEmptyTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.membersListEmptySubtitle,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSearchField(l10n),
+        Expanded(
+          child: filtered.isEmpty
+              ? Center(
+                  child: Text(
+                    l10n.commonNoMatches,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                )
+              : _buildMemberList(context, l10n, service, filtered),
+        ),
+      ],
     );
   }
 }

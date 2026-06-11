@@ -49,8 +49,21 @@ class LeaderService {
     return ChurchLeader.fromFirestore(snapshot.docs.first);
   }
 
-  Future<void> deleteLeader(String id) {
-    return _leaders.doc(id).delete();
+  Future<void> setLeaderBlocked({
+    required String id,
+    required bool blocked,
+    String? authUserId,
+    required String updatedBy,
+  }) async {
+    await _leaders.doc(id).update({'isBlocked': blocked});
+    final uid = authUserId?.trim();
+    if (uid != null && uid.isNotEmpty) {
+      await _userProfileService.setUserBlocked(
+        uid: uid,
+        blocked: blocked,
+        updatedBy: updatedBy,
+      );
+    }
   }
 
   Future<ChurchLeader?> fetchLeaderById(String id) async {
@@ -90,7 +103,9 @@ class LeaderService {
   }
 
   Future<List<ChurchLeader>> fetchAssignableLeaders({String? churchId}) async {
-    final leaders = await fetchAllLeaders(churchId: churchId);
+    final leaders = (await fetchAllLeaders(churchId: churchId))
+        .where((leader) => !leader.isBlocked)
+        .toList();
     final normalizedChurchId = churchId?.trim();
     if (normalizedChurchId != null && normalizedChurchId.isNotEmpty) {
       // Registrador/admin: la colección `leaders` ya está filtrada por iglesia.

@@ -23,7 +23,9 @@ class AppPermissions {
   /// Compatibilidad con pantallas que asumían admin por defecto.
   factory AppPermissions.adminDefault() => AppPermissions.superAdminDefault();
 
-  bool get isSuperAdmin => roles.contains(AppUserRole.superAdmin);
+  /// Coincide con `isSuperAdmin()` en Firestore: rol `superadmin` o sin roles.
+  bool get isSuperAdmin =>
+      roles.isEmpty || roles.contains(AppUserRole.superAdmin);
 
   /// Administrador de una iglesia (`churchId` en Firestore).
   bool get isAdmin => roles.contains(AppUserRole.admin);
@@ -32,9 +34,9 @@ class AppPermissions {
   bool get isSupervisor => roles.contains(AppUserRole.supervisor);
   bool get isLeader => roles.contains(AppUserRole.leader);
 
-  bool get canRegisterMember => isAdmin || isRegistrar;
+  bool get canRegisterMember => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canRegisterLeader => isAdmin;
-  bool get canViewMembersList => isAdmin || isRegistrar;
+  bool get canViewMembersList => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canViewMembersByLeader => isAdmin;
   bool get canViewLeadersList => isAdmin;
   /// Admin sin rol supervisor: asignar líderes a supervisores.
