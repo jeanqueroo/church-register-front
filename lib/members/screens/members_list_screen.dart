@@ -8,6 +8,7 @@ import '../../auth/models/app_permissions.dart';
 import '../../l10n/app_localizations.dart';
 import '../../auth/widgets/role_gate.dart';
 import '../models/church_member.dart';
+import '../models/member_entry_source.dart';
 import '../services/member_service.dart';
 import '../services/members_excel_export_service.dart';
 import 'member_detail_screen.dart';
@@ -120,7 +121,9 @@ class _MembersListBodyState extends State<_MembersListBody> {
       member.occupation,
       member.volunteer,
       member.maritalStatus?.label,
-      member.entrySource?.label,
+      MemberEntrySource.storedValueSearchLabel(
+        member.entrySource?.name ?? member.entrySourceStored,
+      ),
       member.gender?.label,
     ].whereType<String>().join(' ').toLowerCase();
     return haystack.contains(q);

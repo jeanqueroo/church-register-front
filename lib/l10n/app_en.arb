@@ -1,10 +1,16 @@
 {
   "@@locale": "en",
   "menuHome": "Home",
+  "menuRegistration": "Registration",
+  "menuCellGroup": "Cell group",
+  "menuNewCell": "Create cell group",
+  "menuBaptismGroup": "Baptism",
+  "menuBaptismCalendar": "Baptism calendar",
   "menuNewMember": "New member",
   "menuMembers": "Members",
   "menuByLeader": "By leader",
   "menuMyMembers": "My members",
+  "menuMyAssignedCell": "My cell",
   "menuNewLeader": "New leader",
   "menuLeaders": "Leaders",
   "menuMySupervisedLeaders": "My assigned leaders",
@@ -23,10 +29,16 @@
   "quickViewMembersSubtitle": "List of registered members",
   "quickMembersByLeaderTitle": "Members by leader",
   "quickMembersByLeaderSubtitle": "Members assigned to each leader",
-  "quickMyMembersTitle": "My assigned members",
+  "quickMyMembersTitle": "My members assigned to visit",
   "quickMyMembersSubtitle": "Members under your leadership",
+  "quickMyAssignedCellTitle": "My assigned cell",
+  "quickMyAssignedCellSubtitle": "Cell details, members and disciples",
   "quickRegisterLeaderTitle": "Register leader",
   "quickRegisterLeaderSubtitle": "Leadership details",
+  "quickNewCellTitle": "Create cell group",
+  "quickNewCellSubtitle": "Register a new cell group",
+  "quickBaptismCalendarTitle": "Baptism calendar",
+  "quickBaptismCalendarSubtitle": "View and register baptism dates",
   "quickViewLeadersTitle": "View leaders",
   "quickViewLeadersSubtitle": "List of registered leaders",
   "quickMySupervisedLeadersTitle": "My assigned leaders",
@@ -487,10 +499,10 @@
       }
     }
   },
-  "leaderAssignedTitle": "Assigned members",
+  "leaderAssignedTitle": "Members assigned to visit",
   "leaderAssignedTabList": "List",
   "leaderAssignedTabMap": "Map",
-  "leaderAssignedCount": "{count, plural, =1{1 assigned member} other{{count} assigned members}}",
+  "leaderAssignedCount": "{count, plural, =1{1 member assigned to visit} other{{count} members assigned to visit}}",
   "@leaderAssignedCount": {
     "placeholders": {
       "count": {
@@ -506,7 +518,7 @@
       }
     }
   },
-  "leaderAssignedEmptyTitle": "No assigned members",
+  "leaderAssignedEmptyTitle": "No members assigned to visit",
   "leaderAssignedEmptySubtitle": "Members with visits enabled and an address will appear here when registered.",
   "leaderAssignedNoMapLocation": "No map location",
   "leaderAssignedRegisterVisit": "Register visit",
@@ -560,12 +572,12 @@
       }
     }
   },
-  "leadersListViewMembers": "View assigned members",
+  "leadersListViewMembers": "View members assigned to visit",
   "leadersListViewLeader": "View leader",
   "leaderDetailEditLeader": "Edit leader",
   "leaderDetailBlockLeader": "Block leader",
   "leaderDetailUnblockLeader": "Unblock leader",
-  "leaderDetailViewMembers": "View assigned members",
+  "leaderDetailViewMembers": "View members assigned to visit",
   "leaderDetailSectionLeadership": "Leadership data",
   "leaderDetailSectionCellContact": "Cell group and contact",
   "leaderDetailSectionRoles": "App roles",
@@ -732,6 +744,20 @@
     }
   },
   "notificationMemberFallback": "Member",
+  "notificationCellCapacityTitle": "Cell with more than 12 members",
+  "notificationCellCapacityBody": "Cell {cell} has {count} assigned members.",
+  "@notificationCellCapacityBody": {
+    "placeholders": {
+      "cell": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "cellMemberCapacityAdminNotified": "Believer registered. The administrator was alerted: the cell exceeds 12 members.",
+  "menuAdminNotifications": "Church alerts",
+  "adminNotificationsTitle": "Church alerts",
+  "adminNotificationsDenied": "You do not have permission to view church alerts",
+  "adminNotificationsEmptyTitle": "No alerts",
+  "adminNotificationsEmptySubtitle": "You will receive alerts here when a cell exceeds 12 members.",
   "visitRegDenied": "Only the leader can register visits for their members.",
   "visitRegTitle": "Register visit",
   "visitRegPrayerFollowUpRequired": "Indicate whether prayer was performed and if follow-up is needed.",
@@ -960,6 +986,216 @@
   "leaderRegNoAccessAccountHint": "No access account: roles will apply when the user is created.",
   "leaderRegCell": "Cell group",
   "leaderRegCellHint": "E.g.: N10, E4, L4",
+  "cellRegTitle": "New cell group",
+  "cellEditTitle": "Edit cell group",
+  "cellEditSuccess": "Cell group updated",
+  "cellEditDenied": "You do not have permission to edit cell groups",
+  "cellRegSectionData": "Cell group data",
+  "cellRegSectionMeeting": "Cell group meeting",
+  "cellRegMeetingDay": "Day of the week",
+  "cellRegMeetingDayRequired": "Select the cell group meeting day",
+  "cellRegSectionLeader": "Assigned leader",
+  "cellRegLeaderRequired": "Select the cell group leader",
+  "cellRegLeaderWrongChurch": "That leader belongs to another church and cannot be assigned to this cell group",
+  "cellRegCode": "Cell group code",
+  "cellRegCodeHint": "E.g.: N10, E4, L4",
+  "cellRegCodeRequired": "Enter the cell group code",
+  "cellRegCodeDuplicate": "A cell group with this code already exists in this church",
+  "cellRegName": "Name (optional)",
+  "cellRegNotes": "Notes (optional)",
+  "cellRegSuccess": "Cell group registered",
+  "cellRegDenied": "You do not have permission to register cell groups",
+  "cellRegSectionDisciples": "Disciples (optional)",
+  "cellRegDisciplesHint": "Add up to {max} new disciples or select ones not yet assigned to a cell group",
+  "cellRegSelectExistingDisciple": "Select existing",
+  "cellRegSelectDiscipleTitle": "Select disciple",
+  "cellRegSelectDiscipleHint": "Only disciples registered without a cell group assignment in your church are shown",
+  "cellRegSelectDiscipleRequiresChurch": "Disciples cannot be selected without a church assigned to your account",
+  "cellRegSelectDiscipleSearchHint": "Search by name, phone, or cell group",
+  "cellRegSelectDiscipleEmpty": "No unassigned disciples. Register them from Cell group → Register disciple",
+  "cellRegSelectDiscipleLoadError": "Could not load disciples",
+  "cellRegDiscipleFromCell": "Cell group: {cell}",
+  "@cellRegDiscipleFromCell": {
+    "placeholders": {
+      "cell": { "type": "String" }
+    }
+  },
+  "cellRegDiscipleAlreadySelected": "This disciple was already added",
+  "cellRegDiscipleExistingBadge": "Existing",
+  "cellRegDiscipleUnassignedBadge": "Unassigned",
+  "cellDiscipleUnassignedHint": "Will be saved without a cell group. You can assign them when creating a cell group.",
+  "cellDiscipleUnassignedSuccess": "Disciple registered without a cell group assignment",
+  "@cellRegDisciplesHint": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellRegDisciplesCount": "{current} of {max}",
+  "@cellRegDisciplesCount": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+  "cellRegDisciplesEmpty": "No disciples added yet",
+  "cellRegAddDisciple": "Add disciple",
+  "cellRegEditDisciple": "Edit disciple",
+  "cellRegDisciplesMaxReached": "Maximum {max} disciples when registering the cell group",
+  "@cellRegDisciplesMaxReached": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellRegSuccessWithDisciples": "Cell group registered with {count} disciple(s)",
+  "@cellRegSuccessWithDisciples": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "menuViewCells": "View cell groups",
+  "menuRegisterCellDisciple": "Register disciple",
+  "cellDisciplePickCellTitle": "Select cell group",
+  "cellDisciplePickCellHint": "Choose the cell group to register the disciple in",
+  "cellsListTitle": "Cell groups",
+  "cellsListSearchHint": "Search by code, name, leader, or address",
+  "cellsListEmpty": "No cell groups registered",
+  "cellsListLoadError": "Could not load cell groups",
+  "cellDiscipleTitle": "Register disciple",
+  "cellDiscipleForCell": "Cell group",
+  "cellDiscipleDenied": "You do not have permission to register disciples",
+  "cellDiscipleSuccess": "Disciple registered",
+  "cellDiscipleCellMissing": "Cell group not found",
+  "cellDiscipleEmailOptional": "Optional (no app login account)",
+  "cellDiscipleEmailLabel": "Email (optional)",
+  "cellDiscipleEmailHelper": "For contact only. Does not create an account or sign in to the app.",
+  "cellDiscipleChurchOfficeLabel": "Church office *",
+  "cellDiscipleChurchOfficeHelper": "Select the disciple's role or office in the church",
+  "cellDiscipleAdd": "Register disciple",
+  "cellDiscipleListTitle": "Disciples",
+  "cellDiscipleListEmpty": "No disciples in this cell group yet",
+  "cellDiscipleDeleteTitle": "Delete disciple",
+  "cellDiscipleDeleted": "Disciple deleted",
+  "cellMemberAssignTitle": "Cell members",
+  "cellMemberAssignAction": "Assign members",
+  "cellMemberAssignAdd": "Add member",
+  "cellMemberRegisterNew": "Register new believer",
+  "cellMemberRegisterTitle": "Register believer in cell",
+  "myAssignedCellTitle": "My cell",
+  "myAssignedCellDenied": "You do not have permission to view the assigned cell",
+  "myAssignedCellLoadError": "Could not load cell information",
+  "myAssignedCellNoLeaderProfile": "Your leader account is not linked to a leader profile in the system",
+  "myAssignedCellEmpty": "There are no assigned cells to display",
+  "myAssignedCellLeaderLabel": "Leader: {name}",
+  "@myAssignedCellLeaderLabel": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellMemberRegisteredAndAssigned": "{name} registered and assigned to {cell}",
+  "@cellMemberRegisteredAndAssigned": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "cell": { "type": "String" }
+    }
+  },
+  "cellMemberAssignHint": "Assign believers without a cell to {cell}. Cell assignment is separate from the member's pastoral leader.",
+  "@cellMemberAssignHint": {
+    "placeholders": {
+      "cell": { "type": "String" }
+    }
+  },
+  "cellMemberListTitle": "Members",
+  "cellMemberListEmpty": "No members assigned to this cell yet",
+  "cellMemberSelectTitle": "Select members",
+  "cellMemberSelectHint": "Select one or more believers without a cell, then confirm at the bottom",
+  "cellMemberSelectConfirm": "Assign {count}",
+  "@cellMemberSelectConfirm": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellMemberSelectRequiresChurch": "Cannot assign members without a church on your account",
+  "cellMemberSelectSearchHint": "Search by name, phone or leader",
+  "cellMemberSelectEmpty": "No believers without a cell in your church",
+  "cellMemberSelectMaxReached": "Maximum {max} member(s) per cell (only the cell leader can assign more than 12)",
+  "@cellMemberSelectMaxReached": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellMemberSelectLimitHint": "You can select up to {max} member(s). A cell holds 12 at most; only its leader can exceed that limit.",
+  "@cellMemberSelectLimitHint": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellMemberAssignLimitReached": "This cell already has 12 members. Only the assigned cell leader can add more.",
+  "cellMemberAssignLimitPartial": "Assigned {assigned} of {requested}: non-leaders are limited to 12 members per cell.",
+  "@cellMemberAssignLimitPartial": {
+    "placeholders": {
+      "assigned": { "type": "int" },
+      "requested": { "type": "int" }
+    }
+  },
+  "cellMemberSelectLoadError": "Could not load members",
+  "cellMemberAssigned": "{name} assigned to the cell",
+  "@cellMemberAssigned": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellMemberAssignedMultiple": "{count} members assigned to the cell",
+  "@cellMemberAssignedMultiple": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellMemberUnassignTitle": "Remove from cell",
+  "cellMemberUnassignConfirm": "Remove {name} from this cell?",
+  "@cellMemberUnassignConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellMemberUnassignAction": "Remove",
+  "cellMemberUnassigned": "{name} is no longer assigned to this cell",
+  "@cellMemberUnassigned": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "baptismCalendarTitle": "Baptism calendar",
+  "baptismCalendarRegisterTitle": "Register baptism date",
+  "baptismCalendarAdd": "Register date",
+  "baptismCalendarTime": "Time (optional)",
+  "baptismCalendarTimeHint": "E.g.: 10:00",
+  "baptismCalendarLocation": "Location (optional)",
+  "baptismCalendarNotes": "Notes (optional)",
+  "baptismCalendarSuccess": "Baptism date registered",
+  "baptismCalendarDeleted": "Baptism date removed",
+  "baptismCalendarDenied": "You do not have permission to view the baptism calendar",
+  "baptismCalendarLoadError": "Could not load the baptism calendar",
+  "baptismCalendarEmpty": "No baptisms scheduled",
+  "baptismCalendarSelectDay": "Select a day on the calendar",
+  "baptismCalendarDayTitle": "Baptisms on {date}",
+  "@baptismCalendarDayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "baptismCalendarDayEmpty": "No baptisms scheduled for this day",
+  "baptismCalendarUpcoming": "Upcoming baptisms",
+  "baptismCalendarDeleteTitle": "Delete baptism date",
+  "baptismCalendarDeleteConfirm": "Delete the baptism scheduled for {date}?",
+  "@baptismCalendarDeleteConfirm": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "leaderRegMobileRequired": "Enter the mobile number",
   "leaderRegSectionAppAccess": "APP ACCESS",
   "leaderRegEmailLoginHint": "The leader will sign in with their email as username.",

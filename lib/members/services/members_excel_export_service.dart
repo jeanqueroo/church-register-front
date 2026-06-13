@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../models/church_member.dart';
+import '../models/member_entry_source.dart';
 
 class MembersExcelExportService {
   Future<void> shareMembers(List<ChurchMember> members) async {
@@ -41,7 +42,12 @@ class MembersExcelExportService {
         ),
         TextCellValue(member.age?.toString() ?? ''),
         TextCellValue(member.maritalStatus?.label ?? ''),
-        TextCellValue(member.entrySource?.label ?? ''),
+        TextCellValue(
+          MemberEntrySource.storedValueSearchLabel(
+                member.entrySource?.name ?? member.entrySourceStored,
+              ) ??
+              '',
+        ),
         TextCellValue(member.occupation ?? ''),
         TextCellValue(member.volunteer ?? ''),
         TextCellValue(member.street ?? ''),

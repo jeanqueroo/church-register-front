@@ -79,8 +79,23 @@ class LeaderService {
     return snapshot.docs.map(ChurchLeader.fromFirestore).toList();
   }
 
-  /// Líderes cuya cuenta en `users` incluye el rol `leader`.
-  Future<bool> hasLeaderAppRole(ChurchLeader leader) async {
+  static const _pastoralAssignmentRoles = {
+    AppUserRole.leader,
+    AppUserRole.supervisor,
+  };
+
+  static bool rolesAllowPastoralAssignment(List<String> roles) {
+    if (roles.contains(AppUserRole.registrar)) return false;
+    return roles.any(_pastoralAssignmentRoles.contains);
+  }
+
+  /// Cuenta en `users` con rol líder o supervisor (asignación pastoral).
+  Future<bool> hasPastoralAssignmentAppRole(ChurchLeader leader) async {
+    final docRoles = leader.appRoles;
+    if (docRoles != null && docRoles.isNotEmpty) {
+      return rolesAllowPastoralAssignment(docRoles);
+    }
+
     final authUserId = leader.authUserId?.trim();
     if (authUserId == null || authUserId.isEmpty) return false;
 
@@ -92,29 +107,30 @@ class LeaderService {
       final roles = AppUserRole.parseList(data['roles']);
       final rolesFinal =
           roles.isNotEmpty ? roles : AppUserRole.parseList(data['role']);
-      return rolesFinal.contains(AppUserRole.leader);
+      if (rolesFinal.contains(AppUserRole.registrar)) return false;
+      return rolesAllowPastoralAssignment(rolesFinal);
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
-        // Cuenta vinculada en `leaders`; no se pudo verificar rol en `users`.
-        return true;
+        return false;
       }
       rethrow;
     }
   }
 
   Future<List<ChurchLeader>> fetchAssignableLeaders({String? churchId}) async {
-    final leaders = (await fetchAllLeaders(churchId: churchId))
+    var leaders = (await fetchAllLeaders(churchId: churchId))
         .where((leader) => !leader.isBlocked)
         .toList();
     final normalizedChurchId = churchId?.trim();
     if (normalizedChurchId != null && normalizedChurchId.isNotEmpty) {
-      // Registrador/admin: la colección `leaders` ya está filtrada por iglesia.
-      return leaders;
+      leaders = leaders
+          .where((leader) => leader.belongsToChurch(normalizedChurchId))
+          .toList();
     }
 
     final results = await Future.wait(
       leaders.map((leader) async {
-        if (await hasLeaderAppRole(leader)) return leader;
+        if (await hasPastoralAssignmentAppRole(leader)) return leader;
         return null;
       }),
     );

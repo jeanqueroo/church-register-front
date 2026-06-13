@@ -207,7 +207,10 @@ class _LeaderAssignedMembersScreenState
           if (member.geoLocation == null) l10n.leaderAssignedNoMapLocation,
         ];
 
-        final canRegisterVisit = widget.leader.id != null &&
+        final canRegisterVisit =
+            (widget.permissions?.canRegisterMemberVisits ?? true) &&
+            widget.leader.id != null &&
+            member.isPastoralLeaderAssignment &&
             member.assignedLeaderId == widget.leader.id;
 
         return Card(

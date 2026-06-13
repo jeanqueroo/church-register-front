@@ -2,12 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
+import '../../leaders/models/church_office.dart';
 import '../../members/models/id_document_type.dart';
-import 'church_office.dart';
 
-class ChurchLeader {
-  const ChurchLeader({
+/// Discípulo registrado en una célula (`cells/{cellId}/disciples`).
+class CellDisciple {
+  const CellDisciple({
     this.id,
+    required this.cellId,
     required this.lastName,
     required this.firstName,
     this.street,
@@ -22,7 +24,6 @@ class ChurchLeader {
     this.stateProvince,
     this.postalCode,
     this.email,
-    this.authUserId,
     this.latitude,
     this.longitude,
     required this.mobilePhone,
@@ -30,11 +31,10 @@ class ChurchLeader {
     required this.registeredBy,
     this.churchId,
     this.churchOffice,
-    this.appRoles,
-    this.isBlocked = false,
   });
 
   final String? id;
+  final String cellId;
   final String lastName;
   final String firstName;
   final String? street;
@@ -49,7 +49,6 @@ class ChurchLeader {
   final String? stateProvince;
   final String? postalCode;
   final String? email;
-  final String? authUserId;
   final double? latitude;
   final double? longitude;
   final String mobilePhone;
@@ -57,22 +56,9 @@ class ChurchLeader {
   final String registeredBy;
   final String? churchId;
   final ChurchOffice? churchOffice;
-  /// Roles de app en `users` (p. ej. leader, supervisor, registrador).
-  final List<String>? appRoles;
-  final bool isBlocked;
 
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
-
-  /// El líder pertenece a la iglesia indicada (mismo `churchId` en Firestore).
-  bool belongsToChurch(String? targetChurchId) {
-    final normalizedTarget = targetChurchId?.trim();
-    if (normalizedTarget == null || normalizedTarget.isEmpty) return false;
-    final normalizedLeader = churchId?.trim();
-    return normalizedLeader != null &&
-        normalizedLeader.isNotEmpty &&
-        normalizedLeader == normalizedTarget;
-  }
 
   GeoLocation? get geoLocation {
     if (latitude == null || longitude == null) return null;
@@ -101,8 +87,11 @@ class ChurchLeader {
     ].whereType<String>().where((s) => s.trim().isNotEmpty).join(', ');
   }
 
+  bool get isAssignedToCell => cellId.trim().isNotEmpty;
+
   Map<String, dynamic> toMap() {
     return {
+      'cellId': cellId,
       'lastName': lastName,
       'firstName': firstName,
       'street': street,
@@ -117,7 +106,6 @@ class ChurchLeader {
       'stateProvince': stateProvince,
       'postalCode': postalCode,
       'email': email,
-      'authUserId': authUserId,
       'latitude': latitude,
       'longitude': longitude,
       'mobilePhone': mobilePhone,
@@ -125,17 +113,26 @@ class ChurchLeader {
       'registeredBy': registeredBy,
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
       if (churchOffice != null) 'churchOffice': churchOffice!.code,
-      if (appRoles != null && appRoles!.isNotEmpty) 'appRoles': appRoles,
-      'isBlocked': isBlocked,
     };
   }
 
-  factory ChurchLeader.fromFirestore(
+  /// Mapa para la colección raíz `disciples` (sin célula asignada).
+  Map<String, dynamic> toUnassignedMap() {
+    return {
+      ...toMap(),
+      'cellId': '',
+      'cellCode': null,
+      'assigned': false,
+    };
+  }
+
+  factory CellDisciple.fromRootFirestore(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final data = doc.data()!;
-    return ChurchLeader(
+    return CellDisciple(
       id: doc.id,
+      cellId: data['cellId'] as String? ?? '',
       lastName: data['lastName'] as String? ?? '',
       firstName: data['firstName'] as String? ?? '',
       street: data['street'] as String?,
@@ -151,7 +148,6 @@ class ChurchLeader {
       stateProvince: data['stateProvince'] as String?,
       postalCode: data['postalCode'] as String?,
       email: data['email'] as String?,
-      authUserId: data['authUserId'] as String?,
       latitude: (data['latitude'] as num?)?.toDouble(),
       longitude: (data['longitude'] as num?)?.toDouble(),
       mobilePhone: data['mobilePhone'] as String? ?? '',
@@ -159,10 +155,39 @@ class ChurchLeader {
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,
       churchOffice: ChurchOffice.fromCode(data['churchOffice'] as String?),
-      appRoles: (data['appRoles'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList(),
-      isBlocked: data['isBlocked'] as bool? ?? false,
+    );
+  }
+
+  factory CellDisciple.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> doc, {
+    required String cellId,
+  }) {
+    final data = doc.data()!;
+    return CellDisciple(
+      id: doc.id,
+      cellId: cellId,
+      lastName: data['lastName'] as String? ?? '',
+      firstName: data['firstName'] as String? ?? '',
+      street: data['street'] as String?,
+      streetNumber: data['streetNumber'] as String?,
+      cellCode: data['cellCode'] as String?,
+      gender: LeaderGender.fromCode(data['gender'] as String?),
+      idDocumentType:
+          IdDocumentType.fromString(data['idDocumentType'] as String?),
+      idDocumentNumber: data['idDocumentNumber'] as String?,
+      birthDate: (data['birthDate'] as Timestamp?)?.toDate(),
+      neighborhood: data['neighborhood'] as String?,
+      locality: data['locality'] as String?,
+      stateProvince: data['stateProvince'] as String?,
+      postalCode: data['postalCode'] as String?,
+      email: data['email'] as String?,
+      latitude: (data['latitude'] as num?)?.toDouble(),
+      longitude: (data['longitude'] as num?)?.toDouble(),
+      mobilePhone: data['mobilePhone'] as String? ?? '',
+      registeredAt: (data['registeredAt'] as Timestamp).toDate(),
+      registeredBy: data['registeredBy'] as String? ?? '',
+      churchId: data['churchId'] as String?,
+      churchOffice: ChurchOffice.fromCode(data['churchOffice'] as String?),
     );
   }
 }

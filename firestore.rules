@@ -102,20 +102,12 @@ service cloud.firestore {
           .hasAny([memberData(memberId).get('assignedLeaderId', '')]);
     }
 
+    function canReadVisitsForMember(memberId) {
+      return isSignedIn() && canManageChurchRecords();
+    }
+
     function canReadVisitDocument() {
-      return isSuperAdmin() ||
-        (
-          (isChurchAdmin() || isRegistrar()) &&
-          currentUserChurchId() != '' &&
-          resource.data.get('churchId', '') == currentUserChurchId()
-        ) ||
-        (isSupervisor() &&
-          resource.data.get('leaderId', '') != '' &&
-          currentUserData().get('supervisedLeaderIds', [])
-            .hasAny([resource.data.get('leaderId', '')])) ||
-        (isLeader() &&
-          currentUserLeaderId() != '' &&
-          resource.data.get('leaderId', '') == currentUserLeaderId());
+      return isSuperAdmin() || canManageChurchRecords();
     }
 
     function isAssignedLeaderForNotification() {
@@ -132,12 +124,16 @@ service cloud.firestore {
       return userDocExists() ? currentUserData().get('churchId', '') : '';
     }
 
-    // Registrador: leer perfiles de cuentas con rol líder (asignación de creyentes).
-    function canRegistrarReadLeaderUser() {
-      return isRegistrar() && (
-        resource.data.get('roles', []).hasAny(['leader']) ||
-        resource.data.get('role', '') == 'leader'
-      );
+    // Usuarios con rol líder o supervisor de la misma iglesia (asignación pastoral).
+    function canReadPastoralAssignmentUserProfile() {
+      return (isLeader() || isRegistrar() || isSupervisor()) &&
+        (
+          resource.data.get('roles', []).hasAny(['leader', 'supervisor']) ||
+          resource.data.get('role', '') == 'leader' ||
+          resource.data.get('role', '') == 'supervisor'
+        ) &&
+        resource.data.get('churchId', '') != '' &&
+        resource.data.get('churchId', '') == currentUserChurchId();
     }
 
     // Admin de iglesia: asignar líderes a supervisores de su sede.
@@ -160,23 +156,47 @@ service cloud.firestore {
           .hasOnly(['roles', 'updatedAt']);
     }
 
+    function memberBelongsToUserChurch(memberId) {
+      return currentUserChurchId() != '' &&
+        memberData(memberId).get('churchId', '') == currentUserChurchId();
+    }
+
+    function visitLeaderIdValidForMember(memberId) {
+      let assignedLeader = memberData(memberId).get('assignedLeaderId', '');
+      let visitLeader = request.resource.data.leaderId;
+      return assignedLeader != ''
+        ? visitLeader == assignedLeader
+        : visitLeader is string;
+    }
+
+    function canCreateVisitForMember(memberId) {
+      return isSignedIn() &&
+        visitLeaderIdValidForMember(memberId) &&
+        (
+          (
+            isAssignedLeaderForMemberId(memberId) &&
+            request.resource.data.leaderId == currentUserLeaderId()
+          ) ||
+          (
+            canManageChurchRecords() &&
+            (isSuperAdmin() || memberBelongsToUserChurch(memberId))
+          )
+        );
+    }
+
     match /members/{memberId} {
       allow read: if isSignedIn() && (
         canManageChurchRecords() ||
         isAssignedLeaderForMember() ||
-        isSupervisedLeaderMember()
+        isSupervisedLeaderMember() ||
+        memberAssignedCellLedByUser() ||
+        memberAssignedCellLedBySupervisedLeader()
       );
       allow create, update, delete: if isSignedIn() && canManageChurchRecords();
 
       match /visits/{visitId} {
-        allow read: if isSignedIn() && (
-          canReadVisitDocument() ||
-          isAssignedLeaderForMemberId(memberId) ||
-          isSupervisedLeaderForMemberId(memberId)
-        );
-        allow create: if isSignedIn() &&
-          isAssignedLeaderForMemberId(memberId) &&
-          request.resource.data.leaderId == currentUserLeaderId() &&
+        allow read: if canReadVisitsForMember(memberId);
+        allow create: if canCreateVisitForMember(memberId) &&
           request.resource.data.memberId == memberId &&
           request.resource.data.comment is string &&
           request.resource.data.comment.size() > 0 &&
@@ -218,6 +238,201 @@ service cloud.firestore {
       allow update, delete: if isSignedIn();
     }
 
+    match /baptismCalendar/{entryId} {
+      allow read: if isSignedIn() && (
+        isSuperAdmin() ||
+        (
+          currentUserChurchId() != '' &&
+          resource.data.get('churchId', '') == currentUserChurchId()
+        )
+      );
+      allow create: if isSignedIn() && (
+        isSuperAdmin() ||
+        (
+          (isChurchAdmin() || isRegistrar()) &&
+          currentUserChurchId() != '' &&
+          request.resource.data.get('churchId', '') == currentUserChurchId() &&
+          request.resource.data.get('baptismDate', null) is timestamp
+        )
+      );
+      allow delete: if isSignedIn() && (
+        isSuperAdmin() ||
+        (
+          (isChurchAdmin() || isRegistrar()) &&
+          currentUserChurchId() != '' &&
+          resource.data.get('churchId', '') == currentUserChurchId()
+        )
+      );
+      allow update: if false;
+    }
+
+    match /disciples/{discipleId} {
+      allow read: if isSignedIn() && (
+        isSuperAdmin() ||
+        (
+          currentUserChurchId() != '' &&
+          resource.data.get('churchId', '') == currentUserChurchId()
+        )
+      );
+      allow create: if isSignedIn() && (
+        isSuperAdmin() ||
+        (
+          (isChurchAdmin() || isRegistrar()) &&
+          currentUserChurchId() != '' &&
+          request.resource.data.get('churchId', '') == currentUserChurchId() &&
+          request.resource.data.get('assigned', false) == false &&
+          request.resource.data.get('cellId', '') == ''
+        )
+      );
+      allow delete: if isSignedIn() && (
+        isSuperAdmin() ||
+        (
+          (isChurchAdmin() || isRegistrar()) &&
+          currentUserChurchId() != '' &&
+          resource.data.get('churchId', '') == currentUserChurchId()
+        )
+      );
+      allow update: if false;
+    }
+
+    function leaderBelongsToChurch(leaderId, churchId) {
+      return leaderId == '' ||
+        (
+          churchId != '' &&
+          exists(/databases/$(database)/documents/leaders/$(leaderId)) &&
+          get(/databases/$(database)/documents/leaders/$(leaderId))
+            .data.get('churchId', '') == churchId
+        );
+    }
+
+    function cellLeaderBelongsToChurch() {
+      return leaderBelongsToChurch(
+        request.resource.data.get('leaderId', ''),
+        request.resource.data.get('churchId', '')
+      );
+    }
+
+    function cellDocumentData(cellId) {
+      return get(/databases/$(database)/documents/cells/$(cellId)).data;
+    }
+
+    function isAssignedCellLeader(cellLeaderId) {
+      return isLeader() &&
+        currentUserLeaderId() != '' &&
+        cellLeaderId == currentUserLeaderId();
+    }
+
+    function isSupervisedCellLeader(cellLeaderId) {
+      return isSupervisor() &&
+        cellLeaderId != '' &&
+        currentUserData().get('supervisedLeaderIds', []).hasAny([cellLeaderId]);
+    }
+
+    function canReadCellData(cellLeaderId, cellChurchId) {
+      return isSuperAdmin() ||
+        (
+          currentUserChurchId() != '' &&
+          cellChurchId == currentUserChurchId()
+        ) ||
+        isAssignedCellLeader(cellLeaderId) ||
+        isSupervisedCellLeader(cellLeaderId);
+    }
+
+    function canReadCellDocument() {
+      return canReadCellData(
+        resource.data.get('leaderId', ''),
+        resource.data.get('churchId', '')
+      );
+    }
+
+    function canReadCellById(cellId) {
+      return canReadCellData(
+        cellDocumentData(cellId).get('leaderId', ''),
+        cellDocumentData(cellId).get('churchId', '')
+      );
+    }
+
+    function memberAssignedCellLedByUser() {
+      return isLeader() &&
+        currentUserLeaderId() != '' &&
+        resource.data.get('assignedCellId', '') != '' &&
+        exists(/databases/$(database)/documents/cells/$(resource.data.get('assignedCellId', ''))) &&
+        cellDocumentData(resource.data.get('assignedCellId', ''))
+          .get('leaderId', '') == currentUserLeaderId();
+    }
+
+    function memberAssignedCellLedBySupervisedLeader() {
+      return isSupervisor() &&
+        resource.data.get('assignedCellId', '') != '' &&
+        exists(/databases/$(database)/documents/cells/$(resource.data.get('assignedCellId', ''))) &&
+        isSupervisedCellLeader(
+          cellDocumentData(resource.data.get('assignedCellId', '')).get('leaderId', '')
+        );
+    }
+
+    match /cells/{cellId} {
+      allow read: if isSignedIn() && canReadCellDocument();
+      allow create: if isSignedIn() && (
+        isSuperAdmin() ||
+        (
+          (isChurchAdmin() || isRegistrar()) &&
+          currentUserChurchId() != '' &&
+          request.resource.data.get('churchId', '') == currentUserChurchId() &&
+          request.resource.data.get('code', '') is string &&
+          request.resource.data.get('code', '').size() > 0
+        )
+      ) && cellLeaderBelongsToChurch();
+      allow update: if isSignedIn() && (
+        isSuperAdmin() ||
+        (
+          (isChurchAdmin() || isRegistrar()) &&
+          currentUserChurchId() != '' &&
+          resource.data.get('churchId', '') == currentUserChurchId()
+        )
+      ) && cellLeaderBelongsToChurch();
+      allow delete: if isSignedIn() && (
+        isSuperAdmin() ||
+        (
+          (isChurchAdmin() || isRegistrar()) &&
+          currentUserChurchId() != '' &&
+          resource.data.get('churchId', '') == currentUserChurchId()
+        )
+      );
+
+      match /disciples/{discipleId} {
+        allow read: if isSignedIn() && canReadCellById(cellId);
+        allow create: if isSignedIn() && (
+          isSuperAdmin() ||
+          (
+            (isChurchAdmin() || isRegistrar()) &&
+            currentUserChurchId() != '' &&
+            get(/databases/$(database)/documents/cells/$(cellId)).data.get('churchId', '') == currentUserChurchId() &&
+            request.resource.data.get('churchId', '') == currentUserChurchId() &&
+            request.resource.data.get('cellId', '') == cellId &&
+            request.resource.data.get('lastName', '') is string &&
+            request.resource.data.get('firstName', '') is string &&
+            request.resource.data.get('mobilePhone', '') is string
+          )
+        );
+        allow delete: if isSignedIn() && (
+          isSuperAdmin() ||
+          (
+            (isChurchAdmin() || isRegistrar()) &&
+            currentUserChurchId() != '' &&
+            get(/databases/$(database)/documents/cells/$(cellId)).data.get('churchId', '') == currentUserChurchId()
+          )
+        );
+        allow update: if isSignedIn() && (
+          isSuperAdmin() ||
+          (
+            (isChurchAdmin() || isRegistrar()) &&
+            currentUserChurchId() != '' &&
+            get(/databases/$(database)/documents/cells/$(cellId)).data.get('churchId', '') == currentUserChurchId()
+          )
+        );
+      }
+    }
+
     // Avisos al asignar creyentes (colección raíz usada por la app).
     match /notifications/{notificationId} {
       allow create: if isSignedIn();
@@ -250,7 +465,7 @@ service cloud.firestore {
       allow get: if isSignedIn() && (
         request.auth.uid == userId ||
         isStaffUser() ||
-        canRegistrarReadLeaderUser()
+        canReadPastoralAssignmentUserProfile()
       );
       // Necesario para `users.where('roles', arrayContains: 'supervisor')`.
       allow list: if isStaffUser();

@@ -15,6 +15,14 @@
         { "fieldPath": "leaderId", "order": "ASCENDING" },
         { "fieldPath": "visitDate", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "disciples",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "assigned", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [
@@ -23,6 +31,8 @@
       "fieldPath": "visitDate",
       "ttl": false,
       "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "order": "DESCENDING", "queryScope": "COLLECTION" },
         { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" },
         { "order": "DESCENDING", "queryScope": "COLLECTION_GROUP" }
       ]

@@ -37,20 +37,29 @@ class MemberDetailScreen extends StatelessWidget {
     return '$day/$month/${date.year}';
   }
 
+  String? get _visitLeaderId {
+    final assigned = member.assignedLeaderId?.trim();
+    if (assigned != null && assigned.isNotEmpty) return assigned;
+    final fromScreen = leaderId?.trim();
+    if (fromScreen != null && fromScreen.isNotEmpty) return fromScreen;
+    return null;
+  }
+
   bool get _canRegisterVisit =>
       _permissions.canRegisterMemberVisits &&
-      leaderId != null &&
-      leaderId!.isNotEmpty &&
       member.id != null &&
-      member.assignedLeaderId == leaderId;
+      member.id!.isNotEmpty &&
+      _visitLeaderId != null;
 
   Future<void> _registerVisit(BuildContext context) async {
     if (!_canRegisterVisit) return;
+    final visitLeaderId = _visitLeaderId;
+    if (visitLeaderId == null) return;
     await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
         builder: (_) => RegisterMemberVisitScreen(
           member: member,
-          leaderId: leaderId!,
+          leaderId: visitLeaderId,
           registeredBy: registeredBy,
           permissions: _permissions,
         ),
@@ -275,7 +284,7 @@ class MemberDetailScreen extends StatelessWidget {
     return [
       _Row(
         l10n.memberDetailEntrySource,
-        member.entrySource?.localizedLabel(l10n),
+        member.entrySourceLabel(l10n),
       ),
       _Row(l10n.memberDetailFormDate, _formatDate(member.formDate)),
       _Row(l10n.memberDetailVolunteer, member.volunteer),

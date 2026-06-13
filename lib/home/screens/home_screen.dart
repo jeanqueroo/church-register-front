@@ -20,10 +20,16 @@ import '../../leaders/services/leader_service.dart';
 import '../../members/screens/members_by_leader_screen.dart';
 import '../../members/screens/members_list_screen.dart';
 import '../../members/screens/register_member_screen.dart';
+import '../../notifications/screens/admin_notifications_screen.dart';
 import '../../notifications/screens/leader_notifications_screen.dart';
 import '../../notifications/services/leader_notification_service.dart';
 import '../../supervisors/screens/supervisor_leader_assignments_screen.dart';
 import '../../supervisors/screens/supervisor_my_leaders_screen.dart';
+import '../../baptism/screens/baptism_calendar_screen.dart';
+import '../../cells/screens/cells_list_screen.dart';
+import '../../cells/screens/my_assigned_cells_screen.dart';
+import '../../cells/screens/register_cell_screen.dart';
+import '../../cells/screens/register_unassigned_disciple_screen.dart';
 import '../../dashboard/screens/pastoral_dashboard_screen.dart';
 import '../../dashboard/screens/visits_dashboard_screen.dart';
 
@@ -113,16 +119,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  List<SlideMenuItem> _buildMenuItems(AppLocalizations l10n) {
-    final p = _permissions;
-    final items = <SlideMenuItem>[
-      SlideMenuItem(
-        id: _menuHome,
-        icon: Icons.home_outlined,
-        label: l10n.menuHome,
-        onTap: () => setState(() => _selectedMenuId = _menuHome),
-      ),
-    ];
+  List<SlideMenuItem> _buildRegistrationMenuItems(AppPermissions p, AppLocalizations l10n) {
+    final items = <SlideMenuItem>[];
 
     if (p.canRegisterMember) {
       items.add(
@@ -236,6 +234,170 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    if (p.canAssignSupervisorLeaders) {
+      items.add(
+        SlideMenuItem(
+          id: 'supervisorLeaders',
+          icon: Icons.manage_accounts_outlined,
+          label: l10n.menuSupervisorLeaders,
+          onTap: () => _navigate(
+            SupervisorLeaderAssignmentsScreen(session: widget.session),
+            'supervisorLeaders',
+          ),
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  List<SlideMenuItem> _buildBaptismMenuItems(AppPermissions p, AppLocalizations l10n) {
+    final items = <SlideMenuItem>[];
+
+    if (p.canViewBaptismCalendar) {
+      items.add(
+        SlideMenuItem(
+          id: 'baptismCalendar',
+          icon: Icons.calendar_month_outlined,
+          label: l10n.menuBaptismCalendar,
+          onTap: () => _navigate(
+            BaptismCalendarScreen(
+              registeredBy: _email,
+              churchId: _churchId,
+              permissions: p,
+            ),
+            'baptismCalendar',
+          ),
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  List<SlideMenuItem> _buildCellMenuItems(AppPermissions p, AppLocalizations l10n) {
+    final items = <SlideMenuItem>[];
+
+    if (p.canViewMyAssignedCell) {
+      items.add(
+        SlideMenuItem(
+          id: 'myAssignedCell',
+          icon: Icons.groups_2_outlined,
+          label: l10n.menuMyAssignedCell,
+          onTap: () => _navigate(
+            MyAssignedCellsScreen(
+              session: widget.session,
+              registeredBy: _email,
+            ),
+            'myAssignedCell',
+          ),
+        ),
+      );
+    }
+
+    if (p.canViewCells) {
+      items.add(
+        SlideMenuItem(
+          id: 'cellsList',
+          icon: Icons.list_alt_outlined,
+          label: l10n.menuViewCells,
+          onTap: () => _navigate(
+            CellsListScreen(
+              registeredBy: _email,
+              permissions: p,
+            ),
+            'cellsList',
+          ),
+        ),
+      );
+    }
+
+    if (p.canRegisterCellDisciple) {
+      items.add(
+        SlideMenuItem(
+          id: 'registerCellDisciple',
+          icon: Icons.person_add_outlined,
+          label: l10n.menuRegisterCellDisciple,
+          onTap: () => _navigate(
+            RegisterUnassignedDiscipleScreen(
+              registeredBy: _email,
+              churchId: _churchId,
+              permissions: p,
+            ),
+            'registerCellDisciple',
+          ),
+        ),
+      );
+    }
+
+    if (p.canRegisterCell) {
+      items.add(
+        SlideMenuItem(
+          id: 'newCell',
+          icon: Icons.add_circle_outline,
+          label: l10n.menuNewCell,
+          onTap: () => _navigate(
+            RegisterCellScreen(
+              registeredBy: _email,
+              churchId: _churchId,
+              permissions: p,
+            ),
+            'newCell',
+          ),
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  List<SlideMenuItem> _buildMenuItems(AppLocalizations l10n) {
+    final p = _permissions;
+    final items = <SlideMenuItem>[
+      SlideMenuItem(
+        id: _menuHome,
+        icon: Icons.home_outlined,
+        label: l10n.menuHome,
+        onTap: () => setState(() => _selectedMenuId = _menuHome),
+      ),
+    ];
+
+    final registrationItems = _buildRegistrationMenuItems(p, l10n);
+    if (registrationItems.isNotEmpty) {
+      items.add(
+        SlideMenuItem(
+          id: 'registration',
+          icon: Icons.app_registration_outlined,
+          label: l10n.menuRegistration,
+          children: registrationItems,
+        ),
+      );
+    }
+
+    final cellItems = _buildCellMenuItems(p, l10n);
+    if (cellItems.isNotEmpty) {
+      items.add(
+        SlideMenuItem(
+          id: 'cellGroup',
+          icon: Icons.groups_2_outlined,
+          label: l10n.menuCellGroup,
+          children: cellItems,
+        ),
+      );
+    }
+
+    final baptismItems = _buildBaptismMenuItems(p, l10n);
+    if (baptismItems.isNotEmpty) {
+      items.add(
+        SlideMenuItem(
+          id: 'baptismGroup',
+          icon: Icons.water_outlined,
+          label: l10n.menuBaptismGroup,
+          children: baptismItems,
+        ),
+      );
+    }
+
     if (p.canViewVisitsDashboard) {
       items.add(
         SlideMenuItem(
@@ -264,15 +426,15 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (p.canAssignSupervisorLeaders) {
+    if (p.canViewChurchNotifications) {
       items.add(
         SlideMenuItem(
-          id: 'supervisorLeaders',
-          icon: Icons.manage_accounts_outlined,
-          label: l10n.menuSupervisorLeaders,
+          id: 'adminNotifications',
+          icon: Icons.notifications_active_outlined,
+          label: l10n.menuAdminNotifications,
           onTap: () => _navigate(
-            SupervisorLeaderAssignmentsScreen(session: widget.session),
-            'supervisorLeaders',
+            AdminNotificationsScreen(session: widget.session),
+            'adminNotifications',
           ),
         ),
       );
@@ -390,6 +552,20 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: _openMyAssignedMembers,
       );
     }
+    if (p.canViewMyAssignedCell) {
+      addEntry(
+        icon: Icons.groups_2_outlined,
+        title: l10n.quickMyAssignedCellTitle,
+        subtitle: l10n.quickMyAssignedCellSubtitle,
+        onTap: () => _navigate(
+          MyAssignedCellsScreen(
+            session: widget.session,
+            registeredBy: _email,
+          ),
+          'myAssignedCell',
+        ),
+      );
+    }
     if (p.canRegisterLeader) {
       addEntry(
         icon: Icons.supervisor_account_outlined,
@@ -402,6 +578,36 @@ class _HomeScreenState extends State<HomeScreen> {
             permissions: p,
           ),
           'newLeader',
+        ),
+      );
+    }
+    if (p.canRegisterCell) {
+      addEntry(
+        icon: Icons.groups_2_outlined,
+        title: l10n.quickNewCellTitle,
+        subtitle: l10n.quickNewCellSubtitle,
+        onTap: () => _navigate(
+          RegisterCellScreen(
+            registeredBy: _email,
+            churchId: _churchId,
+            permissions: p,
+          ),
+          'newCell',
+        ),
+      );
+    }
+    if (p.canViewBaptismCalendar) {
+      addEntry(
+        icon: Icons.water_outlined,
+        title: l10n.quickBaptismCalendarTitle,
+        subtitle: l10n.quickBaptismCalendarSubtitle,
+        onTap: () => _navigate(
+          BaptismCalendarScreen(
+            registeredBy: _email,
+            churchId: _churchId,
+            permissions: p,
+          ),
+          'baptismCalendar',
         ),
       );
     }

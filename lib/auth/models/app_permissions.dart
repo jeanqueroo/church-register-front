@@ -36,6 +36,14 @@ class AppPermissions {
 
   bool get canRegisterMember => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canRegisterLeader => isAdmin;
+  bool get canRegisterCell => isAdmin || isRegistrar || isSuperAdmin;
+  bool get canEditCell => isAdmin || isRegistrar || isSuperAdmin;
+  bool get canViewCells => isAdmin || isRegistrar || isSuperAdmin;
+  bool get canRegisterCellDisciple => isAdmin || isRegistrar || isSuperAdmin;
+  bool get canAssignCellMembers => isAdmin || isRegistrar || isSuperAdmin;
+  bool get canViewBaptismCalendar =>
+      isAdmin || isRegistrar || isSupervisor || isLeader;
+  bool get canRegisterBaptismCalendar => isAdmin || isRegistrar;
   bool get canViewMembersList => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canViewMembersByLeader => isAdmin;
   bool get canViewLeadersList => isAdmin;
@@ -52,14 +60,16 @@ class AppPermissions {
   /// Supervisor: ver creyentes asignados a sus líderes (solo lectura).
   bool get canViewSupervisedLeaderMembers => isSupervisor;
   bool get canViewMyAssignedMembers => isLeader;
+  bool get canViewMyAssignedCell => isLeader || isSupervisor;
+  bool get canViewChurchNotifications =>
+      isAdmin && churchId != null && churchId!.trim().isNotEmpty;
   bool get canViewLeaderNotifications => isLeader;
 
-  /// Líder: registrar visitas a sus integrantes asignados.
-  bool get canRegisterMemberVisits => isLeader;
+  /// Registrar visitas a integrantes (todos los roles con acceso a creyentes).
+  bool get canRegisterMemberVisits => canViewMembersList || isSuperAdmin;
 
-  /// Ver historial de visitas (líder, admin, supervisor de ese líder).
-  bool get canViewMemberVisits =>
-      isLeader || canManageMembers || canViewSupervisedLeaderMembers;
+  /// Ver historial de visitas (mismo alcance que registrar visitas).
+  bool get canViewMemberVisits => canRegisterMemberVisits;
 
   /// Dashboard de visitas: supervisor (sus líderes), admin (iglesia), superadmin (todas).
   bool get canViewVisitsDashboard => isSupervisor || isAdmin || isSuperAdmin;

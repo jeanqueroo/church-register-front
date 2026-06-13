@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../cells/cell_member_capacity.dart';
+import '../../cells/models/church_cell.dart';
 import '../../l10n/app_localizations.dart';
+import '../../notifications/services/cell_capacity_notification_service.dart';
 import '../../notifications/services/leader_notification_service.dart';
 import '../models/church_member.dart';
 
@@ -8,13 +11,17 @@ class MemberService {
   MemberService({
     FirebaseFirestore? firestore,
     LeaderNotificationService? notificationService,
+    CellCapacityNotificationService? capacityNotificationService,
   })  : _members = (firestore ?? FirebaseFirestore.instance)
             .collection('members'),
         _notificationService =
-            notificationService ?? LeaderNotificationService();
+            notificationService ?? LeaderNotificationService(),
+        _capacityNotificationService =
+            capacityNotificationService ?? CellCapacityNotificationService();
 
   final CollectionReference<Map<String, dynamic>> _members;
   final LeaderNotificationService _notificationService;
+  final CellCapacityNotificationService _capacityNotificationService;
 
   Stream<List<ChurchMember>> watchMembers({String? churchId}) {
     final query = churchId != null && churchId.isNotEmpty
@@ -45,13 +52,18 @@ class MemberService {
     });
   }
 
-  Future<String> addMember(ChurchMember member) async {
+  Future<String> addMember(
+    ChurchMember member, {
+    bool notifyLeader = true,
+  }) async {
     final ref = await _members.add(member.toMap());
-    await _notifyLeaderIfAssigned(
-      memberId: ref.id,
-      member: member,
-      previousLeaderId: null,
-    );
+    if (notifyLeader) {
+      await _notifyLeaderIfAssigned(
+        memberId: ref.id,
+        member: member,
+        previousLeaderId: null,
+      );
+    }
     return ref.id;
   }
 
@@ -77,11 +89,102 @@ class MemberService {
     return ChurchMember.fromFirestore(doc);
   }
 
+  Stream<List<ChurchMember>> watchMembersInCell(String cellId) {
+    return _members
+        .where('assignedCellId', isEqualTo: cellId)
+        .snapshots()
+        .map((snapshot) {
+      final list = snapshot.docs.map(ChurchMember.fromFirestore).toList();
+      list.sort((a, b) => a.fullName.compareTo(b.fullName));
+      return list;
+    });
+  }
+
+  Future<List<ChurchMember>> fetchMembersWithoutCell({
+    required String? churchId,
+  }) async {
+    if (churchId == null || churchId.isEmpty) return [];
+
+    final snapshot =
+        await _members.where('churchId', isEqualTo: churchId).get();
+
+    final list = snapshot.docs
+        .map(ChurchMember.fromFirestore)
+        .where((member) => !member.isAssignedToCell)
+        .toList();
+    list.sort((a, b) => a.fullName.compareTo(b.fullName));
+    return list;
+  }
+
+  Future<int> countMembersInCell(String cellId) async {
+    if (cellId.isEmpty) return 0;
+    final snapshot =
+        await _members.where('assignedCellId', isEqualTo: cellId).get();
+    return snapshot.docs.length;
+  }
+
+  Future<bool> assignMemberToCell({
+    required ChurchMember member,
+    required ChurchCell cell,
+    String? actingLeaderId,
+  }) async {
+    final memberId = member.id;
+    final cellId = cell.id;
+    if (memberId == null || memberId.isEmpty) {
+      throw ArgumentError('El integrante debe tener id');
+    }
+    if (cellId == null || cellId.isEmpty) {
+      throw ArgumentError('La célula debe tener id');
+    }
+
+    final currentCount = await countMembersInCell(cellId);
+    if (!CellMemberCapacity.canAssignAnother(
+      currentCount: currentCount,
+      cell: cell,
+      actingLeaderId: actingLeaderId,
+    )) {
+      throw CellAssignmentLimitException();
+    }
+
+    final updates = <String, dynamic>{
+      'assignedCellId': cellId,
+      'assignedCellCode': cell.code.trim(),
+    };
+
+    await _members.doc(memberId).update(updates);
+
+    final memberCount = await countMembersInCell(cellId);
+    try {
+      return await _capacityNotificationService.notifyAdminsIfExceeded(
+        cell: cell,
+        memberCount: memberCount,
+        memberId: memberId,
+        memberName: member.fullName,
+      );
+    } on FirebaseException catch (e) {
+      if (e.code != 'permission-denied') {
+        rethrow;
+      }
+      return false;
+    }
+  }
+
+  Future<void> unassignMemberFromCell(String memberId) async {
+    if (memberId.isEmpty) {
+      throw ArgumentError('El integrante debe tener id');
+    }
+    await _members.doc(memberId).update({
+      'assignedCellId': FieldValue.delete(),
+      'assignedCellCode': FieldValue.delete(),
+    });
+  }
+
   Future<void> _notifyLeaderIfAssigned({
     required String memberId,
     required ChurchMember member,
     required String? previousLeaderId,
   }) async {
+    if (!member.isPastoralLeaderAssignment) return;
     final leaderId = member.assignedLeaderId?.trim();
     if (leaderId == null || leaderId.isEmpty) return;
     if (previousLeaderId != null && previousLeaderId == leaderId) return;
@@ -102,6 +205,10 @@ class MemberService {
 
   Future<void> deleteMember(String id) {
     return _members.doc(id).delete();
+  }
+
+  static String messageForCellAssignmentLimit(AppLocalizations l10n) {
+    return l10n.cellMemberAssignLimitReached;
   }
 
   static String messageFromFirestoreException(

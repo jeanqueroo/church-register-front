@@ -11,6 +11,8 @@ import '../../core/models/leader_gender.dart';
 import '../../core/widgets/church_display_name.dart';
 import '../../core/widgets/form_section_title.dart';
 import '../../l10n/app_localizations.dart';
+import '../../cells/cell_member_capacity.dart';
+import '../../cells/models/church_cell.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../leaders/widgets/leader_search_field.dart';
@@ -28,7 +30,9 @@ class RegisterMemberScreen extends StatefulWidget {
     this.churchId,
     this.memberService,
     this.memberToEdit,
+    this.cellToAssign,
     this.permissions,
+    this.actingLeaderId,
   });
 
   final String registeredBy;
@@ -36,7 +40,10 @@ class RegisterMemberScreen extends StatefulWidget {
   final String? churchId;
   final MemberService? memberService;
   final ChurchMember? memberToEdit;
+  /// Si se indica, el creyente nuevo se asigna a esta célula al guardar.
+  final ChurchCell? cellToAssign;
   final AppPermissions? permissions;
+  final String? actingLeaderId;
 
   bool get isEditing => memberToEdit != null;
 
@@ -124,8 +131,19 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     _memberService = widget.memberService ?? MemberService();
     if (widget.memberToEdit != null) {
       _loadMember(widget.memberToEdit!);
+    } else {
+      _applyCellDefaults(widget.cellToAssign);
     }
     _loadLeaders();
+  }
+
+  void _applyCellDefaults(ChurchCell? cell) {
+    if (cell == null) return;
+
+    final cellDay = cell.cellDay?.trim();
+    if (cellDay != null && cellDay.isNotEmpty) {
+      _cellDay = cellDay;
+    }
   }
 
   Future<void> _loadLeaders() async {
@@ -437,6 +455,20 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         }
       }
 
+      final isCellRegistration =
+          !widget.isEditing && widget.cellToAssign != null;
+      if (isCellRegistration) {
+        assignedLeaderId = null;
+        assignedLeaderName = null;
+        assignedLeaderCellCode = null;
+        assignedDistanceKm = null;
+        assignedLeader = null;
+      }
+
+      final assignedLeaderFromRegistration = !isCellRegistration &&
+          assignedLeaderId != null &&
+          assignedLeaderId.isNotEmpty;
+
       final member = ChurchMember(
         id: widget.memberToEdit?.id,
         firstName: _firstNameController.text.trim(),
@@ -486,6 +518,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         assignedLeaderId: assignedLeaderId,
         assignedLeaderName: assignedLeaderName,
         assignedLeaderCellCode: assignedLeaderCellCode,
+        assignedLeaderFromRegistration: assignedLeaderFromRegistration,
         assignedDistanceKm: assignedDistanceKm,
         wantsVisit: _wantsVisit,
         isNewBeliever: widget.isEditing
@@ -498,6 +531,25 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         churchId: widget.memberToEdit?.churchId ?? _effectiveChurchId,
       );
 
+      String? newMemberId;
+      final cellToAssign = widget.cellToAssign;
+      if (!widget.isEditing && cellToAssign != null) {
+        final cellId = cellToAssign.id;
+        if (cellId == null || cellId.isEmpty) {
+          throw ArgumentError('La célula debe tener id');
+        }
+        final currentCount = await _memberService.countMembersInCell(cellId);
+        if (!CellMemberCapacity.canAssignAnother(
+          currentCount: currentCount,
+          cell: cellToAssign,
+          actingLeaderId: widget.actingLeaderId,
+        )) {
+          if (!mounted) return;
+          _showMessage(MemberService.messageForCellAssignmentLimit(l10n));
+          return;
+        }
+      }
+
       if (widget.isEditing) {
         await _memberService.updateMember(
           member,
@@ -505,13 +557,49 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
               widget.memberToEdit?.assignedLeaderId,
         );
       } else {
-        await _memberService.addMember(member);
+        newMemberId = await _memberService.addMember(
+          member,
+          notifyLeader: cellToAssign == null,
+        );
+      }
+
+      var adminNotified = false;
+      if (!widget.isEditing &&
+          cellToAssign != null &&
+          newMemberId != null &&
+          newMemberId.isNotEmpty) {
+        adminNotified = await _memberService.assignMemberToCell(
+          member: ChurchMember(
+            id: newMemberId,
+            firstName: member.firstName,
+            lastName: member.lastName,
+            phone: member.phone,
+            formDate: member.formDate,
+            registeredAt: member.registeredAt,
+            registeredBy: member.registeredBy,
+            assignedLeaderId: member.assignedLeaderId,
+            churchId: member.churchId,
+          ),
+          cell: cellToAssign,
+          actingLeaderId: widget.actingLeaderId,
+        );
       }
 
       if (!mounted) return;
 
       if (widget.isEditing) {
         _showMessage(l10n.memberUpdatedSuccess);
+      } else if (cellToAssign != null) {
+        if (adminNotified) {
+          _showMessage(l10n.cellMemberCapacityAdminNotified);
+        } else {
+          _showMessage(
+            l10n.cellMemberRegisteredAndAssigned(
+              member.fullName,
+              cellToAssign.displayLabel,
+            ),
+          );
+        }
       } else if (assignedLeaderName != null) {
         final cellText = assignedLeaderCellCode != null
             ? l10n.memberCellCodeSuffix(assignedLeaderCellCode)
@@ -713,7 +801,11 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       child: Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.isEditing ? l10n.memberEditTitle : l10n.memberRegisterTitle,
+          widget.isEditing
+              ? l10n.memberEditTitle
+              : widget.cellToAssign != null
+                  ? l10n.cellMemberRegisterTitle
+                  : l10n.memberRegisterTitle,
         ),
       ),
       body: SafeArea(

@@ -2,9 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
+import '../../l10n/app_localizations.dart';
 import 'id_document_type.dart';
 import 'marital_status.dart';
 import 'member_entry_source.dart';
+import 'spiritual_state.dart';
 
 class ChurchMember {
   const ChurchMember({
@@ -34,10 +36,15 @@ class ChurchMember {
     this.assignedLeaderId,
     this.assignedLeaderName,
     this.assignedLeaderCellCode,
+    this.assignedLeaderFromRegistration,
+    this.assignedCellId,
+    this.assignedCellCode,
+    this.spiritualState,
     this.assignedDistanceKm,
     this.wantsVisit = true,
     this.isNewBeliever = false,
     this.entrySource,
+    this.entrySourceStored,
     required this.formDate,
     required this.registeredAt,
     required this.registeredBy,
@@ -70,18 +77,43 @@ class ChurchMember {
   final String? assignedLeaderId;
   final String? assignedLeaderName;
   final String? assignedLeaderCellCode;
+  /// `true` si el líder se asignó en el registro/edición pastoral (no por célula).
+  final bool? assignedLeaderFromRegistration;
+  final String? assignedCellId;
+  final String? assignedCellCode;
+  final SpiritualState? spiritualState;
   final double? assignedDistanceKm;
   final bool wantsVisit;
   /// `true` al registrar por primera vez; se conserva en ediciones posteriores.
   final bool isNewBeliever;
   final MemberEntrySource? entrySource;
+  final String? entrySourceStored;
   final DateTime formDate;
+
+  String? entrySourceLabel(AppLocalizations l10n) =>
+      MemberEntrySource.storedValueLabel(
+        entrySource?.name ?? entrySourceStored,
+        l10n,
+      );
   final DateTime registeredAt;
   final String registeredBy;
   final String? churchId;
 
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
+
+  bool get isAssignedToCell =>
+      assignedCellId != null && assignedCellId!.trim().isNotEmpty;
+
+  /// Integrante con líder pastoral asignado en el flujo de registro (no solo célula).
+  bool get isPastoralLeaderAssignment {
+    final leaderId = assignedLeaderId?.trim();
+    if (leaderId == null || leaderId.isEmpty) return false;
+    if (assignedLeaderFromRegistration == true) return true;
+    if (assignedLeaderFromRegistration == false) return false;
+    // Datos anteriores al campo: sin célula se asume registro pastoral.
+    return !isAssignedToCell;
+  }
 
   /// Edad en años completos según la fecha de nacimiento.
   int? get age {
@@ -138,6 +170,13 @@ class ChurchMember {
       'assignedLeaderId': assignedLeaderId,
       'assignedLeaderName': assignedLeaderName,
       'assignedLeaderCellCode': assignedLeaderCellCode,
+      if (assignedLeaderFromRegistration != null)
+        'assignedLeaderFromRegistration': assignedLeaderFromRegistration,
+      if (assignedCellId != null && assignedCellId!.isNotEmpty)
+        'assignedCellId': assignedCellId,
+      if (assignedCellCode != null && assignedCellCode!.isNotEmpty)
+        'assignedCellCode': assignedCellCode,
+      if (spiritualState != null) 'spiritualState': spiritualState!.name,
       'assignedDistanceKm': assignedDistanceKm,
       'wantsVisit': wantsVisit,
       'isNewBeliever': isNewBeliever,
@@ -202,11 +241,18 @@ class ChurchMember {
       assignedLeaderId: data['assignedLeaderId'] as String?,
       assignedLeaderName: data['assignedLeaderName'] as String?,
       assignedLeaderCellCode: data['assignedLeaderCellCode'] as String?,
+      assignedLeaderFromRegistration:
+          data['assignedLeaderFromRegistration'] as bool?,
+      assignedCellId: data['assignedCellId'] as String?,
+      assignedCellCode: data['assignedCellCode'] as String?,
+      spiritualState:
+          SpiritualState.fromString(data['spiritualState'] as String?),
       assignedDistanceKm: (data['assignedDistanceKm'] as num?)?.toDouble(),
       wantsVisit: data['wantsVisit'] as bool? ?? true,
       isNewBeliever: data['isNewBeliever'] as bool? ?? false,
       entrySource:
           MemberEntrySource.fromString(data['entrySource'] as String?),
+      entrySourceStored: data['entrySource'] as String?,
       formDate: (data['formDate'] as Timestamp?)?.toDate() ??
           (data['registeredAt'] as Timestamp).toDate(),
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),

@@ -14,13 +14,18 @@ class MemberVisitService {
   }
 
   Stream<List<MemberVisit>> watchVisits(String memberId) {
-    return _visits(memberId)
-        .orderBy('visitDate', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs.map(MemberVisit.fromFirestore).toList(),
-        );
+    return _visits(memberId).snapshots().map((snapshot) {
+      final list = <MemberVisit>[];
+      for (final doc in snapshot.docs) {
+        try {
+          list.add(MemberVisit.fromFirestore(doc));
+        } catch (_) {
+          // Ignorar documentos legacy con formato incompatible.
+        }
+      }
+      list.sort((a, b) => b.visitDate.compareTo(a.visitDate));
+      return list;
+    });
   }
 
   Future<void> addVisit(MemberVisit visit) async {
@@ -31,7 +36,15 @@ class MemberVisitService {
     if (visit.comment.trim().isEmpty) {
       throw ArgumentError('El comentario es obligatorio');
     }
-    await _visits(memberId).add(visit.toMap());
+    final batch = _firestore.batch();
+    batch.set(_visits(memberId).doc(), visit.toMap());
+    if (visit.spiritualState != null) {
+      batch.update(
+        _firestore.collection('members').doc(memberId),
+        {'spiritualState': visit.spiritualState!.name},
+      );
+    }
+    await batch.commit();
   }
 
   static String messageFromFirestoreException(

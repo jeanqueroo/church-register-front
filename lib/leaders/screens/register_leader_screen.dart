@@ -347,6 +347,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           );
         }
 
+        final roles =
+            AppUserRole.sanitizeForLeaderRegistration(_selectedRoles.toList());
+
         final leader = ChurchLeader(
           lastName: _lastNameController.text.trim(),
           firstName: _firstNameController.text.trim(),
@@ -386,6 +389,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           registeredBy: widget.registeredBy,
           churchId: widget.churchId,
           churchOffice: _churchOffice,
+          appRoles: roles,
         );
 
         final leaderId = await _leaderService.addLeader(leader);
@@ -394,7 +398,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           uid: authUserId,
           email: email,
           leaderId: leaderId,
-          roles: _selectedRoles.toList(),
+          roles: roles,
           churchId: widget.churchId,
         );
 
@@ -403,6 +407,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         Navigator.of(context).pop(true);
         return;
       }
+
+      final roles =
+          AppUserRole.sanitizeForLeaderRegistration(_selectedRoles.toList());
 
       final leader = ChurchLeader(
         id: widget.leaderToEdit?.id,
@@ -444,6 +451,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         registeredBy: widget.leaderToEdit?.registeredBy ?? widget.registeredBy,
         churchId: widget.leaderToEdit?.churchId ?? widget.churchId,
         churchOffice: _churchOffice,
+        appRoles: roles,
         isBlocked: widget.leaderToEdit?.isBlocked ?? false,
       );
 
@@ -453,7 +461,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
       if (authUserId != null && authUserId.isNotEmpty) {
         await _userProfileService.updateUserRoles(
           uid: authUserId,
-          roles: _selectedRoles.toList(),
+          roles: roles,
         );
       }
 

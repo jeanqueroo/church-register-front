@@ -1,7 +1,7 @@
 import '../../members/models/church_member.dart';
 import '../models/church_leader.dart';
 
-/// Integrantes cuyo líder asignado coincide con [leader] (por id o nombre).
+/// Integrantes asignados pastoralmente a [leader] en el registro (por id o nombre).
 List<ChurchMember> membersAssignedToLeader(
   ChurchLeader leader,
   List<ChurchMember> members,
@@ -10,6 +10,7 @@ List<ChurchMember> membersAssignedToLeader(
   final leaderName = leader.fullName.trim().toLowerCase();
 
   final assigned = members.where((member) {
+    if (!member.isPastoralLeaderAssignment) return false;
     if (leaderId != null &&
         leaderId.isNotEmpty &&
         member.assignedLeaderId == leaderId) {
