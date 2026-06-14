@@ -22,6 +22,7 @@ import '../../members/screens/members_list_screen.dart';
 import '../../members/screens/register_member_screen.dart';
 import '../../notifications/screens/admin_notifications_screen.dart';
 import '../../notifications/screens/leader_notifications_screen.dart';
+import '../../notifications/services/admin_notification_service.dart';
 import '../../notifications/services/leader_notification_service.dart';
 import '../../supervisors/screens/supervisor_leader_assignments_screen.dart';
 import '../../supervisors/screens/supervisor_my_leaders_screen.dart';
@@ -29,9 +30,12 @@ import '../../baptism/screens/baptism_calendar_screen.dart';
 import '../../cells/screens/cells_list_screen.dart';
 import '../../cells/screens/my_assigned_cells_screen.dart';
 import '../../cells/screens/register_cell_screen.dart';
-import '../../cells/screens/register_unassigned_disciple_screen.dart';
 import '../../dashboard/screens/pastoral_dashboard_screen.dart';
 import '../../dashboard/screens/visits_dashboard_screen.dart';
+import '../home_role_layout.dart';
+import '../models/home_dashboard_data.dart';
+import '../services/home_dashboard_service.dart';
+import '../widgets/role_home_body.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -53,6 +57,11 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedMenuId = _menuHome;
   final _leaderService = LeaderService();
   final _notificationService = LeaderNotificationService();
+  final _adminNotificationService = AdminNotificationService();
+  final _dashboardService = HomeDashboardService();
+  HomeDashboardData? _adminDashboard;
+  bool _loadingAdminDashboard = false;
+  String? _adminDashboardError;
 
   AppPermissions get _permissions => widget.session.permissions;
   String get _email => widget.session.email;
@@ -65,6 +74,36 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _syncLeaderNotifications();
+    _loadAdminDashboard();
+  }
+
+  Future<void> _loadAdminDashboard({bool forceRefresh = false}) async {
+    if (!_permissions.isAdmin || _churchId == null) return;
+
+    setState(() {
+      if (_adminDashboard == null) {
+        _loadingAdminDashboard = true;
+      }
+      _adminDashboardError = null;
+    });
+
+    try {
+      final data = await _dashboardService.loadForSession(
+        widget.session,
+        forceRefresh: forceRefresh,
+      );
+      if (!mounted) return;
+      setState(() {
+        _adminDashboard = data;
+        _loadingAdminDashboard = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _adminDashboardError = error.toString();
+        _loadingAdminDashboard = false;
+      });
+    }
   }
 
   Future<void> _syncLeaderNotifications() async {
@@ -293,6 +332,38 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       );
+      items.add(
+        SlideMenuItem(
+          id: 'registerCellAttendance',
+          icon: Icons.event_available_outlined,
+          label: l10n.cellAttendanceRegisterTitle,
+          onTap: () => _navigate(
+            MyAssignedCellsScreen(
+              session: widget.session,
+              registeredBy: _email,
+              mode: MyAssignedCellsMode.attendance,
+            ),
+            'registerCellAttendance',
+          ),
+        ),
+      );
+      if (!p.canViewCells) {
+        items.add(
+          SlideMenuItem(
+            id: 'cellAttendanceReport',
+            icon: Icons.fact_check_outlined,
+            label: l10n.menuViewCellAttendanceReport,
+            onTap: () => _navigate(
+              MyAssignedCellsScreen(
+                session: widget.session,
+                registeredBy: _email,
+                mode: MyAssignedCellsMode.attendanceReport,
+              ),
+              'cellAttendanceReport',
+            ),
+          ),
+        );
+      }
     }
 
     if (p.canViewCells) {
@@ -310,21 +381,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       );
-    }
-
-    if (p.canRegisterCellDisciple) {
       items.add(
         SlideMenuItem(
-          id: 'registerCellDisciple',
-          icon: Icons.person_add_outlined,
-          label: l10n.menuRegisterCellDisciple,
+          id: 'cellAttendanceReport',
+          icon: Icons.fact_check_outlined,
+          label: l10n.menuViewCellAttendanceReport,
           onTap: () => _navigate(
-            RegisterUnassignedDiscipleScreen(
+            CellsListScreen(
               registeredBy: _email,
-              churchId: _churchId,
               permissions: p,
+              mode: CellsListMode.attendanceReport,
             ),
-            'registerCellDisciple',
+            'cellAttendanceReport',
           ),
         ),
       );
@@ -721,7 +789,103 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
   }
 
+  Widget? _buildAdminSummarySection(AppLocalizations l10n) {
+    if (!_permissions.isAdmin || _churchId == null) return null;
+
+    if (_loadingAdminDashboard) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_adminDashboardError != null) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              l10n.homeDashboardLoadError,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final data = _adminDashboard;
+    if (data == null) return null;
+
+    final churchName = data.churchName?.trim();
+    if (churchName == null || churchName.isEmpty) return null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Text(
+            l10n.homeSummaryTitle,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF111B21),
+                ),
+          ),
+        ),
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.homeChurchMembersCount(churchName, data.memberCount),
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                if (data.leaderCount != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.homeChurchLeadersCount(churchName, data.leaderCount!),
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
   Widget? _buildNotificationsAction(AppLocalizations l10n) {
+    if (_permissions.canViewChurchNotifications) {
+      final uid = widget.session.uid;
+      return StreamBuilder<int>(
+        stream: _adminNotificationService.watchUnreadCountForUser(uid),
+        builder: (context, snapshot) {
+          final unread = snapshot.data ?? 0;
+          return Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: IconButton(
+              tooltip: l10n.menuAdminNotifications,
+              icon: Badge(
+                isLabelVisible: unread > 0,
+                label: Text(unread > 9 ? '9+' : '$unread'),
+                child: const Icon(Icons.notifications_outlined),
+              ),
+              onPressed: () => _navigate(
+                AdminNotificationsScreen(session: widget.session),
+                'adminNotifications',
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     if (!_permissions.canViewLeaderNotifications) return null;
     final leaderId = widget.session.profile.leaderId;
     if (leaderId == null || leaderId.isEmpty) return null;
@@ -785,8 +949,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final roleLabels =
-        widget.session.profile.permissions.roleLabelsFor(l10n);
+    final layout = resolveHomeRoleLayout(_permissions);
+    final displayName = widget.session.resolvedDisplayName;
+    final welcomeName = displayName.isNotEmpty ? displayName : _email;
+    final isAdminHome = layout == HomeRoleLayout.admin ||
+        layout == HomeRoleLayout.superAdmin;
+    final quickAccess = _buildQuickAccessList(l10n);
+    final adminSummary = _buildAdminSummarySection(l10n);
 
     return SlideMenuScaffold(
       churchId: widget.session.profile.churchId,
@@ -817,52 +986,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(width: 14),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.session.resolvedDisplayName.isNotEmpty
-                            ? widget.session.resolvedDisplayName
-                            : l10n.welcome,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF111B21),
-                            ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _email,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                      ),
-                      if (roleLabels.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: roleLabels
-                              .map(
-                                (label) => Chip(
-                                  label: Text(
-                                    label,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.onSurface,
-                                    ),
-                                  ),
-                                  side: const BorderSide(
-                                    color: AppColors.primary,
-                                    width: 2,
-                                  ),
-                                  backgroundColor:
-                                      AppColors.primary.withValues(alpha: 0.1),
-                                ),
-                              )
-                              .toList(),
+                  child: Text(
+                    l10n.homeWelcomeName(welcomeName),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF111B21),
                         ),
-                      ],
-                    ],
                   ),
                 ),
               ],
@@ -870,21 +999,46 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const Divider(height: 1, color: AppColors.divider),
           Expanded(
-            child: _buildQuickAccessList(l10n).isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Text(
-                        l10n.noAccessForRole,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
+            child: isAdminHome
+                ? (quickAccess.isEmpty && adminSummary == null)
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Text(
+                            l10n.noAccessForRole,
+                            textAlign: TextAlign.center,
+                            style:
+                                Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: AppColors.textSecondary,
+                                    ),
+                          ),
+                        ),
+                      )
+                    : ListView(
+                        children: [
+                          ?adminSummary,
+                          if (quickAccess.isNotEmpty) ...[
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                              child: Text(
+                                l10n.homeQuickActionsTitle,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF111B21),
+                                    ),
+                              ),
                             ),
-                      ),
-                    ),
-                  )
-                : ListView(
-                    children: _buildQuickAccessList(l10n),
+                            ...quickAccess,
+                          ],
+                        ],
+                      )
+                : RoleHomeBody(
+                    session: widget.session,
+                    layout: layout,
+                    onNavigate: _navigate,
                   ),
           ),
         ],

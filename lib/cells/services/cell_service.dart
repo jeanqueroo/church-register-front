@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../l10n/app_localizations.dart';
 import '../models/cell_disciple.dart';
 import '../models/cell_disciple_selection.dart';
+import '../models/cell_helper.dart';
 import '../models/church_cell.dart';
 
 class CellService {
@@ -69,6 +70,45 @@ class CellService {
     return ChurchCell.fromFirestore(doc);
   }
 
+  Stream<ChurchCell?> watchCellById(String id) {
+    return _cells.doc(id).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      return ChurchCell.fromFirestore(doc);
+    });
+  }
+
+  Future<void> updateCellHelpers({
+    required String cellId,
+    required List<CellHelper> helpers,
+  }) async {
+    if (helpers.length > ChurchCell.maxHelpers) {
+      throw ArgumentError('Máximo ${ChurchCell.maxHelpers} ayudantes por célula');
+    }
+    await _cells.doc(cellId).update({
+      'helpers': helpers.map((helper) => helper.toMap()).toList(),
+    });
+  }
+
+  /// Leader IDs that already lead a cell (optionally scoped to [churchId]).
+  /// Pass [excludeCellId] when editing so the current cell's leader stays selectable.
+  Future<Set<String>> fetchLeaderIdsWithAssignedCell({
+    String? churchId,
+    String? excludeCellId,
+  }) async {
+    Query<Map<String, dynamic>> query = _cells;
+    if (churchId != null && churchId.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: churchId);
+    }
+    final snapshot = await query.get();
+    final leaderIds = <String>{};
+    for (final doc in snapshot.docs) {
+      if (excludeCellId != null && doc.id == excludeCellId) continue;
+      final leaderId = (doc.data()['leaderId'] as String? ?? '').trim();
+      if (leaderId.isNotEmpty) leaderIds.add(leaderId);
+    }
+    return leaderIds;
+  }
+
   Future<List<ChurchCell>> fetchCellsForLeaderIds({
     required List<String> leaderIds,
     String? churchId,
@@ -81,9 +121,13 @@ class CellService {
     final result = <ChurchCell>[];
     final seenIds = <String>{};
 
-    for (final leaderId in uniqueIds) {
-      final snapshot =
-          await _cells.where('leaderId', isEqualTo: leaderId).get();
+    final snapshots = await Future.wait(
+      uniqueIds.map(
+        (leaderId) => _cells.where('leaderId', isEqualTo: leaderId).get(),
+      ),
+    );
+
+    for (final snapshot in snapshots) {
       for (final doc in snapshot.docs) {
         if (seenIds.contains(doc.id)) continue;
         final cell = ChurchCell.fromFirestore(doc);

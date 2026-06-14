@@ -84,6 +84,20 @@ class UserProfileService {
     });
   }
 
+  /// Garantiza que el admin figure en `churches/{id}.adminUserIds` (avisos de célula).
+  Future<void> ensureAdminListedOnChurch({
+    required String uid,
+    required String churchId,
+  }) async {
+    if (uid.isEmpty || churchId.isEmpty) return;
+    await _firestore.collection('churches').doc(churchId).set(
+      {
+        'adminUserIds': FieldValue.arrayUnion([uid]),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
   Future<void> updateAdminUser({
     required String uid,
     required String churchId,

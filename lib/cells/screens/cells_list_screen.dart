@@ -12,8 +12,9 @@ import '../services/cell_service.dart';
 import 'cell_detail_screen.dart';
 import 'register_cell_disciple_screen.dart';
 import 'register_cell_screen.dart';
+import 'cell_attendance_overview_screen.dart';
 
-enum CellsListMode { browse, pickDisciple }
+enum CellsListMode { browse, pickDisciple, attendanceReport }
 
 class CellsListScreen extends StatelessWidget {
   const CellsListScreen({
@@ -35,6 +36,7 @@ class CellsListScreen extends StatelessWidget {
   bool get _allowed => switch (mode) {
         CellsListMode.browse => _permissions.canViewCells,
         CellsListMode.pickDisciple => _permissions.canRegisterCellDisciple,
+        CellsListMode.attendanceReport => _permissions.canViewCellAttendanceReport,
       };
 
   @override
@@ -44,7 +46,9 @@ class CellsListScreen extends StatelessWidget {
       allowed: _allowed,
       deniedMessage: mode == CellsListMode.pickDisciple
           ? context.l10n.cellDiscipleDenied
-          : null,
+          : mode == CellsListMode.attendanceReport
+              ? context.l10n.cellAttendanceReportDenied
+              : null,
       child: _CellsListBody(
         registeredBy: registeredBy,
         cellService: cellService,
@@ -141,6 +145,19 @@ class _CellsListBodyState extends State<_CellsListBody> {
       return;
     }
 
+    if (widget.mode == CellsListMode.attendanceReport) {
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => CellAttendanceOverviewScreen(
+            cell: cell,
+            registeredBy: widget.registeredBy,
+            permissions: widget.permissions,
+          ),
+        ),
+      );
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => CellDetailScreen(
@@ -161,14 +178,22 @@ class _CellsListBodyState extends State<_CellsListBody> {
         .toList();
 
     final pickingDisciple = widget.mode == CellsListMode.pickDisciple;
+    final pickingAttendanceReport =
+        widget.mode == CellsListMode.attendanceReport;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          pickingDisciple ? l10n.cellDisciplePickCellTitle : l10n.cellsListTitle,
+          pickingDisciple
+              ? l10n.cellDisciplePickCellTitle
+              : pickingAttendanceReport
+                  ? l10n.cellAttendanceReportPickCellTitle
+                  : l10n.cellsListTitle,
         ),
       ),
-      floatingActionButton: !pickingDisciple && widget.permissions.canRegisterCell
+      floatingActionButton: !pickingDisciple &&
+              !pickingAttendanceReport &&
+              widget.permissions.canRegisterCell
           ? FloatingActionButton.extended(
               onPressed: () async {
                 await Navigator.of(context).push<bool>(
@@ -226,6 +251,8 @@ class _CellsListBodyState extends State<_CellsListBody> {
     }
 
     final pickingDisciple = widget.mode == CellsListMode.pickDisciple;
+    final pickingAttendanceReport =
+        widget.mode == CellsListMode.attendanceReport;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -247,6 +274,35 @@ class _CellsListBodyState extends State<_CellsListBody> {
                     Expanded(
                       child: Text(
                         l10n.cellDisciplePickCellHint,
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        if (pickingAttendanceReport)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Card(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        l10n.cellAttendanceReportPickCellHint,
                         style: TextStyle(
                           color: Theme.of(context)
                               .colorScheme
@@ -305,7 +361,9 @@ class _CellsListBodyState extends State<_CellsListBody> {
                         trailing: Icon(
                           pickingDisciple
                               ? Icons.person_add_outlined
-                              : Icons.chevron_right,
+                              : pickingAttendanceReport
+                                  ? Icons.fact_check_outlined
+                                  : Icons.chevron_right,
                         ),
                         onTap: () => _onCellTap(cell),
                       ),

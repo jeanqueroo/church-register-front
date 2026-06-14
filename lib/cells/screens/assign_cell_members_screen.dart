@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../core/locale/l10n_extensions.dart';
+import '../../core/models/leader_gender.dart';
 import '../../l10n/app_localizations.dart';
 import '../../members/models/church_member.dart';
-import '../../members/screens/register_member_screen.dart';
 import '../../members/services/member_service.dart';
+import '../cell_leader_gender.dart';
 import '../cell_member_capacity.dart';
 import '../models/church_cell.dart';
+import 'register_cell_member_screen.dart';
 
 class AssignCellMembersScreen extends StatefulWidget {
   const AssignCellMembersScreen({
@@ -38,27 +40,62 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
   AppPermissions get _permissions =>
       widget.permissions ?? AppPermissions.adminDefault();
 
-  Future<bool> _canAssignMore() async {
-    final cellId = widget.cell.id;
-    if (cellId == null || cellId.isEmpty) return false;
+  bool get _canAssign => _permissions.canAssignCellMembersFor(
+        widget.cell,
+        actingLeaderId: widget.actingLeaderId,
+      );
 
-    final count = await _memberService.countMembersInCell(cellId);
-    return CellMemberCapacity.canAssignAnother(
-      currentCount: count,
-      cell: widget.cell,
-      actingLeaderId: widget.actingLeaderId,
-    );
+  LeaderGender? _cellLeaderGender;
+  bool _loadingLeaderGender = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCellLeaderGender();
   }
+
+  Future<void> _loadCellLeaderGender() async {
+    try {
+      final gender = await fetchCellLeaderGender(widget.cell);
+      if (!mounted) return;
+      setState(() {
+        _cellLeaderGender = gender;
+        _loadingLeaderGender = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingLeaderGender = false);
+    }
+  }
+
+  bool get _canAssignByGender => _cellLeaderGender != null;
 
   Future<void> _openRegisterMember() async {
     final cellId = widget.cell.id;
     if (cellId == null || cellId.isEmpty) return;
 
-    if (!await _canAssignMore()) {
+    if (!_canAssignByGender) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(MemberService.messageForCellAssignmentLimit(context.l10n)),
+          content: Text(context.l10n.cellMemberAssignLeaderGenderMissing),
+        ),
+      );
+      return;
+    }
+
+    final count = await _memberService.countMembersInCell(cellId);
+    if (!_permissions.canRegisterNewCellMember(
+      widget.cell,
+      currentMemberCount: count,
+      actingLeaderId: widget.actingLeaderId,
+    )) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            MemberService.messageForCellAssignmentLeaderOnly(context.l10n),
+          ),
         ),
       );
       return;
@@ -66,11 +103,11 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
 
     await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
-        builder: (_) => RegisterMemberScreen(
+        builder: (_) => RegisterCellMemberScreen(
+          cell: widget.cell,
           registeredBy: widget.registeredBy,
           churchId: widget.cell.churchId ?? _permissions.churchId,
           memberService: widget.memberService,
-          cellToAssign: widget.cell,
           permissions: _permissions,
           actingLeaderId: widget.actingLeaderId,
         ),
@@ -82,6 +119,16 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
     final cellId = widget.cell.id;
     if (cellId == null || cellId.isEmpty) return;
 
+    if (!_canAssignByGender) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.cellMemberAssignLeaderGenderMissing),
+        ),
+      );
+      return;
+    }
+
     final count = await _memberService.countMembersInCell(cellId);
     final maxSelection = CellMemberCapacity.remainingAssignableSlots(
       currentCount: count,
@@ -89,7 +136,7 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
       actingLeaderId: widget.actingLeaderId,
     );
 
-    if (maxSelection != null && maxSelection <= 0) {
+    if (maxSelection <= 0) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -105,6 +152,7 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
           churchId: widget.cell.churchId ?? _permissions.churchId,
           memberService: widget.memberService,
           maxSelection: maxSelection,
+          requiredGender: _cellLeaderGender,
         ),
       ),
     );
@@ -124,10 +172,14 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
           member: member,
           cell: widget.cell,
           actingLeaderId: widget.actingLeaderId,
+          requiredLeaderGender: _cellLeaderGender,
         );
         assigned++;
       } on CellAssignmentLimitException {
         errorMessage = MemberService.messageForCellAssignmentLimit(l10n);
+        break;
+      } on CellAssignmentGenderException {
+        errorMessage = MemberService.messageForCellAssignmentGender(l10n);
         break;
       } on FirebaseException catch (e) {
         errorMessage = MemberService.messageFromFirestoreException(e, l10n);
@@ -210,13 +262,25 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
     final l10n = context.l10n;
     final cellId = widget.cell.id;
 
-    return Scaffold(
+    return StreamBuilder<List<ChurchMember>>(
+      stream: cellId == null || cellId.isEmpty
+          ? null
+          : _memberService.watchMembersInCell(cellId),
+      builder: (context, memberCountSnapshot) {
+        final memberCount = memberCountSnapshot.data?.length ?? 0;
+        final showRegisterFab = cellId != null &&
+            cellId.isNotEmpty &&
+            _permissions.canRegisterNewCellMember(
+              widget.cell,
+              currentMemberCount: memberCount,
+              actingLeaderId: widget.actingLeaderId,
+            );
+
+        return Scaffold(
       appBar: AppBar(
         title: Text(l10n.cellMemberAssignTitle),
       ),
-      floatingActionButton: _permissions.canRegisterMember &&
-              cellId != null &&
-              cellId.isNotEmpty
+      floatingActionButton: showRegisterFab
           ? FloatingActionButton.extended(
               onPressed: _openRegisterMember,
               icon: const Icon(Icons.person_add_alt_1_outlined),
@@ -254,10 +318,75 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
                     ),
                   ),
                 ),
+                if (_loadingLeaderGender)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 12),
+                    child: LinearProgressIndicator(),
+                  )
+                else if (_cellLeaderGender != null) ...[
+                  const SizedBox(height: 12),
+                  Card(
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.wc_outlined,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSecondaryContainer,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              l10n.cellMemberAssignGenderHint(
+                                _cellLeaderGender!.localizedLabel(l10n),
+                              ),
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondaryContainer,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  const SizedBox(height: 12),
+                  Card(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_outlined,
+                            color:
+                                Theme.of(context).colorScheme.onErrorContainer,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              l10n.cellMemberAssignLeaderGenderMissing,
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
-                if (_permissions.canAssignCellMembers) ...[
+                if (_canAssign) ...[
                   FilledButton.icon(
-                    onPressed: _openSelectMember,
+                    onPressed: _canAssignByGender ? _openSelectMember : null,
                     icon: const Icon(Icons.person_add_outlined),
                     label: Text(l10n.cellMemberAssignAdd),
                   ),
@@ -307,7 +436,7 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
                             ),
                             title: Text(member.fullName),
                             subtitle: Text(member.phone),
-                            trailing: _permissions.canAssignCellMembers
+                            trailing: _canAssign
                                 ? IconButton(
                                     icon: const Icon(Icons.link_off_outlined),
                                     tooltip: l10n.cellMemberUnassignAction,
@@ -322,6 +451,8 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
                 ),
               ],
             ),
+        );
+      },
     );
   }
 }
@@ -332,12 +463,15 @@ class SelectMemberForCellScreen extends StatefulWidget {
     this.churchId,
     this.memberService,
     this.maxSelection,
+    this.requiredGender,
   });
 
   final String? churchId;
   final MemberService? memberService;
-  /// Máximo seleccionable; `null` = sin límite (líder de la célula).
+  /// Máximo seleccionable según cupo restante de la célula.
   final int? maxSelection;
+  /// Solo integrantes del mismo sexo que el líder de la célula.
+  final LeaderGender? requiredGender;
 
   @override
   State<SelectMemberForCellScreen> createState() =>
@@ -373,6 +507,7 @@ class _SelectMemberForCellScreenState extends State<SelectMemberForCellScreen> {
       final service = widget.memberService ?? MemberService();
       final members = await service.fetchMembersWithoutCell(
         churchId: widget.churchId,
+        matchingGender: widget.requiredGender,
       );
       if (!mounted) return;
       setState(() {
@@ -512,7 +647,11 @@ class _SelectMemberForCellScreenState extends State<SelectMemberForCellScreen> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
-            l10n.cellMemberSelectEmpty,
+            widget.requiredGender != null
+                ? l10n.cellMemberSelectEmptyGender(
+                    widget.requiredGender!.localizedLabel(l10n),
+                  )
+                : l10n.cellMemberSelectEmpty,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleMedium,
           ),
@@ -540,7 +679,11 @@ class _SelectMemberForCellScreenState extends State<SelectMemberForCellScreen> {
                     child: Text(
                       widget.maxSelection != null
                           ? l10n.cellMemberSelectLimitHint(widget.maxSelection!)
-                          : l10n.cellMemberSelectHint,
+                          : widget.requiredGender != null
+                              ? l10n.cellMemberSelectGenderHint(
+                                  widget.requiredGender!.localizedLabel(l10n),
+                                )
+                              : l10n.cellMemberSelectHint,
                       style: TextStyle(
                         color:
                             Theme.of(context).colorScheme.onPrimaryContainer,

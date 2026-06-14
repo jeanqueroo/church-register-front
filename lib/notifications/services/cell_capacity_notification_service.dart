@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../cells/models/church_cell.dart';
+import '../../auth/models/app_user_role.dart';
 
 /// Avisa a administradores de la iglesia cuando una célula supera el cupo.
 class CellCapacityNotificationService {
@@ -9,13 +10,16 @@ class CellCapacityNotificationService {
         _notifications = (firestore ?? FirebaseFirestore.instance)
             .collection('notifications'),
         _churches = (firestore ?? FirebaseFirestore.instance)
-            .collection('churches');
+            .collection('churches'),
+        _users = (firestore ?? FirebaseFirestore.instance)
+            .collection('users');
 
   static const int capacityThreshold = 12;
 
   final FirebaseFirestore _firestore;
   final CollectionReference<Map<String, dynamic>> _notifications;
   final CollectionReference<Map<String, dynamic>> _churches;
+  final CollectionReference<Map<String, dynamic>> _users;
 
   /// Notifica a los administradores si [memberCount] supera [capacityThreshold].
   Future<bool> notifyAdminsIfExceeded({
@@ -60,17 +64,31 @@ class CellCapacityNotificationService {
   }
 
   Future<List<String>> _fetchAdminUserIds(String churchId) async {
+    final ids = <String>{};
+
     final doc = await _churches.doc(churchId).get();
-    if (!doc.exists) return [];
+    if (doc.exists) {
+      final raw = doc.data()?['adminUserIds'];
+      if (raw is List) {
+        ids.addAll(
+          raw
+              .whereType<String>()
+              .map((id) => id.trim())
+              .where((id) => id.isNotEmpty),
+        );
+      }
+    }
 
-    final raw = doc.data()?['adminUserIds'];
-    if (raw is! List) return [];
+    try {
+      final snapshot = await _users
+          .where('churchId', isEqualTo: churchId)
+          .where('roles', arrayContains: AppUserRole.admin)
+          .get();
+      ids.addAll(snapshot.docs.map((userDoc) => userDoc.id));
+    } on FirebaseException catch (e) {
+      if (e.code != 'permission-denied') rethrow;
+    }
 
-    return raw
-        .whereType<String>()
-        .map((id) => id.trim())
-        .where((id) => id.isNotEmpty)
-        .toSet()
-        .toList();
+    return ids.toList();
   }
 }

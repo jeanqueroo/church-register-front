@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/models/geo_location.dart';
+import 'cell_helper.dart';
 
 /// Grupo celular registrado en la iglesia (colección `cells`).
 class ChurchCell {
@@ -20,10 +21,13 @@ class ChurchCell {
     this.leaderId,
     this.leaderName,
     this.notes,
+    this.helpers = const [],
     required this.registeredAt,
     required this.registeredBy,
     this.churchId,
   });
+
+  static const maxHelpers = 3;
 
   final String? id;
   final String code;
@@ -40,6 +44,7 @@ class ChurchCell {
   final String? leaderId;
   final String? leaderName;
   final String? notes;
+  final List<CellHelper> helpers;
   final DateTime registeredAt;
   final String registeredBy;
   final String? churchId;
@@ -90,6 +95,7 @@ class ChurchCell {
       if (leaderName != null && leaderName!.trim().isNotEmpty)
         'leaderName': leaderName!.trim(),
       if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
+      'helpers': helpers.map((helper) => helper.toMap()).toList(),
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
@@ -116,6 +122,7 @@ class ChurchCell {
       leaderId: data['leaderId'] as String?,
       leaderName: data['leaderName'] as String?,
       notes: data['notes'] as String?,
+      helpers: CellHelper.listFromFirestore(data['helpers']),
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,

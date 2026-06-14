@@ -1,3 +1,5 @@
+import '../../cells/cell_member_capacity.dart';
+import '../../cells/models/church_cell.dart';
 import '../../l10n/app_localizations.dart';
 import 'app_user_role.dart';
 
@@ -41,6 +43,55 @@ class AppPermissions {
   bool get canViewCells => isAdmin || isRegistrar || isSuperAdmin;
   bool get canRegisterCellDisciple => isAdmin || isRegistrar || isSuperAdmin;
   bool get canAssignCellMembers => isAdmin || isRegistrar || isSuperAdmin;
+
+  /// Registrar creyente nuevo en la célula (con cupo lleno solo el líder).
+  bool canRegisterNewCellMember(
+    ChurchCell cell, {
+    required int currentMemberCount,
+    String? actingLeaderId,
+  }) {
+    if (!canRegisterMember) return false;
+    return CellMemberCapacity.canRegisterNewMemberWhenAtCapacity(
+      currentCount: currentMemberCount,
+      cell: cell,
+      actingLeaderId: actingLeaderId,
+    );
+  }
+
+  /// Admin/registrador o líder de la célula: asignar integrantes existentes.
+  bool canAssignCellMembersFor(
+    ChurchCell cell, {
+    String? actingLeaderId,
+  }) {
+    if (canAssignCellMembers) return true;
+    return CellMemberCapacity.isCellLeader(
+      cell: cell,
+      actingLeaderId: actingLeaderId,
+    );
+  }
+
+  /// Líder asignado a la célula: registrar asistencia.
+  bool canRegisterCellAttendance(
+    ChurchCell cell, {
+    String? actingLeaderId,
+  }) {
+    return CellMemberCapacity.isCellLeader(
+      cell: cell,
+      actingLeaderId: actingLeaderId,
+    );
+  }
+
+  /// Asignar ayudantes de célula (máx. 3): admin/registrador o líder de la célula.
+  bool canManageCellHelpers(String? cellLeaderId, {String? actingLeaderId}) {
+    if (canEditCell) return true;
+    final leaderId = cellLeaderId?.trim();
+    final actorId = actingLeaderId?.trim();
+    return isLeader &&
+        leaderId != null &&
+        leaderId.isNotEmpty &&
+        actorId != null &&
+        actorId == leaderId;
+  }
   bool get canViewBaptismCalendar =>
       isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canRegisterBaptismCalendar => isAdmin || isRegistrar;
@@ -61,6 +112,9 @@ class AppPermissions {
   bool get canViewSupervisedLeaderMembers => isSupervisor;
   bool get canViewMyAssignedMembers => isLeader;
   bool get canViewMyAssignedCell => isLeader || isSupervisor;
+
+  /// Resumen de asistencia por integrante (líder / supervisor / admin).
+  bool get canViewCellAttendanceReport => canViewCells || canViewMyAssignedCell;
   bool get canViewChurchNotifications =>
       isAdmin && churchId != null && churchId!.trim().isNotEmpty;
   bool get canViewLeaderNotifications => isLeader;

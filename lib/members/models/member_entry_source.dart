@@ -2,6 +2,7 @@ import '../../l10n/app_localizations.dart';
 
 /// Lugar o contexto por el que ingresó el creyente a la iglesia.
 enum MemberEntrySource {
+  celula,
   campaniaFuera,
   hospital,
   evangelismo,
@@ -9,6 +10,8 @@ enum MemberEntrySource {
 
   String localizedLabel(AppLocalizations l10n) {
     switch (this) {
+      case MemberEntrySource.celula:
+        return l10n.entrySourceCell;
       case MemberEntrySource.campaniaFuera:
         return l10n.entrySourceCampaignOutside;
       case MemberEntrySource.hospital:
@@ -22,6 +25,8 @@ enum MemberEntrySource {
 
   String get label {
     switch (this) {
+      case MemberEntrySource.celula:
+        return 'Célula';
       case MemberEntrySource.campaniaFuera:
         return 'Campaña fuera de la iglesia';
       case MemberEntrySource.hospital:

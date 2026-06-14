@@ -65,8 +65,18 @@ class PastoralDashboardService {
       if (churchId != null && churchId.isNotEmpty) {
         query = query.where('churchId', isEqualTo: churchId);
       }
+      query = query
+          .where(
+            'registeredAt',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(rangeStart),
+          )
+          .where(
+            'registeredAt',
+            isLessThanOrEqualTo: Timestamp.fromDate(rangeEnd),
+          );
       final snapshot = await query.get();
       members = snapshot.docs.map(ChurchMember.fromFirestore).toList();
+      return members;
     }
 
     return members.where((member) {
@@ -83,14 +93,19 @@ class PastoralDashboardService {
     final ids = leaderIds.toList()..sort();
     final members = <ChurchMember>[];
     const batchSize = 10;
+    final batchFutures = <Future<QuerySnapshot<Map<String, dynamic>>>>[];
 
     for (var i = 0; i < ids.length; i += batchSize) {
       final end = i + batchSize > ids.length ? ids.length : i + batchSize;
       final batch = ids.sublist(i, end);
 
-      final snapshot = await _members
-          .where('assignedLeaderId', whereIn: batch)
-          .get();
+      batchFutures.add(
+        _members.where('assignedLeaderId', whereIn: batch).get(),
+      );
+    }
+
+    final snapshots = await Future.wait(batchFutures);
+    for (final snapshot in snapshots) {
       members.addAll(snapshot.docs.map(ChurchMember.fromFirestore));
     }
 
@@ -158,21 +173,41 @@ class PastoralDashboardService {
     required Future<ChurchMember?> Function(String memberId) fetchMember,
     required Future<String?> Function(String leaderId) fetchLeaderName,
   }) async {
-    final enriched = <FollowUpPerson>[];
-    for (final person in people) {
-      final member = await fetchMember(person.memberId);
-      final leaderName = await fetchLeaderName(person.leaderId);
-      enriched.add(
-        FollowUpPerson(
-          memberId: person.memberId,
-          memberName: member?.fullName ?? person.memberId,
-          visitDate: person.visitDate,
-          leaderId: person.leaderId,
-          leaderName: leaderName,
-        ),
-      );
-    }
-    return enriched;
+    if (people.isEmpty) return [];
+
+    final memberIds = people.map((person) => person.memberId).toSet();
+    final leaderIds = people
+        .map((person) => person.leaderId)
+        .where((id) => id.trim().isNotEmpty)
+        .toSet();
+
+    final memberEntries = await Future.wait(
+      memberIds.map((memberId) async {
+        final member = await fetchMember(memberId);
+        return MapEntry(memberId, member?.fullName);
+      }),
+    );
+    final leaderEntries = await Future.wait(
+      leaderIds.map((leaderId) async {
+        final leaderName = await fetchLeaderName(leaderId);
+        return MapEntry(leaderId, leaderName);
+      }),
+    );
+
+    final memberNames = Map<String, String?>.fromEntries(memberEntries);
+    final leaderNames = Map<String, String?>.fromEntries(leaderEntries);
+
+    return people
+        .map(
+          (person) => FollowUpPerson(
+            memberId: person.memberId,
+            memberName: memberNames[person.memberId] ?? person.memberId,
+            visitDate: person.visitDate,
+            leaderId: person.leaderId,
+            leaderName: leaderNames[person.leaderId],
+          ),
+        )
+        .toList();
   }
 
   DateTime rangeStartFor(VisitChartPeriod period, DateTime now) =>

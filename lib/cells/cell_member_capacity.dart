@@ -21,22 +21,32 @@ class CellMemberCapacity {
     required ChurchCell cell,
     required String? actingLeaderId,
   }) {
-    if (currentCount < maxMembers) return true;
-    return isCellLeader(cell: cell, actingLeaderId: actingLeaderId);
+    return currentCount < maxMembers;
   }
 
-  /// Cupo restante para quien no es el líder de la célula. `null` = sin límite.
-  static int? remainingAssignableSlots({
+  /// Registrar creyente nuevo superando el cupo: solo el líder de la célula.
+  static bool canRegisterNewMemberWhenAtCapacity({
     required int currentCount,
     required ChurchCell cell,
     required String? actingLeaderId,
   }) {
-    if (isCellLeader(cell: cell, actingLeaderId: actingLeaderId)) {
-      return null;
-    }
+    if (currentCount < maxMembers) return true;
+    return isCellLeader(cell: cell, actingLeaderId: actingLeaderId);
+  }
+
+  /// Cupo restante para asignar integrantes a la célula.
+  static int remainingAssignableSlots({
+    required int currentCount,
+    required ChurchCell cell,
+    required String? actingLeaderId,
+  }) {
     final remaining = maxMembers - currentCount;
     return remaining > 0 ? remaining : 0;
   }
 }
 
 class CellAssignmentLimitException implements Exception {}
+
+class CellAssignmentLeaderOnlyException implements Exception {}
+
+class CellAssignmentGenderException implements Exception {}

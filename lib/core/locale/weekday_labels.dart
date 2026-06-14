@@ -26,3 +26,24 @@ String? localizedWeekday(AppLocalizations l10n, String? storedValue) {
     _ => storedValue,
   };
 }
+
+const cellWeekdayStorageValues = [
+  'Lunes',
+  'Martes',
+  'Miércoles',
+  'Jueves',
+  'Viernes',
+  'Sábado',
+  'Domingo',
+];
+
+/// Día de la semana en el formato guardado en Firestore (`cellDay`).
+String weekdayStorageValueFromDate(DateTime date) {
+  return cellWeekdayStorageValues[date.weekday - 1];
+}
+
+bool weekdayDiffersFromStored(DateTime date, String? storedCellDay) {
+  final stored = storedCellDay?.trim();
+  if (stored == null || stored.isEmpty) return false;
+  return weekdayStorageValueFromDate(date) != stored;
+}

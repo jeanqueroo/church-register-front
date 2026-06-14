@@ -11,10 +11,8 @@ import '../../l10n/app_localizations.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../leaders/widgets/leader_search_field.dart';
-import '../models/cell_disciple_selection.dart';
 import '../models/church_cell.dart';
 import '../services/cell_service.dart';
-import '../widgets/cell_disciples_editor.dart';
 
 class RegisterCellScreen extends StatefulWidget {
   const RegisterCellScreen({
@@ -64,7 +62,6 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
   String? _cellDay;
   bool _loadingLeaders = true;
   bool _isSaving = false;
-  List<CellDiscipleSelection> _disciples = [];
 
   static const _cellDayStorageValues = [
     'Lunes',
@@ -141,10 +138,19 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
       final leaders = await _leaderService.fetchAssignableLeaders(
         churchId: _effectiveChurchId,
       );
+      final busyLeaderIds = await _cellService.fetchLeaderIdsWithAssignedCell(
+        churchId: _effectiveChurchId,
+        excludeCellId: widget.cellToEdit?.id,
+      );
       if (!mounted) return;
       final activeLeaders = leaders
           .where((leader) => !leader.isBlocked)
           .where((leader) => leader.belongsToChurch(_effectiveChurchId))
+          .where((leader) {
+            final id = leader.id?.trim();
+            if (id == null || id.isEmpty) return false;
+            return !busyLeaderIds.contains(id);
+          })
           .toList();
       ChurchLeader? selectedLeader;
       final leaderId = widget.cellToEdit?.leaderId;
@@ -232,6 +238,7 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
+        helpers: existing?.helpers ?? const [],
         registeredAt: existing?.registeredAt ?? DateTime.now(),
         registeredBy: existing?.registeredBy ?? widget.registeredBy,
         churchId: churchId,
@@ -254,32 +261,9 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
         return;
       }
 
-      final cellId = await _cellService.addCell(cell);
-      for (final selection in _disciples) {
-        if (selection.isExisting) {
-          await _cellService.assignUnassignedDiscipleToCell(
-            unassignedDiscipleId: selection.unassignedDiscipleId!,
-            cellId: cellId,
-            cellCode: code,
-            churchId: churchId,
-          );
-        } else {
-          await _cellService.addDisciple(
-            selection.draft.toCellDisciple(
-              cellId: cellId,
-              cellCode: code,
-              registeredBy: widget.registeredBy,
-              churchId: churchId,
-            ),
-          );
-        }
-      }
+      await _cellService.addCell(cell);
       if (!mounted) return;
-      _showMessage(
-        _disciples.isEmpty
-            ? l10n.cellRegSuccess
-            : l10n.cellRegSuccessWithDisciples(_disciples.length),
-      );
+      _showMessage(l10n.cellRegSuccess);
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
       if (!mounted) return;
@@ -409,20 +393,6 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
                           ? l10n.cellRegLeaderRequired
                           : null,
                     ),
-                  if (!widget.isEditing) ...[
-                    const SizedBox(height: 24),
-                    CellDisciplesEditor(
-                      selections: _disciples,
-                      churchId: widget.churchId,
-                      cellService: _cellService,
-                      cellCode: _codeController.text.trim().isEmpty
-                          ? null
-                          : _codeController.text.trim(),
-                      enabled: !_isSaving,
-                      onChanged: (selections) =>
-                          setState(() => _disciples = selections),
-                    ),
-                  ],
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _notesController,

@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../cells/cell_leader_gender.dart';
 import '../../cells/cell_member_capacity.dart';
 import '../../cells/models/church_cell.dart';
+import '../../core/models/leader_gender.dart';
 import '../../l10n/app_localizations.dart';
 import '../../notifications/services/cell_capacity_notification_service.dart';
 import '../../notifications/services/leader_notification_service.dart';
@@ -100,18 +104,31 @@ class MemberService {
     });
   }
 
+  Future<List<ChurchMember>> fetchMembersInCell(String cellId) async {
+    if (cellId.isEmpty) return [];
+    final snapshot =
+        await _members.where('assignedCellId', isEqualTo: cellId).get();
+    final list = snapshot.docs.map(ChurchMember.fromFirestore).toList();
+    list.sort((a, b) => a.fullName.compareTo(b.fullName));
+    return list;
+  }
+
   Future<List<ChurchMember>> fetchMembersWithoutCell({
     required String? churchId,
+    LeaderGender? matchingGender,
   }) async {
     if (churchId == null || churchId.isEmpty) return [];
 
     final snapshot =
         await _members.where('churchId', isEqualTo: churchId).get();
 
-    final list = snapshot.docs
+    var list = snapshot.docs
         .map(ChurchMember.fromFirestore)
         .where((member) => !member.isAssignedToCell)
         .toList();
+    if (matchingGender != null) {
+      list = list.where((member) => member.gender == matchingGender).toList();
+    }
     list.sort((a, b) => a.fullName.compareTo(b.fullName));
     return list;
   }
@@ -127,6 +144,8 @@ class MemberService {
     required ChurchMember member,
     required ChurchCell cell,
     String? actingLeaderId,
+    LeaderGender? requiredLeaderGender,
+    bool allowExceedCapacityForNewRegistration = false,
   }) async {
     final memberId = member.id;
     final cellId = cell.id;
@@ -137,12 +156,29 @@ class MemberService {
       throw ArgumentError('La célula debe tener id');
     }
 
+    if (requiredLeaderGender != null &&
+        !memberMatchesCellLeaderGender(
+          memberGender: member.gender,
+          leaderGender: requiredLeaderGender,
+        )) {
+      throw CellAssignmentGenderException();
+    }
+
     final currentCount = await countMembersInCell(cellId);
-    if (!CellMemberCapacity.canAssignAnother(
-      currentCount: currentCount,
-      cell: cell,
-      actingLeaderId: actingLeaderId,
-    )) {
+    if (allowExceedCapacityForNewRegistration &&
+        currentCount >= CellMemberCapacity.maxMembers &&
+        !CellMemberCapacity.isCellLeader(
+          cell: cell,
+          actingLeaderId: actingLeaderId,
+        )) {
+      throw CellAssignmentLeaderOnlyException();
+    }
+    if (!allowExceedCapacityForNewRegistration &&
+        !CellMemberCapacity.canAssignAnother(
+          currentCount: currentCount,
+          cell: cell,
+          actingLeaderId: actingLeaderId,
+        )) {
       throw CellAssignmentLimitException();
     }
 
@@ -154,19 +190,34 @@ class MemberService {
     await _members.doc(memberId).update(updates);
 
     final memberCount = await countMembersInCell(cellId);
-    try {
-      return await _capacityNotificationService.notifyAdminsIfExceeded(
+    final capacityExceeded = memberCount > CellMemberCapacity.maxMembers;
+    if (capacityExceeded) {
+      _notifyCapacityExceededInBackground(
         cell: cell,
         memberCount: memberCount,
         memberId: memberId,
         memberName: member.fullName,
       );
-    } on FirebaseException catch (e) {
-      if (e.code != 'permission-denied') {
-        rethrow;
-      }
-      return false;
     }
+    return capacityExceeded;
+  }
+
+  void _notifyCapacityExceededInBackground({
+    required ChurchCell cell,
+    required int memberCount,
+    required String memberId,
+    required String memberName,
+  }) {
+    unawaited(
+      _capacityNotificationService
+          .notifyAdminsIfExceeded(
+            cell: cell,
+            memberCount: memberCount,
+            memberId: memberId,
+            memberName: memberName,
+          )
+          .catchError((_) => false),
+    );
   }
 
   Future<void> unassignMemberFromCell(String memberId) async {
@@ -209,6 +260,14 @@ class MemberService {
 
   static String messageForCellAssignmentLimit(AppLocalizations l10n) {
     return l10n.cellMemberAssignLimitReached;
+  }
+
+  static String messageForCellAssignmentGender(AppLocalizations l10n) {
+    return l10n.cellMemberAssignGenderMismatch;
+  }
+
+  static String messageForCellAssignmentLeaderOnly(AppLocalizations l10n) {
+    return l10n.cellMemberRegisterLeaderOnlyAtCapacity;
   }
 
   static String messageFromFirestoreException(

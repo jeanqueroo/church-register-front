@@ -202,7 +202,7 @@ class _LeaderGroupTile extends StatefulWidget {
 }
 
 class _LeaderGroupTileState extends State<_LeaderGroupTile> {
-  bool _expanded = true;
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {

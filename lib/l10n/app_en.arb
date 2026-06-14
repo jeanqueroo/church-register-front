@@ -58,6 +58,60 @@
   "signOut": "Sign out",
   "menuTooltip": "Menu",
   "welcome": "Welcome",
+  "homeWelcomeName": "👋 Welcome, {name}",
+  "@homeWelcomeName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSummaryTitle": "Summary",
+  "homeMembersCount": "👥 Assigned members: {count}",
+  "@homeMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLeadersCount": "👥 Assigned leaders: {count}",
+  "@homeLeadersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeChurchMembersCount": "👥 Church members {churchName}: {count}",
+  "@homeChurchMembersCount": {
+    "placeholders": {
+      "churchName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeChurchLeadersCount": "👥 Church leaders {churchName}: {count}",
+  "@homeChurchLeadersCount": {
+    "placeholders": {
+      "churchName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTodayTitle": "Today",
+  "homeCellBirthdaysTitle": "Today's birthdays in my cell",
+  "homeBirthdaysEmpty": "No birthdays today in your cell.",
+  "homeQuickActionsTitle": "Quick actions",
+  "homeRegisterAttendanceTitle": "Register attendance",
+  "homeRegisterAttendanceSubtitle": "Select your cell to register attendance",
+  "homeDashboardLoadError": "Could not load the home summary.",
   "user": "User",
   "noAccessForRole": "No shortcuts available for your role. Contact the administrator.",
   "leaderAccountNotLinked": "Your leader account is not linked to a record.",
@@ -135,6 +189,7 @@
   "memberEntrySourceRequired": "Select where the believer joined",
   "memberDetailEntrySource": "Where they joined",
   "entrySourceCampaignOutside": "Outreach campaign",
+  "entrySourceCell": "Cell group",
   "entrySourceHospital": "Hospital",
   "entrySourceEvangelism": "Evangelism",
   "entrySourceMotherChurch": "Mother church",
@@ -753,6 +808,7 @@
     }
   },
   "cellMemberCapacityAdminNotified": "Believer registered. The administrator was alerted: the cell exceeds 12 members.",
+  "cellMemberRegisterLeaderOnlyAtCapacity": "With 12 or more members, only the cell leader can register a new believer.",
   "menuAdminNotifications": "Church alerts",
   "adminNotificationsTitle": "Church alerts",
   "adminNotificationsDenied": "You do not have permission to view church alerts",
@@ -1053,6 +1109,7 @@
     }
   },
   "menuViewCells": "View cell groups",
+  "menuViewCellAttendanceReport": "Disciple attendance",
   "menuRegisterCellDisciple": "Register disciple",
   "cellDisciplePickCellTitle": "Select cell group",
   "cellDisciplePickCellHint": "Choose the cell group to register the disciple in",
@@ -1075,11 +1132,154 @@
   "cellDiscipleListEmpty": "No disciples in this cell group yet",
   "cellDiscipleDeleteTitle": "Delete disciple",
   "cellDiscipleDeleted": "Disciple deleted",
+  "cellHelpersTitle": "Cell group helpers",
+  "cellHelpersHint": "Select up to {max} disciples from this cell group as helpers",
+  "@cellHelpersHint": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellHelpersEmpty": "No helpers assigned yet",
+  "cellHelpersSelectAction": "Select helpers",
+  "cellHelpersCount": "{current} of {max}",
+  "@cellHelpersCount": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+  "cellHelpersMaxReached": "Maximum {max} helpers per cell group",
+  "@cellHelpersMaxReached": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellHelpersSaved": "Helpers updated",
+  "cellHelpersBadge": "Helper",
+  "cellAttendanceRegisterTitle": "Register attendance",
+  "cellAttendancePickCellTitle": "Register attendance",
+  "cellAttendancePickCellHint": "Select the cell group to register meeting attendance",
+  "cellAttendanceNoOwnCell": "You have no cell groups assigned as leader to register attendance",
+  "cellAttendanceDenied": "Only the cell group leader can register attendance",
+  "cellAttendanceLeaderRequired": "The cell group must have an assigned leader to register attendance",
+  "cellAttendanceMembersLoadError": "Could not load cell group disciples",
+  "cellAttendanceSectionWhen": "Date and time",
+  "cellAttendanceSectionWhere": "Location",
+  "cellAttendanceSectionRoll": "Disciple attendance",
+  "cellAttendanceSectionRollHint": "Mark who attended the cell group meeting",
+  "cellAttendanceSessionDate": "Meeting date",
+  "cellAttendanceSessionTime": "Time",
+  "cellAttendanceSessionPlace": "Meeting place",
+  "cellAttendanceSessionPlaceHint": "Address or location reference",
+  "cellAttendancePlaceRequired": "Enter the meeting place",
+  "cellAttendanceDayDiffersInfo": "The meeting was on {actualDay}, but the cell group is registered on {registeredDay}.",
+  "@cellAttendanceDayDiffersInfo": {
+    "placeholders": {
+      "registeredDay": { "type": "String" },
+      "actualDay": { "type": "String" }
+    }
+  },
+  "cellAttendanceDayChangeSwitch": "Record with a different day for this meeting",
+  "cellAttendanceDayChangeSwitchHint": "Applies only to this meeting, not the cell group's regular day",
+  "cellAttendanceDayChangeReason": "Reason for day change",
+  "cellAttendanceDayReasonRequired": "Explain why it was held on a different day",
+  "cellAttendanceLocationDiffersInfo": "The place is different from the one registered for the cell group.",
+  "cellAttendanceLocationChangeSwitch": "Record with a different place for this meeting",
+  "cellAttendanceLocationChangeSwitchHint": "Applies only to this meeting, not the cell group's regular address",
+  "cellAttendanceLocationChangeReason": "Reason for location change",
+  "cellAttendanceLocationReasonRequired": "Explain why it was held in another place",
+  "cellAttendanceSectionNotes": "Additional information",
+  "cellAttendanceOfferingCollected": "Offering collected",
+  "cellAttendanceOfferingCollectedHint": "Amount or detail (optional)",
+  "cellAttendanceObservations": "Observations",
+  "cellAttendanceObservationsHint": "Notes about the meeting (optional)",
+  "cellAttendanceOfferingSummary": "Offering: {amount}",
+  "@cellAttendanceOfferingSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "cellAttendanceMarkAllPresent": "All present",
+  "cellAttendanceMarkAllAbsent": "All absent",
+  "cellAttendanceSaveAction": "Save attendance",
+  "cellAttendanceSaved": "Attendance saved",
+  "cellAttendanceHistoryTitle": "Recent attendance",
+  "cellAttendancePresentCount": "{present} of {total} present",
+  "@cellAttendancePresentCount": {
+    "placeholders": {
+      "present": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "cellAttendanceDayChangedBadge": "Different day",
+  "cellAttendanceLocationChangedBadge": "Different place",
+  "cellAttendanceReportTitle": "Disciple attendance",
+  "cellAttendanceReportPickCellTitle": "Attendance by cell",
+  "cellAttendanceReportPickCellHint": "Select a cell group to view member attendance",
+  "cellAttendanceReportNoOwnCell": "You have no cell group assigned as leader",
+  "cellAttendanceReportDenied": "You do not have permission to view the attendance report",
+  "cellAttendanceReportSessionCount": "{count} meetings recorded",
+  "@cellAttendanceReportSessionCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellAttendanceReportFilteredSessionCount": "{filtered} of {total} meetings in range",
+  "@cellAttendanceReportFilteredSessionCount": {
+    "placeholders": {
+      "filtered": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "cellAttendanceReportWeekFilterTitle": "Week range",
+  "cellAttendanceReportWeekFrom": "From week",
+  "cellAttendanceReportWeekTo": "To week",
+  "cellAttendanceReportWeekAll": "All",
+  "cellAttendanceReportWeekPreset": "Last {count} wks",
+  "@cellAttendanceReportWeekPreset": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellAttendanceReportLegendTitle": "Consecutive absence alerts",
+  "cellAttendanceReportLegendExcellent": "Green: 0 or 1 consecutive absence",
+  "cellAttendanceReportLegendWarning": "Yellow: 2 consecutive absences",
+  "cellAttendanceReportLegendCritical": "Red: 3 or more consecutive absences",
+  "cellAttendanceReportMembersTitle": "Members",
+  "cellAttendanceReportEmpty": "No members in this cell or no attendance recorded yet",
+  "cellAttendanceReportMemberStats": "{present} present · {consecutive} in a row · {total} roll calls",
+  "@cellAttendanceReportMemberStats": {
+    "placeholders": {
+      "present": { "type": "int" },
+      "consecutive": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "cellMemberAssignTitle": "Cell members",
   "cellMemberAssignAction": "Assign members",
+  "cellDetailAssignDisciplesAction": "Assign disciples",
   "cellMemberAssignAdd": "Add member",
   "cellMemberRegisterNew": "Register new believer",
   "cellMemberRegisterTitle": "Register believer in cell",
+  "cellMemberFormHint": "Register members for this cell group. If a visit is requested, the cell group leader will be assigned.",
+  "cellMemberFormSubmit": "Register in cell group",
+  "cellMemberWantsVisitSubtitle": "If a visit is requested, this cell group's leader will be assigned automatically",
+  "cellMemberVisitLeaderHint": "{leader} will be assigned as pastoral leader (cell group {cell})",
+  "@cellMemberVisitLeaderHint": {
+    "placeholders": {
+      "leader": { "type": "String" },
+      "cell": { "type": "String" }
+    }
+  },
+  "cellMemberVisitNoLeader": "This cell group has no assigned leader. Assign a leader to the cell group or turn off the visit request.",
+  "cellMemberRegisteredWithCellLeader": "{name} registered in {cell} with visit assigned to {leader}",
+  "@cellMemberRegisteredWithCellLeader": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "cell": { "type": "String" },
+      "leader": { "type": "String" }
+    }
+  },
   "myAssignedCellTitle": "My cell",
   "myAssignedCellDenied": "You do not have permission to view the assigned cell",
   "myAssignedCellLoadError": "Could not load cell information",
@@ -1117,20 +1317,20 @@
   "cellMemberSelectRequiresChurch": "Cannot assign members without a church on your account",
   "cellMemberSelectSearchHint": "Search by name, phone or leader",
   "cellMemberSelectEmpty": "No believers without a cell in your church",
-  "cellMemberSelectMaxReached": "Maximum {max} member(s) per cell (only the cell leader can assign more than 12)",
+  "cellMemberSelectMaxReached": "Maximum {max} member(s) per cell",
   "@cellMemberSelectMaxReached": {
     "placeholders": {
       "max": { "type": "int" }
     }
   },
-  "cellMemberSelectLimitHint": "You can select up to {max} member(s). A cell holds 12 at most; only its leader can exceed that limit.",
+  "cellMemberSelectLimitHint": "You can select up to {max} member(s). A cell holds 12 at most.",
   "@cellMemberSelectLimitHint": {
     "placeholders": {
       "max": { "type": "int" }
     }
   },
-  "cellMemberAssignLimitReached": "This cell already has 12 members. Only the assigned cell leader can add more.",
-  "cellMemberAssignLimitPartial": "Assigned {assigned} of {requested}: non-leaders are limited to 12 members per cell.",
+  "cellMemberAssignLimitReached": "This cell already has 12 members. No more can be assigned.",
+  "cellMemberAssignLimitPartial": "Assigned {assigned} of {requested}: a cell holds 12 members at most.",
   "@cellMemberAssignLimitPartial": {
     "placeholders": {
       "assigned": { "type": "int" },
@@ -1158,6 +1358,32 @@
     }
   },
   "cellMemberUnassignAction": "Remove",
+  "cellMemberAssignGenderHint": "Only members of the same sex as the cell leader can be assigned ({gender}).",
+  "@cellMemberAssignGenderHint": {
+    "placeholders": {
+      "gender": { "type": "String" }
+    }
+  },
+  "cellMemberAssignLeaderGenderMissing": "The cell leader has no sex on file. Complete their profile before assigning members.",
+  "cellMemberAssignGenderMismatch": "You can only assign members of the same sex as the cell leader.",
+  "cellMemberSelectEmptyGender": "No believers without a cell match the leader's sex ({gender}).",
+  "@cellMemberSelectEmptyGender": {
+    "placeholders": {
+      "gender": { "type": "String" }
+    }
+  },
+  "cellMemberSelectGenderHint": "Only believers without a cell who match the leader's sex ({gender}) are shown.",
+  "@cellMemberSelectGenderHint": {
+    "placeholders": {
+      "gender": { "type": "String" }
+    }
+  },
+  "cellMemberRegisterGenderLocked": "Must be {gender}, same as the cell leader.",
+  "@cellMemberRegisterGenderLocked": {
+    "placeholders": {
+      "gender": { "type": "String" }
+    }
+  },
   "cellMemberUnassigned": "{name} is no longer assigned to this cell",
   "@cellMemberUnassigned": {
     "placeholders": {

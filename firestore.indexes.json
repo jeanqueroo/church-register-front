@@ -17,6 +17,22 @@
       ]
     },
     {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "assignedCellId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "registeredAt", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "disciples",
       "queryScope": "COLLECTION",
       "fields": [

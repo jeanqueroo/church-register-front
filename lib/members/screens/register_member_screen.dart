@@ -11,6 +11,7 @@ import '../../core/models/leader_gender.dart';
 import '../../core/widgets/church_display_name.dart';
 import '../../core/widgets/form_section_title.dart';
 import '../../l10n/app_localizations.dart';
+import '../../cells/cell_leader_gender.dart';
 import '../../cells/cell_member_capacity.dart';
 import '../../cells/models/church_cell.dart';
 import '../../leaders/models/church_leader.dart';
@@ -90,6 +91,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   DateTime _formDate = DateTime.now();
   DateTime? _birthDate;
   LeaderGender? _gender;
+  LeaderGender? _cellLeaderGender;
   IdDocumentType? _idDocumentType;
   MaritalStatus? _maritalStatus;
   MemberEntrySource? _entrySource;
@@ -133,8 +135,24 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       _loadMember(widget.memberToEdit!);
     } else {
       _applyCellDefaults(widget.cellToAssign);
+      if (widget.cellToAssign != null) {
+        _loadCellLeaderGender(widget.cellToAssign!);
+      }
     }
     _loadLeaders();
+  }
+
+  Future<void> _loadCellLeaderGender(ChurchCell cell) async {
+    try {
+      final gender = await fetchCellLeaderGender(cell);
+      if (!mounted) return;
+      setState(() {
+        _cellLeaderGender = gender;
+        if (gender != null) _gender = gender;
+      });
+    } catch (_) {
+      // Sin sexo del líder: la validación al guardar lo bloqueará.
+    }
   }
 
   void _applyCellDefaults(ChurchCell? cell) {
@@ -538,14 +556,29 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         if (cellId == null || cellId.isEmpty) {
           throw ArgumentError('La célula debe tener id');
         }
+        if (_cellLeaderGender == null) {
+          if (!mounted) return;
+          _showMessage(l10n.cellMemberAssignLeaderGenderMissing);
+          return;
+        }
+        if (!memberMatchesCellLeaderGender(
+          memberGender: _gender,
+          leaderGender: _cellLeaderGender,
+        )) {
+          if (!mounted) return;
+          _showMessage(l10n.cellMemberAssignGenderMismatch);
+          return;
+        }
         final currentCount = await _memberService.countMembersInCell(cellId);
-        if (!CellMemberCapacity.canAssignAnother(
-          currentCount: currentCount,
-          cell: cellToAssign,
+        if (!widget._permissions.canRegisterNewCellMember(
+          cellToAssign,
+          currentMemberCount: currentCount,
           actingLeaderId: widget.actingLeaderId,
         )) {
           if (!mounted) return;
-          _showMessage(MemberService.messageForCellAssignmentLimit(l10n));
+          _showMessage(
+            MemberService.messageForCellAssignmentLeaderOnly(l10n),
+          );
           return;
         }
       }
@@ -563,17 +596,18 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         );
       }
 
-      var adminNotified = false;
+      var capacityExceeded = false;
       if (!widget.isEditing &&
           cellToAssign != null &&
           newMemberId != null &&
           newMemberId.isNotEmpty) {
-        adminNotified = await _memberService.assignMemberToCell(
+        capacityExceeded = await _memberService.assignMemberToCell(
           member: ChurchMember(
             id: newMemberId,
             firstName: member.firstName,
             lastName: member.lastName,
             phone: member.phone,
+            gender: member.gender,
             formDate: member.formDate,
             registeredAt: member.registeredAt,
             registeredBy: member.registeredBy,
@@ -582,6 +616,8 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
           ),
           cell: cellToAssign,
           actingLeaderId: widget.actingLeaderId,
+          requiredLeaderGender: _cellLeaderGender,
+          allowExceedCapacityForNewRegistration: true,
         );
       }
 
@@ -590,7 +626,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       if (widget.isEditing) {
         _showMessage(l10n.memberUpdatedSuccess);
       } else if (cellToAssign != null) {
-        if (adminNotified) {
+        if (capacityExceeded) {
           _showMessage(l10n.cellMemberCapacityAdminNotified);
         } else {
           _showMessage(
@@ -620,6 +656,10 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         _showMessage(l10n.memberRegisteredSuccess);
       }
       Navigator.of(context).pop(true);
+    } on CellAssignmentLeaderOnlyException {
+      if (mounted) {
+        _showMessage(MemberService.messageForCellAssignmentLeaderOnly(l10n));
+      }
     } on FirebaseException catch (e) {
       if (mounted) {
         _showMessage(MemberService.messageFromFirestoreException(e, l10n));
@@ -751,6 +791,11 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   }
 
   Widget _genderSelector(AppLocalizations l10n) {
+    final lockedGender =
+        !widget.isEditing && widget.cellToAssign != null ? _cellLeaderGender : null;
+    final genders =
+        lockedGender != null ? [lockedGender] : LeaderGender.values;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -760,14 +805,25 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                 fontWeight: FontWeight.w500,
               ),
         ),
+        if (lockedGender != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            l10n.cellMemberRegisterGenderLocked(
+              lockedGender.localizedLabel(l10n),
+            ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
-          children: LeaderGender.values.map((g) {
+          children: genders.map((g) {
             return FilterChip(
               label: Text(g.localizedLabel(l10n)),
               selected: _gender == g,
-              onSelected: _isLoading
+              onSelected: lockedGender != null || _isLoading
                   ? null
                   : (v) => setState(() {
                         _gender = v ? g : null;

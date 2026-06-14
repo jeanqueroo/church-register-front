@@ -188,6 +188,57 @@ class AppLocalizationsEs extends AppLocalizations {
   String get welcome => 'Bienvenido';
 
   @override
+  String homeWelcomeName(String name) {
+    return '👋 Bienvenido, $name';
+  }
+
+  @override
+  String get homeSummaryTitle => 'Resumen';
+
+  @override
+  String homeMembersCount(int count) {
+    return '👥 Miembros asignados: $count';
+  }
+
+  @override
+  String homeLeadersCount(int count) {
+    return '👥 Líderes asignados: $count';
+  }
+
+  @override
+  String homeChurchMembersCount(String churchName, int count) {
+    return '👥 Miembros de la iglesia $churchName: $count';
+  }
+
+  @override
+  String homeChurchLeadersCount(String churchName, int count) {
+    return '👥 Líderes de la iglesia $churchName: $count';
+  }
+
+  @override
+  String get homeTodayTitle => 'Hoy';
+
+  @override
+  String get homeCellBirthdaysTitle => 'Cumpleaños del día de mi célula';
+
+  @override
+  String get homeBirthdaysEmpty => 'No hay cumpleaños hoy en tu célula.';
+
+  @override
+  String get homeQuickActionsTitle => 'Acciones rápidas';
+
+  @override
+  String get homeRegisterAttendanceTitle => 'Registrar asistencia';
+
+  @override
+  String get homeRegisterAttendanceSubtitle =>
+      'Selecciona tu célula para registrar asistencia';
+
+  @override
+  String get homeDashboardLoadError =>
+      'No se pudo cargar el resumen del inicio.';
+
+  @override
   String get user => 'Usuario';
 
   @override
@@ -429,6 +480,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get entrySourceCampaignOutside => 'Campaña fuera de la iglesia';
+
+  @override
+  String get entrySourceCell => 'Célula';
 
   @override
   String get entrySourceHospital => 'Hospital';
@@ -1583,6 +1637,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Creyente registrado. Se alertó al administrador: la célula supera 12 integrantes.';
 
   @override
+  String get cellMemberRegisterLeaderOnlyAtCapacity =>
+      'Con 12 o más integrantes, solo el líder de la célula puede registrar un creyente nuevo.';
+
+  @override
   String get menuAdminNotifications => 'Alertas de la iglesia';
 
   @override
@@ -2212,6 +2270,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuViewCells => 'Ver células';
 
   @override
+  String get menuViewCellAttendanceReport => 'Asistencia de discípulos';
+
+  @override
   String get menuRegisterCellDisciple => 'Registrar discípulo';
 
   @override
@@ -2284,10 +2345,262 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cellDiscipleDeleted => 'Discípulo eliminado';
 
   @override
+  String get cellHelpersTitle => 'Ayudantes de la célula';
+
+  @override
+  String cellHelpersHint(int max) {
+    return 'Selecciona hasta $max discípulos de esta célula como ayudantes';
+  }
+
+  @override
+  String get cellHelpersEmpty => 'Aún no hay ayudantes asignados';
+
+  @override
+  String get cellHelpersSelectAction => 'Seleccionar ayudantes';
+
+  @override
+  String cellHelpersCount(int current, int max) {
+    return '$current de $max';
+  }
+
+  @override
+  String cellHelpersMaxReached(int max) {
+    return 'Máximo $max ayudantes por célula';
+  }
+
+  @override
+  String get cellHelpersSaved => 'Ayudantes actualizados';
+
+  @override
+  String get cellHelpersBadge => 'Ayudante';
+
+  @override
+  String get cellAttendanceRegisterTitle => 'Registrar asistencia';
+
+  @override
+  String get cellAttendancePickCellTitle => 'Registrar asistencia';
+
+  @override
+  String get cellAttendancePickCellHint =>
+      'Selecciona la célula para registrar la asistencia de la reunión';
+
+  @override
+  String get cellAttendanceNoOwnCell =>
+      'No tienes células asignadas como líder para registrar asistencia';
+
+  @override
+  String get cellAttendanceDenied =>
+      'Solo el líder asignado a la célula puede registrar asistencia';
+
+  @override
+  String get cellAttendanceLeaderRequired =>
+      'La célula debe tener un líder asignado para registrar asistencia';
+
+  @override
+  String get cellAttendanceMembersLoadError =>
+      'No se pudieron cargar los discípulos de la célula';
+
+  @override
+  String get cellAttendanceSectionWhen => 'Fecha y hora';
+
+  @override
+  String get cellAttendanceSectionWhere => 'Lugar';
+
+  @override
+  String get cellAttendanceSectionRoll => 'Asistencia de discípulos';
+
+  @override
+  String get cellAttendanceSectionRollHint =>
+      'Marca quién asistió a la reunión de la célula';
+
+  @override
+  String get cellAttendanceSessionDate => 'Fecha de la reunión';
+
+  @override
+  String get cellAttendanceSessionTime => 'Hora';
+
+  @override
+  String get cellAttendanceSessionPlace => 'Lugar de la reunión';
+
+  @override
+  String get cellAttendanceSessionPlaceHint =>
+      'Dirección o referencia del lugar';
+
+  @override
+  String get cellAttendancePlaceRequired => 'Ingresa el lugar de la reunión';
+
+  @override
+  String cellAttendanceDayDiffersInfo(String registeredDay, String actualDay) {
+    return 'La reunión fue un $actualDay, pero la célula está registrada los $registeredDay.';
+  }
+
+  @override
+  String get cellAttendanceDayChangeSwitch =>
+      'Registrar con día diferente para este encuentro';
+
+  @override
+  String get cellAttendanceDayChangeSwitchHint =>
+      'Solo aplica a esta reunión, no cambia el día habitual de la célula';
+
+  @override
+  String get cellAttendanceDayChangeReason => 'Motivo del cambio de día';
+
+  @override
+  String get cellAttendanceDayReasonRequired =>
+      'Indica por qué se realizó en un día diferente';
+
+  @override
+  String get cellAttendanceLocationDiffersInfo =>
+      'El lugar es diferente al registrado en la célula.';
+
+  @override
+  String get cellAttendanceLocationChangeSwitch =>
+      'Registrar con lugar diferente para este encuentro';
+
+  @override
+  String get cellAttendanceLocationChangeSwitchHint =>
+      'Solo aplica a esta reunión, no cambia la dirección habitual de la célula';
+
+  @override
+  String get cellAttendanceLocationChangeReason => 'Motivo del cambio de lugar';
+
+  @override
+  String get cellAttendanceLocationReasonRequired =>
+      'Indica por qué se realizó en otro lugar';
+
+  @override
+  String get cellAttendanceSectionNotes => 'Información adicional';
+
+  @override
+  String get cellAttendanceOfferingCollected => 'Ofrenda recogida';
+
+  @override
+  String get cellAttendanceOfferingCollectedHint =>
+      'Monto o detalle (opcional)';
+
+  @override
+  String get cellAttendanceObservations => 'Observaciones';
+
+  @override
+  String get cellAttendanceObservationsHint =>
+      'Notas sobre la reunión (opcional)';
+
+  @override
+  String cellAttendanceOfferingSummary(String amount) {
+    return 'Ofrenda: $amount';
+  }
+
+  @override
+  String get cellAttendanceMarkAllPresent => 'Todos presentes';
+
+  @override
+  String get cellAttendanceMarkAllAbsent => 'Ninguno presente';
+
+  @override
+  String get cellAttendanceSaveAction => 'Guardar asistencia';
+
+  @override
+  String get cellAttendanceSaved => 'Asistencia registrada';
+
+  @override
+  String get cellAttendanceHistoryTitle => 'Asistencias recientes';
+
+  @override
+  String cellAttendancePresentCount(int present, int total) {
+    return '$present de $total presentes';
+  }
+
+  @override
+  String get cellAttendanceDayChangedBadge => 'Día diferente';
+
+  @override
+  String get cellAttendanceLocationChangedBadge => 'Lugar diferente';
+
+  @override
+  String get cellAttendanceReportTitle => 'Asistencia de discípulos';
+
+  @override
+  String get cellAttendanceReportPickCellTitle => 'Asistencia por célula';
+
+  @override
+  String get cellAttendanceReportPickCellHint =>
+      'Selecciona una célula para ver la asistencia de sus integrantes';
+
+  @override
+  String get cellAttendanceReportNoOwnCell =>
+      'No tienes una célula propia asignada como líder';
+
+  @override
+  String get cellAttendanceReportDenied =>
+      'No tienes permiso para ver el reporte de asistencia';
+
+  @override
+  String cellAttendanceReportSessionCount(int count) {
+    return '$count reuniones registradas';
+  }
+
+  @override
+  String cellAttendanceReportFilteredSessionCount(int filtered, int total) {
+    return '$filtered de $total reuniones en el rango';
+  }
+
+  @override
+  String get cellAttendanceReportWeekFilterTitle => 'Rango de semanas';
+
+  @override
+  String get cellAttendanceReportWeekFrom => 'Desde semana';
+
+  @override
+  String get cellAttendanceReportWeekTo => 'Hasta semana';
+
+  @override
+  String get cellAttendanceReportWeekAll => 'Todas';
+
+  @override
+  String cellAttendanceReportWeekPreset(int count) {
+    return 'Últimas $count sem.';
+  }
+
+  @override
+  String get cellAttendanceReportLegendTitle =>
+      'Alertas por inasistencias seguidas';
+
+  @override
+  String get cellAttendanceReportLegendExcellent =>
+      'Verde: 0 o 1 inasistencia seguida';
+
+  @override
+  String get cellAttendanceReportLegendWarning =>
+      'Amarillo: 2 inasistencias seguidas';
+
+  @override
+  String get cellAttendanceReportLegendCritical =>
+      'Rojo: 3 o más inasistencias seguidas';
+
+  @override
+  String get cellAttendanceReportMembersTitle => 'Integrantes';
+
+  @override
+  String get cellAttendanceReportEmpty =>
+      'No hay integrantes en esta célula o aún no hay asistencias registradas';
+
+  @override
+  String cellAttendanceReportMemberStats(
+    int present,
+    int consecutive,
+    int total,
+  ) {
+    return '$present presentes · $consecutive seguidas · $total listas';
+  }
+
+  @override
   String get cellMemberAssignTitle => 'Integrantes de la célula';
 
   @override
   String get cellMemberAssignAction => 'Asignar integrantes';
+
+  @override
+  String get cellDetailAssignDisciplesAction => 'Asignar discípulos';
 
   @override
   String get cellMemberAssignAdd => 'Agregar integrante';
@@ -2297,6 +2610,35 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellMemberRegisterTitle => 'Registrar creyente en la célula';
+
+  @override
+  String get cellMemberFormHint =>
+      'Registro de integrantes para esta célula. Si solicita visita, se asignará el líder de la célula.';
+
+  @override
+  String get cellMemberFormSubmit => 'Registrar en la célula';
+
+  @override
+  String get cellMemberWantsVisitSubtitle =>
+      'Si desea visita, se asignará automáticamente el líder de esta célula';
+
+  @override
+  String cellMemberVisitLeaderHint(String leader, String cell) {
+    return 'Se asignará a $leader como líder pastoral (célula $cell)';
+  }
+
+  @override
+  String get cellMemberVisitNoLeader =>
+      'Esta célula no tiene líder asignado. Asigna un líder a la célula o desactiva la visita.';
+
+  @override
+  String cellMemberRegisteredWithCellLeader(
+    String name,
+    String cell,
+    String leader,
+  ) {
+    return '$name registrado en $cell con visita asignada a $leader';
+  }
 
   @override
   String get myAssignedCellTitle => 'Mi célula';
@@ -2364,21 +2706,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cellMemberSelectMaxReached(int max) {
-    return 'Máximo $max integrante(s) por célula (solo el líder puede asignar más de 12)';
+    return 'Máximo $max integrante(s) por célula';
   }
 
   @override
   String cellMemberSelectLimitHint(int max) {
-    return 'Puedes seleccionar hasta $max integrante(s). La célula admite 12 como máximo; solo su líder puede superar ese cupo.';
+    return 'Puedes seleccionar hasta $max integrante(s). La célula admite 12 como máximo.';
   }
 
   @override
   String get cellMemberAssignLimitReached =>
-      'La célula ya tiene 12 integrantes. Solo el líder asignado a la célula puede agregar más.';
+      'La célula ya tiene 12 integrantes. No se pueden asignar más.';
 
   @override
   String cellMemberAssignLimitPartial(int assigned, int requested) {
-    return 'Se asignaron $assigned de $requested: la célula tiene un máximo de 12 integrantes para quien no es su líder.';
+    return 'Se asignaron $assigned de $requested: la célula tiene un máximo de 12 integrantes.';
   }
 
   @override
@@ -2405,6 +2747,34 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellMemberUnassignAction => 'Quitar';
+
+  @override
+  String cellMemberAssignGenderHint(String gender) {
+    return 'Solo se pueden asignar integrantes del mismo sexo que el líder de la célula ($gender).';
+  }
+
+  @override
+  String get cellMemberAssignLeaderGenderMissing =>
+      'El líder de la célula no tiene sexo registrado. Completa su perfil antes de asignar integrantes.';
+
+  @override
+  String get cellMemberAssignGenderMismatch =>
+      'Solo puedes asignar integrantes del mismo sexo que el líder de la célula.';
+
+  @override
+  String cellMemberSelectEmptyGender(String gender) {
+    return 'No hay creyentes sin célula del mismo sexo que el líder ($gender).';
+  }
+
+  @override
+  String cellMemberSelectGenderHint(String gender) {
+    return 'Solo aparecen creyentes sin célula del mismo sexo que el líder ($gender).';
+  }
+
+  @override
+  String cellMemberRegisterGenderLocked(String gender) {
+    return 'Debe ser $gender, igual que el líder de la célula.';
+  }
 
   @override
   String cellMemberUnassigned(String name) {

@@ -190,7 +190,8 @@ service cloud.firestore {
         isAssignedLeaderForMember() ||
         isSupervisedLeaderMember() ||
         memberAssignedCellLedByUser() ||
-        memberAssignedCellLedBySupervisedLeader()
+        memberAssignedCellLedBySupervisedLeader() ||
+        memberUnassignedInUserChurch()
       );
       allow create, update, delete: if isSignedIn() && canManageChurchRecords();
 
@@ -370,6 +371,13 @@ service cloud.firestore {
         );
     }
 
+    function memberUnassignedInUserChurch() {
+      return isLeader() &&
+        currentUserChurchId() != '' &&
+        resource.data.get('churchId', '') == currentUserChurchId() &&
+        resource.data.get('assignedCellId', '') == '';
+    }
+
     match /cells/{cellId} {
       allow read: if isSignedIn() && canReadCellDocument();
       allow create: if isSignedIn() && (
@@ -390,6 +398,11 @@ service cloud.firestore {
           resource.data.get('churchId', '') == currentUserChurchId()
         )
       ) && cellLeaderBelongsToChurch();
+      allow update: if isSignedIn() &&
+        isAssignedCellLeader(resource.data.get('leaderId', '')) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['helpers']) &&
+        request.resource.data.get('helpers', []) is list &&
+        request.resource.data.get('helpers', []).size() <= 3;
       allow delete: if isSignedIn() && (
         isSuperAdmin() ||
         (
@@ -430,6 +443,18 @@ service cloud.firestore {
             get(/databases/$(database)/documents/cells/$(cellId)).data.get('churchId', '') == currentUserChurchId()
           )
         );
+      }
+
+      match /sessions/{sessionId} {
+        allow read: if isSignedIn() && canReadCellById(cellId);
+        allow create: if isSignedIn() &&
+          isAssignedCellLeader(cellDocumentData(cellId).get('leaderId', '')) &&
+          request.resource.data.get('cellId', '') == cellId &&
+          request.resource.data.get('leaderId', '') == currentUserLeaderId() &&
+          request.resource.data.get('records', []) is list;
+        allow update, delete: if isSignedIn() &&
+          isAssignedCellLeader(cellDocumentData(cellId).get('leaderId', '')) &&
+          resource.data.get('leaderId', '') == currentUserLeaderId();
       }
     }
 
