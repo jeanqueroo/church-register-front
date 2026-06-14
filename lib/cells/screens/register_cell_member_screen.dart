@@ -12,6 +12,7 @@ import '../../core/widgets/form_section_title.dart';
 import '../../l10n/app_localizations.dart';
 import '../../members/models/church_member.dart';
 import '../../members/models/marital_status.dart';
+import '../../members/models/member_assignment_kind.dart';
 import '../../members/models/member_entry_source.dart';
 import '../../members/services/member_service.dart';
 import '../cell_leader_gender.dart';
@@ -248,7 +249,8 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
         assignedLeaderId: leaderId,
         assignedLeaderName: leaderName,
         assignedLeaderCellCode: leaderCellCode,
-        assignedLeaderFromRegistration: assignCellLeader,
+        assignedLeaderFromRegistration: false,
+        assignmentKind: MemberAssignmentKind.cell,
         wantsVisit: _wantsVisit,
         isNewBeliever: true,
         entrySource: MemberEntrySource.celula,
@@ -260,7 +262,7 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
 
       final memberId = await _memberService.addMember(
         member,
-        notifyLeader: assignCellLeader,
+        notifyLeader: false,
       );
       final capacityExceeded = await _memberService.assignMemberToCell(
         member: ChurchMember(

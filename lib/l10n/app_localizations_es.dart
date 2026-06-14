@@ -30,13 +30,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuNewMember => 'Nuevo creyente';
 
   @override
-  String get menuMembers => 'Integrantes';
+  String get menuMembers => 'Ver nuevos creyentes';
 
   @override
-  String get menuByLeader => 'Por líder';
+  String get menuByLeader => 'Ver nuevos creyentes por líder';
 
   @override
-  String get menuMyMembers => 'Mis integrantes';
+  String get menuMyMembers => 'Mis nuevos creyentes';
 
   @override
   String get menuMyAssignedCell => 'Mi célula';
@@ -45,7 +45,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuNewLeader => 'Nuevo líder';
 
   @override
-  String get menuLeaders => 'Líderes';
+  String get menuLeaders => 'Ver líderes';
 
   @override
   String get menuMySupervisedLeaders => 'Mis líderes asignados';
@@ -84,29 +84,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String get quickNewMemberSubtitle => 'Formulario de nuevo creyente';
 
   @override
-  String get quickViewMembersTitle => 'Ver creyentes';
+  String get quickViewMembersTitle => 'Ver nuevos creyentes';
 
   @override
-  String get quickViewMembersSubtitle => 'Lista de integrantes registrados';
+  String get quickViewMembersSubtitle =>
+      'Lista de nuevos creyentes registrados';
 
   @override
-  String get quickMembersByLeaderTitle => 'Integrantes por líder';
+  String get quickMembersByLeaderTitle => 'Ver nuevos creyentes por líder';
 
   @override
-  String get quickMembersByLeaderSubtitle => 'Miembros asignados a cada líder';
+  String get quickMembersByLeaderSubtitle =>
+      'Nuevos creyentes asignados a cada líder';
 
   @override
-  String get quickMyMembersTitle => 'Mis integrantes asignados a visitar';
+  String get quickMyMembersTitle => 'Mis nuevos creyentes';
 
   @override
-  String get quickMyMembersSubtitle => 'Integrantes bajo tu liderazgo';
+  String get quickMyMembersSubtitle => 'Creyentes asignados a tu visita';
 
   @override
   String get quickMyAssignedCellTitle => 'Mi célula asignada';
 
   @override
-  String get quickMyAssignedCellSubtitle =>
-      'Datos de la célula, integrantes y discípulos';
+  String get quickMyAssignedCellSubtitle => 'Datos de la célula y discípulos';
 
   @override
   String get quickRegisterLeaderTitle => 'Registrar líder';
@@ -203,6 +204,31 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String homeLeadersCount(int count) {
     return '👥 Líderes asignados: $count';
+  }
+
+  @override
+  String homeSummaryMembersCount(int count) {
+    return '👥 Miembros: $count';
+  }
+
+  @override
+  String homeSummaryNewBelieversCount(int count) {
+    return '👥 Nuevo creyentes: $count';
+  }
+
+  @override
+  String homeSummaryLeadersCount(int count) {
+    return '👥 Líderes y supervisores: $count';
+  }
+
+  @override
+  String homeSummaryDisciplesCount(int count) {
+    return '👥 Discípulos asignados: $count';
+  }
+
+  @override
+  String homeSummaryAssignedNewBelieversCount(int count) {
+    return '👥 Nuevo creyentes asignados: $count';
   }
 
   @override
@@ -477,6 +503,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get memberDetailEntrySource => 'Dónde entró';
+
+  @override
+  String get memberDetailAssignmentKind => 'Tipo de asignación';
+
+  @override
+  String get memberAssignmentPastoral => 'Nuevo creyente (líder pastoral)';
+
+  @override
+  String get memberAssignmentCell => 'Discípulo de célula';
+
+  @override
+  String get memberDetailAssignedCell => 'Célula asignada';
 
   @override
   String get entrySourceCampaignOutside => 'Campaña fuera de la iglesia';
@@ -1129,7 +1167,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'La iglesia asignada a tu cuenta está bloqueada. No puedes usar el sistema hasta que el super administrador la reactive.';
 
   @override
-  String get membersListTitle => 'Creyentes';
+  String get membersListTitle => 'Nuevos creyentes';
 
   @override
   String get membersListExportExcel => 'Descargar Excel';
@@ -1145,7 +1183,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo cargar la lista.\nVerifica Firestore en Firebase Console.';
 
   @override
-  String get membersListEmptyTitle => 'Aún no hay creyentes registrados';
+  String get membersListEmptyTitle => 'Aún no hay nuevos creyentes registrados';
 
   @override
   String get membersListEmptySubtitle =>
@@ -1154,6 +1192,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get membersListSearchHint =>
       'Buscar por nombre, teléfono, líder o localidad…';
+
+  @override
+  String get membersListEndOfList => 'Fin de la lista';
 
   @override
   String membersListLeaderPrefix(String name) {
@@ -1166,14 +1207,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get membersByLeaderTitle => 'Integrantes por líder';
+  String get membersByLeaderTitle => 'Ver nuevos creyentes por líder';
 
   @override
-  String get membersByLeaderEmpty => 'No hay integrantes registrados';
+  String get membersByLeaderEmpty => 'No hay creyentes registrados';
 
   @override
   String membersByLeaderAssignedCount(int assigned, int total) {
-    return '$assigned de $total integrantes con líder asignado';
+    return '$assigned de $total creyentes con líder asignado';
   }
 
   @override
@@ -1181,8 +1222,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count integrantes',
-      one: '1 integrante',
+      other: '$count creyentes',
+      one: '1 creyente',
     );
     return '$_temp0';
   }
@@ -1193,7 +1234,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get leaderAssignedTitle => 'Integrantes asignados a visitar';
+  String get leaderAssignedTitle => 'Mis nuevos creyentes';
 
   @override
   String get leaderAssignedTabList => 'Lista';
@@ -1206,8 +1247,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count integrantes asignados a visitar',
-      one: '1 integrante asignado a visitar',
+      other: '$count nuevos creyentes asignados',
+      one: '1 nuevo creyente asignado',
     );
     return '$_temp0';
   }
@@ -1218,11 +1259,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get leaderAssignedEmptyTitle => 'Sin integrantes asignados a visitar';
+  String get leaderAssignedEmptyTitle => 'Sin nuevos creyentes asignados';
 
   @override
   String get leaderAssignedEmptySubtitle =>
-      'Los integrantes con visita activada y dirección aparecerán aquí al registrarse.';
+      'Los nuevos creyentes asignados a tu liderazgo aparecerán aquí.';
 
   @override
   String get leaderAssignedNoMapLocation => 'Sin ubicación en mapa';
@@ -1281,6 +1322,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get leadersListSearchHint =>
       'Buscar por nombre, teléfono, correo o célula…';
+
+  @override
+  String get leadersListEndOfList => 'Fin de la lista';
 
   @override
   String leadersListCellPrefix(String code) {
@@ -1624,21 +1668,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get notificationMemberFallback => 'Integrante';
 
   @override
-  String get notificationCellCapacityTitle =>
-      'Célula con más de 12 integrantes';
+  String get notificationCellCapacityTitle => 'Célula con más de 12 discípulos';
 
   @override
   String notificationCellCapacityBody(String cell, int count) {
-    return 'La célula $cell tiene $count integrantes asignados.';
+    return 'La célula $cell tiene $count discípulos asignados.';
   }
 
   @override
   String get cellMemberCapacityAdminNotified =>
-      'Creyente registrado. Se alertó al administrador: la célula supera 12 integrantes.';
+      'Discípulo registrado. Se alertó al administrador: la célula supera 12 discípulos.';
 
   @override
   String get cellMemberRegisterLeaderOnlyAtCapacity =>
-      'Con 12 o más integrantes, solo el líder de la célula puede registrar un creyente nuevo.';
+      'Con 12 o más discípulos, solo el líder de la célula puede registrar un discípulo nuevo.';
 
   @override
   String get menuAdminNotifications => 'Alertas de la iglesia';
@@ -1655,7 +1698,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get adminNotificationsEmptySubtitle =>
-      'Recibirás avisos aquí cuando una célula supere 12 integrantes.';
+      'Recibirás avisos aquí cuando una célula supere 12 discípulos.';
 
   @override
   String get visitRegDenied =>
@@ -2385,8 +2428,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Selecciona la célula para registrar la asistencia de la reunión';
 
   @override
-  String get cellAttendanceNoOwnCell =>
-      'No tienes células asignadas como líder para registrar asistencia';
+  String get cellAttendanceNoOwnCell => 'No tienes célula asignada';
 
   @override
   String get cellAttendanceDenied =>
@@ -2524,11 +2566,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellAttendanceReportPickCellHint =>
-      'Selecciona una célula para ver la asistencia de sus integrantes';
+      'Selecciona una célula para ver la asistencia de sus discípulos';
 
   @override
-  String get cellAttendanceReportNoOwnCell =>
-      'No tienes una célula propia asignada como líder';
+  String get cellAttendanceReportNoOwnCell => 'No tienes célula asignada';
 
   @override
   String get cellAttendanceReportDenied =>
@@ -2578,11 +2619,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Rojo: 3 o más inasistencias seguidas';
 
   @override
-  String get cellAttendanceReportMembersTitle => 'Integrantes';
+  String get cellAttendanceReportMembersTitle => 'Discípulos';
 
   @override
   String get cellAttendanceReportEmpty =>
-      'No hay integrantes en esta célula o aún no hay asistencias registradas';
+      'No hay discípulos en esta célula o aún no hay asistencias registradas';
 
   @override
   String cellAttendanceReportMemberStats(
@@ -2594,26 +2635,26 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get cellMemberAssignTitle => 'Integrantes de la célula';
+  String get cellMemberAssignTitle => 'Discípulos de la célula';
 
   @override
-  String get cellMemberAssignAction => 'Asignar integrantes';
+  String get cellMemberAssignAction => 'Asignar discípulos';
 
   @override
   String get cellDetailAssignDisciplesAction => 'Asignar discípulos';
 
   @override
-  String get cellMemberAssignAdd => 'Agregar integrante';
+  String get cellMemberAssignAdd => 'Agregar discípulo';
 
   @override
-  String get cellMemberRegisterNew => 'Registrar creyente nuevo';
+  String get cellMemberRegisterNew => 'Registrar discípulo nuevo';
 
   @override
-  String get cellMemberRegisterTitle => 'Registrar creyente en la célula';
+  String get cellMemberRegisterTitle => 'Registrar discípulo en la célula';
 
   @override
   String get cellMemberFormHint =>
-      'Registro de integrantes para esta célula. Si solicita visita, se asignará el líder de la célula.';
+      'Registro de discípulos para esta célula. Si solicita visita, se asignará el líder de la célula.';
 
   @override
   String get cellMemberFormSubmit => 'Registrar en la célula';
@@ -2656,7 +2697,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tu cuenta de líder no está vinculada a un perfil de líder en el sistema';
 
   @override
-  String get myAssignedCellEmpty => 'No hay células asignadas para mostrar';
+  String get myAssignedCellEmpty => 'No tienes célula asignada';
 
   @override
   String myAssignedCellLeaderLabel(String name) {
@@ -2670,22 +2711,22 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cellMemberAssignHint(String cell) {
-    return 'Asigna creyentes sin célula a $cell. La asignación a célula es independiente del líder pastoral del creyente.';
+    return 'Asigna discípulos sin célula a $cell. La asignación a célula es independiente del líder pastoral del discípulo.';
   }
 
   @override
-  String get cellMemberListTitle => 'Integrantes';
+  String get cellMemberListTitle => 'Discípulos';
 
   @override
   String get cellMemberListEmpty =>
-      'Aún no hay integrantes asignados a esta célula';
+      'Aún no hay discípulos asignados a esta célula';
 
   @override
-  String get cellMemberSelectTitle => 'Seleccionar integrantes';
+  String get cellMemberSelectTitle => 'Seleccionar discípulos';
 
   @override
   String get cellMemberSelectHint =>
-      'Marca uno o más creyentes sin célula asignada y confirma al final';
+      'Marca uno o más discípulos sin célula asignada y confirma al final';
 
   @override
   String cellMemberSelectConfirm(int count) {
@@ -2694,7 +2735,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellMemberSelectRequiresChurch =>
-      'No se pueden asignar miembros sin una iglesia asignada a tu cuenta';
+      'No se pueden asignar discípulos sin una iglesia asignada a tu cuenta';
 
   @override
   String get cellMemberSelectSearchHint =>
@@ -2702,30 +2743,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellMemberSelectEmpty =>
-      'No hay creyentes sin célula asignada en tu iglesia';
+      'No hay discípulos sin célula asignada en tu iglesia';
 
   @override
   String cellMemberSelectMaxReached(int max) {
-    return 'Máximo $max integrante(s) por célula';
+    return 'Máximo $max discípulo(s) por célula';
   }
 
   @override
   String cellMemberSelectLimitHint(int max) {
-    return 'Puedes seleccionar hasta $max integrante(s). La célula admite 12 como máximo.';
+    return 'Puedes seleccionar hasta $max discípulo(s). La célula admite 12 como máximo.';
   }
 
   @override
   String get cellMemberAssignLimitReached =>
-      'La célula ya tiene 12 integrantes. No se pueden asignar más.';
+      'La célula ya tiene 12 discípulos. No se pueden asignar más.';
 
   @override
   String cellMemberAssignLimitPartial(int assigned, int requested) {
-    return 'Se asignaron $assigned de $requested: la célula tiene un máximo de 12 integrantes.';
+    return 'Se asignaron $assigned de $requested: la célula tiene un máximo de 12 discípulos.';
   }
 
   @override
   String get cellMemberSelectLoadError =>
-      'No se pudieron cargar los integrantes';
+      'No se pudieron cargar los discípulos';
 
   @override
   String cellMemberAssigned(String name) {
@@ -2734,7 +2775,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cellMemberAssignedMultiple(int count) {
-    return '$count integrantes asignados a la célula';
+    return '$count discípulos asignados a la célula';
   }
 
   @override
@@ -2750,25 +2791,25 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cellMemberAssignGenderHint(String gender) {
-    return 'Solo se pueden asignar integrantes del mismo sexo que el líder de la célula ($gender).';
+    return 'Solo se pueden asignar discípulos del mismo sexo que el líder de la célula ($gender).';
   }
 
   @override
   String get cellMemberAssignLeaderGenderMissing =>
-      'El líder de la célula no tiene sexo registrado. Completa su perfil antes de asignar integrantes.';
+      'El líder de la célula no tiene sexo registrado. Completa su perfil antes de asignar discípulos.';
 
   @override
   String get cellMemberAssignGenderMismatch =>
-      'Solo puedes asignar integrantes del mismo sexo que el líder de la célula.';
+      'Solo puedes asignar discípulos del mismo sexo que el líder de la célula.';
 
   @override
   String cellMemberSelectEmptyGender(String gender) {
-    return 'No hay creyentes sin célula del mismo sexo que el líder ($gender).';
+    return 'No hay discípulos sin célula del mismo sexo que el líder ($gender).';
   }
 
   @override
   String cellMemberSelectGenderHint(String gender) {
-    return 'Solo aparecen creyentes sin célula del mismo sexo que el líder ($gender).';
+    return 'Solo aparecen discípulos sin célula del mismo sexo que el líder ($gender).';
   }
 
   @override

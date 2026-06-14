@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
@@ -38,7 +41,7 @@ class MembersByLeaderScreen extends StatelessWidget {
   }
 }
 
-class _MembersByLeaderBody extends StatelessWidget {
+class _MembersByLeaderBody extends StatefulWidget {
   const _MembersByLeaderBody({
     required this.registeredBy,
     this.memberService,
@@ -49,47 +52,349 @@ class _MembersByLeaderBody extends StatelessWidget {
   final MemberService? memberService;
   final AppPermissions permissions;
 
+  @override
+  State<_MembersByLeaderBody> createState() => _MembersByLeaderBodyState();
+}
+
+class _MembersByLeaderBodyState extends State<_MembersByLeaderBody> {
+  final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
+  final _scrollController = ScrollController();
+
+  bool _loading = true;
+  bool _loadingMore = false;
+  bool _loadingStats = true;
+  bool _hasMore = true;
+  Object? _loadError;
+  int? _totalCount;
+  int? _assignedCount;
+  List<ChurchMember> _members = [];
+  DocumentSnapshot<Map<String, dynamic>>? _lastDocument;
+  Timer? _searchDebounce;
+  String _activeSearchQuery = '';
+
+  MemberService get _service => widget.memberService ?? MemberService();
+
+  String? get _churchId {
+    final id = widget.permissions.churchId?.trim();
+    return id != null && id.isNotEmpty ? id : null;
+  }
+
+  List<LeaderMemberGroup> get _groups => groupMembersByLeader(_members);
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    _loadStats();
+    _loadFirstPage();
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_hasMore || _loading || _loadingMore) return;
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 240) {
+      _loadNextPage();
+    }
+  }
+
+  Future<void> _loadStats() async {
+    setState(() => _loadingStats = true);
+    try {
+      final stats = await _service.fetchMemberAssignmentStats(
+        churchId: _churchId,
+      );
+      if (!mounted) return;
+      setState(() {
+        _totalCount = stats.total;
+        _assignedCount = stats.assigned;
+        _loadingStats = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingStats = false);
+    }
+  }
+
+  Future<void> _loadFirstPage({bool forceRefresh = false}) async {
+    setState(() {
+      _loading = true;
+      _loadError = null;
+      if (forceRefresh) {
+        _members = [];
+        _lastDocument = null;
+        _hasMore = true;
+      }
+    });
+
+    try {
+      final page = await _service.fetchMembersPage(
+        churchId: _churchId,
+        searchQuery: _activeSearchQuery,
+      );
+      if (!mounted) return;
+      setState(() {
+        _members = page.members;
+        _lastDocument = page.lastDocument;
+        _hasMore = page.hasMore;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = error;
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _loadNextPage() async {
+    if (!_hasMore || _loadingMore || _lastDocument == null) return;
+
+    setState(() => _loadingMore = true);
+    try {
+      final page = await _service.fetchMembersPage(
+        churchId: _churchId,
+        searchQuery: _activeSearchQuery,
+        startAfter: _lastDocument,
+      );
+      if (!mounted) return;
+      setState(() {
+        _members = [..._members, ...page.members];
+        _lastDocument = page.lastDocument;
+        _hasMore = page.hasMore;
+        _loadingMore = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = error;
+        _loadingMore = false;
+      });
+    }
+  }
+
+  Future<void> _refresh() async {
+    await Future.wait([
+      _loadStats(),
+      _loadFirstPage(forceRefresh: true),
+    ]);
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      final query = value.trim();
+      if (query == _activeSearchQuery) return;
+      _activeSearchQuery = query;
+      _lastDocument = null;
+      _hasMore = true;
+      _loadFirstPage(forceRefresh: true);
+    });
+  }
+
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
     return '$day/$month/${date.year}';
   }
 
+  int get _displayTotal => _totalCount ?? _members.length;
+
+  int get _displayAssigned {
+    if (_assignedCount != null) return _assignedCount!;
+    return _members
+        .where(
+          (m) =>
+              m.assignedLeaderId != null ||
+              (m.assignedLeaderName?.trim().isNotEmpty ?? false),
+        )
+        .length;
+  }
+
+  Widget _buildSearchField(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: TextField(
+        key: const ValueKey('members_by_leader_search'),
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        onChanged: _onSearchChanged,
+        decoration: InputDecoration(
+          hintText: l10n.membersListSearchHint,
+          prefixIcon: const Icon(Icons.search),
+          border: const OutlineInputBorder(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.how_to_reg_outlined,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _loadingStats && _totalCount == null
+                    ? const SizedBox(
+                        height: 20,
+                        child: LinearProgressIndicator(),
+                      )
+                    : Text(
+                        l10n.membersByLeaderAssignedCount(
+                          _displayAssigned,
+                          _displayTotal,
+                        ),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListFooter(AppLocalizations l10n) {
+    if (_loadingMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (!_hasMore && _members.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: Text(
+            l10n.membersListEndOfList,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ),
+      );
+    }
+    return const SizedBox(height: 24);
+  }
+
+  Widget _buildGroupsList(AppLocalizations l10n) {
+    final groups = _groups;
+
+    if (groups.isEmpty) {
+      return Center(
+        child: Text(
+          _activeSearchQuery.isEmpty
+              ? l10n.membersByLeaderEmpty
+              : l10n.commonNoMatches,
+          style: Theme.of(context).textTheme.bodyLarge,
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    return ListView.builder(
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      itemCount: groups.length + 1,
+      itemBuilder: (context, index) {
+        if (index >= groups.length) {
+          return _buildListFooter(l10n);
+        }
+        final group = groups[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: _LeaderGroupTile(
+            group: group,
+            l10n: l10n,
+            formatDate: _formatDate,
+            onMemberTap: (member) {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => MemberDetailScreen(
+                    member: member,
+                    registeredBy: widget.registeredBy,
+                    memberService: _service,
+                    permissions: widget.permissions,
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final service = memberService ?? MemberService();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.membersByLeaderTitle),
       ),
-      body: StreamBuilder<List<ChurchMember>>(
-        stream: service.watchMembers(churchId: permissions.churchId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: _buildBody(l10n),
+    );
+  }
 
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  l10n.commonLoadListError,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+  Widget _buildBody(AppLocalizations l10n) {
+    if (_loading && _members.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_loadError != null && _members.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                l10n.commonLoadListError,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
                 ),
               ),
-            );
-          }
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: _refresh,
+                child: Text(l10n.retry),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
-          final members = snapshot.data ?? [];
-
-          if (members.isEmpty) {
-            return Center(
+    if (_members.isEmpty && _activeSearchQuery.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildSearchField(l10n),
+          Expanded(
+            child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -109,76 +414,21 @@ class _MembersByLeaderBody extends StatelessWidget {
                   ],
                 ),
               ),
-            );
-          }
+            ),
+          ),
+        ],
+      );
+    }
 
-          final groups = groupMembersByLeader(members);
-          final assignedCount = members
-              .where(
-                (m) =>
-                    m.assignedLeaderId != null ||
-                    (m.assignedLeaderName?.trim().isNotEmpty ?? false),
-              )
-              .length;
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.how_to_reg_outlined,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            l10n.membersByLeaderAssignedCount(
-                              assignedCount,
-                              members.length,
-                            ),
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                  itemCount: groups.length,
-                  itemBuilder: (context, index) {
-                    final group = groups[index];
-                    return _LeaderGroupTile(
-                      group: group,
-                      l10n: l10n,
-                      formatDate: _formatDate,
-                      onMemberTap: (member) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => MemberDetailScreen(
-                              member: member,
-                              registeredBy: registeredBy,
-                              memberService: service,
-                              permissions: permissions,
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildSearchField(l10n),
+          _buildSummaryCard(l10n),
+          Expanded(child: _buildGroupsList(l10n)),
+        ],
       ),
     );
   }
@@ -214,7 +464,6 @@ class _LeaderGroupTileState extends State<_LeaderGroupTile> {
     ];
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
@@ -242,13 +491,16 @@ class _LeaderGroupTileState extends State<_LeaderGroupTile> {
             ),
             onTap: () => setState(() => _expanded = !_expanded),
           ),
-          if (_expanded)
-            const Divider(height: 1),
+          if (_expanded) const Divider(height: 1),
           if (_expanded)
             ...group.members.map((member) {
               final parts = <String>[
                 member.phone,
-                if (member.wantsVisit) l10n.membersMapRequestsVisit,
+                if (member.assignmentKindLabel(l10n) != null)
+                  member.assignmentKindLabel(l10n)!,
+                if (member.isPastoralLeaderAssignment &&
+                    member.wantsVisit)
+                  l10n.membersMapRequestsVisit,
                 l10n.membersByLeaderRegistrationDate(
                   widget.formatDate(member.registeredAt),
                 ),

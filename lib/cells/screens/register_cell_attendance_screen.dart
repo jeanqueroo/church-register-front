@@ -264,6 +264,7 @@ class _RegisterCellAttendanceScreenState
           registeredBy: widget.registeredBy,
           churchId: cell.churchId,
         ),
+        memberService: _memberService,
       );
 
       if (!mounted) return;

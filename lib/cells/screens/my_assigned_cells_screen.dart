@@ -7,7 +7,6 @@ import '../../auth/widgets/role_gate.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/locale/weekday_labels.dart';
 import '../../l10n/app_localizations.dart';
-import '../../supervisors/services/supervisor_assignment_service.dart';
 import '../models/church_cell.dart';
 import '../services/cell_service.dart';
 import 'cell_detail_screen.dart';
@@ -22,14 +21,12 @@ class MyAssignedCellsScreen extends StatefulWidget {
     required this.session,
     required this.registeredBy,
     this.cellService,
-    this.supervisorAssignmentService,
     this.mode = MyAssignedCellsMode.browse,
   });
 
   final UserSession session;
   final String registeredBy;
   final CellService? cellService;
-  final SupervisorAssignmentService? supervisorAssignmentService;
   final MyAssignedCellsMode mode;
 
   @override
@@ -38,7 +35,6 @@ class MyAssignedCellsScreen extends StatefulWidget {
 
 class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
   late final CellService _cellService;
-  late final SupervisorAssignmentService _supervisorAssignmentService;
 
   List<ChurchCell> _cells = [];
   bool _loading = true;
@@ -49,8 +45,6 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
   void initState() {
     super.initState();
     _cellService = widget.cellService ?? CellService();
-    _supervisorAssignmentService =
-        widget.supervisorAssignmentService ?? SupervisorAssignmentService();
     _loadCells();
   }
 
@@ -63,57 +57,23 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
 
     try {
       final permissions = widget.session.permissions;
-      final leaderIds = <String>{};
       final churchId = widget.session.profile.churchId;
+      final ownLeaderId = widget.session.profile.leaderId?.trim();
 
-      if (permissions.isLeader) {
-        final ownLeaderId = widget.session.profile.leaderId?.trim();
-        if (ownLeaderId == null || ownLeaderId.isEmpty) {
-          if (!permissions.isSupervisor) {
-            if (!mounted) return;
-            setState(() {
-              _cells = [];
-              _loading = false;
-              _missingLeaderProfile = true;
-            });
-            return;
-          }
-        } else {
-          leaderIds.add(ownLeaderId);
-        }
-      }
-
-      if (permissions.isSupervisor) {
-        final supervisedIds = await _supervisorAssignmentService
-            .fetchSupervisedLeaderIds(widget.session.uid);
-        leaderIds.addAll(supervisedIds);
-      }
-
-      if (leaderIds.isEmpty) {
+      if (ownLeaderId == null || ownLeaderId.isEmpty) {
         if (!mounted) return;
         setState(() {
           _cells = [];
           _loading = false;
+          _missingLeaderProfile = permissions.isLeader;
         });
         return;
       }
 
-      var cells = await _cellService.fetchCellsForLeaderIds(
-        leaderIds: leaderIds.toList(),
+      final cells = await _cellService.fetchCellsForLeaderIds(
+        leaderIds: [ownLeaderId],
         churchId: churchId,
       );
-
-      if (widget.mode == MyAssignedCellsMode.attendance ||
-          widget.mode == MyAssignedCellsMode.attendanceReport) {
-        final ownLeaderId = widget.session.profile.leaderId?.trim();
-        if (ownLeaderId != null && ownLeaderId.isNotEmpty) {
-          cells = cells
-              .where((cell) => cell.leaderId?.trim() == ownLeaderId)
-              .toList();
-        } else {
-          cells = [];
-        }
-      }
 
       if (!mounted) return;
       setState(() {
@@ -123,13 +83,14 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
     } on FirebaseException catch (e) {
       if (!mounted) return;
       setState(() {
-        _loadError = CellService.messageFromFirestoreException(e, context.l10n);
+        _loadError =
+            CellService.messageFromFirestoreException(e, context.l10n);
         _loading = false;
       });
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
       setState(() {
-        _loadError = error.toString();
+        _loadError = context.l10n.myAssignedCellLoadError;
         _loading = false;
       });
     }
@@ -206,11 +167,7 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
   }
 
   String _emptyMessage(AppLocalizations l10n) {
-    return switch (widget.mode) {
-      MyAssignedCellsMode.attendance => l10n.cellAttendanceNoOwnCell,
-      MyAssignedCellsMode.attendanceReport => l10n.cellAttendanceReportNoOwnCell,
-      MyAssignedCellsMode.browse => l10n.myAssignedCellEmpty,
-    };
+    return l10n.myAssignedCellEmpty;
   }
 
   @override
@@ -244,7 +201,7 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  l10n.myAssignedCellLoadError,
+                  _loadError!,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
@@ -260,23 +217,7 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
       );
     }
 
-    if (_missingLeaderProfile) {
-      return Scaffold(
-        appBar: AppBar(title: Text(_screenTitle(l10n))),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              l10n.myAssignedCellNoLeaderProfile,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (_cells.isEmpty) {
+    if (_missingLeaderProfile || _cells.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: Text(_screenTitle(l10n))),
         body: Center(

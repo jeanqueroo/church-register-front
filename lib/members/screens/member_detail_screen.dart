@@ -161,7 +161,8 @@ class MemberDetailScreen extends StatelessWidget {
             title: l10n.memberDetailSectionAddress,
             rows: _addressRows(l10n),
           ),
-          if (member.assignedLeaderName != null)
+          if (member.assignedLeaderName != null ||
+              member.isCellMemberAssignment)
             _Section(
               title: l10n.memberDetailSectionLeader,
               rows: _leaderRows(l10n),
@@ -259,8 +260,10 @@ class MemberDetailScreen extends StatelessWidget {
 
   List<_Row> _leaderRows(AppLocalizations l10n) {
     return [
+      _Row(l10n.memberDetailAssignmentKind, member.assignmentKindLabel(l10n)),
       _Row(l10n.memberDetailLeaderName, member.assignedLeaderName),
       _Row(l10n.memberDetailCell, member.assignedLeaderCellCode),
+      _Row(l10n.memberDetailAssignedCell, member.assignedCellCode),
       _Row(
         l10n.memberDetailDistance,
         member.assignedDistanceKm != null

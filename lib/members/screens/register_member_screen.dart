@@ -20,6 +20,7 @@ import '../../leaders/widgets/leader_search_field.dart';
 import '../models/church_member.dart';
 import '../models/id_document_type.dart';
 import '../models/marital_status.dart';
+import '../models/member_assignment_kind.dart';
 import '../models/member_entry_source.dart';
 import '../services/leader_assignment_service.dart';
 import '../services/member_service.dart';
@@ -486,6 +487,13 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       final assignedLeaderFromRegistration = !isCellRegistration &&
           assignedLeaderId != null &&
           assignedLeaderId.isNotEmpty;
+      final assignmentKind = isCellRegistration ||
+              (widget.isEditing &&
+                  (widget.memberToEdit?.isAssignedToCell ?? false))
+          ? MemberAssignmentKind.cell
+          : (assignedLeaderFromRegistration
+              ? MemberAssignmentKind.pastoral
+              : (widget.isEditing ? widget.memberToEdit?.assignmentKind : null));
 
       final member = ChurchMember(
         id: widget.memberToEdit?.id,
@@ -537,6 +545,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         assignedLeaderName: assignedLeaderName,
         assignedLeaderCellCode: assignedLeaderCellCode,
         assignedLeaderFromRegistration: assignedLeaderFromRegistration,
+        assignmentKind: assignmentKind,
         assignedDistanceKm: assignedDistanceKm,
         wantsVisit: _wantsVisit,
         isNewBeliever: widget.isEditing

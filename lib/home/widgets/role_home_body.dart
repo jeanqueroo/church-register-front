@@ -172,6 +172,31 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
     }
 
     final data = _dashboard ?? const HomeDashboardData(memberCount: 0);
+    final supervisorOnly =
+        widget.layout == HomeRoleLayout.supervisor && !_permissions.isLeader;
+    final showLeaderCellSummary = !supervisorOnly;
+
+    final summaryLines = <Widget>[
+      if (showLeaderCellSummary) ...[
+        Text(
+          l10n.homeSummaryDisciplesCount(data.memberCount),
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.homeSummaryAssignedNewBelieversCount(data.newBelieverCount),
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+      ],
+      if (widget.layout == HomeRoleLayout.supervisor &&
+          data.leaderCount != null) ...[
+        if (showLeaderCellSummary) const SizedBox(height: 8),
+        Text(
+          l10n.homeLeadersCount(data.leaderCount!),
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+      ],
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -192,20 +217,7 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.homeMembersCount(data.memberCount),
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                if (widget.layout == HomeRoleLayout.supervisor &&
-                    data.leaderCount != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.homeLeadersCount(data.leaderCount!),
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
-              ],
+              children: summaryLines,
             ),
           ),
         ),

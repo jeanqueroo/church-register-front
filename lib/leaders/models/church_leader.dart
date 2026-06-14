@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
+import '../../core/search/firestore_search_text.dart';
 import '../../members/models/id_document_type.dart';
 import 'church_office.dart';
 
@@ -64,6 +65,52 @@ class ChurchLeader {
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
 
+  /// Índice en minúsculas para búsqueda (nombre + apellido).
+  String buildSearchIndex() {
+    return joinSearchParts([
+      fullName,
+      firstName,
+      lastName,
+      cellCode,
+      mobilePhone,
+      email,
+      churchOffice?.code,
+      churchOffice?.label,
+      locality,
+      neighborhood,
+      idDocumentNumber,
+    ]);
+  }
+
+  /// Índice alterno (apellido primero).
+  String buildSearchLastFirstIndex() {
+    return joinSearchParts([
+      lastName,
+      firstName,
+      fullName,
+      cellCode,
+      mobilePhone,
+      email,
+      churchOffice?.code,
+      churchOffice?.label,
+      locality,
+      neighborhood,
+      idDocumentNumber,
+    ]);
+  }
+
+  /// Coincide con la consulta (contiene todas las palabras).
+  bool matchesSearchQuery(String query) {
+    final normalizedQuery = normalizeSearchText(query);
+    if (normalizedQuery.isEmpty) return true;
+
+    final haystack = '${buildSearchIndex()} ${buildSearchLastFirstIndex()}';
+    final terms = normalizedQuery
+        .split(RegExp(r'\s+'))
+        .where((term) => term.isNotEmpty);
+    return terms.every(haystack.contains);
+  }
+
   /// El líder pertenece a la iglesia indicada (mismo `churchId` en Firestore).
   bool belongsToChurch(String? targetChurchId) {
     final normalizedTarget = targetChurchId?.trim();
@@ -123,6 +170,8 @@ class ChurchLeader {
       'mobilePhone': mobilePhone,
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
+      'searchName': buildSearchIndex(),
+      'searchLastFirst': buildSearchLastFirstIndex(),
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
       if (churchOffice != null) 'churchOffice': churchOffice!.code,
       if (appRoles != null && appRoles!.isNotEmpty) 'appRoles': appRoles,

@@ -817,9 +817,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final data = _adminDashboard;
     if (data == null) return null;
 
-    final churchName = data.churchName?.trim();
-    if (churchName == null || churchName.isEmpty) return null;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -841,13 +838,18 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.homeChurchMembersCount(churchName, data.memberCount),
+                  l10n.homeSummaryMembersCount(data.memberCount),
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.homeSummaryNewBelieversCount(data.newBelieverCount),
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 if (data.leaderCount != null) ...[
                   const SizedBox(height: 8),
                   Text(
-                    l10n.homeChurchLeadersCount(churchName, data.leaderCount!),
+                    l10n.homeSummaryLeadersCount(data.leaderCount!),
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],

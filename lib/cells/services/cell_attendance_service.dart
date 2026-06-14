@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../members/services/member_service.dart';
 import '../models/cell_attendance_session.dart';
 
 class CellAttendanceService {
@@ -24,8 +25,13 @@ class CellAttendanceService {
         );
   }
 
-  Future<String> addSession(CellAttendanceSession session) async {
+  Future<String> addSession(
+    CellAttendanceSession session, {
+    MemberService? memberService,
+  }) async {
     final doc = await _sessions(session.cellId).add(session.toMap());
+    await (memberService ?? MemberService())
+        .graduateNewBelieversFromCellAttendance(cellId: session.cellId);
     return doc.id;
   }
 

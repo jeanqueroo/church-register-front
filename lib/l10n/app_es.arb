@@ -7,12 +7,12 @@
   "menuBaptismGroup": "Bautismo",
   "menuBaptismCalendar": "Calendario de bautismo",
   "menuNewMember": "Nuevo creyente",
-  "menuMembers": "Integrantes",
-  "menuByLeader": "Por líder",
-  "menuMyMembers": "Mis integrantes",
+  "menuMembers": "Ver nuevos creyentes",
+  "menuByLeader": "Ver nuevos creyentes por líder",
+  "menuMyMembers": "Mis nuevos creyentes",
   "menuMyAssignedCell": "Mi célula",
   "menuNewLeader": "Nuevo líder",
-  "menuLeaders": "Líderes",
+  "menuLeaders": "Ver líderes",
   "menuMySupervisedLeaders": "Mis líderes asignados",
   "menuVisitsDashboard": "Dashboard de visitas",
   "menuPastoralDashboard": "Dashboard pastoral",
@@ -25,14 +25,14 @@
   "menuRegisterNewMember": "Registro de nuevo creyente",
   "quickNewMemberTitle": "Registro de nuevo creyente",
   "quickNewMemberSubtitle": "Formulario de nuevo creyente",
-  "quickViewMembersTitle": "Ver creyentes",
-  "quickViewMembersSubtitle": "Lista de integrantes registrados",
-  "quickMembersByLeaderTitle": "Integrantes por líder",
-  "quickMembersByLeaderSubtitle": "Miembros asignados a cada líder",
-  "quickMyMembersTitle": "Mis integrantes asignados a visitar",
-  "quickMyMembersSubtitle": "Integrantes bajo tu liderazgo",
+  "quickViewMembersTitle": "Ver nuevos creyentes",
+  "quickViewMembersSubtitle": "Lista de nuevos creyentes registrados",
+  "quickMembersByLeaderTitle": "Ver nuevos creyentes por líder",
+  "quickMembersByLeaderSubtitle": "Nuevos creyentes asignados a cada líder",
+  "quickMyMembersTitle": "Mis nuevos creyentes",
+  "quickMyMembersSubtitle": "Creyentes asignados a tu visita",
   "quickMyAssignedCellTitle": "Mi célula asignada",
-  "quickMyAssignedCellSubtitle": "Datos de la célula, integrantes y discípulos",
+  "quickMyAssignedCellSubtitle": "Datos de la célula y discípulos",
   "quickRegisterLeaderTitle": "Registrar líder",
   "quickRegisterLeaderSubtitle": "Datos del liderazgo",
   "quickNewCellTitle": "Crear célula",
@@ -77,6 +77,46 @@
   },
   "homeLeadersCount": "👥 Líderes asignados: {count}",
   "@homeLeadersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryMembersCount": "👥 Miembros: {count}",
+  "@homeSummaryMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryNewBelieversCount": "👥 Nuevo creyentes: {count}",
+  "@homeSummaryNewBelieversCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryLeadersCount": "👥 Líderes y supervisores: {count}",
+  "@homeSummaryLeadersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryDisciplesCount": "👥 Discípulos asignados: {count}",
+  "@homeSummaryDisciplesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryAssignedNewBelieversCount": "👥 Nuevo creyentes asignados: {count}",
+  "@homeSummaryAssignedNewBelieversCount": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -188,6 +228,10 @@
   "memberEntrySource": "¿Dónde entró el creyente? *",
   "memberEntrySourceRequired": "Selecciona dónde entró el creyente",
   "memberDetailEntrySource": "Dónde entró",
+  "memberDetailAssignmentKind": "Tipo de asignación",
+  "memberAssignmentPastoral": "Nuevo creyente (líder pastoral)",
+  "memberAssignmentCell": "Discípulo de célula",
+  "memberDetailAssignedCell": "Célula asignada",
   "entrySourceCampaignOutside": "Campaña fuera de la iglesia",
   "entrySourceCell": "Célula",
   "entrySourceHospital": "Hospital",
@@ -501,14 +545,15 @@
   "blockedAccountChurchTitle": "Iglesia bloqueada",
   "blockedAccountUserMessage": "Tu usuario fue suspendido. Contacta al super administrador para reactivar tu acceso.",
   "blockedAccountChurchMessage": "La iglesia asignada a tu cuenta está bloqueada. No puedes usar el sistema hasta que el super administrador la reactive.",
-  "membersListTitle": "Creyentes",
+  "membersListTitle": "Nuevos creyentes",
   "membersListExportExcel": "Descargar Excel",
   "membersListDeleteTitle": "Eliminar creyente",
   "membersListDeleted": "Creyente eliminado",
   "membersListLoadError": "No se pudo cargar la lista.\nVerifica Firestore en Firebase Console.",
-  "membersListEmptyTitle": "Aún no hay creyentes registrados",
+  "membersListEmptyTitle": "Aún no hay nuevos creyentes registrados",
   "membersListEmptySubtitle": "Pulsa \"Nuevo\" para registrar al primero.",
   "membersListSearchHint": "Buscar por nombre, teléfono, líder o localidad…",
+  "membersListEndOfList": "Fin de la lista",
   "membersListLeaderPrefix": "Líder: {name}",
   "@membersListLeaderPrefix": {
     "placeholders": {
@@ -525,9 +570,9 @@
       }
     }
   },
-  "membersByLeaderTitle": "Integrantes por líder",
-  "membersByLeaderEmpty": "No hay integrantes registrados",
-  "membersByLeaderAssignedCount": "{assigned} de {total} integrantes con líder asignado",
+  "membersByLeaderTitle": "Ver nuevos creyentes por líder",
+  "membersByLeaderEmpty": "No hay creyentes registrados",
+  "membersByLeaderAssignedCount": "{assigned} de {total} creyentes con líder asignado",
   "@membersByLeaderAssignedCount": {
     "placeholders": {
       "assigned": {
@@ -538,7 +583,7 @@
       }
     }
   },
-  "membersByLeaderMemberCount": "{count, plural, =1{1 integrante} other{{count} integrantes}}",
+  "membersByLeaderMemberCount": "{count, plural, =1{1 creyente} other{{count} creyentes}}",
   "@membersByLeaderMemberCount": {
     "placeholders": {
       "count": {
@@ -554,10 +599,10 @@
       }
     }
   },
-  "leaderAssignedTitle": "Integrantes asignados a visitar",
+  "leaderAssignedTitle": "Mis nuevos creyentes",
   "leaderAssignedTabList": "Lista",
   "leaderAssignedTabMap": "Mapa",
-  "leaderAssignedCount": "{count, plural, =1{1 integrante asignado a visitar} other{{count} integrantes asignados a visitar}}",
+  "leaderAssignedCount": "{count, plural, =1{1 nuevo creyente asignado} other{{count} nuevos creyentes asignados}}",
   "@leaderAssignedCount": {
     "placeholders": {
       "count": {
@@ -573,8 +618,8 @@
       }
     }
   },
-  "leaderAssignedEmptyTitle": "Sin integrantes asignados a visitar",
-  "leaderAssignedEmptySubtitle": "Los integrantes con visita activada y dirección aparecerán aquí al registrarse.",
+  "leaderAssignedEmptyTitle": "Sin nuevos creyentes asignados",
+  "leaderAssignedEmptySubtitle": "Los nuevos creyentes asignados a tu liderazgo aparecerán aquí.",
   "leaderAssignedNoMapLocation": "Sin ubicación en mapa",
   "leaderAssignedRegisterVisit": "Registrar visita",
   "leaderAssignedLoadError": "No se pudo cargar los integrantes.",
@@ -619,6 +664,7 @@
   "leadersListLoadError": "No se pudo cargar la lista. Verifica Firestore y las reglas de la colección \"leaders\".",
   "leadersListEmpty": "Aún no hay líderes registrados",
   "leadersListSearchHint": "Buscar por nombre, teléfono, correo o célula…",
+  "leadersListEndOfList": "Fin de la lista",
   "leadersListCellPrefix": "Célula {code}",
   "@leadersListCellPrefix": {
     "placeholders": {
@@ -799,21 +845,21 @@
     }
   },
   "notificationMemberFallback": "Integrante",
-  "notificationCellCapacityTitle": "Célula con más de 12 integrantes",
-  "notificationCellCapacityBody": "La célula {cell} tiene {count} integrantes asignados.",
+  "notificationCellCapacityTitle": "Célula con más de 12 discípulos",
+  "notificationCellCapacityBody": "La célula {cell} tiene {count} discípulos asignados.",
   "@notificationCellCapacityBody": {
     "placeholders": {
       "cell": { "type": "String" },
       "count": { "type": "int" }
     }
   },
-  "cellMemberCapacityAdminNotified": "Creyente registrado. Se alertó al administrador: la célula supera 12 integrantes.",
-  "cellMemberRegisterLeaderOnlyAtCapacity": "Con 12 o más integrantes, solo el líder de la célula puede registrar un creyente nuevo.",
+  "cellMemberCapacityAdminNotified": "Discípulo registrado. Se alertó al administrador: la célula supera 12 discípulos.",
+  "cellMemberRegisterLeaderOnlyAtCapacity": "Con 12 o más discípulos, solo el líder de la célula puede registrar un discípulo nuevo.",
   "menuAdminNotifications": "Alertas de la iglesia",
   "adminNotificationsTitle": "Alertas de la iglesia",
   "adminNotificationsDenied": "No tienes permiso para ver las alertas de la iglesia",
   "adminNotificationsEmptyTitle": "No hay alertas",
-  "adminNotificationsEmptySubtitle": "Recibirás avisos aquí cuando una célula supere 12 integrantes.",
+  "adminNotificationsEmptySubtitle": "Recibirás avisos aquí cuando una célula supere 12 discípulos.",
   "visitRegDenied": "Solo el líder puede registrar visitas a sus integrantes.",
   "visitRegTitle": "Registrar visita",
   "visitRegPrayerFollowUpRequired": "Indica si se realizó oración y si necesita seguimiento.",
@@ -1159,7 +1205,7 @@
   "cellAttendanceRegisterTitle": "Registrar asistencia",
   "cellAttendancePickCellTitle": "Registrar asistencia",
   "cellAttendancePickCellHint": "Selecciona la célula para registrar la asistencia de la reunión",
-  "cellAttendanceNoOwnCell": "No tienes células asignadas como líder para registrar asistencia",
+  "cellAttendanceNoOwnCell": "No tienes célula asignada",
   "cellAttendanceDenied": "Solo el líder asignado a la célula puede registrar asistencia",
   "cellAttendanceLeaderRequired": "La célula debe tener un líder asignado para registrar asistencia",
   "cellAttendanceMembersLoadError": "No se pudieron cargar los discípulos de la célula",
@@ -1215,8 +1261,8 @@
   "cellAttendanceLocationChangedBadge": "Lugar diferente",
   "cellAttendanceReportTitle": "Asistencia de discípulos",
   "cellAttendanceReportPickCellTitle": "Asistencia por célula",
-  "cellAttendanceReportPickCellHint": "Selecciona una célula para ver la asistencia de sus integrantes",
-  "cellAttendanceReportNoOwnCell": "No tienes una célula propia asignada como líder",
+  "cellAttendanceReportPickCellHint": "Selecciona una célula para ver la asistencia de sus discípulos",
+  "cellAttendanceReportNoOwnCell": "No tienes célula asignada",
   "cellAttendanceReportDenied": "No tienes permiso para ver el reporte de asistencia",
   "cellAttendanceReportSessionCount": "{count} reuniones registradas",
   "@cellAttendanceReportSessionCount": {
@@ -1245,8 +1291,8 @@
   "cellAttendanceReportLegendExcellent": "Verde: 0 o 1 inasistencia seguida",
   "cellAttendanceReportLegendWarning": "Amarillo: 2 inasistencias seguidas",
   "cellAttendanceReportLegendCritical": "Rojo: 3 o más inasistencias seguidas",
-  "cellAttendanceReportMembersTitle": "Integrantes",
-  "cellAttendanceReportEmpty": "No hay integrantes en esta célula o aún no hay asistencias registradas",
+  "cellAttendanceReportMembersTitle": "Discípulos",
+  "cellAttendanceReportEmpty": "No hay discípulos en esta célula o aún no hay asistencias registradas",
   "cellAttendanceReportMemberStats": "{present} presentes · {consecutive} seguidas · {total} listas",
   "@cellAttendanceReportMemberStats": {
     "placeholders": {
@@ -1255,13 +1301,13 @@
       "total": { "type": "int" }
     }
   },
-  "cellMemberAssignTitle": "Integrantes de la célula",
-  "cellMemberAssignAction": "Asignar integrantes",
+  "cellMemberAssignTitle": "Discípulos de la célula",
+  "cellMemberAssignAction": "Asignar discípulos",
   "cellDetailAssignDisciplesAction": "Asignar discípulos",
-  "cellMemberAssignAdd": "Agregar integrante",
-  "cellMemberRegisterNew": "Registrar creyente nuevo",
-  "cellMemberRegisterTitle": "Registrar creyente en la célula",
-  "cellMemberFormHint": "Registro de integrantes para esta célula. Si solicita visita, se asignará el líder de la célula.",
+  "cellMemberAssignAdd": "Agregar discípulo",
+  "cellMemberRegisterNew": "Registrar discípulo nuevo",
+  "cellMemberRegisterTitle": "Registrar discípulo en la célula",
+  "cellMemberFormHint": "Registro de discípulos para esta célula. Si solicita visita, se asignará el líder de la célula.",
   "cellMemberFormSubmit": "Registrar en la célula",
   "cellMemberWantsVisitSubtitle": "Si desea visita, se asignará automáticamente el líder de esta célula",
   "cellMemberVisitLeaderHint": "Se asignará a {leader} como líder pastoral (célula {cell})",
@@ -1284,7 +1330,7 @@
   "myAssignedCellDenied": "No tienes permiso para ver la célula asignada",
   "myAssignedCellLoadError": "No se pudo cargar la información de la célula",
   "myAssignedCellNoLeaderProfile": "Tu cuenta de líder no está vinculada a un perfil de líder en el sistema",
-  "myAssignedCellEmpty": "No hay células asignadas para mostrar",
+  "myAssignedCellEmpty": "No tienes célula asignada",
   "myAssignedCellLeaderLabel": "Líder: {name}",
   "@myAssignedCellLeaderLabel": {
     "placeholders": {
@@ -1298,53 +1344,53 @@
       "cell": { "type": "String" }
     }
   },
-  "cellMemberAssignHint": "Asigna creyentes sin célula a {cell}. La asignación a célula es independiente del líder pastoral del creyente.",
+  "cellMemberAssignHint": "Asigna discípulos sin célula a {cell}. La asignación a célula es independiente del líder pastoral del discípulo.",
   "@cellMemberAssignHint": {
     "placeholders": {
       "cell": { "type": "String" }
     }
   },
-  "cellMemberListTitle": "Integrantes",
-  "cellMemberListEmpty": "Aún no hay integrantes asignados a esta célula",
-  "cellMemberSelectTitle": "Seleccionar integrantes",
-  "cellMemberSelectHint": "Marca uno o más creyentes sin célula asignada y confirma al final",
+  "cellMemberListTitle": "Discípulos",
+  "cellMemberListEmpty": "Aún no hay discípulos asignados a esta célula",
+  "cellMemberSelectTitle": "Seleccionar discípulos",
+  "cellMemberSelectHint": "Marca uno o más discípulos sin célula asignada y confirma al final",
   "cellMemberSelectConfirm": "Asignar {count}",
   "@cellMemberSelectConfirm": {
     "placeholders": {
       "count": { "type": "int" }
     }
   },
-  "cellMemberSelectRequiresChurch": "No se pueden asignar miembros sin una iglesia asignada a tu cuenta",
+  "cellMemberSelectRequiresChurch": "No se pueden asignar discípulos sin una iglesia asignada a tu cuenta",
   "cellMemberSelectSearchHint": "Buscar por nombre, teléfono o líder",
-  "cellMemberSelectEmpty": "No hay creyentes sin célula asignada en tu iglesia",
-  "cellMemberSelectMaxReached": "Máximo {max} integrante(s) por célula",
+  "cellMemberSelectEmpty": "No hay discípulos sin célula asignada en tu iglesia",
+  "cellMemberSelectMaxReached": "Máximo {max} discípulo(s) por célula",
   "@cellMemberSelectMaxReached": {
     "placeholders": {
       "max": { "type": "int" }
     }
   },
-  "cellMemberSelectLimitHint": "Puedes seleccionar hasta {max} integrante(s). La célula admite 12 como máximo.",
+  "cellMemberSelectLimitHint": "Puedes seleccionar hasta {max} discípulo(s). La célula admite 12 como máximo.",
   "@cellMemberSelectLimitHint": {
     "placeholders": {
       "max": { "type": "int" }
     }
   },
-  "cellMemberAssignLimitReached": "La célula ya tiene 12 integrantes. No se pueden asignar más.",
-  "cellMemberAssignLimitPartial": "Se asignaron {assigned} de {requested}: la célula tiene un máximo de 12 integrantes.",
+  "cellMemberAssignLimitReached": "La célula ya tiene 12 discípulos. No se pueden asignar más.",
+  "cellMemberAssignLimitPartial": "Se asignaron {assigned} de {requested}: la célula tiene un máximo de 12 discípulos.",
   "@cellMemberAssignLimitPartial": {
     "placeholders": {
       "assigned": { "type": "int" },
       "requested": { "type": "int" }
     }
   },
-  "cellMemberSelectLoadError": "No se pudieron cargar los integrantes",
+  "cellMemberSelectLoadError": "No se pudieron cargar los discípulos",
   "cellMemberAssigned": "{name} asignado a la célula",
   "@cellMemberAssigned": {
     "placeholders": {
       "name": { "type": "String" }
     }
   },
-  "cellMemberAssignedMultiple": "{count} integrantes asignados a la célula",
+  "cellMemberAssignedMultiple": "{count} discípulos asignados a la célula",
   "@cellMemberAssignedMultiple": {
     "placeholders": {
       "count": { "type": "int" }
@@ -1358,21 +1404,21 @@
     }
   },
   "cellMemberUnassignAction": "Quitar",
-  "cellMemberAssignGenderHint": "Solo se pueden asignar integrantes del mismo sexo que el líder de la célula ({gender}).",
+  "cellMemberAssignGenderHint": "Solo se pueden asignar discípulos del mismo sexo que el líder de la célula ({gender}).",
   "@cellMemberAssignGenderHint": {
     "placeholders": {
       "gender": { "type": "String" }
     }
   },
-  "cellMemberAssignLeaderGenderMissing": "El líder de la célula no tiene sexo registrado. Completa su perfil antes de asignar integrantes.",
-  "cellMemberAssignGenderMismatch": "Solo puedes asignar integrantes del mismo sexo que el líder de la célula.",
-  "cellMemberSelectEmptyGender": "No hay creyentes sin célula del mismo sexo que el líder ({gender}).",
+  "cellMemberAssignLeaderGenderMissing": "El líder de la célula no tiene sexo registrado. Completa su perfil antes de asignar discípulos.",
+  "cellMemberAssignGenderMismatch": "Solo puedes asignar discípulos del mismo sexo que el líder de la célula.",
+  "cellMemberSelectEmptyGender": "No hay discípulos sin célula del mismo sexo que el líder ({gender}).",
   "@cellMemberSelectEmptyGender": {
     "placeholders": {
       "gender": { "type": "String" }
     }
   },
-  "cellMemberSelectGenderHint": "Solo aparecen creyentes sin célula del mismo sexo que el líder ({gender}).",
+  "cellMemberSelectGenderHint": "Solo aparecen discípulos sin célula del mismo sexo que el líder ({gender}).",
   "@cellMemberSelectGenderHint": {
     "placeholders": {
       "gender": { "type": "String" }

@@ -2,9 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../auth/models/user_profile.dart';
 import '../../cells/services/cell_service.dart';
-import '../../church/services/church_service.dart';
 import '../../core/utils/timed_cache.dart';
-import '../../core/widgets/church_display_name.dart';
+import '../../leaders/services/leader_service.dart';
 import '../../members/models/church_member.dart';
 import '../../supervisors/services/supervisor_assignment_service.dart';
 import '../models/home_dashboard_data.dart';
@@ -13,16 +12,14 @@ class HomeDashboardService {
   HomeDashboardService({
     FirebaseFirestore? firestore,
     CellService? cellService,
-    ChurchService? churchService,
+    LeaderService? leaderService,
     SupervisorAssignmentService? supervisorAssignmentService,
     TimedCache<HomeDashboardData>? cache,
   })  : _members = (firestore ?? FirebaseFirestore.instance)
             .collection('members'),
-        _leaders = (firestore ?? FirebaseFirestore.instance)
-            .collection('leaders'),
         _cells = (firestore ?? FirebaseFirestore.instance).collection('cells'),
         _cellService = cellService ?? CellService(),
-        _churchService = churchService ?? ChurchService(),
+        _leaderService = leaderService ?? LeaderService(),
         _supervisorAssignmentService =
             supervisorAssignmentService ?? SupervisorAssignmentService(),
         _cache = cache ?? _sharedCache;
@@ -30,10 +27,9 @@ class HomeDashboardService {
   static final _sharedCache = TimedCache<HomeDashboardData>();
 
   final CollectionReference<Map<String, dynamic>> _members;
-  final CollectionReference<Map<String, dynamic>> _leaders;
   final CollectionReference<Map<String, dynamic>> _cells;
   final CellService _cellService;
-  final ChurchService _churchService;
+  final LeaderService _leaderService;
   final SupervisorAssignmentService _supervisorAssignmentService;
   final TimedCache<HomeDashboardData> _cache;
 
@@ -92,6 +88,10 @@ class HomeDashboardService {
 
     final memberResult = await memberResultsFuture;
     final discipleResult = await discipleResultsFuture;
+    final assignedNewBelieverCount = await _loadPastoralNewBelieversForLeaders(
+      leaderIds: leaderIds,
+      churchId: churchId,
+    );
 
     final birthdays = [
       ...memberResult.birthdays,
@@ -99,7 +99,8 @@ class HomeDashboardService {
     ]..sort((a, b) => a.name.compareTo(b.name));
 
     final data = HomeDashboardData(
-      memberCount: memberResult.count + discipleResult.count,
+      memberCount: memberResult.count,
+      newBelieverCount: assignedNewBelieverCount,
       leaderCount: resolved.supervisedLeaderCount,
       birthdaysToday: birthdays,
     );
@@ -120,18 +121,26 @@ class HomeDashboardService {
       if (cached != null) return cached;
     }
 
-    final churchProfile = await _churchService.fetchChurch(churchId);
-    final churchName = resolveChurchDisplayName(churchProfile);
+    final membersSnapshot =
+        await _members.where('churchId', isEqualTo: churchId).get();
+    final leaderCount =
+        await _leaderService.countLeadersWithPastoralRole(churchId: churchId);
 
-    final results = await Future.wait([
-      _members.where('churchId', isEqualTo: churchId).get(),
-      _leaders.where('churchId', isEqualTo: churchId).get(),
-    ]);
+    final memberDocs = membersSnapshot.docs;
+    var memberCount = 0;
+    var newBelieverCount = 0;
+    for (final doc in memberDocs) {
+      if (doc.data()['isNewBeliever'] == true) {
+        newBelieverCount++;
+      } else {
+        memberCount++;
+      }
+    }
 
     final data = HomeDashboardData(
-      memberCount: results[0].docs.length,
-      leaderCount: results[1].docs.length,
-      churchName: churchName,
+      memberCount: memberCount,
+      newBelieverCount: newBelieverCount,
+      leaderCount: leaderCount,
     );
 
     _cache.set(cacheKey, data);
@@ -189,6 +198,34 @@ class HomeDashboardService {
     }
 
     return (count: count, birthdays: birthdays);
+  }
+
+  Future<int> _loadPastoralNewBelieversForLeaders({
+    required List<String> leaderIds,
+    required String? churchId,
+  }) async {
+    if (leaderIds.isEmpty ||
+        churchId == null ||
+        churchId.isEmpty) {
+      return 0;
+    }
+
+    var count = 0;
+    for (var i = 0; i < leaderIds.length; i += _whereInLimit) {
+      final end = i + _whereInLimit > leaderIds.length
+          ? leaderIds.length
+          : i + _whereInLimit;
+      final batch = leaderIds.sublist(i, end);
+
+      final snapshot = await _members
+          .where('churchId', isEqualTo: churchId)
+          .where('assignedLeaderId', whereIn: batch)
+          .get();
+
+      count += snapshot.docs.length;
+    }
+
+    return count;
   }
 
   Future<({int count, List<CellBirthdayPerson> birthdays})> _loadDisciplesForCells({

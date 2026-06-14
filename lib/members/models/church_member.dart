@@ -2,9 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
+import '../../core/search/firestore_search_text.dart';
 import '../../l10n/app_localizations.dart';
 import 'id_document_type.dart';
 import 'marital_status.dart';
+import 'member_assignment_kind.dart';
 import 'member_entry_source.dart';
 import 'spiritual_state.dart';
 
@@ -37,6 +39,7 @@ class ChurchMember {
     this.assignedLeaderName,
     this.assignedLeaderCellCode,
     this.assignedLeaderFromRegistration,
+    this.assignmentKind,
     this.assignedCellId,
     this.assignedCellCode,
     this.spiritualState,
@@ -79,6 +82,8 @@ class ChurchMember {
   final String? assignedLeaderCellCode;
   /// `true` si el líder se asignó en el registro/edición pastoral (no por célula).
   final bool? assignedLeaderFromRegistration;
+  /// Distingue asignación pastoral vs integrante de célula.
+  final MemberAssignmentKind? assignmentKind;
   final String? assignedCellId;
   final String? assignedCellCode;
   final SpiritualState? spiritualState;
@@ -102,11 +107,70 @@ class ChurchMember {
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
 
+  /// Índice en minúsculas para búsqueda por prefijo (nombre + apellido).
+  String buildSearchIndex() {
+    return joinSearchParts([
+      fullName,
+      firstName,
+      lastName,
+      phone,
+      assignedLeaderName,
+      assignedLeaderCellCode,
+      assignedCellCode,
+      locality,
+      neighborhood,
+      cellZone,
+      occupation,
+      volunteer,
+      maritalStatus?.label,
+      entrySource?.name ?? entrySourceStored,
+      gender?.label,
+      idDocumentNumber,
+    ]);
+  }
+
+  /// Índice alterno (apellido primero) para búsqueda por apellido.
+  String buildSearchLastFirstIndex() {
+    return joinSearchParts([
+      lastName,
+      firstName,
+      fullName,
+      phone,
+      assignedLeaderName,
+      assignedLeaderCellCode,
+      assignedCellCode,
+      locality,
+      neighborhood,
+      cellZone,
+      occupation,
+      volunteer,
+      maritalStatus?.label,
+      entrySource?.name ?? entrySourceStored,
+      gender?.label,
+      idDocumentNumber,
+    ]);
+  }
+
+  /// Coincide con la consulta (contiene todas las palabras, sin depender de Firestore).
+  bool matchesSearchQuery(String query) {
+    final normalizedQuery = normalizeSearchText(query);
+    if (normalizedQuery.isEmpty) return true;
+
+    final haystack = '${buildSearchIndex()} ${buildSearchLastFirstIndex()}';
+    final terms = normalizedQuery
+        .split(RegExp(r'\s+'))
+        .where((term) => term.isNotEmpty);
+    return terms.every(haystack.contains);
+  }
+
   bool get isAssignedToCell =>
       assignedCellId != null && assignedCellId!.trim().isNotEmpty;
 
-  /// Integrante con líder pastoral asignado en el flujo de registro (no solo célula).
+  /// Integrante con líder pastoral asignado en el flujo de registro (no célula).
   bool get isPastoralLeaderAssignment {
+    if (assignmentKind == MemberAssignmentKind.pastoral) return true;
+    if (assignmentKind == MemberAssignmentKind.cell) return false;
+
     final leaderId = assignedLeaderId?.trim();
     if (leaderId == null || leaderId.isEmpty) return false;
     if (assignedLeaderFromRegistration == true) return true;
@@ -114,6 +178,16 @@ class ChurchMember {
     // Datos anteriores al campo: sin célula se asume registro pastoral.
     return !isAssignedToCell;
   }
+
+  /// Integrante asignado a una célula (discípulo de célula).
+  bool get isCellMemberAssignment {
+    if (assignmentKind == MemberAssignmentKind.cell) return true;
+    if (assignmentKind == MemberAssignmentKind.pastoral) return false;
+    return isAssignedToCell;
+  }
+
+  String? assignmentKindLabel(AppLocalizations l10n) =>
+      assignmentKind?.label(l10n);
 
   /// Edad en años completos según la fecha de nacimiento.
   int? get age {
@@ -172,6 +246,7 @@ class ChurchMember {
       'assignedLeaderCellCode': assignedLeaderCellCode,
       if (assignedLeaderFromRegistration != null)
         'assignedLeaderFromRegistration': assignedLeaderFromRegistration,
+      if (assignmentKind != null) 'assignmentKind': assignmentKind!.storageKey,
       if (assignedCellId != null && assignedCellId!.isNotEmpty)
         'assignedCellId': assignedCellId,
       if (assignedCellCode != null && assignedCellCode!.isNotEmpty)
@@ -184,6 +259,8 @@ class ChurchMember {
       'formDate': Timestamp.fromDate(formDate),
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
+      'searchName': buildSearchIndex(),
+      'searchLastFirst': buildSearchLastFirstIndex(),
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
     };
   }
@@ -243,6 +320,8 @@ class ChurchMember {
       assignedLeaderCellCode: data['assignedLeaderCellCode'] as String?,
       assignedLeaderFromRegistration:
           data['assignedLeaderFromRegistration'] as bool?,
+      assignmentKind:
+          MemberAssignmentKind.fromString(data['assignmentKind'] as String?),
       assignedCellId: data['assignedCellId'] as String?,
       assignedCellCode: data['assignedCellCode'] as String?,
       spiritualState:

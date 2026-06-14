@@ -13,12 +13,14 @@ class CellBirthdayPerson {
 class HomeDashboardData {
   const HomeDashboardData({
     required this.memberCount,
+    this.newBelieverCount = 0,
     this.leaderCount,
     this.churchName,
     this.birthdaysToday = const [],
   });
 
   final int memberCount;
+  final int newBelieverCount;
   final int? leaderCount;
   final String? churchName;
   final List<CellBirthdayPerson> birthdaysToday;
