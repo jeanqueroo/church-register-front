@@ -5,17 +5,24 @@ import '../theme/app_theme.dart';
 import 'church_display_name.dart';
 
 class SlideMenuItem {
-  const SlideMenuItem({
+  SlideMenuItem({
     required this.id,
     required this.icon,
     required this.label,
-    required this.onTap,
-  });
+    this.onTap,
+    this.children,
+  }) : assert(
+          onTap != null || (children != null && children.isNotEmpty),
+          'Un ítem de menú debe tener onTap o hijos',
+        );
 
   final String id;
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final List<SlideMenuItem>? children;
+
+  bool get isGroup => children != null && children!.isNotEmpty;
 }
 
 /// Scaffold con menú lateral estilo WhatsApp.
@@ -50,6 +57,7 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
   late final AnimationController _controller;
   late final Animation<Offset> _slideAnimation;
   late final Animation<double> _fadeAnimation;
+  final Set<String> _expandedGroups = {};
 
   bool get _isOpen => _controller.value > 0;
 
@@ -65,6 +73,36 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _syncExpandedGroups();
+  }
+
+  @override
+  void didUpdateWidget(SlideMenuScaffold oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedMenuId != widget.selectedMenuId ||
+        oldWidget.menuItems != widget.menuItems) {
+      _syncExpandedGroups();
+    }
+  }
+
+  void _syncExpandedGroups() {
+    final selectedId = widget.selectedMenuId;
+    if (selectedId == null) return;
+    for (final item in widget.menuItems) {
+      if (item.children?.any((child) => child.id == selectedId) == true) {
+        _expandedGroups.add(item.id);
+      }
+    }
+  }
+
+  String? _labelForMenuId(String id) {
+    for (final item in widget.menuItems) {
+      if (item.id == id) return item.label;
+      for (final child in item.children ?? const <SlideMenuItem>[]) {
+        if (child.id == id) return child.label;
+      }
+    }
+    return null;
   }
 
   @override
@@ -86,8 +124,63 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
   }
 
   void _onItemTap(SlideMenuItem item) {
+    final onTap = item.onTap;
+    if (onTap == null) return;
     _closeMenu();
-    item.onTap();
+    onTap();
+  }
+
+  void _toggleGroup(SlideMenuItem item) {
+    setState(() {
+      if (_expandedGroups.contains(item.id)) {
+        _expandedGroups.remove(item.id);
+      } else {
+        _expandedGroups.add(item.id);
+      }
+    });
+  }
+
+  Widget _buildMenuEntry(SlideMenuItem item, String selectedId) {
+    if (item.isGroup) {
+      final expanded = _expandedGroups.contains(item.id);
+      final groupActive =
+          item.children!.any((child) => child.id == selectedId);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _DrawerMenuTile(
+            icon: item.icon,
+            label: item.label,
+            isActive: groupActive,
+            trailing: Icon(
+              expanded ? Icons.expand_less : Icons.expand_more,
+              color: context.churchPalette.textSecondary,
+            ),
+            onTap: () => _toggleGroup(item),
+          ),
+          if (expanded)
+            ...item.children!.map(
+              (child) => Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: _DrawerMenuTile(
+                  icon: child.icon,
+                  label: child.label,
+                  isActive: child.id == selectedId,
+                  dense: true,
+                  onTap: () => _onItemTap(child),
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
+    return _DrawerMenuTile(
+      icon: item.icon,
+      label: item.label,
+      isActive: item.id == selectedId,
+      onTap: () => _onItemTap(item),
+    );
   }
 
   @override
@@ -96,10 +189,7 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
     final drawerWidth = MediaQuery.sizeOf(context).width * 0.85;
     final selectedId =
         widget.selectedMenuId ?? widget.menuItems.firstOrNull?.id ?? 'home';
-    final headerLabel = widget.menuItems
-        .where((item) => item.id == selectedId)
-        .map((item) => item.label)
-        .firstOrNull ??
+    final headerLabel = _labelForMenuId(selectedId) ??
         (widget.menuItems.isNotEmpty ? widget.menuItems.first.label : '');
 
     final palette = context.churchPalette;
@@ -161,12 +251,7 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
                           padding: EdgeInsets.zero,
                           children: [
                             ...widget.menuItems.map(
-                              (item) => _DrawerMenuTile(
-                                icon: item.icon,
-                                label: item.label,
-                                isActive: item.id == selectedId,
-                                onTap: () => _onItemTap(item),
-                              ),
+                              (item) => _buildMenuEntry(item, selectedId),
                             ),
                           ],
                         ),
@@ -323,6 +408,8 @@ class _DrawerMenuTile extends StatelessWidget {
     required this.onTap,
     this.isActive = false,
     this.iconColor,
+    this.trailing,
+    this.dense = false,
   });
 
   final IconData icon;
@@ -330,6 +417,8 @@ class _DrawerMenuTile extends StatelessWidget {
   final VoidCallback onTap;
   final bool isActive;
   final Color? iconColor;
+  final Widget? trailing;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
@@ -339,13 +428,16 @@ class _DrawerMenuTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: dense ? 10 : 14,
+          ),
           child: Row(
             children: [
               Icon(
                 icon,
                 color: iconColor ?? palette.textSecondary,
-                size: 24,
+                size: dense ? 22 : 24,
               ),
               const SizedBox(width: 28),
               Expanded(
@@ -353,11 +445,12 @@ class _DrawerMenuTile extends StatelessWidget {
                   label,
                   style: TextStyle(
                     color: iconColor ?? palette.onSurface,
-                    fontSize: 16,
+                    fontSize: dense ? 15 : 16,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),
               ),
+              if (trailing != null) trailing!,
             ],
           ),
         ),

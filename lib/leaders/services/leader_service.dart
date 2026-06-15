@@ -2,8 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../auth/models/app_user_role.dart';
 import '../../auth/services/user_profile_service.dart';
+import '../../core/search/firestore_search_text.dart';
 import '../../l10n/app_localizations.dart';
+import '../../members/services/member_service.dart';
 import '../models/church_leader.dart';
+import '../models/church_office.dart';
+import '../models/leaders_page.dart';
 
 class LeaderService {
   LeaderService({
@@ -16,6 +20,8 @@ class LeaderService {
   final CollectionReference<Map<String, dynamic>> _leaders;
   final UserProfileService _userProfileService;
 
+  static const int leadersPageSize = 50;
+
   Stream<List<ChurchLeader>> watchLeaders({String? churchId}) {
     final query = churchId != null && churchId.isNotEmpty
         ? _leaders.where('churchId', isEqualTo: churchId)
@@ -27,9 +33,150 @@ class LeaderService {
     });
   }
 
+  /// Lista paginada de líderes (sin listener en tiempo real).
+  Future<LeadersPage> fetchLeadersPage({
+    String? churchId,
+    String? searchQuery,
+    DocumentSnapshot<Map<String, dynamic>>? startAfter,
+    bool hideBlocked = false,
+    int limit = leadersPageSize,
+  }) async {
+    final trimmedSearch = normalizeSearchText(searchQuery ?? '');
+    final hasSearch = trimmedSearch.isNotEmpty;
+
+    if (hasSearch) {
+      return _fetchLeadersClientSearchPage(
+        churchId: churchId,
+        trimmedSearch: trimmedSearch,
+        hideBlocked: hideBlocked,
+      );
+    }
+
+    Query<Map<String, dynamic>> query = _leaders;
+    if (churchId != null && churchId.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: churchId);
+    }
+    if (hideBlocked) {
+      query = query.where('isBlocked', isEqualTo: false);
+    }
+
+    query = query.orderBy('registeredAt', descending: true);
+
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
+    final snapshot = await query.limit(limit + 1).get();
+    final docs = snapshot.docs;
+    final hasMore = docs.length > limit;
+    final pageDocs = hasMore ? docs.sublist(0, limit) : docs;
+
+    return LeadersPage(
+      leaders: pageDocs.map(ChurchLeader.fromFirestore).toList(),
+      hasMore: hasMore,
+      lastDocument: pageDocs.isEmpty ? startAfter : pageDocs.last,
+    );
+  }
+
+  /// Búsqueda en memoria: recorre líderes y filtra por nombre, teléfono, etc.
+  Future<LeadersPage> _fetchLeadersClientSearchPage({
+    String? churchId,
+    required String trimmedSearch,
+    required bool hideBlocked,
+  }) async {
+    final matches = <ChurchLeader>[];
+    DocumentSnapshot<Map<String, dynamic>>? cursor;
+
+    while (true) {
+      Query<Map<String, dynamic>> query = _leaders;
+      if (churchId != null && churchId.isNotEmpty) {
+        query = query.where('churchId', isEqualTo: churchId);
+      }
+      if (hideBlocked) {
+        query = query.where('isBlocked', isEqualTo: false);
+      }
+      query = query.orderBy('registeredAt', descending: true);
+      if (cursor != null) {
+        query = query.startAfterDocument(cursor);
+      }
+
+      final snapshot = await query.limit(leadersPageSize).get();
+      if (snapshot.docs.isEmpty) break;
+
+      for (final doc in snapshot.docs) {
+        final leader = ChurchLeader.fromFirestore(doc);
+        if (leader.matchesSearchQuery(trimmedSearch)) {
+          matches.add(leader);
+        }
+      }
+
+      cursor = snapshot.docs.last;
+      if (snapshot.docs.length < leadersPageSize) break;
+    }
+
+    matches.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
+
+    return LeadersPage(
+      leaders: matches,
+      hasMore: false,
+      lastDocument: null,
+    );
+  }
+
+  /// Exportación o mapa: recorre todas las páginas del filtro activo.
+  Future<List<ChurchLeader>> fetchAllLeadersForExport({
+    String? churchId,
+    String? searchQuery,
+    bool hideBlocked = false,
+  }) async {
+    final all = <ChurchLeader>[];
+    DocumentSnapshot<Map<String, dynamic>>? cursor;
+
+    while (true) {
+      final page = await fetchLeadersPage(
+        churchId: churchId,
+        searchQuery: searchQuery,
+        startAfter: cursor,
+        hideBlocked: hideBlocked,
+        limit: leadersPageSize,
+      );
+      all.addAll(page.leaders);
+      if (!page.hasMore || page.lastDocument == null) break;
+      cursor = page.lastDocument;
+    }
+
+    return all;
+  }
+
+  Future<int> fetchBlockedLeadersCount({String? churchId}) async {
+    Query<Map<String, dynamic>> query =
+        _leaders.where('isBlocked', isEqualTo: true);
+    if (churchId != null && churchId.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: churchId);
+    }
+    final snapshot = await query.count().get();
+    return snapshot.count ?? 0;
+  }
+
   Future<String> addLeader(ChurchLeader leader) async {
     final doc = await _leaders.add(leader.toMap());
     return doc.id;
+  }
+
+  Future<String> addLeaderWithMember({
+    required ChurchLeader leader,
+    required String registeredBy,
+    String? existingMemberId,
+    MemberService? memberService,
+  }) async {
+    final leaderId = await addLeader(leader);
+    await (memberService ?? MemberService()).syncMemberForPromotedLeader(
+      leader: leader,
+      leaderId: leaderId,
+      registeredBy: registeredBy,
+      existingMemberId: existingMemberId,
+    );
+    return leaderId;
   }
 
   Future<void> updateLeader(ChurchLeader leader) {
@@ -79,8 +226,23 @@ class LeaderService {
     return snapshot.docs.map(ChurchLeader.fromFirestore).toList();
   }
 
-  /// Líderes cuya cuenta en `users` incluye el rol `leader`.
-  Future<bool> hasLeaderAppRole(ChurchLeader leader) async {
+  static const _pastoralAssignmentRoles = {
+    AppUserRole.leader,
+    AppUserRole.supervisor,
+  };
+
+  static bool rolesAllowPastoralAssignment(List<String> roles) {
+    if (roles.contains(AppUserRole.registrar)) return false;
+    return roles.any(_pastoralAssignmentRoles.contains);
+  }
+
+  /// Cuenta en `users` con rol líder o supervisor (asignación pastoral).
+  Future<bool> hasPastoralAssignmentAppRole(ChurchLeader leader) async {
+    final docRoles = leader.appRoles;
+    if (docRoles != null && docRoles.isNotEmpty) {
+      return rolesAllowPastoralAssignment(docRoles);
+    }
+
     final authUserId = leader.authUserId?.trim();
     if (authUserId == null || authUserId.isEmpty) return false;
 
@@ -92,29 +254,72 @@ class LeaderService {
       final roles = AppUserRole.parseList(data['roles']);
       final rolesFinal =
           roles.isNotEmpty ? roles : AppUserRole.parseList(data['role']);
-      return rolesFinal.contains(AppUserRole.leader);
+      if (rolesFinal.contains(AppUserRole.registrar)) return false;
+      return rolesAllowPastoralAssignment(rolesFinal);
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
-        // Cuenta vinculada en `leaders`; no se pudo verificar rol en `users`.
-        return true;
+        return false;
       }
       rethrow;
     }
   }
 
-  Future<List<ChurchLeader>> fetchAssignableLeaders({String? churchId}) async {
-    final leaders = (await fetchAllLeaders(churchId: churchId))
+  static bool isLeaderOrSupervisorInCollection(ChurchLeader leader) {
+    final roles = leader.appRoles;
+    if (roles != null && roles.isNotEmpty) {
+      return rolesAllowPastoralAssignment(roles);
+    }
+    return leader.churchOffice == ChurchOffice.lideres;
+  }
+
+  /// Líderes y supervisores de la iglesia según la colección `leaders`.
+  Future<int> countLeadersAndSupervisorsInChurch({String? churchId}) async {
+    var leaders = (await fetchAllLeaders(churchId: churchId))
         .where((leader) => !leader.isBlocked)
         .toList();
     final normalizedChurchId = churchId?.trim();
     if (normalizedChurchId != null && normalizedChurchId.isNotEmpty) {
-      // Registrador/admin: la colección `leaders` ya está filtrada por iglesia.
-      return leaders;
+      leaders = leaders
+          .where((leader) => leader.belongsToChurch(normalizedChurchId))
+          .toList();
+    }
+    return leaders.where(isLeaderOrSupervisorInCollection).length;
+  }
+
+  Future<int> countLeadersWithPastoralRole({String? churchId}) async {
+    var leaders = (await fetchAllLeaders(churchId: churchId))
+        .where((leader) => !leader.isBlocked)
+        .toList();
+    final normalizedChurchId = churchId?.trim();
+    if (normalizedChurchId != null && normalizedChurchId.isNotEmpty) {
+      leaders = leaders
+          .where((leader) => leader.belongsToChurch(normalizedChurchId))
+          .toList();
+    }
+
+    var count = 0;
+    for (final leader in leaders) {
+      if (await hasPastoralAssignmentAppRole(leader)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  Future<List<ChurchLeader>> fetchAssignableLeaders({String? churchId}) async {
+    var leaders = (await fetchAllLeaders(churchId: churchId))
+        .where((leader) => !leader.isBlocked)
+        .toList();
+    final normalizedChurchId = churchId?.trim();
+    if (normalizedChurchId != null && normalizedChurchId.isNotEmpty) {
+      leaders = leaders
+          .where((leader) => leader.belongsToChurch(normalizedChurchId))
+          .toList();
     }
 
     final results = await Future.wait(
       leaders.map((leader) async {
-        if (await hasLeaderAppRole(leader)) return leader;
+        if (await hasPastoralAssignmentAppRole(leader)) return leader;
         return null;
       }),
     );

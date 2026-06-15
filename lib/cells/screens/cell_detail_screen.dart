@@ -1,0 +1,726 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+
+import '../../auth/models/app_permissions.dart';
+import '../../core/locale/l10n_extensions.dart';
+import '../../core/locale/weekday_labels.dart';
+import '../../l10n/app_localizations.dart';
+import '../models/cell_attendance_session.dart';
+import '../models/cell_helper.dart';
+import '../models/church_cell.dart';
+import '../services/cell_attendance_service.dart';
+import '../services/cell_service.dart';
+import '../../members/models/church_member.dart';
+import '../../members/services/member_service.dart';
+import 'assign_cell_members_screen.dart';
+import 'register_cell_attendance_screen.dart';
+import 'register_cell_member_screen.dart';
+import 'register_cell_screen.dart';
+
+class CellDetailScreen extends StatefulWidget {
+  const CellDetailScreen({
+    super.key,
+    required this.cell,
+    required this.registeredBy,
+    this.cellService,
+    this.permissions,
+    this.actingLeaderId,
+  });
+
+  final ChurchCell cell;
+  final String registeredBy;
+  final CellService? cellService;
+  final AppPermissions? permissions;
+  final String? actingLeaderId;
+
+  @override
+  State<CellDetailScreen> createState() => _CellDetailScreenState();
+}
+
+class _CellDetailScreenState extends State<CellDetailScreen> {
+  late ChurchCell _cell;
+  StreamSubscription<ChurchCell?>? _cellSubscription;
+  bool _savingHelpers = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _cell = widget.cell;
+    _listenToCellUpdates();
+  }
+
+  @override
+  void dispose() {
+    _cellSubscription?.cancel();
+    super.dispose();
+  }
+
+  AppPermissions get _permissions =>
+      widget.permissions ?? AppPermissions.adminDefault();
+
+  CellService get _cellService => widget.cellService ?? CellService();
+
+  CellAttendanceService get _attendanceService => CellAttendanceService();
+
+  MemberService get _memberService => MemberService();
+
+  bool get _canRegisterAttendance => _permissions.canRegisterCellAttendance(
+        _cell,
+        actingLeaderId: widget.actingLeaderId,
+      );
+
+  bool get _canManageHelpers => _permissions.canManageCellHelpers(
+        _cell.leaderId,
+        actingLeaderId: widget.actingLeaderId,
+      );
+
+  void _listenToCellUpdates() {
+    final cellId = widget.cell.id;
+    if (cellId == null || cellId.isEmpty) return;
+
+    _cellSubscription = _cellService.watchCellById(cellId).listen((fresh) {
+      if (fresh != null && mounted) {
+        setState(() => _cell = fresh);
+      }
+    });
+  }
+
+  Future<void> _openEdit() async {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => RegisterCellScreen(
+          registeredBy: widget.registeredBy,
+          churchId: _cell.churchId ?? _permissions.churchId,
+          cellToEdit: _cell,
+          cellService: widget.cellService,
+          permissions: _permissions,
+        ),
+      ),
+    );
+    if (updated != true || !mounted) return;
+
+    final cellId = _cell.id;
+    if (cellId == null || cellId.isEmpty) return;
+
+    final fresh = await _cellService.fetchCellById(cellId);
+    if (fresh != null && mounted) {
+      setState(() => _cell = fresh);
+    }
+  }
+
+  Future<void> _openRegisterMember() async {
+    final cellId = _cell.id;
+    if (cellId == null || cellId.isEmpty) return;
+
+    final count = await _memberService.countMembersInCell(cellId);
+    if (!_permissions.canRegisterNewCellMember(
+      _cell,
+      currentMemberCount: count,
+      actingLeaderId: widget.actingLeaderId,
+    )) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            MemberService.messageForCellAssignmentLeaderOnly(context.l10n),
+          ),
+        ),
+      );
+      return;
+    }
+
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => RegisterCellMemberScreen(
+          cell: _cell,
+          registeredBy: widget.registeredBy,
+          churchId: _cell.churchId ?? _permissions.churchId,
+          permissions: _permissions,
+          actingLeaderId: widget.actingLeaderId,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openRegisterAttendance() async {
+    final cellId = _cell.id;
+    if (cellId == null || cellId.isEmpty) return;
+
+    final count = await _memberService.countMembersInCell(cellId);
+    if (count == 0) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.cellAttendanceNoDisciples)),
+      );
+      return;
+    }
+
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => RegisterCellAttendanceScreen(
+          cell: _cell,
+          registeredBy: widget.registeredBy,
+          actingLeaderId: widget.actingLeaderId,
+          permissions: _permissions,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openAssignMembers() async {
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => AssignCellMembersScreen(
+          cell: _cell,
+          registeredBy: widget.registeredBy,
+          permissions: _permissions,
+          actingLeaderId: widget.actingLeaderId,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openSelectHelpers(List<ChurchMember> members) async {
+    final l10n = context.l10n;
+    final cellId = _cell.id;
+    if (cellId == null || cellId.isEmpty || members.isEmpty) return;
+
+    final selectedIds = _cell.helpers.map((helper) => helper.memberId).toSet();
+
+    final result = await showModalBottomSheet<Set<String>>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) {
+        final sheetSelected = Set<String>.from(selectedIds);
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  bottom: MediaQuery.viewInsetsOf(context).bottom + 16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      l10n.cellHelpersSelectAction,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.cellHelpersHint(ChurchCell.maxHelpers),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        l10n.cellHelpersCount(
+                          sheetSelected.length,
+                          ChurchCell.maxHelpers,
+                        ),
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                    ),
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: members.length,
+                        itemBuilder: (context, index) {
+                          final member = members[index];
+                          final memberId = member.id;
+                          if (memberId == null || memberId.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          final isSelected = sheetSelected.contains(memberId);
+                          return CheckboxListTile(
+                            value: isSelected,
+                            onChanged: (checked) {
+                              setSheetState(() {
+                                if (checked == true) {
+                                  if (sheetSelected.length >=
+                                      ChurchCell.maxHelpers) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          l10n.cellHelpersMaxReached(
+                                            ChurchCell.maxHelpers,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  sheetSelected.add(memberId);
+                                } else {
+                                  sheetSelected.remove(memberId);
+                                }
+                              });
+                            },
+                            title: Text(member.fullName),
+                            subtitle: Text(member.phone),
+                            secondary: CircleAvatar(
+                              child: Text(
+                                member.fullName.isNotEmpty
+                                    ? member.fullName[0].toUpperCase()
+                                    : '?',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(ctx, sheetSelected),
+                      child: Text(l10n.commonSave),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (result == null || !mounted) return;
+    await _saveHelpers(members, result);
+  }
+
+  Future<void> _saveHelpers(
+    List<ChurchMember> members,
+    Set<String> selectedIds,
+  ) async {
+    final l10n = context.l10n;
+    final cellId = _cell.id;
+    if (cellId == null || cellId.isEmpty) return;
+
+    final membersById = {
+      for (final member in members)
+        if (member.id != null && member.id!.isNotEmpty) member.id!: member,
+    };
+
+    final helpers = selectedIds
+        .map((id) => membersById[id])
+        .whereType<ChurchMember>()
+        .map(
+          (member) => CellHelper(
+            memberId: member.id!,
+            fullName: member.fullName,
+          ),
+        )
+        .toList();
+
+    setState(() => _savingHelpers = true);
+    try {
+      await _cellService.updateCellHelpers(
+        cellId: cellId,
+        helpers: helpers,
+      );
+      await _memberService.clearNewBelieverForCellHelpers(selectedIds);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.cellHelpersSaved)),
+      );
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            CellService.messageFromFirestoreException(e, l10n),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _savingHelpers = false);
+    }
+  }
+
+  Widget _attendanceHistorySection(AppLocalizations l10n, String cellId) {
+    return StreamBuilder<List<CellAttendanceSession>>(
+      stream: _attendanceService.watchSessions(cellId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
+          return const SizedBox.shrink();
+        }
+
+        final sessions = snapshot.data ?? [];
+        if (sessions.isEmpty) return const SizedBox.shrink();
+
+        final recent = sessions.take(3).toList();
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              leading: const Icon(Icons.history_outlined),
+              title: Text(
+                l10n.cellAttendanceHistoryTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              subtitle: Text(l10n.cellAttendanceHistoryRecentCount(recent.length)),
+              children: recent.map((session) {
+                final dateText = _formatSessionDate(session.sessionDate);
+                final subtitleParts = <String>[
+                  '${l10n.cellAttendanceSessionTime}: ${session.sessionTime}',
+                  l10n.cellAttendancePresentCount(
+                    session.presentCount,
+                    session.totalCount,
+                  ),
+                ];
+                if (session.dayDiffersFromRegistered &&
+                    session.noteDayChangeForSession) {
+                  subtitleParts.add(l10n.cellAttendanceDayChangedBadge);
+                }
+                if (session.locationDiffersFromRegistered &&
+                    session.noteLocationChangeForSession) {
+                  subtitleParts.add(l10n.cellAttendanceLocationChangedBadge);
+                }
+                if (session.offeringCollected != null &&
+                    session.offeringCollected!.trim().isNotEmpty) {
+                  subtitleParts.add(
+                    l10n.cellAttendanceOfferingSummary(
+                      session.offeringCollected!.trim(),
+                    ),
+                  );
+                }
+                if (session.observations != null &&
+                    session.observations!.trim().isNotEmpty) {
+                  subtitleParts.add(session.observations!.trim());
+                }
+
+                return ListTile(
+                  leading: const Icon(Icons.event_available_outlined),
+                  title: Text(dateText),
+                  subtitle: Text(
+                    [
+                      ...subtitleParts,
+                      if (session.place.trim().isNotEmpty) session.place.trim(),
+                    ].join('\n'),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatSessionDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
+  }
+
+  List<_Row> _cellRows(AppLocalizations l10n) {
+    return [
+      _Row(l10n.cellRegCode, _cell.code),
+      _Row(l10n.cellRegName, _cell.name),
+      _Row(
+        l10n.cellRegMeetingDay,
+        localizedWeekday(l10n, _cell.cellDay),
+      ),
+      _Row(l10n.memberDetailSectionAddress, _cell.formattedAddress),
+      _Row(l10n.cellRegSectionLeader, _cell.leaderName),
+      _Row(l10n.cellRegNotes, _cell.notes),
+    ];
+  }
+
+  Widget _helpersSection(
+    AppLocalizations l10n,
+    List<ChurchMember> members,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.cellHelpersTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
+            Text(
+              l10n.cellHelpersCount(
+                _cell.helpers.length,
+                ChurchCell.maxHelpers,
+              ),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          l10n.cellHelpersHint(ChurchCell.maxHelpers),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: 12),
+        if (_cell.helpers.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              l10n.cellHelpersEmpty,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          )
+        else
+          ..._cell.helpers.map((helper) {
+            return Card(
+              child: ListTile(
+                leading: CircleAvatar(
+                  child: Text(
+                    helper.fullName.isNotEmpty
+                        ? helper.fullName[0].toUpperCase()
+                        : '?',
+                  ),
+                ),
+                title: Text(helper.fullName),
+                trailing: Chip(
+                  label: Text(l10n.cellHelpersBadge),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+            );
+          }),
+        if (_canManageHelpers && members.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _savingHelpers
+                ? null
+                : () => _openSelectHelpers(members),
+            icon: _savingHelpers
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.handshake_outlined),
+            label: Text(l10n.cellHelpersSelectAction),
+          ),
+        ],
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final cellId = _cell.id;
+    final helperIds = _cell.helpers.map((helper) => helper.memberId).toSet();
+
+    return StreamBuilder<List<ChurchMember>>(
+      stream: cellId == null || cellId.isEmpty
+          ? null
+          : _memberService.watchMembersInCell(cellId),
+      builder: (context, memberCountSnapshot) {
+        final memberCount = memberCountSnapshot.data?.length ?? 0;
+        final showRegisterFab = cellId != null &&
+            cellId.isNotEmpty &&
+            _permissions.canRegisterNewCellMember(
+              _cell,
+              currentMemberCount: memberCount,
+              actingLeaderId: widget.actingLeaderId,
+            );
+
+        return Scaffold(
+      appBar: AppBar(
+        title: Text(_cell.displayLabel),
+        actions: [
+          if (_permissions.canEditCell && cellId != null && cellId.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: l10n.commonEdit,
+              onPressed: _openEdit,
+            ),
+        ],
+      ),
+      floatingActionButton: showRegisterFab
+          ? FloatingActionButton.extended(
+              heroTag: 'cell_register_member',
+              onPressed: _openRegisterMember,
+              icon: const Icon(Icons.person_add_alt_1_outlined),
+              label: Text(l10n.cellMemberRegisterNew),
+            )
+          : null,
+      body: cellId == null || cellId.isEmpty
+          ? Center(child: Text(l10n.cellDiscipleCellMissing))
+          : ListView(
+              padding: const EdgeInsets.all(24),
+              children: [
+                _Section(title: l10n.cellRegSectionData, rows: _cellRows(l10n)),
+                const SizedBox(height: 16),
+                if (_permissions.canEditCell) ...[
+                  OutlinedButton.icon(
+                    onPressed: _openEdit,
+                    icon: const Icon(Icons.edit_outlined),
+                    label: Text(l10n.cellEditTitle),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (_permissions.canAssignCellMembersFor(
+                  _cell,
+                  actingLeaderId: widget.actingLeaderId,
+                )) ...[
+                  OutlinedButton.icon(
+                    onPressed: _openAssignMembers,
+                    icon: const Icon(Icons.group_add_outlined),
+                    label: Text(l10n.cellDetailAssignDisciplesAction),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                StreamBuilder<List<ChurchMember>>(
+                  stream: _memberService.watchMembersInCell(cellId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting &&
+                        !snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final members = snapshot.data ?? [];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (_canRegisterAttendance && members.isNotEmpty) ...[
+                          FilledButton.icon(
+                            onPressed: _openRegisterAttendance,
+                            icon: const Icon(Icons.event_available_outlined),
+                            label: Text(l10n.cellAttendanceRegisterTitle),
+                          ),
+                          const SizedBox(height: 16),
+                          _attendanceHistorySection(l10n, cellId),
+                          const SizedBox(height: 16),
+                        ],
+                        _helpersSection(l10n, members),
+                        Text(
+                          l10n.cellDiscipleListTitle,
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                        const SizedBox(height: 12),
+                        if (members.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Text(
+                              l10n.cellDiscipleListEmpty,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                            ),
+                          )
+                        else
+                          ...members.map((member) {
+                            final memberId = member.id;
+                            final isHelper = memberId != null &&
+                                helperIds.contains(memberId);
+                            return Card(
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  child: Text(
+                                    member.fullName.isNotEmpty
+                                        ? member.fullName[0].toUpperCase()
+                                        : '?',
+                                  ),
+                                ),
+                                title: Text(member.fullName),
+                                subtitle: Text(
+                                  [
+                                    member.phone,
+                                    if (isHelper) l10n.cellHelpersBadge,
+                                  ].join(' · '),
+                                ),
+                              ),
+                            );
+                          }),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+        );
+      },
+    );
+  }
+}
+
+class _Section extends StatelessWidget {
+  const _Section({required this.title, required this.rows});
+
+  final String title;
+  final List<_Row> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = rows.where((row) => row.hasValue).toList();
+    if (visible.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: Column(
+            children: visible
+                .map(
+                  (row) => ListTile(
+                    title: Text(row.label),
+                    subtitle: Text(row.value!),
+                    dense: true,
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Row {
+  const _Row(this.label, this.value);
+
+  final String label;
+  final String? value;
+
+  bool get hasValue => value != null && value!.trim().isNotEmpty;
+}

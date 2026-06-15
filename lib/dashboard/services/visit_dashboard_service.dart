@@ -74,24 +74,30 @@ class VisitDashboardService {
     final ids = leaderIds.toList()..sort();
     final visits = <MemberVisit>[];
     const batchSize = 10;
+    final batchFutures = <Future<QuerySnapshot<Map<String, dynamic>>>>[];
 
     for (var i = 0; i < ids.length; i += batchSize) {
       final end = i + batchSize > ids.length ? ids.length : i + batchSize;
       final batch = ids.sublist(i, end);
 
-      final snapshot = await _firestore
-          .collectionGroup('visits')
-          .where('leaderId', whereIn: batch)
-          .where(
-            'visitDate',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(rangeStart),
-          )
-          .where(
-            'visitDate',
-            isLessThanOrEqualTo: Timestamp.fromDate(rangeEnd),
-          )
-          .get();
+      batchFutures.add(
+        _firestore
+            .collectionGroup('visits')
+            .where('leaderId', whereIn: batch)
+            .where(
+              'visitDate',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(rangeStart),
+            )
+            .where(
+              'visitDate',
+              isLessThanOrEqualTo: Timestamp.fromDate(rangeEnd),
+            )
+            .get(),
+      );
+    }
 
+    final snapshots = await Future.wait(batchFutures);
+    for (final snapshot in snapshots) {
       visits.addAll(snapshot.docs.map(MemberVisit.fromFirestore));
     }
 

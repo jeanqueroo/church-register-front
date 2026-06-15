@@ -196,16 +196,21 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
   Future<Map<String, String>> _resolveLeaderNames(
     Iterable<String> leaderIds,
   ) async {
-    final names = <String, String>{};
-    for (final leaderId in leaderIds) {
-      try {
-        final leader = await _leaderService.fetchLeaderById(leaderId);
-        names[leaderId] = leader?.fullName ?? leaderId;
-      } catch (_) {
-        names[leaderId] = leaderId;
-      }
-    }
-    return names;
+    final uniqueIds = leaderIds.toSet().where((id) => id.isNotEmpty);
+    if (uniqueIds.isEmpty) return {};
+
+    final entries = await Future.wait(
+      uniqueIds.map((leaderId) async {
+        try {
+          final leader = await _leaderService.fetchLeaderById(leaderId);
+          return MapEntry(leaderId, leader?.fullName ?? leaderId);
+        } catch (_) {
+          return MapEntry(leaderId, leaderId);
+        }
+      }),
+    );
+
+    return Map.fromEntries(entries);
   }
 
   Future<void> _onPeriodChanged(VisitChartPeriod period) async {

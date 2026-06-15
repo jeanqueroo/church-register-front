@@ -15,6 +15,180 @@
         { "fieldPath": "leaderId", "order": "ASCENDING" },
         { "fieldPath": "visitDate", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "assignedCellId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "registeredAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "searchName", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "registeredAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "assignedLeaderId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assignedLeaderId", "order": "ASCENDING" },
+        { "fieldPath": "isNewBeliever", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "isNewBeliever", "order": "ASCENDING" },
+        { "fieldPath": "assignedLeaderId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "isNewBeliever", "order": "ASCENDING" },
+        { "fieldPath": "registeredAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "isNewBeliever", "order": "ASCENDING" },
+        { "fieldPath": "searchName", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "isNewBeliever", "order": "ASCENDING" },
+        { "fieldPath": "searchLastFirst", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "searchLastFirst", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isNewBeliever", "order": "ASCENDING" },
+        { "fieldPath": "searchName", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isNewBeliever", "order": "ASCENDING" },
+        { "fieldPath": "searchLastFirst", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isNewBeliever", "order": "ASCENDING" },
+        { "fieldPath": "registeredAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "assignmentKind", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "assigned", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "registeredAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "searchName", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "isBlocked", "order": "ASCENDING" },
+        { "fieldPath": "registeredAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "isBlocked", "order": "ASCENDING" },
+        { "fieldPath": "searchName", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "isBlocked", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [
@@ -23,6 +197,8 @@
       "fieldPath": "visitDate",
       "ttl": false,
       "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "order": "DESCENDING", "queryScope": "COLLECTION" },
         { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" },
         { "order": "DESCENDING", "queryScope": "COLLECTION_GROUP" }
       ]

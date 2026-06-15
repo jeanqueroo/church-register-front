@@ -51,7 +51,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
   final _firstNameController = TextEditingController();
   final _streetController = TextEditingController();
   final _streetNumberController = TextEditingController();
-  final _cellCodeController = TextEditingController();
   final _neighborhoodController = TextEditingController();
   final _localityController = TextEditingController();
   final _stateProvinceController = TextEditingController(text: 'Buenos Aires');
@@ -77,6 +76,21 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   bool _loadingRoles = false;
+
+  bool get _isVolunteerRegistrar =>
+      _churchOffice == ChurchOffice.voluntario;
+
+  Set<String> get _rolesForVolunteerRegistrar => {AppUserRole.registrar};
+
+  void _syncRolesForChurchOffice() {
+    if (_isVolunteerRegistrar) {
+      _selectedRoles = _rolesForVolunteerRegistrar;
+    }
+  }
+
+  bool get _hasValidVolunteerRegistrarRoles =>
+      _selectedRoles.contains(AppUserRole.registrar) &&
+      _selectedRoles.every((role) => role == AppUserRole.registrar);
 
   @override
   void initState() {
@@ -117,7 +131,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _firstNameController.text = leader.firstName;
     _streetController.text = leader.street ?? '';
     _streetNumberController.text = leader.streetNumber ?? '';
-    _cellCodeController.text = leader.cellCode ?? '';
     _neighborhoodController.text = leader.neighborhood ?? '';
     _localityController.text = leader.locality ?? '';
     _stateProvinceController.text = leader.stateProvince ?? 'Buenos Aires';
@@ -139,7 +152,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     setState(() {
       _churchOffice = value;
       if (value == ChurchOffice.voluntario) {
-        _selectedRoles = {AppUserRole.registrar};
+        _selectedRoles = _rolesForVolunteerRegistrar;
       } else if (_selectedRoles.length == 1 &&
           _selectedRoles.contains(AppUserRole.registrar)) {
         _selectedRoles = {AppUserRole.leader};
@@ -153,7 +166,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _firstNameController.dispose();
     _streetController.dispose();
     _streetNumberController.dispose();
-    _cellCodeController.dispose();
     _neighborhoodController.dispose();
     _localityController.dispose();
     _stateProvinceController.dispose();
@@ -308,8 +320,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
       _showMessage(l10n.leaderRegSelectAtLeastOneRole);
       return;
     }
-    if (_churchOffice == ChurchOffice.voluntario &&
-        _selectedRoles != {AppUserRole.registrar}) {
+    _syncRolesForChurchOffice();
+    if (_isVolunteerRegistrar && !_hasValidVolunteerRegistrarRoles) {
       _showMessage(l10n.assignableRolesVolunteerOnly);
       return;
     }
@@ -347,6 +359,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           );
         }
 
+        final roles =
+            AppUserRole.sanitizeForLeaderRegistration(_selectedRoles.toList());
+
         final leader = ChurchLeader(
           lastName: _lastNameController.text.trim(),
           firstName: _firstNameController.text.trim(),
@@ -356,9 +371,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           streetNumber: _streetNumberController.text.trim().isEmpty
               ? null
               : _streetNumberController.text.trim(),
-          cellCode: _cellCodeController.text.trim().isEmpty
-              ? null
-              : _cellCodeController.text.trim(),
           gender: _gender,
           idDocumentType: _idDocumentType,
           idDocumentNumber: _idDocumentNumberController.text.trim().isEmpty
@@ -386,15 +398,19 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           registeredBy: widget.registeredBy,
           churchId: widget.churchId,
           churchOffice: _churchOffice,
+          appRoles: roles,
         );
 
-        final leaderId = await _leaderService.addLeader(leader);
+        final leaderId = await _leaderService.addLeaderWithMember(
+          leader: leader,
+          registeredBy: widget.registeredBy,
+        );
 
         await _userProfileService.setLeaderProfile(
           uid: authUserId,
           email: email,
           leaderId: leaderId,
-          roles: _selectedRoles.toList(),
+          roles: roles,
           churchId: widget.churchId,
         );
 
@@ -403,6 +419,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         Navigator.of(context).pop(true);
         return;
       }
+
+      final roles =
+          AppUserRole.sanitizeForLeaderRegistration(_selectedRoles.toList());
 
       final leader = ChurchLeader(
         id: widget.leaderToEdit?.id,
@@ -414,9 +433,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         streetNumber: _streetNumberController.text.trim().isEmpty
             ? null
             : _streetNumberController.text.trim(),
-        cellCode: _cellCodeController.text.trim().isEmpty
-            ? null
-            : _cellCodeController.text.trim(),
+        cellCode: widget.leaderToEdit?.cellCode,
         gender: _gender,
         idDocumentType: _idDocumentType,
         idDocumentNumber: _idDocumentNumberController.text.trim().isEmpty
@@ -444,6 +461,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         registeredBy: widget.leaderToEdit?.registeredBy ?? widget.registeredBy,
         churchId: widget.leaderToEdit?.churchId ?? widget.churchId,
         churchOffice: _churchOffice,
+        appRoles: roles,
         isBlocked: widget.leaderToEdit?.isBlocked ?? false,
       );
 
@@ -453,7 +471,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
       if (authUserId != null && authUserId.isNotEmpty) {
         await _userProfileService.updateUserRoles(
           uid: authUserId,
-          roles: _selectedRoles.toList(),
+          roles: roles,
         );
       }
 
@@ -641,10 +659,17 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                   AssignableRolesSection(
                     selectedRoles: _selectedRoles,
                     enabled: !_isLoading,
-                    allowedRoles: _churchOffice == ChurchOffice.voluntario
+                    allowedRoles: _isVolunteerRegistrar
                         ? const [AppUserRole.registrar]
                         : null,
-                    onChanged: (roles) => setState(() => _selectedRoles = roles),
+                    lockRegistrarWhenOnly: _isVolunteerRegistrar,
+                    onChanged: (roles) => setState(() {
+                      if (_isVolunteerRegistrar) {
+                        _selectedRoles = _rolesForVolunteerRegistrar;
+                      } else {
+                        _selectedRoles = roles;
+                      }
+                    }),
                   ),
                 if (widget.isEditing && widget.leaderToEdit?.authUserId == null)
                   Padding(
@@ -660,18 +685,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                   ),
                 const SizedBox(height: 24),
                 FormSectionTitle(l10n.leaderDetailSectionCellContact),
-                TextFormField(
-                  controller: _cellCodeController,
-                  enabled: !_isLoading,
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: InputDecoration(
-                    labelText: l10n.leaderRegCell,
-                    hintText: l10n.leaderRegCellHint,
-                    prefixIcon: const Icon(Icons.groups_outlined),
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
                 TextFormField(
                   controller: _mobilePhoneController,
                   keyboardType: TextInputType.phone,

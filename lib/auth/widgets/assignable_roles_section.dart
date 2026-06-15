@@ -11,12 +11,15 @@ class AssignableRolesSection extends StatelessWidget {
     required this.onChanged,
     this.enabled = true,
     this.allowedRoles,
+    this.lockRegistrarWhenOnly = false,
   });
 
   final Set<String> selectedRoles;
   final ValueChanged<Set<String>> onChanged;
   final bool enabled;
   final List<String>? allowedRoles;
+  /// Impide quitar el rol registrador cuando el cargo es voluntario.
+  final bool lockRegistrarWhenOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +57,11 @@ class AssignableRolesSection extends StatelessWidget {
               selected: selected,
               onSelected: enabled && !roleDisabled
                   ? (value) {
+                      if (lockRegistrarWhenOnly &&
+                          role == AppUserRole.registrar &&
+                          !value) {
+                        return;
+                      }
                       final next = Set<String>.from(selectedRoles);
                       if (value) {
                         next.add(role);

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
@@ -57,11 +58,15 @@ class MemberVisitsSection extends StatelessWidget {
               }
 
               if (snapshot.hasError) {
+                final error = snapshot.error;
+                final detail = error is FirebaseException
+                    ? '${error.code}: ${error.message ?? ''}'.trim()
+                    : error.toString();
                 return Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      l10n.memberVisitsLoadError,
+                      '${l10n.memberVisitsLoadError}\n$detail',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),

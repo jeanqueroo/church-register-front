@@ -11,12 +11,16 @@ import '../../core/models/leader_gender.dart';
 import '../../core/widgets/church_display_name.dart';
 import '../../core/widgets/form_section_title.dart';
 import '../../l10n/app_localizations.dart';
+import '../../cells/cell_leader_gender.dart';
+import '../../cells/cell_member_capacity.dart';
+import '../../cells/models/church_cell.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../leaders/widgets/leader_search_field.dart';
 import '../models/church_member.dart';
 import '../models/id_document_type.dart';
 import '../models/marital_status.dart';
+import '../models/member_assignment_kind.dart';
 import '../models/member_entry_source.dart';
 import '../services/leader_assignment_service.dart';
 import '../services/member_service.dart';
@@ -28,7 +32,9 @@ class RegisterMemberScreen extends StatefulWidget {
     this.churchId,
     this.memberService,
     this.memberToEdit,
+    this.cellToAssign,
     this.permissions,
+    this.actingLeaderId,
   });
 
   final String registeredBy;
@@ -36,7 +42,10 @@ class RegisterMemberScreen extends StatefulWidget {
   final String? churchId;
   final MemberService? memberService;
   final ChurchMember? memberToEdit;
+  /// Si se indica, el creyente nuevo se asigna a esta célula al guardar.
+  final ChurchCell? cellToAssign;
   final AppPermissions? permissions;
+  final String? actingLeaderId;
 
   bool get isEditing => memberToEdit != null;
 
@@ -83,6 +92,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   DateTime _formDate = DateTime.now();
   DateTime? _birthDate;
   LeaderGender? _gender;
+  LeaderGender? _cellLeaderGender;
   IdDocumentType? _idDocumentType;
   MaritalStatus? _maritalStatus;
   MemberEntrySource? _entrySource;
@@ -124,8 +134,35 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     _memberService = widget.memberService ?? MemberService();
     if (widget.memberToEdit != null) {
       _loadMember(widget.memberToEdit!);
+    } else {
+      _applyCellDefaults(widget.cellToAssign);
+      if (widget.cellToAssign != null) {
+        _loadCellLeaderGender(widget.cellToAssign!);
+      }
     }
     _loadLeaders();
+  }
+
+  Future<void> _loadCellLeaderGender(ChurchCell cell) async {
+    try {
+      final gender = await fetchCellLeaderGender(cell);
+      if (!mounted) return;
+      setState(() {
+        _cellLeaderGender = gender;
+        if (gender != null) _gender = gender;
+      });
+    } catch (_) {
+      // Sin sexo del líder: la validación al guardar lo bloqueará.
+    }
+  }
+
+  void _applyCellDefaults(ChurchCell? cell) {
+    if (cell == null) return;
+
+    final cellDay = cell.cellDay?.trim();
+    if (cellDay != null && cellDay.isNotEmpty) {
+      _cellDay = cellDay;
+    }
   }
 
   Future<void> _loadLeaders() async {
@@ -437,6 +474,27 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         }
       }
 
+      final isCellRegistration =
+          !widget.isEditing && widget.cellToAssign != null;
+      if (isCellRegistration) {
+        assignedLeaderId = null;
+        assignedLeaderName = null;
+        assignedLeaderCellCode = null;
+        assignedDistanceKm = null;
+        assignedLeader = null;
+      }
+
+      final assignedLeaderFromRegistration = !isCellRegistration &&
+          assignedLeaderId != null &&
+          assignedLeaderId.isNotEmpty;
+      final assignmentKind = isCellRegistration ||
+              (widget.isEditing &&
+                  (widget.memberToEdit?.isAssignedToCell ?? false))
+          ? MemberAssignmentKind.cell
+          : (assignedLeaderFromRegistration
+              ? MemberAssignmentKind.pastoral
+              : (widget.isEditing ? widget.memberToEdit?.assignmentKind : null));
+
       final member = ChurchMember(
         id: widget.memberToEdit?.id,
         firstName: _firstNameController.text.trim(),
@@ -486,6 +544,8 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         assignedLeaderId: assignedLeaderId,
         assignedLeaderName: assignedLeaderName,
         assignedLeaderCellCode: assignedLeaderCellCode,
+        assignedLeaderFromRegistration: assignedLeaderFromRegistration,
+        assignmentKind: assignmentKind,
         assignedDistanceKm: assignedDistanceKm,
         wantsVisit: _wantsVisit,
         isNewBeliever: widget.isEditing
@@ -498,6 +558,40 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         churchId: widget.memberToEdit?.churchId ?? _effectiveChurchId,
       );
 
+      String? newMemberId;
+      final cellToAssign = widget.cellToAssign;
+      if (!widget.isEditing && cellToAssign != null) {
+        final cellId = cellToAssign.id;
+        if (cellId == null || cellId.isEmpty) {
+          throw ArgumentError('La célula debe tener id');
+        }
+        if (_cellLeaderGender == null) {
+          if (!mounted) return;
+          _showMessage(l10n.cellMemberAssignLeaderGenderMissing);
+          return;
+        }
+        if (!memberMatchesCellLeaderGender(
+          memberGender: _gender,
+          leaderGender: _cellLeaderGender,
+        )) {
+          if (!mounted) return;
+          _showMessage(l10n.cellMemberAssignGenderMismatch);
+          return;
+        }
+        final currentCount = await _memberService.countMembersInCell(cellId);
+        if (!widget._permissions.canRegisterNewCellMember(
+          cellToAssign,
+          currentMemberCount: currentCount,
+          actingLeaderId: widget.actingLeaderId,
+        )) {
+          if (!mounted) return;
+          _showMessage(
+            MemberService.messageForCellAssignmentLeaderOnly(l10n),
+          );
+          return;
+        }
+      }
+
       if (widget.isEditing) {
         await _memberService.updateMember(
           member,
@@ -505,13 +599,52 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
               widget.memberToEdit?.assignedLeaderId,
         );
       } else {
-        await _memberService.addMember(member);
+        newMemberId = await _memberService.addMember(
+          member,
+          notifyLeader: cellToAssign == null,
+        );
+      }
+
+      var capacityExceeded = false;
+      if (!widget.isEditing &&
+          cellToAssign != null &&
+          newMemberId != null &&
+          newMemberId.isNotEmpty) {
+        capacityExceeded = await _memberService.assignMemberToCell(
+          member: ChurchMember(
+            id: newMemberId,
+            firstName: member.firstName,
+            lastName: member.lastName,
+            phone: member.phone,
+            gender: member.gender,
+            formDate: member.formDate,
+            registeredAt: member.registeredAt,
+            registeredBy: member.registeredBy,
+            assignedLeaderId: member.assignedLeaderId,
+            churchId: member.churchId,
+          ),
+          cell: cellToAssign,
+          actingLeaderId: widget.actingLeaderId,
+          requiredLeaderGender: _cellLeaderGender,
+          allowExceedCapacityForNewRegistration: true,
+        );
       }
 
       if (!mounted) return;
 
       if (widget.isEditing) {
         _showMessage(l10n.memberUpdatedSuccess);
+      } else if (cellToAssign != null) {
+        if (capacityExceeded) {
+          _showMessage(l10n.cellMemberCapacityAdminNotified);
+        } else {
+          _showMessage(
+            l10n.cellMemberRegisteredAndAssigned(
+              member.fullName,
+              cellToAssign.displayLabel,
+            ),
+          );
+        }
       } else if (assignedLeaderName != null) {
         final cellText = assignedLeaderCellCode != null
             ? l10n.memberCellCodeSuffix(assignedLeaderCellCode)
@@ -532,6 +665,10 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         _showMessage(l10n.memberRegisteredSuccess);
       }
       Navigator.of(context).pop(true);
+    } on CellAssignmentLeaderOnlyException {
+      if (mounted) {
+        _showMessage(MemberService.messageForCellAssignmentLeaderOnly(l10n));
+      }
     } on FirebaseException catch (e) {
       if (mounted) {
         _showMessage(MemberService.messageFromFirestoreException(e, l10n));
@@ -663,6 +800,11 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   }
 
   Widget _genderSelector(AppLocalizations l10n) {
+    final lockedGender =
+        !widget.isEditing && widget.cellToAssign != null ? _cellLeaderGender : null;
+    final genders =
+        lockedGender != null ? [lockedGender] : LeaderGender.values;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -672,14 +814,25 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                 fontWeight: FontWeight.w500,
               ),
         ),
+        if (lockedGender != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            l10n.cellMemberRegisterGenderLocked(
+              lockedGender.localizedLabel(l10n),
+            ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
-          children: LeaderGender.values.map((g) {
+          children: genders.map((g) {
             return FilterChip(
               label: Text(g.localizedLabel(l10n)),
               selected: _gender == g,
-              onSelected: _isLoading
+              onSelected: lockedGender != null || _isLoading
                   ? null
                   : (v) => setState(() {
                         _gender = v ? g : null;
@@ -713,7 +866,11 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       child: Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.isEditing ? l10n.memberEditTitle : l10n.memberRegisterTitle,
+          widget.isEditing
+              ? l10n.memberEditTitle
+              : widget.cellToAssign != null
+                  ? l10n.cellMemberRegisterTitle
+                  : l10n.memberRegisterTitle,
         ),
       ),
       body: SafeArea(

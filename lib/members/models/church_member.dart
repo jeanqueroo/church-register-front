@@ -2,9 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
+import '../../core/search/firestore_search_text.dart';
+import '../../l10n/app_localizations.dart';
 import 'id_document_type.dart';
 import 'marital_status.dart';
+import 'member_assignment_kind.dart';
 import 'member_entry_source.dart';
+import 'member_leadership_status.dart';
+import 'spiritual_state.dart';
 
 class ChurchMember {
   const ChurchMember({
@@ -34,14 +39,23 @@ class ChurchMember {
     this.assignedLeaderId,
     this.assignedLeaderName,
     this.assignedLeaderCellCode,
+    this.assignedLeaderFromRegistration,
+    this.assignmentKind,
+    this.assignedCellId,
+    this.assignedCellCode,
+    this.spiritualState,
     this.assignedDistanceKm,
     this.wantsVisit = true,
     this.isNewBeliever = false,
     this.entrySource,
+    this.entrySourceStored,
     required this.formDate,
     required this.registeredAt,
     required this.registeredBy,
     this.churchId,
+    this.leadershipStatus,
+    this.linkedLeaderId,
+    this.promotedToLeaderAt,
   });
 
   final String? id;
@@ -70,18 +84,131 @@ class ChurchMember {
   final String? assignedLeaderId;
   final String? assignedLeaderName;
   final String? assignedLeaderCellCode;
+  /// `true` si el líder se asignó en el registro/edición pastoral (no por célula).
+  final bool? assignedLeaderFromRegistration;
+  /// Distingue asignación pastoral vs integrante de célula.
+  final MemberAssignmentKind? assignmentKind;
+  final String? assignedCellId;
+  final String? assignedCellCode;
+  final SpiritualState? spiritualState;
   final double? assignedDistanceKm;
   final bool wantsVisit;
   /// `true` al registrar por primera vez; se conserva en ediciones posteriores.
   final bool isNewBeliever;
   final MemberEntrySource? entrySource;
+  final String? entrySourceStored;
   final DateTime formDate;
+
+  String? entrySourceLabel(AppLocalizations l10n) =>
+      MemberEntrySource.storedValueLabel(
+        entrySource?.name ?? entrySourceStored,
+        l10n,
+      );
   final DateTime registeredAt;
   final String registeredBy;
   final String? churchId;
+  /// Estado cuando el integrante pasa a ser líder (p. ej. al dividir célula).
+  final MemberLeadershipStatus? leadershipStatus;
+  /// Id del documento en `leaders` vinculado a este integrante.
+  final String? linkedLeaderId;
+  final DateTime? promotedToLeaderAt;
+
+  bool get hasBeenPromotedToLeader =>
+      leadershipStatus == MemberLeadershipStatus.promotedToLeader;
+
+  bool get hasBeenPromotedToVolunteer =>
+      leadershipStatus == MemberLeadershipStatus.promotedToVolunteer;
+
+  bool get hasPromotedLeadershipStatus =>
+      hasBeenPromotedToLeader || hasBeenPromotedToVolunteer;
+
+  String? leadershipStatusLabel(AppLocalizations l10n) =>
+      leadershipStatus?.localizedLabel(l10n);
 
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
+
+  /// Índice en minúsculas para búsqueda por prefijo (nombre + apellido).
+  String buildSearchIndex() {
+    return joinSearchParts([
+      fullName,
+      firstName,
+      lastName,
+      phone,
+      assignedLeaderName,
+      assignedLeaderCellCode,
+      assignedCellCode,
+      locality,
+      neighborhood,
+      cellZone,
+      occupation,
+      volunteer,
+      maritalStatus?.label,
+      entrySource?.name ?? entrySourceStored,
+      gender?.label,
+      idDocumentNumber,
+    ]);
+  }
+
+  /// Índice alterno (apellido primero) para búsqueda por apellido.
+  String buildSearchLastFirstIndex() {
+    return joinSearchParts([
+      lastName,
+      firstName,
+      fullName,
+      phone,
+      assignedLeaderName,
+      assignedLeaderCellCode,
+      assignedCellCode,
+      locality,
+      neighborhood,
+      cellZone,
+      occupation,
+      volunteer,
+      maritalStatus?.label,
+      entrySource?.name ?? entrySourceStored,
+      gender?.label,
+      idDocumentNumber,
+    ]);
+  }
+
+  /// Coincide con la consulta (contiene todas las palabras, sin depender de Firestore).
+  bool matchesSearchQuery(String query) {
+    final normalizedQuery = normalizeSearchText(query);
+    if (normalizedQuery.isEmpty) return true;
+
+    final haystack = '${buildSearchIndex()} ${buildSearchLastFirstIndex()}';
+    final terms = normalizedQuery
+        .split(RegExp(r'\s+'))
+        .where((term) => term.isNotEmpty);
+    return terms.every(haystack.contains);
+  }
+
+  bool get isAssignedToCell =>
+      assignedCellId != null && assignedCellId!.trim().isNotEmpty;
+
+  /// Integrante con líder pastoral asignado en el flujo de registro (no célula).
+  bool get isPastoralLeaderAssignment {
+    if (assignmentKind == MemberAssignmentKind.pastoral) return true;
+    if (assignmentKind == MemberAssignmentKind.cell) return false;
+
+    final leaderId = assignedLeaderId?.trim();
+    if (leaderId == null || leaderId.isEmpty) return false;
+    if (assignedLeaderFromRegistration == true) return true;
+    if (assignedLeaderFromRegistration == false) return false;
+    // Datos anteriores al campo: sin célula se asume registro pastoral.
+    return !isAssignedToCell;
+  }
+
+  /// Integrante asignado a una célula (discípulo de célula).
+  bool get isCellMemberAssignment {
+    if (assignmentKind == MemberAssignmentKind.cell) return true;
+    if (assignmentKind == MemberAssignmentKind.pastoral) return false;
+    return isAssignedToCell;
+  }
+
+  String? assignmentKindLabel(AppLocalizations l10n) =>
+      assignmentKind?.label(l10n);
 
   /// Edad en años completos según la fecha de nacimiento.
   int? get age {
@@ -138,6 +265,14 @@ class ChurchMember {
       'assignedLeaderId': assignedLeaderId,
       'assignedLeaderName': assignedLeaderName,
       'assignedLeaderCellCode': assignedLeaderCellCode,
+      if (assignedLeaderFromRegistration != null)
+        'assignedLeaderFromRegistration': assignedLeaderFromRegistration,
+      if (assignmentKind != null) 'assignmentKind': assignmentKind!.storageKey,
+      if (assignedCellId != null && assignedCellId!.isNotEmpty)
+        'assignedCellId': assignedCellId,
+      if (assignedCellCode != null && assignedCellCode!.isNotEmpty)
+        'assignedCellCode': assignedCellCode,
+      if (spiritualState != null) 'spiritualState': spiritualState!.name,
       'assignedDistanceKm': assignedDistanceKm,
       'wantsVisit': wantsVisit,
       'isNewBeliever': isNewBeliever,
@@ -145,7 +280,15 @@ class ChurchMember {
       'formDate': Timestamp.fromDate(formDate),
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
+      'searchName': buildSearchIndex(),
+      'searchLastFirst': buildSearchLastFirstIndex(),
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
+      if (leadershipStatus != null)
+        'leadershipStatus': leadershipStatus!.name,
+      if (linkedLeaderId != null && linkedLeaderId!.isNotEmpty)
+        'linkedLeaderId': linkedLeaderId,
+      if (promotedToLeaderAt != null)
+        'promotedToLeaderAt': Timestamp.fromDate(promotedToLeaderAt!),
     };
   }
 
@@ -202,16 +345,31 @@ class ChurchMember {
       assignedLeaderId: data['assignedLeaderId'] as String?,
       assignedLeaderName: data['assignedLeaderName'] as String?,
       assignedLeaderCellCode: data['assignedLeaderCellCode'] as String?,
+      assignedLeaderFromRegistration:
+          data['assignedLeaderFromRegistration'] as bool?,
+      assignmentKind:
+          MemberAssignmentKind.fromString(data['assignmentKind'] as String?),
+      assignedCellId: data['assignedCellId'] as String?,
+      assignedCellCode: data['assignedCellCode'] as String?,
+      spiritualState:
+          SpiritualState.fromString(data['spiritualState'] as String?),
       assignedDistanceKm: (data['assignedDistanceKm'] as num?)?.toDouble(),
       wantsVisit: data['wantsVisit'] as bool? ?? true,
       isNewBeliever: data['isNewBeliever'] as bool? ?? false,
       entrySource:
           MemberEntrySource.fromString(data['entrySource'] as String?),
+      entrySourceStored: data['entrySource'] as String?,
       formDate: (data['formDate'] as Timestamp?)?.toDate() ??
           (data['registeredAt'] as Timestamp).toDate(),
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,
+      leadershipStatus: MemberLeadershipStatus.fromString(
+        data['leadershipStatus'] as String?,
+      ),
+      linkedLeaderId: data['linkedLeaderId'] as String?,
+      promotedToLeaderAt:
+          (data['promotedToLeaderAt'] as Timestamp?)?.toDate(),
     );
   }
 }

@@ -7,8 +7,10 @@ import '../../l10n/app_localizations.dart';
 
 class UserProfileService {
   UserProfileService({FirebaseFirestore? firestore})
-      : _users = (firestore ?? FirebaseFirestore.instance).collection('users');
+      : _firestore = firestore ?? FirebaseFirestore.instance,
+        _users = (firestore ?? FirebaseFirestore.instance).collection('users');
 
+  final FirebaseFirestore _firestore;
   final CollectionReference<Map<String, dynamic>> _users;
 
   Future<void> setLeaderProfile({
@@ -49,8 +51,8 @@ class UserProfileService {
     required String email,
     required String churchId,
     required String leaderId,
-  }) {
-    return _users.doc(uid).set({
+  }) async {
+    await _users.doc(uid).set({
       'email': email.trim().toLowerCase(),
       'roles': [AppUserRole.admin],
       'churchId': churchId,
@@ -59,6 +61,14 @@ class UserProfileService {
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    if (churchId.isNotEmpty) {
+      await _firestore.collection('churches').doc(churchId).set(
+        {
+          'adminUserIds': FieldValue.arrayUnion([uid]),
+        },
+        SetOptions(merge: true),
+      );
+    }
   }
 
   Stream<List<AdminUserRecord>> watchChurchAdmins() {
@@ -74,12 +84,26 @@ class UserProfileService {
     });
   }
 
+  /// Garantiza que el admin figure en `churches/{id}.adminUserIds` (avisos de célula).
+  Future<void> ensureAdminListedOnChurch({
+    required String uid,
+    required String churchId,
+  }) async {
+    if (uid.isEmpty || churchId.isEmpty) return;
+    await _firestore.collection('churches').doc(churchId).set(
+      {
+        'adminUserIds': FieldValue.arrayUnion([uid]),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
   Future<void> updateAdminUser({
     required String uid,
     required String churchId,
     required String leaderId,
-  }) {
-    return _users.doc(uid).set(
+  }) async {
+    await _users.doc(uid).set(
       {
         'churchId': churchId,
         'leaderId': leaderId,
@@ -87,6 +111,14 @@ class UserProfileService {
       },
       SetOptions(merge: true),
     );
+    if (churchId.isNotEmpty) {
+      await _firestore.collection('churches').doc(churchId).set(
+        {
+          'adminUserIds': FieldValue.arrayUnion([uid]),
+        },
+        SetOptions(merge: true),
+      );
+    }
   }
 
   Future<void> setAdminBlocked({

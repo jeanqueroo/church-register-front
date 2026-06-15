@@ -55,6 +55,7 @@ class LeaderNotificationService {
       if (notifiedMemberIds.contains(memberDoc.id)) continue;
 
       final member = ChurchMember.fromFirestore(memberDoc);
+      if (!member.isPastoralLeaderAssignment) continue;
       await _createNotification(
         leaderId: leaderId,
         memberId: memberDoc.id,

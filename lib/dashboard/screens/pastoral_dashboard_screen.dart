@@ -9,6 +9,8 @@ import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../leaders/services/leader_service.dart';
+import '../../members/models/church_member.dart';
+import '../../members/models/member_visit.dart';
 import '../../members/screens/member_detail_screen.dart';
 import '../../members/services/member_service.dart';
 import '../../supervisors/services/supervisor_assignment_service.dart';
@@ -164,16 +166,20 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
       final rangeStart = _dashboardService.rangeStartFor(_period, now);
       final rangeEnd = _dashboardService.rangeEndFor(_period, now);
 
-      final visits = await _dashboardService.fetchVisits(
+      final visitsFuture = _dashboardService.fetchVisits(
         filter: filter,
         rangeStart: rangeStart,
         rangeEnd: rangeEnd,
       );
-      final members = await _dashboardService.fetchNewMembers(
+      final membersFuture = _dashboardService.fetchNewMembers(
         filter: filter,
         rangeStart: rangeStart,
         rangeEnd: rangeEnd,
       );
+
+      final results = await Future.wait([visitsFuture, membersFuture]);
+      final visits = results[0] as List<MemberVisit>;
+      final members = results[1] as List<ChurchMember>;
 
       final newMemberPoints = _dashboardService.buildNewMemberChartPoints(
         members: members,

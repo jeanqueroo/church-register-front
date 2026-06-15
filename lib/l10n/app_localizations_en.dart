@@ -12,22 +12,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuHome => 'Home';
 
   @override
+  String get menuRegistration => 'Registration';
+
+  @override
+  String get menuCellGroup => 'Cell group';
+
+  @override
+  String get menuNewCell => 'Create cell group';
+
+  @override
+  String get menuBaptismGroup => 'Baptism';
+
+  @override
+  String get menuBaptismCalendar => 'Baptism calendar';
+
+  @override
   String get menuNewMember => 'New member';
 
   @override
-  String get menuMembers => 'Members';
+  String get menuMembers => 'View new believers';
 
   @override
-  String get menuByLeader => 'By leader';
+  String get menuByLeader => 'View new believers by leader';
 
   @override
-  String get menuMyMembers => 'My members';
+  String get menuMyMembers => 'My new believers';
+
+  @override
+  String get menuMyAssignedCell => 'My cell';
 
   @override
   String get menuNewLeader => 'New leader';
 
   @override
-  String get menuLeaders => 'Leaders';
+  String get menuLeaders => 'View leaders';
 
   @override
   String get menuMySupervisedLeaders => 'My assigned leaders';
@@ -66,28 +84,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickNewMemberSubtitle => 'New member form';
 
   @override
-  String get quickViewMembersTitle => 'View members';
+  String get quickViewMembersTitle => 'View new believers';
 
   @override
-  String get quickViewMembersSubtitle => 'List of registered members';
+  String get quickViewMembersSubtitle => 'List of registered new believers';
 
   @override
-  String get quickMembersByLeaderTitle => 'Members by leader';
+  String get quickMembersByLeaderTitle => 'View new believers by leader';
 
   @override
-  String get quickMembersByLeaderSubtitle => 'Members assigned to each leader';
+  String get quickMembersByLeaderSubtitle =>
+      'New believers assigned to each leader';
 
   @override
-  String get quickMyMembersTitle => 'My assigned members';
+  String get quickMyMembersTitle => 'My new believers';
 
   @override
-  String get quickMyMembersSubtitle => 'Members under your leadership';
+  String get quickMyMembersSubtitle => 'Believers assigned to your visits';
+
+  @override
+  String get quickMyAssignedCellTitle => 'My assigned cell';
+
+  @override
+  String get quickMyAssignedCellSubtitle => 'Cell details and disciples';
 
   @override
   String get quickRegisterLeaderTitle => 'Register leader';
 
   @override
   String get quickRegisterLeaderSubtitle => 'Leadership details';
+
+  @override
+  String get quickNewCellTitle => 'Create cell group';
+
+  @override
+  String get quickNewCellSubtitle => 'Register a new cell group';
+
+  @override
+  String get quickBaptismCalendarTitle => 'Baptism calendar';
+
+  @override
+  String get quickBaptismCalendarSubtitle => 'View and register baptism dates';
 
   @override
   String get quickViewLeadersTitle => 'View leaders';
@@ -149,6 +186,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcome => 'Welcome';
+
+  @override
+  String homeWelcomeName(String name) {
+    return '👋 Welcome, $name';
+  }
+
+  @override
+  String get homeSummaryTitle => 'Summary';
+
+  @override
+  String homeMembersCount(int count) {
+    return '👥 Assigned members: $count';
+  }
+
+  @override
+  String homeLeadersCount(int count) {
+    return '👥 Assigned leaders: $count';
+  }
+
+  @override
+  String homeSummaryMembersCount(int count) {
+    return '👥 Members: $count';
+  }
+
+  @override
+  String homeSummaryNewBelieversCount(int count) {
+    return '👥 New believers: $count';
+  }
+
+  @override
+  String homeSummaryLeadersCount(int count) {
+    return '👥 Leaders and supervisors: $count';
+  }
+
+  @override
+  String homeSummaryDisciplesCount(int count) {
+    return '👥 Assigned disciples: $count';
+  }
+
+  @override
+  String homeSummaryAssignedNewBelieversCount(int count) {
+    return '👥 Assigned new believers: $count';
+  }
+
+  @override
+  String homeChurchMembersCount(String churchName, int count) {
+    return '👥 Church members $churchName: $count';
+  }
+
+  @override
+  String homeChurchLeadersCount(String churchName, int count) {
+    return '👥 Church leaders $churchName: $count';
+  }
+
+  @override
+  String get homeTodayTitle => 'Today';
+
+  @override
+  String get homeCellBirthdaysTitle => 'Today\'s birthdays in my cell';
+
+  @override
+  String get homeBirthdaysEmpty => 'No birthdays today in your cell.';
+
+  @override
+  String get homeQuickActionsTitle => 'Quick actions';
+
+  @override
+  String get homeRegisterAttendanceTitle => 'Register attendance';
+
+  @override
+  String get homeRegisterAttendanceSubtitle =>
+      'Select your cell to register attendance';
+
+  @override
+  String get homeDashboardLoadError => 'Could not load the home summary.';
 
   @override
   String get user => 'User';
@@ -388,7 +500,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memberDetailEntrySource => 'Where they joined';
 
   @override
+  String get memberDetailLeadershipStatus => 'Pastoral status';
+
+  @override
+  String get memberDetailAssignmentKind => 'Assignment type';
+
+  @override
+  String get memberAssignmentPastoral => 'New believer (pastoral leader)';
+
+  @override
+  String get memberAssignmentCell => 'Cell group disciple';
+
+  @override
+  String get memberDetailAssignedCell => 'Assigned cell group';
+
+  @override
   String get entrySourceCampaignOutside => 'Outreach campaign';
+
+  @override
+  String get entrySourceCell => 'Cell group';
 
   @override
   String get entrySourceHospital => 'Hospital';
@@ -1032,7 +1162,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your assigned church is blocked. You cannot use the system until the super administrator reactivates it.';
 
   @override
-  String get membersListTitle => 'Members';
+  String get membersListTitle => 'New believers';
 
   @override
   String get membersListExportExcel => 'Download Excel';
@@ -1048,7 +1178,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not load the list.\nCheck Firestore in Firebase Console.';
 
   @override
-  String get membersListEmptyTitle => 'No members registered yet';
+  String get membersListEmptyTitle => 'No new believers registered yet';
 
   @override
   String get membersListEmptySubtitle =>
@@ -1056,6 +1186,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get membersListSearchHint => 'Search by name, phone, leader or city…';
+
+  @override
+  String get membersListEndOfList => 'End of list';
 
   @override
   String membersListLeaderPrefix(String name) {
@@ -1068,14 +1201,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get membersByLeaderTitle => 'Members by leader';
+  String get membersByLeaderTitle => 'View new believers by leader';
 
   @override
-  String get membersByLeaderEmpty => 'No members registered';
+  String get membersByLeaderEmpty => 'No believers registered';
 
   @override
   String membersByLeaderAssignedCount(int assigned, int total) {
-    return '$assigned of $total members with assigned leader';
+    return '$assigned of $total believers with assigned leader';
   }
 
   @override
@@ -1083,8 +1216,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count members',
-      one: '1 member',
+      other: '$count believers',
+      one: '1 believer',
     );
     return '$_temp0';
   }
@@ -1095,7 +1228,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get leaderAssignedTitle => 'Assigned members';
+  String get leaderAssignedTitle => 'My new believers';
 
   @override
   String get leaderAssignedTabList => 'List';
@@ -1108,8 +1241,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count assigned members',
-      one: '1 assigned member',
+      other: '$count new believers assigned',
+      one: '1 new believer assigned',
     );
     return '$_temp0';
   }
@@ -1120,11 +1253,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get leaderAssignedEmptyTitle => 'No assigned members';
+  String get leaderAssignedEmptyTitle => 'No new believers assigned';
 
   @override
   String get leaderAssignedEmptySubtitle =>
-      'Members with visits enabled and an address will appear here when registered.';
+      'New believers assigned to your leadership will appear here.';
 
   @override
   String get leaderAssignedNoMapLocation => 'No map location';
@@ -1185,12 +1318,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Search by name, phone, email or cell group…';
 
   @override
+  String get leadersListEndOfList => 'End of list';
+
+  @override
   String leadersListCellPrefix(String code) {
     return 'Cell $code';
   }
 
   @override
-  String get leadersListViewMembers => 'View assigned members';
+  String get leadersListViewMembers => 'View members assigned to visit';
 
   @override
   String get leadersListViewLeader => 'View leader';
@@ -1205,13 +1341,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaderDetailUnblockLeader => 'Unblock leader';
 
   @override
-  String get leaderDetailViewMembers => 'View assigned members';
+  String get leaderDetailViewMembers => 'View members assigned to visit';
 
   @override
   String get leaderDetailSectionLeadership => 'Leadership data';
 
   @override
-  String get leaderDetailSectionCellContact => 'Cell group and contact';
+  String get leaderDetailSectionCellContact => 'Contact';
 
   @override
   String get leaderDetailSectionRoles => 'App roles';
@@ -1488,6 +1624,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsMarkRead => 'Mark as read';
 
   @override
+  String get notificationsDismissAll => 'Dismiss all';
+
+  @override
+  String get notificationsDismissAllConfirmTitle => 'Dismiss all alerts?';
+
+  @override
+  String get notificationsDismissAllConfirmMessage =>
+      'Alerts will be removed from your list. This cannot be undone.';
+
+  @override
   String get notificationsLoadError =>
       'Could not load notifications. Check Firestore rules.';
 
@@ -1522,6 +1668,155 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationMemberFallback => 'Member';
+
+  @override
+  String get notificationCellCapacityTitle =>
+      'Cell with more than 12 disciples';
+
+  @override
+  String notificationCellCapacityBody(String cell, int count) {
+    return 'Cell $cell has $count assigned disciples.';
+  }
+
+  @override
+  String get splitCellTitle => 'Split cell group';
+
+  @override
+  String get splitCellSourceCellLabel => 'Source cell group';
+
+  @override
+  String get splitCellNewCellSection => 'New cell group';
+
+  @override
+  String get splitCellSelectLeaderHelper => 'New cell group leader';
+
+  @override
+  String get splitCellSelectLeaderHelperHint =>
+      'Choose a helper from the source cell as leader';
+
+  @override
+  String get splitCellNoHelpers =>
+      'This cell has no helpers. Assign helpers in My cell group before splitting.';
+
+  @override
+  String get splitCellSelectMembers => 'Disciples for the new cell group';
+
+  @override
+  String splitCellSelectMembersHint(int max) {
+    return 'Select up to $max disciples from the source cell';
+  }
+
+  @override
+  String splitCellMembersMaxReached(int max) {
+    return 'Maximum $max disciples for the new cell group';
+  }
+
+  @override
+  String get splitCellLeaderRequired =>
+      'Select a helper as leader of the new cell group';
+
+  @override
+  String get splitCellMembersRequired =>
+      'Select at least one disciple for the new cell group';
+
+  @override
+  String get splitCellLeaderBusy =>
+      'That helper already leads another cell group';
+
+  @override
+  String get splitCellSuccess =>
+      'New cell group created and disciples transferred';
+
+  @override
+  String get splitCellCreateAction => 'Create new cell group';
+
+  @override
+  String get splitCellLoadError => 'Could not load the source cell group';
+
+  @override
+  String get splitCellLeaderAccountSection => 'Leader account';
+
+  @override
+  String get splitCellLeaderAccountHint =>
+      'An app login will be created for the helper selected as leader of the new cell group.';
+
+  @override
+  String get splitCellLeaderAlreadyHasAccount =>
+      'This helper already has a leader account in the system.';
+
+  @override
+  String get splitCellLeaderAccountRequired =>
+      'Enter email and password to create the leader account';
+
+  @override
+  String get splitCellLeaderBlocked =>
+      'That helper is blocked as a leader and cannot lead a cell group';
+
+  @override
+  String get memberLeadershipPromotedToLeader => 'Promoted to leader';
+
+  @override
+  String get memberLeadershipPromotedToVolunteer => 'Promoted to registrar';
+
+  @override
+  String get menuCellsOverCapacity => 'Cells to split';
+
+  @override
+  String get cellsOverCapacityTitle => 'Cell groups over 12 disciples';
+
+  @override
+  String get cellsOverCapacityDenied =>
+      'You do not have permission to split cell groups';
+
+  @override
+  String get cellsOverCapacityNoChurch =>
+      'No church is assigned to your account';
+
+  @override
+  String get cellsOverCapacityLoadError => 'Could not load cell groups';
+
+  @override
+  String get cellsOverCapacityEmpty => 'No cell groups exceed the limit';
+
+  @override
+  String cellsOverCapacityEmptySubtitle(int max) {
+    return 'All cell groups have $max disciples or fewer';
+  }
+
+  @override
+  String cellsOverCapacityIntro(int max) {
+    return 'These cell groups exceed $max disciples. Tap one to create a new cell group and transfer disciples.';
+  }
+
+  @override
+  String cellsOverCapacityLeaderLabel(String name) {
+    return 'Leader: $name';
+  }
+
+  @override
+  String get cellMemberCapacityAdminNotified =>
+      'Disciple registered. The administrator was alerted: the cell exceeds 12 disciples.';
+
+  @override
+  String get cellMemberRegisterLeaderOnlyAtCapacity =>
+      'With 12 or more disciples, only the cell leader can register a new disciple.';
+
+  @override
+  String get menuAdminNotifications => 'Church alerts';
+
+  @override
+  String get adminNotificationsTitle => 'Church alerts';
+
+  @override
+  String get adminNotificationsDenied =>
+      'You do not have permission to view church alerts';
+
+  @override
+  String get adminNotificationsEmptyTitle => 'No alerts';
+
+  @override
+  String get adminNotificationsEmptySubtitle =>
+      'You will receive alerts here when a cell exceeds 12 disciples.';
 
   @override
   String get visitRegDenied =>
@@ -1989,6 +2284,825 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaderRegCellHint => 'E.g.: N10, E4, L4';
+
+  @override
+  String get cellRegTitle => 'New cell group';
+
+  @override
+  String get cellEditTitle => 'Edit cell group';
+
+  @override
+  String get cellEditSuccess => 'Cell group updated';
+
+  @override
+  String get cellEditDenied => 'You do not have permission to edit cell groups';
+
+  @override
+  String get cellRegSectionData => 'Cell group data';
+
+  @override
+  String get cellRegSectionMeeting => 'Cell group meeting';
+
+  @override
+  String get cellRegMeetingDay => 'Day of the week';
+
+  @override
+  String get cellRegMeetingDayRequired => 'Select the cell group meeting day';
+
+  @override
+  String get cellRegSectionLeader => 'Assigned leader';
+
+  @override
+  String get cellRegLeaderRequired => 'Select the cell group leader';
+
+  @override
+  String get cellRegLeaderWrongChurch =>
+      'That leader belongs to another church and cannot be assigned to this cell group';
+
+  @override
+  String get cellRegCode => 'Cell group code';
+
+  @override
+  String get cellRegCodeHint => 'E.g.: N10, E4, L4';
+
+  @override
+  String get cellRegCodeRequired => 'Enter the cell group code';
+
+  @override
+  String get cellRegCodeDuplicate =>
+      'A cell group with this code already exists in this church';
+
+  @override
+  String get cellRegName => 'Name (optional)';
+
+  @override
+  String get cellRegNotes => 'Notes (optional)';
+
+  @override
+  String get cellRegSuccess => 'Cell group registered';
+
+  @override
+  String get cellRegDenied =>
+      'You do not have permission to register cell groups';
+
+  @override
+  String get cellRegSectionDisciples => 'Disciples (optional)';
+
+  @override
+  String cellRegDisciplesHint(int max) {
+    return 'Add up to $max new disciples or select ones not yet assigned to a cell group';
+  }
+
+  @override
+  String get cellRegSelectExistingDisciple => 'Select existing';
+
+  @override
+  String get cellRegSelectDiscipleTitle => 'Select disciple';
+
+  @override
+  String get cellRegSelectDiscipleHint =>
+      'Only disciples registered without a cell group assignment in your church are shown';
+
+  @override
+  String get cellRegSelectDiscipleRequiresChurch =>
+      'Disciples cannot be selected without a church assigned to your account';
+
+  @override
+  String get cellRegSelectDiscipleSearchHint =>
+      'Search by name, phone, or cell group';
+
+  @override
+  String get cellRegSelectDiscipleEmpty =>
+      'No unassigned disciples. Register them from Cell group → Register disciple';
+
+  @override
+  String get cellRegSelectDiscipleLoadError => 'Could not load disciples';
+
+  @override
+  String cellRegDiscipleFromCell(String cell) {
+    return 'Cell group: $cell';
+  }
+
+  @override
+  String get cellRegDiscipleAlreadySelected =>
+      'This disciple was already added';
+
+  @override
+  String get cellRegDiscipleExistingBadge => 'Existing';
+
+  @override
+  String get cellRegDiscipleUnassignedBadge => 'Unassigned';
+
+  @override
+  String get cellDiscipleUnassignedHint =>
+      'Will be saved without a cell group. You can assign them when creating a cell group.';
+
+  @override
+  String get cellDiscipleUnassignedSuccess =>
+      'Disciple registered without a cell group assignment';
+
+  @override
+  String cellRegDisciplesCount(int current, int max) {
+    return '$current of $max';
+  }
+
+  @override
+  String get cellRegDisciplesEmpty => 'No disciples added yet';
+
+  @override
+  String get cellRegAddDisciple => 'Add disciple';
+
+  @override
+  String get cellRegEditDisciple => 'Edit disciple';
+
+  @override
+  String cellRegDisciplesMaxReached(int max) {
+    return 'Maximum $max disciples when registering the cell group';
+  }
+
+  @override
+  String cellRegSuccessWithDisciples(int count) {
+    return 'Cell group registered with $count disciple(s)';
+  }
+
+  @override
+  String get menuViewCells => 'View cell groups';
+
+  @override
+  String get menuViewCellAttendanceReport => 'Disciple attendance';
+
+  @override
+  String get menuCellAbsenceByLeader => 'Absences by leader';
+
+  @override
+  String get menuCellAttendanceSessions => 'My attendance records';
+
+  @override
+  String get menuRegisterCellDisciple => 'Register disciple';
+
+  @override
+  String get cellDisciplePickCellTitle => 'Select cell group';
+
+  @override
+  String get cellDisciplePickCellHint =>
+      'Choose the cell group to register the disciple in';
+
+  @override
+  String get cellsListTitle => 'Cell groups';
+
+  @override
+  String get cellsListSearchHint => 'Search by code, name, leader, or address';
+
+  @override
+  String get cellsListEmpty => 'No cell groups registered';
+
+  @override
+  String get cellsListLoadError => 'Could not load cell groups';
+
+  @override
+  String get cellDiscipleTitle => 'Register disciple';
+
+  @override
+  String get cellDiscipleForCell => 'Cell group';
+
+  @override
+  String get cellDiscipleDenied =>
+      'You do not have permission to register disciples';
+
+  @override
+  String get cellDiscipleSuccess => 'Disciple registered';
+
+  @override
+  String get cellDiscipleCellMissing => 'Cell group not found';
+
+  @override
+  String get cellDiscipleEmailOptional => 'Optional (no app login account)';
+
+  @override
+  String get cellDiscipleEmailLabel => 'Email (optional)';
+
+  @override
+  String get cellDiscipleEmailHelper =>
+      'For contact only. Does not create an account or sign in to the app.';
+
+  @override
+  String get cellDiscipleChurchOfficeLabel => 'Church office *';
+
+  @override
+  String get cellDiscipleChurchOfficeHelper =>
+      'Select the disciple\'s role or office in the church';
+
+  @override
+  String get cellDiscipleAdd => 'Register disciple';
+
+  @override
+  String get cellDiscipleListTitle => 'Disciples';
+
+  @override
+  String get cellDiscipleListEmpty => 'No disciples in this cell group yet';
+
+  @override
+  String get cellDiscipleDeleteTitle => 'Delete disciple';
+
+  @override
+  String get cellDiscipleDeleted => 'Disciple deleted';
+
+  @override
+  String get cellHelpersTitle => 'Cell group helpers';
+
+  @override
+  String cellHelpersHint(int max) {
+    return 'Select up to $max disciples from this cell group as helpers';
+  }
+
+  @override
+  String get cellHelpersEmpty => 'No helpers assigned yet';
+
+  @override
+  String get cellHelpersSelectAction => 'Select helpers';
+
+  @override
+  String cellHelpersCount(int current, int max) {
+    return '$current of $max';
+  }
+
+  @override
+  String cellHelpersMaxReached(int max) {
+    return 'Maximum $max helpers per cell group';
+  }
+
+  @override
+  String get cellHelpersSaved => 'Helpers updated';
+
+  @override
+  String get cellHelpersBadge => 'Helper';
+
+  @override
+  String get cellAttendanceRegisterTitle => 'Register attendance';
+
+  @override
+  String get cellAttendancePickCellTitle => 'Register attendance';
+
+  @override
+  String get cellAttendancePickCellHint =>
+      'Select the cell group to register meeting attendance';
+
+  @override
+  String get cellAttendanceNoOwnCell => 'You do not have an assigned cell';
+
+  @override
+  String get cellAttendanceDenied =>
+      'Only the cell group leader can register attendance';
+
+  @override
+  String get cellAttendanceNoDisciples =>
+      'Assign disciples to the cell before registering attendance';
+
+  @override
+  String get cellAttendanceLeaderRequired =>
+      'The cell group must have an assigned leader to register attendance';
+
+  @override
+  String get cellAttendanceMembersLoadError =>
+      'Could not load cell group disciples';
+
+  @override
+  String get cellAttendanceSectionWhen => 'Date and time';
+
+  @override
+  String get cellAttendanceSectionWhere => 'Location';
+
+  @override
+  String get cellAttendanceSectionRoll => 'Disciple attendance';
+
+  @override
+  String get cellAttendanceSectionRollHint =>
+      'Mark who attended the cell group meeting';
+
+  @override
+  String get cellAttendanceSessionDate => 'Meeting date';
+
+  @override
+  String get cellAttendanceSessionTime => 'Time';
+
+  @override
+  String get cellAttendanceSessionPlace => 'Meeting place';
+
+  @override
+  String get cellAttendanceSessionPlaceHint => 'Address or location reference';
+
+  @override
+  String get cellAttendancePlaceRequired => 'Enter the meeting place';
+
+  @override
+  String cellAttendanceDayDiffersInfo(String registeredDay, String actualDay) {
+    return 'The meeting was on $actualDay, but the cell group is registered on $registeredDay.';
+  }
+
+  @override
+  String get cellAttendanceDayChangeSwitch =>
+      'Record with a different day for this meeting';
+
+  @override
+  String get cellAttendanceDayChangeSwitchHint =>
+      'Applies only to this meeting, not the cell group\'s regular day';
+
+  @override
+  String get cellAttendanceDayChangeReason => 'Reason for day change';
+
+  @override
+  String get cellAttendanceDayReasonRequired =>
+      'Explain why it was held on a different day';
+
+  @override
+  String get cellAttendanceLocationDiffersInfo =>
+      'The place is different from the one registered for the cell group.';
+
+  @override
+  String get cellAttendanceLocationChangeSwitch =>
+      'Record with a different place for this meeting';
+
+  @override
+  String get cellAttendanceLocationChangeSwitchHint =>
+      'Applies only to this meeting, not the cell group\'s regular address';
+
+  @override
+  String get cellAttendanceLocationChangeReason => 'Reason for location change';
+
+  @override
+  String get cellAttendanceLocationReasonRequired =>
+      'Explain why it was held in another place';
+
+  @override
+  String get cellAttendanceSectionNotes => 'Additional information';
+
+  @override
+  String get cellAttendanceOfferingCollected => 'Offering collected';
+
+  @override
+  String get cellAttendanceOfferingCollectedHint =>
+      'Amount or detail (optional)';
+
+  @override
+  String get cellAttendanceObservations => 'Observations';
+
+  @override
+  String get cellAttendanceObservationsHint =>
+      'Notes about the meeting (optional)';
+
+  @override
+  String cellAttendanceOfferingSummary(String amount) {
+    return 'Offering: $amount';
+  }
+
+  @override
+  String get cellAttendanceMarkAllPresent => 'All present';
+
+  @override
+  String get cellAttendanceMarkAllAbsent => 'All absent';
+
+  @override
+  String get cellAttendanceSaveAction => 'Save attendance';
+
+  @override
+  String get cellAttendanceSaved => 'Attendance saved';
+
+  @override
+  String get cellAttendanceUpdated => 'Attendance updated';
+
+  @override
+  String get cellAttendanceDeleted => 'Attendance deleted';
+
+  @override
+  String get cellAttendanceEditTitle => 'Edit attendance';
+
+  @override
+  String get cellAttendanceEditAction => 'Edit';
+
+  @override
+  String get cellAttendanceUpdateAction => 'Save changes';
+
+  @override
+  String get cellAttendanceDeleteTitle => 'Delete attendance';
+
+  @override
+  String get cellAttendanceDeleteAction => 'Delete';
+
+  @override
+  String cellAttendanceDeleteConfirm(String date) {
+    return 'Delete attendance for $date?';
+  }
+
+  @override
+  String get cellAttendanceSessionsTitle => 'My attendance records';
+
+  @override
+  String get cellAttendanceSessionsPickCellTitle => 'My attendance records';
+
+  @override
+  String get cellAttendanceSessionsPickCellHint =>
+      'Select the cell group to view and manage recorded attendance';
+
+  @override
+  String get cellAttendanceSessionsDateRangeTitle => 'Date range';
+
+  @override
+  String cellAttendanceSessionsFromDate(String date) {
+    return 'From $date';
+  }
+
+  @override
+  String cellAttendanceSessionsToDate(String date) {
+    return 'To $date';
+  }
+
+  @override
+  String get cellAttendanceSessionsEmpty =>
+      'No attendance records in this date range';
+
+  @override
+  String get cellAttendanceManageDenied =>
+      'You do not have permission to manage attendance for this cell';
+
+  @override
+  String get cellAttendanceHistoryTitle => 'Recent attendance';
+
+  @override
+  String cellAttendanceHistoryRecentCount(int count) {
+    return 'Last $count';
+  }
+
+  @override
+  String cellAttendancePresentCount(int present, int total) {
+    return '$present of $total present';
+  }
+
+  @override
+  String get cellAttendanceDayChangedBadge => 'Different day';
+
+  @override
+  String get cellAttendanceLocationChangedBadge => 'Different place';
+
+  @override
+  String get cellAttendanceReportTitle => 'Disciple attendance';
+
+  @override
+  String get cellAttendanceReportPickCellTitle => 'Attendance by cell';
+
+  @override
+  String get cellAttendanceReportPickCellHint =>
+      'Select a cell group to view disciple attendance';
+
+  @override
+  String get cellAttendanceReportNoOwnCell =>
+      'You do not have an assigned cell';
+
+  @override
+  String get cellAttendanceReportDenied =>
+      'You do not have permission to view the attendance report';
+
+  @override
+  String cellAttendanceReportSessionCount(int count) {
+    return '$count meetings recorded';
+  }
+
+  @override
+  String cellAttendanceReportFilteredSessionCount(int filtered, int total) {
+    return '$filtered of $total meetings in range';
+  }
+
+  @override
+  String get cellAttendanceReportWeekFilterTitle => 'Week range';
+
+  @override
+  String get cellAttendanceReportWeekFrom => 'From week';
+
+  @override
+  String get cellAttendanceReportWeekTo => 'To week';
+
+  @override
+  String get cellAttendanceReportWeekAll => 'All';
+
+  @override
+  String cellAttendanceReportWeekPreset(int count) {
+    return 'Last $count wks';
+  }
+
+  @override
+  String get cellAttendanceReportLegendTitle => 'Consecutive absence alerts';
+
+  @override
+  String get cellAttendanceReportLegendExcellent =>
+      'Green: 0 or 1 consecutive absence';
+
+  @override
+  String get cellAttendanceReportLegendWarning =>
+      'Yellow: 2 consecutive absences';
+
+  @override
+  String get cellAttendanceReportLegendCritical =>
+      'Red: 3 or more consecutive absences';
+
+  @override
+  String get cellAbsenceByLeaderTitle => 'Absences by leader';
+
+  @override
+  String get cellAbsenceByLeaderDenied =>
+      'Only the church administrator can view this report';
+
+  @override
+  String get cellAbsenceByLeaderNoChurch =>
+      'Your account has no church assigned';
+
+  @override
+  String get cellAbsenceByLeaderLoadError =>
+      'Could not load the absence report';
+
+  @override
+  String get cellAbsenceByLeaderEmpty =>
+      'There are no cell groups with an assigned leader in your church';
+
+  @override
+  String cellAbsenceByLeaderCellLabel(String code) {
+    return 'Cell $code';
+  }
+
+  @override
+  String cellAbsenceByLeaderCriticalCount(int count) {
+    return '$count disciples with 3+ consecutive absences';
+  }
+
+  @override
+  String cellAbsenceByLeaderTotalCritical(int count) {
+    return 'Total: $count disciples in red alert';
+  }
+
+  @override
+  String get cellAbsenceByLeaderLeaderOk =>
+      'No disciples with 3 or more consecutive absences';
+
+  @override
+  String get cellAttendanceReportMembersTitle => 'Disciples';
+
+  @override
+  String get cellAttendanceReportEmpty =>
+      'No disciples in this cell or no attendance recorded yet';
+
+  @override
+  String cellAttendanceReportMemberStats(
+    int present,
+    int consecutive,
+    int total,
+  ) {
+    return '$present present · $consecutive in a row · $total roll calls';
+  }
+
+  @override
+  String get cellMemberAssignTitle => 'Cell disciples';
+
+  @override
+  String get cellMemberAssignAction => 'Assign disciples';
+
+  @override
+  String get cellDetailAssignDisciplesAction => 'Assign disciples';
+
+  @override
+  String get cellMemberAssignAdd => 'Add disciple';
+
+  @override
+  String get cellMemberRegisterNew => 'Register new disciple';
+
+  @override
+  String get cellMemberRegisterTitle => 'Register disciple in cell';
+
+  @override
+  String get cellMemberFormHint =>
+      'Register disciples for this cell group. If a visit is requested, the cell group leader will be assigned.';
+
+  @override
+  String get cellMemberFormSubmit => 'Register in cell group';
+
+  @override
+  String get cellMemberWantsVisitSubtitle =>
+      'If a visit is requested, this cell group\'s leader will be assigned automatically';
+
+  @override
+  String get cellMemberIsNewBelieverSubtitle =>
+      'Turn on if this disciple should be registered as a new believer';
+
+  @override
+  String cellMemberVisitLeaderHint(String leader, String cell) {
+    return '$leader will be assigned as pastoral leader (cell group $cell)';
+  }
+
+  @override
+  String get cellMemberVisitNoLeader =>
+      'This cell group has no assigned leader. Assign a leader to the cell group or turn off the visit request.';
+
+  @override
+  String cellMemberRegisteredWithCellLeader(
+    String name,
+    String cell,
+    String leader,
+  ) {
+    return '$name registered in $cell with visit assigned to $leader';
+  }
+
+  @override
+  String get myAssignedCellTitle => 'My cell';
+
+  @override
+  String get myAssignedCellDenied =>
+      'You do not have permission to view the assigned cell';
+
+  @override
+  String get myAssignedCellLoadError => 'Could not load cell information';
+
+  @override
+  String get myAssignedCellNoLeaderProfile =>
+      'Your leader account is not linked to a leader profile in the system';
+
+  @override
+  String get myAssignedCellEmpty => 'You do not have an assigned cell';
+
+  @override
+  String myAssignedCellLeaderLabel(String name) {
+    return 'Leader: $name';
+  }
+
+  @override
+  String cellMemberRegisteredAndAssigned(String name, String cell) {
+    return '$name registered and assigned to $cell';
+  }
+
+  @override
+  String cellMemberAssignHint(String cell) {
+    return 'Assign disciples without a cell to $cell. Cell assignment is separate from the disciple\'s pastoral leader.';
+  }
+
+  @override
+  String get cellMemberListTitle => 'Disciples';
+
+  @override
+  String get cellMemberListEmpty => 'No disciples assigned to this cell yet';
+
+  @override
+  String get cellMemberSelectTitle => 'Select disciples';
+
+  @override
+  String get cellMemberSelectHint =>
+      'Select one or more disciples without a cell, then confirm at the bottom';
+
+  @override
+  String cellMemberSelectConfirm(int count) {
+    return 'Assign $count';
+  }
+
+  @override
+  String get cellMemberSelectRequiresChurch =>
+      'Cannot assign disciples without a church on your account';
+
+  @override
+  String get cellMemberSelectSearchHint => 'Search by name, phone or leader';
+
+  @override
+  String get cellMemberSelectEmpty =>
+      'No disciples without a cell in your church';
+
+  @override
+  String cellMemberSelectMaxReached(int max) {
+    return 'Maximum $max disciple(s) per cell';
+  }
+
+  @override
+  String cellMemberSelectLimitHint(int max) {
+    return 'You can select up to $max disciple(s). A cell holds 12 at most.';
+  }
+
+  @override
+  String get cellMemberAssignLimitReached =>
+      'This cell already has 12 disciples. No more can be assigned.';
+
+  @override
+  String cellMemberAssignLimitPartial(int assigned, int requested) {
+    return 'Assigned $assigned of $requested: a cell holds 12 disciples at most.';
+  }
+
+  @override
+  String get cellMemberSelectLoadError => 'Could not load disciples';
+
+  @override
+  String cellMemberAssigned(String name) {
+    return '$name assigned to the cell';
+  }
+
+  @override
+  String cellMemberAssignedMultiple(int count) {
+    return '$count disciples assigned to the cell';
+  }
+
+  @override
+  String get cellMemberUnassignTitle => 'Remove from cell';
+
+  @override
+  String cellMemberUnassignConfirm(String name) {
+    return 'Remove $name from this cell?';
+  }
+
+  @override
+  String get cellMemberUnassignAction => 'Remove';
+
+  @override
+  String cellMemberAssignGenderHint(String gender) {
+    return 'Only disciples of the same sex as the cell leader can be assigned ($gender).';
+  }
+
+  @override
+  String get cellMemberAssignLeaderGenderMissing =>
+      'The cell leader has no sex on file. Complete their profile before assigning disciples.';
+
+  @override
+  String get cellMemberAssignGenderMismatch =>
+      'You can only assign disciples of the same sex as the cell leader.';
+
+  @override
+  String cellMemberSelectEmptyGender(String gender) {
+    return 'No disciples without a cell match the leader\'s sex ($gender).';
+  }
+
+  @override
+  String cellMemberSelectGenderHint(String gender) {
+    return 'Only disciples without a cell who match the leader\'s sex ($gender) are shown.';
+  }
+
+  @override
+  String cellMemberRegisterGenderLocked(String gender) {
+    return 'Must be $gender, same as the cell leader.';
+  }
+
+  @override
+  String cellMemberUnassigned(String name) {
+    return '$name is no longer assigned to this cell';
+  }
+
+  @override
+  String get baptismCalendarTitle => 'Baptism calendar';
+
+  @override
+  String get baptismCalendarRegisterTitle => 'Register baptism date';
+
+  @override
+  String get baptismCalendarAdd => 'Register date';
+
+  @override
+  String get baptismCalendarTime => 'Time (optional)';
+
+  @override
+  String get baptismCalendarTimeHint => 'E.g.: 10:00';
+
+  @override
+  String get baptismCalendarLocation => 'Location (optional)';
+
+  @override
+  String get baptismCalendarNotes => 'Notes (optional)';
+
+  @override
+  String get baptismCalendarSuccess => 'Baptism date registered';
+
+  @override
+  String get baptismCalendarDeleted => 'Baptism date removed';
+
+  @override
+  String get baptismCalendarDenied =>
+      'You do not have permission to view the baptism calendar';
+
+  @override
+  String get baptismCalendarLoadError => 'Could not load the baptism calendar';
+
+  @override
+  String get baptismCalendarEmpty => 'No baptisms scheduled';
+
+  @override
+  String get baptismCalendarSelectDay => 'Select a day on the calendar';
+
+  @override
+  String baptismCalendarDayTitle(String date) {
+    return 'Baptisms on $date';
+  }
+
+  @override
+  String get baptismCalendarDayEmpty => 'No baptisms scheduled for this day';
+
+  @override
+  String get baptismCalendarUpcoming => 'Upcoming baptisms';
+
+  @override
+  String get baptismCalendarDeleteTitle => 'Delete baptism date';
+
+  @override
+  String baptismCalendarDeleteConfirm(String date) {
+    return 'Delete the baptism scheduled for $date?';
+  }
 
   @override
   String get leaderRegMobileRequired => 'Enter the mobile number';

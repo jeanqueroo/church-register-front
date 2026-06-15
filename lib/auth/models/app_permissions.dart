@@ -1,3 +1,5 @@
+import '../../cells/cell_member_capacity.dart';
+import '../../cells/models/church_cell.dart';
 import '../../l10n/app_localizations.dart';
 import 'app_user_role.dart';
 
@@ -36,6 +38,70 @@ class AppPermissions {
 
   bool get canRegisterMember => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canRegisterLeader => isAdmin;
+  bool get canRegisterCell => isAdmin || isSuperAdmin;
+  bool get canEditCell => isAdmin || isSuperAdmin;
+  bool get canViewCells => isAdmin || isSuperAdmin;
+  bool get canRegisterCellDisciple => isAdmin || isSuperAdmin;
+  bool get canAssignCellMembers => isAdmin || isSuperAdmin;
+
+  /// Registrar creyente nuevo en la célula (con cupo lleno solo el líder).
+  bool canRegisterNewCellMember(
+    ChurchCell cell, {
+    required int currentMemberCount,
+    String? actingLeaderId,
+  }) {
+    if (!canRegisterMember) return false;
+    return CellMemberCapacity.canRegisterNewMemberWhenAtCapacity(
+      currentCount: currentMemberCount,
+      cell: cell,
+      actingLeaderId: actingLeaderId,
+    );
+  }
+
+  /// Admin/registrador o líder de la célula: asignar integrantes existentes.
+  bool canAssignCellMembersFor(
+    ChurchCell cell, {
+    String? actingLeaderId,
+  }) {
+    if (canAssignCellMembers) return true;
+    return CellMemberCapacity.isCellLeader(
+      cell: cell,
+      actingLeaderId: actingLeaderId,
+    );
+  }
+
+  /// Líder asignado a la célula: registrar asistencia.
+  bool canRegisterCellAttendance(
+    ChurchCell cell, {
+    String? actingLeaderId,
+  }) {
+    return CellMemberCapacity.isCellLeader(
+      cell: cell,
+      actingLeaderId: actingLeaderId,
+    );
+  }
+
+  /// Ver y gestionar asistencias registradas (líder de la célula).
+  bool canManageCellAttendanceSessions(ChurchCell cell, {String? actingLeaderId}) {
+    return canRegisterCellAttendance(cell, actingLeaderId: actingLeaderId);
+  }
+
+  bool get canViewCellAttendanceSessionsMenu => canViewMyAssignedCell;
+
+  /// Asignar ayudantes de célula (máx. 3): admin/registrador o líder de la célula.
+  bool canManageCellHelpers(String? cellLeaderId, {String? actingLeaderId}) {
+    if (canEditCell) return true;
+    final leaderId = cellLeaderId?.trim();
+    final actorId = actingLeaderId?.trim();
+    return (isLeader || isSupervisor) &&
+        leaderId != null &&
+        leaderId.isNotEmpty &&
+        actorId != null &&
+        actorId == leaderId;
+  }
+  bool get canViewBaptismCalendar =>
+      isAdmin || isSupervisor || isLeader;
+  bool get canRegisterBaptismCalendar => isAdmin;
   bool get canViewMembersList => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canViewMembersByLeader => isAdmin;
   bool get canViewLeadersList => isAdmin;
@@ -52,14 +118,23 @@ class AppPermissions {
   /// Supervisor: ver creyentes asignados a sus líderes (solo lectura).
   bool get canViewSupervisedLeaderMembers => isSupervisor;
   bool get canViewMyAssignedMembers => isLeader;
+  /// Célula propia (como líder de célula): líderes y supervisores con célula asignada.
+  bool get canViewMyAssignedCell => isLeader || isSupervisor;
+
+  /// Resumen de asistencia por integrante (líder / supervisor / admin).
+  bool get canViewCellAttendanceReport => canViewCells || canViewMyAssignedCell;
+
+  /// Inasistencias críticas por líder (solo administrador de iglesia).
+  bool get canViewCellAbsenceByLeader => isAdmin;
+  bool get canViewChurchNotifications =>
+      isAdmin && churchId != null && churchId!.trim().isNotEmpty;
   bool get canViewLeaderNotifications => isLeader;
 
-  /// Líder: registrar visitas a sus integrantes asignados.
-  bool get canRegisterMemberVisits => isLeader;
+  /// Registrar visitas a integrantes (todos los roles con acceso a creyentes).
+  bool get canRegisterMemberVisits => canViewMembersList || isSuperAdmin;
 
-  /// Ver historial de visitas (líder, admin, supervisor de ese líder).
-  bool get canViewMemberVisits =>
-      isLeader || canManageMembers || canViewSupervisedLeaderMembers;
+  /// Ver historial de visitas (mismo alcance que registrar visitas).
+  bool get canViewMemberVisits => canRegisterMemberVisits;
 
   /// Dashboard de visitas: supervisor (sus líderes), admin (iglesia), superadmin (todas).
   bool get canViewVisitsDashboard => isSupervisor || isAdmin || isSuperAdmin;

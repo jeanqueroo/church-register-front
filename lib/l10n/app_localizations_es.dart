@@ -12,22 +12,40 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuHome => 'Inicio';
 
   @override
+  String get menuRegistration => 'Registro';
+
+  @override
+  String get menuCellGroup => 'Célula';
+
+  @override
+  String get menuNewCell => 'Crear célula';
+
+  @override
+  String get menuBaptismGroup => 'Bautismo';
+
+  @override
+  String get menuBaptismCalendar => 'Calendario de bautismo';
+
+  @override
   String get menuNewMember => 'Nuevo creyente';
 
   @override
-  String get menuMembers => 'Integrantes';
+  String get menuMembers => 'Ver nuevos creyentes';
 
   @override
-  String get menuByLeader => 'Por líder';
+  String get menuByLeader => 'Ver nuevos creyentes por líder';
 
   @override
-  String get menuMyMembers => 'Mis integrantes';
+  String get menuMyMembers => 'Mis nuevos creyentes';
+
+  @override
+  String get menuMyAssignedCell => 'Mi célula';
 
   @override
   String get menuNewLeader => 'Nuevo líder';
 
   @override
-  String get menuLeaders => 'Líderes';
+  String get menuLeaders => 'Ver líderes';
 
   @override
   String get menuMySupervisedLeaders => 'Mis líderes asignados';
@@ -66,28 +84,49 @@ class AppLocalizationsEs extends AppLocalizations {
   String get quickNewMemberSubtitle => 'Formulario de nuevo creyente';
 
   @override
-  String get quickViewMembersTitle => 'Ver creyentes';
+  String get quickViewMembersTitle => 'Ver nuevos creyentes';
 
   @override
-  String get quickViewMembersSubtitle => 'Lista de integrantes registrados';
+  String get quickViewMembersSubtitle =>
+      'Lista de nuevos creyentes registrados';
 
   @override
-  String get quickMembersByLeaderTitle => 'Integrantes por líder';
+  String get quickMembersByLeaderTitle => 'Ver nuevos creyentes por líder';
 
   @override
-  String get quickMembersByLeaderSubtitle => 'Miembros asignados a cada líder';
+  String get quickMembersByLeaderSubtitle =>
+      'Nuevos creyentes asignados a cada líder';
 
   @override
-  String get quickMyMembersTitle => 'Mis integrantes asignados';
+  String get quickMyMembersTitle => 'Mis nuevos creyentes';
 
   @override
-  String get quickMyMembersSubtitle => 'Integrantes bajo tu liderazgo';
+  String get quickMyMembersSubtitle => 'Creyentes asignados a tu visita';
+
+  @override
+  String get quickMyAssignedCellTitle => 'Mi célula asignada';
+
+  @override
+  String get quickMyAssignedCellSubtitle => 'Datos de la célula y discípulos';
 
   @override
   String get quickRegisterLeaderTitle => 'Registrar líder';
 
   @override
   String get quickRegisterLeaderSubtitle => 'Datos del liderazgo';
+
+  @override
+  String get quickNewCellTitle => 'Crear célula';
+
+  @override
+  String get quickNewCellSubtitle => 'Registrar un nuevo grupo celular';
+
+  @override
+  String get quickBaptismCalendarTitle => 'Calendario de bautismo';
+
+  @override
+  String get quickBaptismCalendarSubtitle =>
+      'Ver y registrar fechas de bautismo';
 
   @override
   String get quickViewLeadersTitle => 'Ver líderes';
@@ -148,6 +187,82 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get welcome => 'Bienvenido';
+
+  @override
+  String homeWelcomeName(String name) {
+    return '👋 Bienvenido, $name';
+  }
+
+  @override
+  String get homeSummaryTitle => 'Resumen';
+
+  @override
+  String homeMembersCount(int count) {
+    return '👥 Miembros asignados: $count';
+  }
+
+  @override
+  String homeLeadersCount(int count) {
+    return '👥 Líderes asignados: $count';
+  }
+
+  @override
+  String homeSummaryMembersCount(int count) {
+    return '👥 Miembros: $count';
+  }
+
+  @override
+  String homeSummaryNewBelieversCount(int count) {
+    return '👥 Nuevo creyentes: $count';
+  }
+
+  @override
+  String homeSummaryLeadersCount(int count) {
+    return '👥 Líderes y supervisores: $count';
+  }
+
+  @override
+  String homeSummaryDisciplesCount(int count) {
+    return '👥 Discípulos asignados: $count';
+  }
+
+  @override
+  String homeSummaryAssignedNewBelieversCount(int count) {
+    return '👥 Nuevo creyentes asignados: $count';
+  }
+
+  @override
+  String homeChurchMembersCount(String churchName, int count) {
+    return '👥 Miembros de la iglesia $churchName: $count';
+  }
+
+  @override
+  String homeChurchLeadersCount(String churchName, int count) {
+    return '👥 Líderes de la iglesia $churchName: $count';
+  }
+
+  @override
+  String get homeTodayTitle => 'Hoy';
+
+  @override
+  String get homeCellBirthdaysTitle => 'Cumpleaños del día de mi célula';
+
+  @override
+  String get homeBirthdaysEmpty => 'No hay cumpleaños hoy en tu célula.';
+
+  @override
+  String get homeQuickActionsTitle => 'Acciones rápidas';
+
+  @override
+  String get homeRegisterAttendanceTitle => 'Registrar asistencia';
+
+  @override
+  String get homeRegisterAttendanceSubtitle =>
+      'Selecciona tu célula para registrar asistencia';
+
+  @override
+  String get homeDashboardLoadError =>
+      'No se pudo cargar el resumen del inicio.';
 
   @override
   String get user => 'Usuario';
@@ -390,7 +505,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get memberDetailEntrySource => 'Dónde entró';
 
   @override
+  String get memberDetailLeadershipStatus => 'Estado pastoral';
+
+  @override
+  String get memberDetailAssignmentKind => 'Tipo de asignación';
+
+  @override
+  String get memberAssignmentPastoral => 'Nuevo creyente (líder pastoral)';
+
+  @override
+  String get memberAssignmentCell => 'Discípulo de célula';
+
+  @override
+  String get memberDetailAssignedCell => 'Célula asignada';
+
+  @override
   String get entrySourceCampaignOutside => 'Campaña fuera de la iglesia';
+
+  @override
+  String get entrySourceCell => 'Célula';
 
   @override
   String get entrySourceHospital => 'Hospital';
@@ -1037,7 +1170,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'La iglesia asignada a tu cuenta está bloqueada. No puedes usar el sistema hasta que el super administrador la reactive.';
 
   @override
-  String get membersListTitle => 'Creyentes';
+  String get membersListTitle => 'Nuevos creyentes';
 
   @override
   String get membersListExportExcel => 'Descargar Excel';
@@ -1053,7 +1186,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo cargar la lista.\nVerifica Firestore en Firebase Console.';
 
   @override
-  String get membersListEmptyTitle => 'Aún no hay creyentes registrados';
+  String get membersListEmptyTitle => 'Aún no hay nuevos creyentes registrados';
 
   @override
   String get membersListEmptySubtitle =>
@@ -1062,6 +1195,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get membersListSearchHint =>
       'Buscar por nombre, teléfono, líder o localidad…';
+
+  @override
+  String get membersListEndOfList => 'Fin de la lista';
 
   @override
   String membersListLeaderPrefix(String name) {
@@ -1074,14 +1210,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get membersByLeaderTitle => 'Integrantes por líder';
+  String get membersByLeaderTitle => 'Ver nuevos creyentes por líder';
 
   @override
-  String get membersByLeaderEmpty => 'No hay integrantes registrados';
+  String get membersByLeaderEmpty => 'No hay creyentes registrados';
 
   @override
   String membersByLeaderAssignedCount(int assigned, int total) {
-    return '$assigned de $total integrantes con líder asignado';
+    return '$assigned de $total creyentes con líder asignado';
   }
 
   @override
@@ -1089,8 +1225,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count integrantes',
-      one: '1 integrante',
+      other: '$count creyentes',
+      one: '1 creyente',
     );
     return '$_temp0';
   }
@@ -1101,7 +1237,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get leaderAssignedTitle => 'Integrantes asignados';
+  String get leaderAssignedTitle => 'Mis nuevos creyentes';
 
   @override
   String get leaderAssignedTabList => 'Lista';
@@ -1114,8 +1250,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count integrantes asignados',
-      one: '1 integrante asignado',
+      other: '$count nuevos creyentes asignados',
+      one: '1 nuevo creyente asignado',
     );
     return '$_temp0';
   }
@@ -1126,11 +1262,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get leaderAssignedEmptyTitle => 'Sin integrantes asignados';
+  String get leaderAssignedEmptyTitle => 'Sin nuevos creyentes asignados';
 
   @override
   String get leaderAssignedEmptySubtitle =>
-      'Los integrantes con visita activada y dirección aparecerán aquí al registrarse.';
+      'Los nuevos creyentes asignados a tu liderazgo aparecerán aquí.';
 
   @override
   String get leaderAssignedNoMapLocation => 'Sin ubicación en mapa';
@@ -1191,12 +1327,15 @@ class AppLocalizationsEs extends AppLocalizations {
       'Buscar por nombre, teléfono, correo o célula…';
 
   @override
+  String get leadersListEndOfList => 'Fin de la lista';
+
+  @override
   String leadersListCellPrefix(String code) {
     return 'Célula $code';
   }
 
   @override
-  String get leadersListViewMembers => 'Ver integrantes asignados';
+  String get leadersListViewMembers => 'Ver integrantes asignados a visitar';
 
   @override
   String get leadersListViewLeader => 'Ver líder';
@@ -1211,13 +1350,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get leaderDetailUnblockLeader => 'Desbloquear líder';
 
   @override
-  String get leaderDetailViewMembers => 'Ver integrantes asignados';
+  String get leaderDetailViewMembers => 'Ver integrantes asignados a visitar';
 
   @override
   String get leaderDetailSectionLeadership => 'Datos del liderazgo';
 
   @override
-  String get leaderDetailSectionCellContact => 'Célula y contacto';
+  String get leaderDetailSectionCellContact => 'Contacto';
 
   @override
   String get leaderDetailSectionRoles => 'Roles en la app';
@@ -1496,6 +1635,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get notificationsMarkRead => 'Marcar leídas';
 
   @override
+  String get notificationsDismissAll => 'Quitar todas';
+
+  @override
+  String get notificationsDismissAllConfirmTitle =>
+      '¿Quitar todas las alertas?';
+
+  @override
+  String get notificationsDismissAllConfirmMessage =>
+      'Las alertas desaparecerán de tu lista. Esta acción no se puede deshacer.';
+
+  @override
   String get notificationsLoadError =>
       'No se pudieron cargar las notificaciones. Revisa las reglas de Firestore.';
 
@@ -1530,6 +1680,152 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get notificationMemberFallback => 'Integrante';
+
+  @override
+  String get notificationCellCapacityTitle => 'Célula con más de 12 discípulos';
+
+  @override
+  String notificationCellCapacityBody(String cell, int count) {
+    return 'La célula $cell tiene $count discípulos asignados.';
+  }
+
+  @override
+  String get splitCellTitle => 'Dividir célula';
+
+  @override
+  String get splitCellSourceCellLabel => 'Célula origen';
+
+  @override
+  String get splitCellNewCellSection => 'Nueva célula';
+
+  @override
+  String get splitCellSelectLeaderHelper => 'Líder de la nueva célula';
+
+  @override
+  String get splitCellSelectLeaderHelperHint =>
+      'Elige un ayudante de la célula origen como líder';
+
+  @override
+  String get splitCellNoHelpers =>
+      'Esta célula no tiene ayudantes. Asigna ayudantes en Mi célula antes de dividir.';
+
+  @override
+  String get splitCellSelectMembers => 'Discípulos para la nueva célula';
+
+  @override
+  String splitCellSelectMembersHint(int max) {
+    return 'Selecciona hasta $max discípulos de la célula origen';
+  }
+
+  @override
+  String splitCellMembersMaxReached(int max) {
+    return 'Máximo $max discípulos para la nueva célula';
+  }
+
+  @override
+  String get splitCellLeaderRequired =>
+      'Selecciona un ayudante como líder de la nueva célula';
+
+  @override
+  String get splitCellMembersRequired =>
+      'Selecciona al menos un discípulo para la nueva célula';
+
+  @override
+  String get splitCellLeaderBusy => 'Ese ayudante ya es líder de otra célula';
+
+  @override
+  String get splitCellSuccess =>
+      'Nueva célula creada y discípulos transferidos';
+
+  @override
+  String get splitCellCreateAction => 'Crear nueva célula';
+
+  @override
+  String get splitCellLoadError => 'No se pudo cargar la célula origen';
+
+  @override
+  String get splitCellLeaderAccountSection => 'Cuenta de líder';
+
+  @override
+  String get splitCellLeaderAccountHint =>
+      'Se creará un usuario de acceso para el ayudante seleccionado como líder de la nueva célula.';
+
+  @override
+  String get splitCellLeaderAlreadyHasAccount =>
+      'Este ayudante ya tiene cuenta de líder en el sistema.';
+
+  @override
+  String get splitCellLeaderAccountRequired =>
+      'Ingresa correo y contraseña para crear la cuenta del líder';
+
+  @override
+  String get splitCellLeaderBlocked =>
+      'Ese ayudante está bloqueado como líder y no puede liderar una célula';
+
+  @override
+  String get memberLeadershipPromotedToLeader => 'Pasó a líder';
+
+  @override
+  String get memberLeadershipPromotedToVolunteer => 'Pasó a registrador';
+
+  @override
+  String get menuCellsOverCapacity => 'Células para dividir';
+
+  @override
+  String get cellsOverCapacityTitle => 'Células con más de 12 discípulos';
+
+  @override
+  String get cellsOverCapacityDenied =>
+      'No tienes permiso para dividir células';
+
+  @override
+  String get cellsOverCapacityNoChurch => 'No hay iglesia asignada a tu cuenta';
+
+  @override
+  String get cellsOverCapacityLoadError => 'No se pudieron cargar las células';
+
+  @override
+  String get cellsOverCapacityEmpty => 'No hay células que superen el límite';
+
+  @override
+  String cellsOverCapacityEmptySubtitle(int max) {
+    return 'Todas las células tienen $max discípulos o menos';
+  }
+
+  @override
+  String cellsOverCapacityIntro(int max) {
+    return 'Estas células superan $max discípulos. Toca una para crear una nueva célula y transferir discípulos.';
+  }
+
+  @override
+  String cellsOverCapacityLeaderLabel(String name) {
+    return 'Líder: $name';
+  }
+
+  @override
+  String get cellMemberCapacityAdminNotified =>
+      'Discípulo registrado. Se alertó al administrador: la célula supera 12 discípulos.';
+
+  @override
+  String get cellMemberRegisterLeaderOnlyAtCapacity =>
+      'Con 12 o más discípulos, solo el líder de la célula puede registrar un discípulo nuevo.';
+
+  @override
+  String get menuAdminNotifications => 'Alertas de la iglesia';
+
+  @override
+  String get adminNotificationsTitle => 'Alertas de la iglesia';
+
+  @override
+  String get adminNotificationsDenied =>
+      'No tienes permiso para ver las alertas de la iglesia';
+
+  @override
+  String get adminNotificationsEmptyTitle => 'No hay alertas';
+
+  @override
+  String get adminNotificationsEmptySubtitle =>
+      'Recibirás avisos aquí cuando una célula supere 12 discípulos.';
 
   @override
   String get visitRegDenied =>
@@ -1999,6 +2295,834 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get leaderRegCellHint => 'Ej: Ñ10, E4, L4';
+
+  @override
+  String get cellRegTitle => 'Nueva célula';
+
+  @override
+  String get cellEditTitle => 'Editar célula';
+
+  @override
+  String get cellEditSuccess => 'Célula actualizada';
+
+  @override
+  String get cellEditDenied => 'No tienes permiso para editar células';
+
+  @override
+  String get cellRegSectionData => 'Datos de la célula';
+
+  @override
+  String get cellRegSectionMeeting => 'Reunión de la célula';
+
+  @override
+  String get cellRegMeetingDay => 'Día de la semana';
+
+  @override
+  String get cellRegMeetingDayRequired =>
+      'Selecciona el día de reunión de la célula';
+
+  @override
+  String get cellRegSectionLeader => 'Líder asignado';
+
+  @override
+  String get cellRegLeaderRequired => 'Selecciona el líder de la célula';
+
+  @override
+  String get cellRegLeaderWrongChurch =>
+      'Ese líder pertenece a otra iglesia y no puede asignarse a esta célula';
+
+  @override
+  String get cellRegCode => 'Código de célula';
+
+  @override
+  String get cellRegCodeHint => 'Ej: Ñ10, E4, L4';
+
+  @override
+  String get cellRegCodeRequired => 'Ingresa el código de la célula';
+
+  @override
+  String get cellRegCodeDuplicate =>
+      'Ya existe una célula con ese código en esta iglesia';
+
+  @override
+  String get cellRegName => 'Nombre (opcional)';
+
+  @override
+  String get cellRegNotes => 'Notas (opcional)';
+
+  @override
+  String get cellRegSuccess => 'Célula registrada';
+
+  @override
+  String get cellRegDenied => 'No tienes permiso para registrar células';
+
+  @override
+  String get cellRegSectionDisciples => 'Discípulos (opcional)';
+
+  @override
+  String cellRegDisciplesHint(int max) {
+    return 'Agrega hasta $max discípulos nuevos o selecciona los que aún no tienen célula asignada';
+  }
+
+  @override
+  String get cellRegSelectExistingDisciple => 'Seleccionar existente';
+
+  @override
+  String get cellRegSelectDiscipleTitle => 'Seleccionar discípulo';
+
+  @override
+  String get cellRegSelectDiscipleHint =>
+      'Solo aparecen discípulos registrados sin célula asignada en tu iglesia';
+
+  @override
+  String get cellRegSelectDiscipleRequiresChurch =>
+      'No se pueden seleccionar discípulos sin una iglesia asignada a tu cuenta';
+
+  @override
+  String get cellRegSelectDiscipleSearchHint =>
+      'Buscar por nombre, teléfono o célula';
+
+  @override
+  String get cellRegSelectDiscipleEmpty =>
+      'No hay discípulos sin célula asignada. Regístralos desde Célula → Registrar discípulo';
+
+  @override
+  String get cellRegSelectDiscipleLoadError =>
+      'No se pudieron cargar los discípulos';
+
+  @override
+  String cellRegDiscipleFromCell(String cell) {
+    return 'Célula: $cell';
+  }
+
+  @override
+  String get cellRegDiscipleAlreadySelected => 'Este discípulo ya fue agregado';
+
+  @override
+  String get cellRegDiscipleExistingBadge => 'Existente';
+
+  @override
+  String get cellRegDiscipleUnassignedBadge => 'Sin célula';
+
+  @override
+  String get cellDiscipleUnassignedHint =>
+      'Se guardará sin célula asignada. Podrás asignarlo al crear o editar una célula.';
+
+  @override
+  String get cellDiscipleUnassignedSuccess =>
+      'Discípulo registrado sin célula asignada';
+
+  @override
+  String cellRegDisciplesCount(int current, int max) {
+    return '$current de $max';
+  }
+
+  @override
+  String get cellRegDisciplesEmpty => 'Aún no agregaste discípulos';
+
+  @override
+  String get cellRegAddDisciple => 'Agregar discípulo';
+
+  @override
+  String get cellRegEditDisciple => 'Editar discípulo';
+
+  @override
+  String cellRegDisciplesMaxReached(int max) {
+    return 'Máximo $max discípulos al registrar la célula';
+  }
+
+  @override
+  String cellRegSuccessWithDisciples(int count) {
+    return 'Célula registrada con $count discípulo(s)';
+  }
+
+  @override
+  String get menuViewCells => 'Ver células';
+
+  @override
+  String get menuViewCellAttendanceReport => 'Asistencia de discípulos';
+
+  @override
+  String get menuCellAbsenceByLeader => 'Inasistencias por líder';
+
+  @override
+  String get menuCellAttendanceSessions => 'Mis asistencias';
+
+  @override
+  String get menuRegisterCellDisciple => 'Registrar discípulo';
+
+  @override
+  String get cellDisciplePickCellTitle => 'Seleccionar célula';
+
+  @override
+  String get cellDisciplePickCellHint =>
+      'Elige la célula donde registrar el discípulo';
+
+  @override
+  String get cellsListTitle => 'Células';
+
+  @override
+  String get cellsListSearchHint =>
+      'Buscar por código, nombre, líder o dirección';
+
+  @override
+  String get cellsListEmpty => 'No hay células registradas';
+
+  @override
+  String get cellsListLoadError => 'No se pudieron cargar las células';
+
+  @override
+  String get cellDiscipleTitle => 'Registrar discípulo';
+
+  @override
+  String get cellDiscipleForCell => 'Célula';
+
+  @override
+  String get cellDiscipleDenied =>
+      'No tienes permiso para registrar discípulos';
+
+  @override
+  String get cellDiscipleSuccess => 'Discípulo registrado';
+
+  @override
+  String get cellDiscipleCellMissing => 'No se encontró la célula';
+
+  @override
+  String get cellDiscipleEmailOptional =>
+      'Opcional (sin cuenta de acceso a la app)';
+
+  @override
+  String get cellDiscipleEmailLabel => 'Correo electrónico (opcional)';
+
+  @override
+  String get cellDiscipleEmailHelper =>
+      'Solo para contacto. No crea cuenta ni sirve para iniciar sesión en el sistema.';
+
+  @override
+  String get cellDiscipleChurchOfficeLabel => 'Cargo en la iglesia *';
+
+  @override
+  String get cellDiscipleChurchOfficeHelper =>
+      'Selecciona el cargo que ocupa el discípulo en la iglesia';
+
+  @override
+  String get cellDiscipleAdd => 'Registrar discípulo';
+
+  @override
+  String get cellDiscipleListTitle => 'Discípulos';
+
+  @override
+  String get cellDiscipleListEmpty => 'Aún no hay discípulos en esta célula';
+
+  @override
+  String get cellDiscipleDeleteTitle => 'Eliminar discípulo';
+
+  @override
+  String get cellDiscipleDeleted => 'Discípulo eliminado';
+
+  @override
+  String get cellHelpersTitle => 'Ayudantes de la célula';
+
+  @override
+  String cellHelpersHint(int max) {
+    return 'Selecciona hasta $max discípulos de esta célula como ayudantes';
+  }
+
+  @override
+  String get cellHelpersEmpty => 'Aún no hay ayudantes asignados';
+
+  @override
+  String get cellHelpersSelectAction => 'Seleccionar ayudantes';
+
+  @override
+  String cellHelpersCount(int current, int max) {
+    return '$current de $max';
+  }
+
+  @override
+  String cellHelpersMaxReached(int max) {
+    return 'Máximo $max ayudantes por célula';
+  }
+
+  @override
+  String get cellHelpersSaved => 'Ayudantes actualizados';
+
+  @override
+  String get cellHelpersBadge => 'Ayudante';
+
+  @override
+  String get cellAttendanceRegisterTitle => 'Registrar asistencia';
+
+  @override
+  String get cellAttendancePickCellTitle => 'Registrar asistencia';
+
+  @override
+  String get cellAttendancePickCellHint =>
+      'Selecciona la célula para registrar la asistencia de la reunión';
+
+  @override
+  String get cellAttendanceNoOwnCell => 'No tienes célula asignada';
+
+  @override
+  String get cellAttendanceDenied =>
+      'Solo el líder asignado a la célula puede registrar asistencia';
+
+  @override
+  String get cellAttendanceNoDisciples =>
+      'Asigna discípulos a la célula antes de registrar asistencia';
+
+  @override
+  String get cellAttendanceLeaderRequired =>
+      'La célula debe tener un líder asignado para registrar asistencia';
+
+  @override
+  String get cellAttendanceMembersLoadError =>
+      'No se pudieron cargar los discípulos de la célula';
+
+  @override
+  String get cellAttendanceSectionWhen => 'Fecha y hora';
+
+  @override
+  String get cellAttendanceSectionWhere => 'Lugar';
+
+  @override
+  String get cellAttendanceSectionRoll => 'Asistencia de discípulos';
+
+  @override
+  String get cellAttendanceSectionRollHint =>
+      'Marca quién asistió a la reunión de la célula';
+
+  @override
+  String get cellAttendanceSessionDate => 'Fecha de la reunión';
+
+  @override
+  String get cellAttendanceSessionTime => 'Hora';
+
+  @override
+  String get cellAttendanceSessionPlace => 'Lugar de la reunión';
+
+  @override
+  String get cellAttendanceSessionPlaceHint =>
+      'Dirección o referencia del lugar';
+
+  @override
+  String get cellAttendancePlaceRequired => 'Ingresa el lugar de la reunión';
+
+  @override
+  String cellAttendanceDayDiffersInfo(String registeredDay, String actualDay) {
+    return 'La reunión fue un $actualDay, pero la célula está registrada los $registeredDay.';
+  }
+
+  @override
+  String get cellAttendanceDayChangeSwitch =>
+      'Registrar con día diferente para este encuentro';
+
+  @override
+  String get cellAttendanceDayChangeSwitchHint =>
+      'Solo aplica a esta reunión, no cambia el día habitual de la célula';
+
+  @override
+  String get cellAttendanceDayChangeReason => 'Motivo del cambio de día';
+
+  @override
+  String get cellAttendanceDayReasonRequired =>
+      'Indica por qué se realizó en un día diferente';
+
+  @override
+  String get cellAttendanceLocationDiffersInfo =>
+      'El lugar es diferente al registrado en la célula.';
+
+  @override
+  String get cellAttendanceLocationChangeSwitch =>
+      'Registrar con lugar diferente para este encuentro';
+
+  @override
+  String get cellAttendanceLocationChangeSwitchHint =>
+      'Solo aplica a esta reunión, no cambia la dirección habitual de la célula';
+
+  @override
+  String get cellAttendanceLocationChangeReason => 'Motivo del cambio de lugar';
+
+  @override
+  String get cellAttendanceLocationReasonRequired =>
+      'Indica por qué se realizó en otro lugar';
+
+  @override
+  String get cellAttendanceSectionNotes => 'Información adicional';
+
+  @override
+  String get cellAttendanceOfferingCollected => 'Ofrenda recogida';
+
+  @override
+  String get cellAttendanceOfferingCollectedHint =>
+      'Monto o detalle (opcional)';
+
+  @override
+  String get cellAttendanceObservations => 'Observaciones';
+
+  @override
+  String get cellAttendanceObservationsHint =>
+      'Notas sobre la reunión (opcional)';
+
+  @override
+  String cellAttendanceOfferingSummary(String amount) {
+    return 'Ofrenda: $amount';
+  }
+
+  @override
+  String get cellAttendanceMarkAllPresent => 'Todos presentes';
+
+  @override
+  String get cellAttendanceMarkAllAbsent => 'Ninguno presente';
+
+  @override
+  String get cellAttendanceSaveAction => 'Guardar asistencia';
+
+  @override
+  String get cellAttendanceSaved => 'Asistencia registrada';
+
+  @override
+  String get cellAttendanceUpdated => 'Asistencia actualizada';
+
+  @override
+  String get cellAttendanceDeleted => 'Asistencia eliminada';
+
+  @override
+  String get cellAttendanceEditTitle => 'Editar asistencia';
+
+  @override
+  String get cellAttendanceEditAction => 'Editar';
+
+  @override
+  String get cellAttendanceUpdateAction => 'Guardar cambios';
+
+  @override
+  String get cellAttendanceDeleteTitle => 'Eliminar asistencia';
+
+  @override
+  String get cellAttendanceDeleteAction => 'Eliminar';
+
+  @override
+  String cellAttendanceDeleteConfirm(String date) {
+    return '¿Eliminar la asistencia del $date?';
+  }
+
+  @override
+  String get cellAttendanceSessionsTitle => 'Mis asistencias';
+
+  @override
+  String get cellAttendanceSessionsPickCellTitle => 'Mis asistencias';
+
+  @override
+  String get cellAttendanceSessionsPickCellHint =>
+      'Selecciona la célula para ver y gestionar asistencias registradas';
+
+  @override
+  String get cellAttendanceSessionsDateRangeTitle => 'Rango de fechas';
+
+  @override
+  String cellAttendanceSessionsFromDate(String date) {
+    return 'Desde $date';
+  }
+
+  @override
+  String cellAttendanceSessionsToDate(String date) {
+    return 'Hasta $date';
+  }
+
+  @override
+  String get cellAttendanceSessionsEmpty =>
+      'No hay asistencias registradas en este rango de fechas';
+
+  @override
+  String get cellAttendanceManageDenied =>
+      'No tienes permiso para gestionar asistencias de esta célula';
+
+  @override
+  String get cellAttendanceHistoryTitle => 'Asistencias recientes';
+
+  @override
+  String cellAttendanceHistoryRecentCount(int count) {
+    return 'Últimas $count';
+  }
+
+  @override
+  String cellAttendancePresentCount(int present, int total) {
+    return '$present de $total presentes';
+  }
+
+  @override
+  String get cellAttendanceDayChangedBadge => 'Día diferente';
+
+  @override
+  String get cellAttendanceLocationChangedBadge => 'Lugar diferente';
+
+  @override
+  String get cellAttendanceReportTitle => 'Asistencia de discípulos';
+
+  @override
+  String get cellAttendanceReportPickCellTitle => 'Asistencia por célula';
+
+  @override
+  String get cellAttendanceReportPickCellHint =>
+      'Selecciona una célula para ver la asistencia de sus discípulos';
+
+  @override
+  String get cellAttendanceReportNoOwnCell => 'No tienes célula asignada';
+
+  @override
+  String get cellAttendanceReportDenied =>
+      'No tienes permiso para ver el reporte de asistencia';
+
+  @override
+  String cellAttendanceReportSessionCount(int count) {
+    return '$count reuniones registradas';
+  }
+
+  @override
+  String cellAttendanceReportFilteredSessionCount(int filtered, int total) {
+    return '$filtered de $total reuniones en el rango';
+  }
+
+  @override
+  String get cellAttendanceReportWeekFilterTitle => 'Rango de semanas';
+
+  @override
+  String get cellAttendanceReportWeekFrom => 'Desde semana';
+
+  @override
+  String get cellAttendanceReportWeekTo => 'Hasta semana';
+
+  @override
+  String get cellAttendanceReportWeekAll => 'Todas';
+
+  @override
+  String cellAttendanceReportWeekPreset(int count) {
+    return 'Últimas $count sem.';
+  }
+
+  @override
+  String get cellAttendanceReportLegendTitle =>
+      'Alertas por inasistencias seguidas';
+
+  @override
+  String get cellAttendanceReportLegendExcellent =>
+      'Verde: 0 o 1 inasistencia seguida';
+
+  @override
+  String get cellAttendanceReportLegendWarning =>
+      'Amarillo: 2 inasistencias seguidas';
+
+  @override
+  String get cellAttendanceReportLegendCritical =>
+      'Rojo: 3 o más inasistencias seguidas';
+
+  @override
+  String get cellAbsenceByLeaderTitle => 'Inasistencias por líder';
+
+  @override
+  String get cellAbsenceByLeaderDenied =>
+      'Solo el administrador puede ver este reporte';
+
+  @override
+  String get cellAbsenceByLeaderNoChurch =>
+      'Tu cuenta no tiene una iglesia asignada';
+
+  @override
+  String get cellAbsenceByLeaderLoadError =>
+      'No se pudo cargar el reporte de inasistencias';
+
+  @override
+  String get cellAbsenceByLeaderEmpty =>
+      'No hay células con líder asignado en tu iglesia';
+
+  @override
+  String cellAbsenceByLeaderCellLabel(String code) {
+    return 'Célula $code';
+  }
+
+  @override
+  String cellAbsenceByLeaderCriticalCount(int count) {
+    return '$count discípulos con 3+ inasistencias seguidas';
+  }
+
+  @override
+  String cellAbsenceByLeaderTotalCritical(int count) {
+    return 'Total: $count discípulos en alerta roja';
+  }
+
+  @override
+  String get cellAbsenceByLeaderLeaderOk =>
+      'Ningún discípulo con 3 o más inasistencias seguidas';
+
+  @override
+  String get cellAttendanceReportMembersTitle => 'Discípulos';
+
+  @override
+  String get cellAttendanceReportEmpty =>
+      'No hay discípulos en esta célula o aún no hay asistencias registradas';
+
+  @override
+  String cellAttendanceReportMemberStats(
+    int present,
+    int consecutive,
+    int total,
+  ) {
+    return '$present presentes · $consecutive seguidas · $total listas';
+  }
+
+  @override
+  String get cellMemberAssignTitle => 'Discípulos de la célula';
+
+  @override
+  String get cellMemberAssignAction => 'Asignar discípulos';
+
+  @override
+  String get cellDetailAssignDisciplesAction => 'Asignar discípulos';
+
+  @override
+  String get cellMemberAssignAdd => 'Agregar discípulo';
+
+  @override
+  String get cellMemberRegisterNew => 'Registrar discípulo nuevo';
+
+  @override
+  String get cellMemberRegisterTitle => 'Registrar discípulo en la célula';
+
+  @override
+  String get cellMemberFormHint =>
+      'Registro de discípulos para esta célula. Si solicita visita, se asignará el líder de la célula.';
+
+  @override
+  String get cellMemberFormSubmit => 'Registrar en la célula';
+
+  @override
+  String get cellMemberWantsVisitSubtitle =>
+      'Si desea visita, se asignará automáticamente el líder de esta célula';
+
+  @override
+  String get cellMemberIsNewBelieverSubtitle =>
+      'Actívalo si el discípulo se registra como nuevo creyente';
+
+  @override
+  String cellMemberVisitLeaderHint(String leader, String cell) {
+    return 'Se asignará a $leader como líder pastoral (célula $cell)';
+  }
+
+  @override
+  String get cellMemberVisitNoLeader =>
+      'Esta célula no tiene líder asignado. Asigna un líder a la célula o desactiva la visita.';
+
+  @override
+  String cellMemberRegisteredWithCellLeader(
+    String name,
+    String cell,
+    String leader,
+  ) {
+    return '$name registrado en $cell con visita asignada a $leader';
+  }
+
+  @override
+  String get myAssignedCellTitle => 'Mi célula';
+
+  @override
+  String get myAssignedCellDenied =>
+      'No tienes permiso para ver la célula asignada';
+
+  @override
+  String get myAssignedCellLoadError =>
+      'No se pudo cargar la información de la célula';
+
+  @override
+  String get myAssignedCellNoLeaderProfile =>
+      'Tu cuenta de líder no está vinculada a un perfil de líder en el sistema';
+
+  @override
+  String get myAssignedCellEmpty => 'No tienes célula asignada';
+
+  @override
+  String myAssignedCellLeaderLabel(String name) {
+    return 'Líder: $name';
+  }
+
+  @override
+  String cellMemberRegisteredAndAssigned(String name, String cell) {
+    return '$name registrado y asignado a $cell';
+  }
+
+  @override
+  String cellMemberAssignHint(String cell) {
+    return 'Asigna discípulos sin célula a $cell. La asignación a célula es independiente del líder pastoral del discípulo.';
+  }
+
+  @override
+  String get cellMemberListTitle => 'Discípulos';
+
+  @override
+  String get cellMemberListEmpty =>
+      'Aún no hay discípulos asignados a esta célula';
+
+  @override
+  String get cellMemberSelectTitle => 'Seleccionar discípulos';
+
+  @override
+  String get cellMemberSelectHint =>
+      'Marca uno o más discípulos sin célula asignada y confirma al final';
+
+  @override
+  String cellMemberSelectConfirm(int count) {
+    return 'Asignar $count';
+  }
+
+  @override
+  String get cellMemberSelectRequiresChurch =>
+      'No se pueden asignar discípulos sin una iglesia asignada a tu cuenta';
+
+  @override
+  String get cellMemberSelectSearchHint =>
+      'Buscar por nombre, teléfono o líder';
+
+  @override
+  String get cellMemberSelectEmpty =>
+      'No hay discípulos sin célula asignada en tu iglesia';
+
+  @override
+  String cellMemberSelectMaxReached(int max) {
+    return 'Máximo $max discípulo(s) por célula';
+  }
+
+  @override
+  String cellMemberSelectLimitHint(int max) {
+    return 'Puedes seleccionar hasta $max discípulo(s). La célula admite 12 como máximo.';
+  }
+
+  @override
+  String get cellMemberAssignLimitReached =>
+      'La célula ya tiene 12 discípulos. No se pueden asignar más.';
+
+  @override
+  String cellMemberAssignLimitPartial(int assigned, int requested) {
+    return 'Se asignaron $assigned de $requested: la célula tiene un máximo de 12 discípulos.';
+  }
+
+  @override
+  String get cellMemberSelectLoadError =>
+      'No se pudieron cargar los discípulos';
+
+  @override
+  String cellMemberAssigned(String name) {
+    return '$name asignado a la célula';
+  }
+
+  @override
+  String cellMemberAssignedMultiple(int count) {
+    return '$count discípulos asignados a la célula';
+  }
+
+  @override
+  String get cellMemberUnassignTitle => 'Quitar de la célula';
+
+  @override
+  String cellMemberUnassignConfirm(String name) {
+    return '¿Quitar a $name de esta célula?';
+  }
+
+  @override
+  String get cellMemberUnassignAction => 'Quitar';
+
+  @override
+  String cellMemberAssignGenderHint(String gender) {
+    return 'Solo se pueden asignar discípulos del mismo sexo que el líder de la célula ($gender).';
+  }
+
+  @override
+  String get cellMemberAssignLeaderGenderMissing =>
+      'El líder de la célula no tiene sexo registrado. Completa su perfil antes de asignar discípulos.';
+
+  @override
+  String get cellMemberAssignGenderMismatch =>
+      'Solo puedes asignar discípulos del mismo sexo que el líder de la célula.';
+
+  @override
+  String cellMemberSelectEmptyGender(String gender) {
+    return 'No hay discípulos sin célula del mismo sexo que el líder ($gender).';
+  }
+
+  @override
+  String cellMemberSelectGenderHint(String gender) {
+    return 'Solo aparecen discípulos sin célula del mismo sexo que el líder ($gender).';
+  }
+
+  @override
+  String cellMemberRegisterGenderLocked(String gender) {
+    return 'Debe ser $gender, igual que el líder de la célula.';
+  }
+
+  @override
+  String cellMemberUnassigned(String name) {
+    return '$name ya no está asignado a esta célula';
+  }
+
+  @override
+  String get baptismCalendarTitle => 'Calendario de bautismo';
+
+  @override
+  String get baptismCalendarRegisterTitle => 'Registrar fecha de bautismo';
+
+  @override
+  String get baptismCalendarAdd => 'Registrar fecha';
+
+  @override
+  String get baptismCalendarTime => 'Hora (opcional)';
+
+  @override
+  String get baptismCalendarTimeHint => 'Ej: 10:00';
+
+  @override
+  String get baptismCalendarLocation => 'Lugar (opcional)';
+
+  @override
+  String get baptismCalendarNotes => 'Notas (opcional)';
+
+  @override
+  String get baptismCalendarSuccess => 'Fecha de bautismo registrada';
+
+  @override
+  String get baptismCalendarDeleted => 'Fecha de bautismo eliminada';
+
+  @override
+  String get baptismCalendarDenied =>
+      'No tienes permiso para ver el calendario de bautismo';
+
+  @override
+  String get baptismCalendarLoadError =>
+      'No se pudo cargar el calendario de bautismo';
+
+  @override
+  String get baptismCalendarEmpty => 'No hay bautismos programados';
+
+  @override
+  String get baptismCalendarSelectDay => 'Selecciona un día del calendario';
+
+  @override
+  String baptismCalendarDayTitle(String date) {
+    return 'Bautismos del $date';
+  }
+
+  @override
+  String get baptismCalendarDayEmpty =>
+      'No hay bautismos programados para este día';
+
+  @override
+  String get baptismCalendarUpcoming => 'Próximos bautismos';
+
+  @override
+  String get baptismCalendarDeleteTitle => 'Eliminar fecha de bautismo';
+
+  @override
+  String baptismCalendarDeleteConfirm(String date) {
+    return '¿Eliminar el bautismo programado para el $date?';
+  }
 
   @override
   String get leaderRegMobileRequired => 'Ingresa el celular';

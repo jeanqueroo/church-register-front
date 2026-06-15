@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -99,6 +101,17 @@ class _AuthGateState extends State<AuthGate> {
     );
   }
 
+  void _syncAdminChurchListing(UserSession session) {
+    if (!session.permissions.canViewChurchNotifications) return;
+    final churchId = session.profile.churchId?.trim();
+    if (churchId == null || churchId.isEmpty) return;
+    unawaited(
+      _profileService
+          .ensureAdminListedOnChurch(uid: session.uid, churchId: churchId)
+          .catchError((_) {}),
+    );
+  }
+
   Future<void> _loadProfile(User user) async {
     setState(() {
       _loadingProfile = true;
@@ -171,6 +184,7 @@ class _AuthGateState extends State<AuthGate> {
         _loadingProfile = false;
       });
       _configurePushForSession(session);
+      _syncAdminChurchListing(session);
     } catch (_) {
       if (!mounted) return;
       if (_auth.currentUser?.uid != user.uid) return;
