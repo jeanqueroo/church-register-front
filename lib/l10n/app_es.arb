@@ -228,6 +228,7 @@
   "memberEntrySource": "¿Dónde entró el creyente? *",
   "memberEntrySourceRequired": "Selecciona dónde entró el creyente",
   "memberDetailEntrySource": "Dónde entró",
+  "memberDetailLeadershipStatus": "Estado pastoral",
   "memberDetailAssignmentKind": "Tipo de asignación",
   "memberAssignmentPastoral": "Nuevo creyente (líder pastoral)",
   "memberAssignmentCell": "Discípulo de célula",
@@ -815,6 +816,9 @@
   "notificationsTitle": "Notificaciones",
   "notificationsLeaderNotLinked": "Tu cuenta no está vinculada a un líder. Contacta al administrador.",
   "notificationsMarkRead": "Marcar leídas",
+  "notificationsDismissAll": "Quitar todas",
+  "notificationsDismissAllConfirmTitle": "¿Quitar todas las alertas?",
+  "notificationsDismissAllConfirmMessage": "Las alertas desaparecerán de tu lista. Esta acción no se puede deshacer.",
   "notificationsLoadError": "No se pudieron cargar las notificaciones. Revisa las reglas de Firestore.",
   "notificationsEmptyTitle": "No tienes notificaciones",
   "notificationsEmptySubtitle": "Cuando te asignen un integrante nuevo, aparecerá aquí.",
@@ -851,6 +855,68 @@
     "placeholders": {
       "cell": { "type": "String" },
       "count": { "type": "int" }
+    }
+  },
+  "splitCellTitle": "Dividir célula",
+  "splitCellSourceCellLabel": "Célula origen",
+  "splitCellNewCellSection": "Nueva célula",
+  "splitCellSelectLeaderHelper": "Líder de la nueva célula",
+  "splitCellSelectLeaderHelperHint": "Elige un ayudante de la célula origen como líder",
+  "splitCellNoHelpers": "Esta célula no tiene ayudantes. Asigna ayudantes en Mi célula antes de dividir.",
+  "splitCellSelectMembers": "Discípulos para la nueva célula",
+  "splitCellSelectMembersHint": "Selecciona hasta {max} discípulos de la célula origen",
+  "@splitCellSelectMembersHint": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "splitCellMembersMaxReached": "Máximo {max} discípulos para la nueva célula",
+  "@splitCellMembersMaxReached": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "splitCellLeaderRequired": "Selecciona un ayudante como líder de la nueva célula",
+  "splitCellMembersRequired": "Selecciona al menos un discípulo para la nueva célula",
+  "splitCellLeaderBusy": "Ese ayudante ya es líder de otra célula",
+  "splitCellSuccess": "Nueva célula creada y discípulos transferidos",
+  "splitCellCreateAction": "Crear nueva célula",
+  "splitCellLoadError": "No se pudo cargar la célula origen",
+  "splitCellLeaderAccountSection": "Cuenta de líder",
+  "splitCellLeaderAccountHint": "Se creará un usuario de acceso para el ayudante seleccionado como líder de la nueva célula.",
+  "splitCellLeaderAlreadyHasAccount": "Este ayudante ya tiene cuenta de líder en el sistema.",
+  "splitCellLeaderAccountRequired": "Ingresa correo y contraseña para crear la cuenta del líder",
+  "splitCellLeaderBlocked": "Ese ayudante está bloqueado como líder y no puede liderar una célula",
+  "memberLeadershipPromotedToLeader": "Pasó a líder",
+  "memberLeadershipPromotedToVolunteer": "Pasó a registrador",
+  "menuCellsOverCapacity": "Células para dividir",
+  "cellsOverCapacityTitle": "Células con más de 12 discípulos",
+  "cellsOverCapacityDenied": "No tienes permiso para dividir células",
+  "cellsOverCapacityNoChurch": "No hay iglesia asignada a tu cuenta",
+  "cellsOverCapacityLoadError": "No se pudieron cargar las células",
+  "cellsOverCapacityEmpty": "No hay células que superen el límite",
+  "cellsOverCapacityEmptySubtitle": "Todas las células tienen {max} discípulos o menos",
+  "@cellsOverCapacityEmptySubtitle": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "cellsOverCapacityIntro": "Estas células superan {max} discípulos. Toca una para crear una nueva célula y transferir discípulos.",
+  "@cellsOverCapacityIntro": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "cellsOverCapacityLeaderLabel": "Líder: {name}",
+  "@cellsOverCapacityLeaderLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
     }
   },
   "cellMemberCapacityAdminNotified": "Discípulo registrado. Se alertó al administrador: la célula supera 12 discípulos.",

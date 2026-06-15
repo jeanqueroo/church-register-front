@@ -256,6 +256,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
       postalCode: existing?.postalCode,
       latitude: existing?.latitude,
       longitude: existing?.longitude,
+      churchId: existing?.churchId ?? _selectedChurch?.id,
     );
   }
 
@@ -275,13 +276,14 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
       return byAuth.id!;
     }
 
-    return _leaderService.addLeader(
-      _buildLeaderRecord(
+    return _leaderService.addLeaderWithMember(
+      leader: _buildLeaderRecord(
         uid: uid,
         email: email,
         firstName: firstName,
         lastName: lastName,
       ),
+      registeredBy: widget.registeredBy,
     );
   }
 
@@ -347,13 +349,15 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
           );
         }
 
-        final leaderId = await _leaderService.addLeader(
-          _buildLeaderRecord(
-            uid: uid,
-            email: email,
-            firstName: firstName,
-            lastName: lastName,
-          ),
+        final leaderRecord = _buildLeaderRecord(
+          uid: uid,
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+        );
+        final leaderId = await _leaderService.addLeaderWithMember(
+          leader: leaderRecord,
+          registeredBy: widget.registeredBy,
         );
 
         await _userProfileService.setAdminProfile(

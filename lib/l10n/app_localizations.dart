@@ -1010,6 +1010,12 @@ abstract class AppLocalizations {
   /// **'Dónde entró'**
   String get memberDetailEntrySource;
 
+  /// No description provided for @memberDetailLeadershipStatus.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado pastoral'**
+  String get memberDetailLeadershipStatus;
+
   /// No description provided for @memberDetailAssignmentKind.
   ///
   /// In es, this message translates to:
@@ -2952,6 +2958,24 @@ abstract class AppLocalizations {
   /// **'Marcar leídas'**
   String get notificationsMarkRead;
 
+  /// No description provided for @notificationsDismissAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar todas'**
+  String get notificationsDismissAll;
+
+  /// No description provided for @notificationsDismissAllConfirmTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Quitar todas las alertas?'**
+  String get notificationsDismissAllConfirmTitle;
+
+  /// No description provided for @notificationsDismissAllConfirmMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Las alertas desaparecerán de tu lista. Esta acción no se puede deshacer.'**
+  String get notificationsDismissAllConfirmMessage;
+
   /// No description provided for @notificationsLoadError.
   ///
   /// In es, this message translates to:
@@ -3017,6 +3041,192 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'La célula {cell} tiene {count} discípulos asignados.'**
   String notificationCellCapacityBody(String cell, int count);
+
+  /// No description provided for @splitCellTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Dividir célula'**
+  String get splitCellTitle;
+
+  /// No description provided for @splitCellSourceCellLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Célula origen'**
+  String get splitCellSourceCellLabel;
+
+  /// No description provided for @splitCellNewCellSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva célula'**
+  String get splitCellNewCellSection;
+
+  /// No description provided for @splitCellSelectLeaderHelper.
+  ///
+  /// In es, this message translates to:
+  /// **'Líder de la nueva célula'**
+  String get splitCellSelectLeaderHelper;
+
+  /// No description provided for @splitCellSelectLeaderHelperHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige un ayudante de la célula origen como líder'**
+  String get splitCellSelectLeaderHelperHint;
+
+  /// No description provided for @splitCellNoHelpers.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta célula no tiene ayudantes. Asigna ayudantes en Mi célula antes de dividir.'**
+  String get splitCellNoHelpers;
+
+  /// No description provided for @splitCellSelectMembers.
+  ///
+  /// In es, this message translates to:
+  /// **'Discípulos para la nueva célula'**
+  String get splitCellSelectMembers;
+
+  /// No description provided for @splitCellSelectMembersHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona hasta {max} discípulos de la célula origen'**
+  String splitCellSelectMembersHint(int max);
+
+  /// No description provided for @splitCellMembersMaxReached.
+  ///
+  /// In es, this message translates to:
+  /// **'Máximo {max} discípulos para la nueva célula'**
+  String splitCellMembersMaxReached(int max);
+
+  /// No description provided for @splitCellLeaderRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona un ayudante como líder de la nueva célula'**
+  String get splitCellLeaderRequired;
+
+  /// No description provided for @splitCellMembersRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona al menos un discípulo para la nueva célula'**
+  String get splitCellMembersRequired;
+
+  /// No description provided for @splitCellLeaderBusy.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese ayudante ya es líder de otra célula'**
+  String get splitCellLeaderBusy;
+
+  /// No description provided for @splitCellSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva célula creada y discípulos transferidos'**
+  String get splitCellSuccess;
+
+  /// No description provided for @splitCellCreateAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear nueva célula'**
+  String get splitCellCreateAction;
+
+  /// No description provided for @splitCellLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cargar la célula origen'**
+  String get splitCellLoadError;
+
+  /// No description provided for @splitCellLeaderAccountSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta de líder'**
+  String get splitCellLeaderAccountSection;
+
+  /// No description provided for @splitCellLeaderAccountHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Se creará un usuario de acceso para el ayudante seleccionado como líder de la nueva célula.'**
+  String get splitCellLeaderAccountHint;
+
+  /// No description provided for @splitCellLeaderAlreadyHasAccount.
+  ///
+  /// In es, this message translates to:
+  /// **'Este ayudante ya tiene cuenta de líder en el sistema.'**
+  String get splitCellLeaderAlreadyHasAccount;
+
+  /// No description provided for @splitCellLeaderAccountRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa correo y contraseña para crear la cuenta del líder'**
+  String get splitCellLeaderAccountRequired;
+
+  /// No description provided for @splitCellLeaderBlocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese ayudante está bloqueado como líder y no puede liderar una célula'**
+  String get splitCellLeaderBlocked;
+
+  /// No description provided for @memberLeadershipPromotedToLeader.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasó a líder'**
+  String get memberLeadershipPromotedToLeader;
+
+  /// No description provided for @memberLeadershipPromotedToVolunteer.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasó a registrador'**
+  String get memberLeadershipPromotedToVolunteer;
+
+  /// No description provided for @menuCellsOverCapacity.
+  ///
+  /// In es, this message translates to:
+  /// **'Células para dividir'**
+  String get menuCellsOverCapacity;
+
+  /// No description provided for @cellsOverCapacityTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Células con más de 12 discípulos'**
+  String get cellsOverCapacityTitle;
+
+  /// No description provided for @cellsOverCapacityDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'No tienes permiso para dividir células'**
+  String get cellsOverCapacityDenied;
+
+  /// No description provided for @cellsOverCapacityNoChurch.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay iglesia asignada a tu cuenta'**
+  String get cellsOverCapacityNoChurch;
+
+  /// No description provided for @cellsOverCapacityLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar las células'**
+  String get cellsOverCapacityLoadError;
+
+  /// No description provided for @cellsOverCapacityEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay células que superen el límite'**
+  String get cellsOverCapacityEmpty;
+
+  /// No description provided for @cellsOverCapacityEmptySubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Todas las células tienen {max} discípulos o menos'**
+  String cellsOverCapacityEmptySubtitle(int max);
+
+  /// No description provided for @cellsOverCapacityIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Estas células superan {max} discípulos. Toca una para crear una nueva célula y transferir discípulos.'**
+  String cellsOverCapacityIntro(int max);
+
+  /// No description provided for @cellsOverCapacityLeaderLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Líder: {name}'**
+  String cellsOverCapacityLeaderLabel(String name);
 
   /// No description provided for @cellMemberCapacityAdminNotified.
   ///

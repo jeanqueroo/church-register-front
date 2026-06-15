@@ -5,6 +5,7 @@ import '../../auth/widgets/role_gate.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/whatsapp_list_tile.dart';
+import '../../cells/screens/split_cell_from_capacity_screen.dart';
 import '../models/admin_notification.dart';
 import '../services/admin_notification_service.dart';
 
@@ -52,9 +53,51 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
 
   Future<void> _openNotification(AdminNotification notification) async {
     final id = notification.id;
-    if (id != null && !notification.read) {
-      await _notificationService.markAsRead(id);
+    if (id != null) {
+      await _notificationService.dismiss(id);
     }
+
+    if (!mounted) return;
+
+    if (notification.type == 'cell_capacity_exceeded') {
+      final cellId = notification.cellId?.trim();
+      if (cellId == null || cellId.isEmpty) return;
+
+      await Navigator.of(context).push<bool>(
+        MaterialPageRoute<bool>(
+          builder: (_) => SplitCellFromCapacityScreen(
+            sourceCellId: cellId,
+            registeredBy: widget.session.email,
+            churchId: notification.churchId,
+            permissions: widget.session.permissions,
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _confirmDismissAll(String uid) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.notificationsDismissAllConfirmTitle),
+        content: Text(l10n.notificationsDismissAllConfirmMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.notificationsDismissAll),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+    await _notificationService.dismissAllForUser(uid);
   }
 
   @override
@@ -74,13 +117,11 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
             StreamBuilder<List<AdminNotification>>(
               stream: _notificationService.watchForUser(uid),
               builder: (context, snapshot) {
-                final hasUnread =
-                    (snapshot.data ?? []).any((notification) => !notification.read);
-                if (!hasUnread) return const SizedBox.shrink();
+                final hasNotifications = (snapshot.data ?? []).isNotEmpty;
+                if (!hasNotifications) return const SizedBox.shrink();
                 return TextButton(
-                  onPressed: () =>
-                      _notificationService.markAllAsReadForUser(uid),
-                  child: Text(l10n.notificationsMarkRead),
+                  onPressed: () => _confirmDismissAll(uid),
+                  child: Text(l10n.notificationsDismissAll),
                 );
               },
             ),

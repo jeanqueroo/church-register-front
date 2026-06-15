@@ -10,6 +10,7 @@ class AdminNotification {
     required this.churchId,
     required this.createdAt,
     this.read = false,
+    this.dismissed = false,
     this.cellId,
     this.cellCode,
     this.cellName,
@@ -24,6 +25,7 @@ class AdminNotification {
   final String churchId;
   final DateTime createdAt;
   final bool read;
+  final bool dismissed;
   final String? cellId;
   final String? cellCode;
   final String? cellName;
@@ -72,6 +74,7 @@ class AdminNotification {
       churchId: data['churchId'] as String? ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       read: data['read'] as bool? ?? false,
+      dismissed: data['dismissed'] as bool? ?? false,
       cellId: data['cellId'] as String?,
       cellCode: data['cellCode'] as String?,
       cellName: data['cellName'] as String?,

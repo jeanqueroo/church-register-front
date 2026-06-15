@@ -35,6 +35,7 @@ List<ChurchMember> membersAssignedToLeader(
 ) {
   final assigned = members
       .where((member) => isMemberAssignedToLeader(member, leader))
+      .where((member) => member.isNewBeliever)
       .toList();
 
   assigned.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));

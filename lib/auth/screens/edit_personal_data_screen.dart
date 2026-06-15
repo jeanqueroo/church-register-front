@@ -244,8 +244,8 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
           );
         } else {
           if (leaderId == null || leaderId.isEmpty) {
-            leaderId = await _leaderService.addLeader(
-              ChurchLeader(
+            leaderId = await _leaderService.addLeaderWithMember(
+              leader: ChurchLeader(
                 firstName: _firstNameController.text.trim(),
                 lastName: _lastNameController.text.trim(),
                 email: widget.session.email,
@@ -253,7 +253,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                 mobilePhone: '-',
                 registeredAt: DateTime.now(),
                 registeredBy: widget.session.email,
+                churchId: widget.session.profile.churchId,
               ),
+              registeredBy: widget.session.email,
             );
             await _profileService.updateAdminUser(
               uid: widget.session.uid,

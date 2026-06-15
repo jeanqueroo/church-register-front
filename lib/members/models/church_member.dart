@@ -8,6 +8,7 @@ import 'id_document_type.dart';
 import 'marital_status.dart';
 import 'member_assignment_kind.dart';
 import 'member_entry_source.dart';
+import 'member_leadership_status.dart';
 import 'spiritual_state.dart';
 
 class ChurchMember {
@@ -52,6 +53,9 @@ class ChurchMember {
     required this.registeredAt,
     required this.registeredBy,
     this.churchId,
+    this.leadershipStatus,
+    this.linkedLeaderId,
+    this.promotedToLeaderAt,
   });
 
   final String? id;
@@ -103,6 +107,23 @@ class ChurchMember {
   final DateTime registeredAt;
   final String registeredBy;
   final String? churchId;
+  /// Estado cuando el integrante pasa a ser líder (p. ej. al dividir célula).
+  final MemberLeadershipStatus? leadershipStatus;
+  /// Id del documento en `leaders` vinculado a este integrante.
+  final String? linkedLeaderId;
+  final DateTime? promotedToLeaderAt;
+
+  bool get hasBeenPromotedToLeader =>
+      leadershipStatus == MemberLeadershipStatus.promotedToLeader;
+
+  bool get hasBeenPromotedToVolunteer =>
+      leadershipStatus == MemberLeadershipStatus.promotedToVolunteer;
+
+  bool get hasPromotedLeadershipStatus =>
+      hasBeenPromotedToLeader || hasBeenPromotedToVolunteer;
+
+  String? leadershipStatusLabel(AppLocalizations l10n) =>
+      leadershipStatus?.localizedLabel(l10n);
 
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
@@ -262,6 +283,12 @@ class ChurchMember {
       'searchName': buildSearchIndex(),
       'searchLastFirst': buildSearchLastFirstIndex(),
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
+      if (leadershipStatus != null)
+        'leadershipStatus': leadershipStatus!.name,
+      if (linkedLeaderId != null && linkedLeaderId!.isNotEmpty)
+        'linkedLeaderId': linkedLeaderId,
+      if (promotedToLeaderAt != null)
+        'promotedToLeaderAt': Timestamp.fromDate(promotedToLeaderAt!),
     };
   }
 
@@ -337,6 +364,12 @@ class ChurchMember {
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,
+      leadershipStatus: MemberLeadershipStatus.fromString(
+        data['leadershipStatus'] as String?,
+      ),
+      linkedLeaderId: data['linkedLeaderId'] as String?,
+      promotedToLeaderAt:
+          (data['promotedToLeaderAt'] as Timestamp?)?.toDate(),
     );
   }
 }

@@ -14,8 +14,10 @@ class AdminNotificationService {
         .where('recipientUserId', isEqualTo: userId)
         .snapshots()
         .map((snapshot) {
-      final list =
-          snapshot.docs.map(AdminNotification.fromFirestore).toList();
+      final list = snapshot.docs
+          .map(AdminNotification.fromFirestore)
+          .where((notification) => !notification.dismissed)
+          .toList();
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return list;
     });
@@ -29,6 +31,29 @@ class AdminNotificationService {
 
   Future<void> markAsRead(String notificationId) {
     return _notifications.doc(notificationId).update({'read': true});
+  }
+
+  Future<void> dismiss(String notificationId) {
+    return _notifications.doc(notificationId).update({
+      'dismissed': true,
+      'read': true,
+    });
+  }
+
+  Future<void> dismissAllForUser(String userId) async {
+    final snapshot = await _notifications
+        .where('recipientUserId', isEqualTo: userId)
+        .get();
+
+    final active = snapshot.docs
+        .where((doc) => doc.data()['dismissed'] != true);
+    if (active.isEmpty) return;
+
+    final batch = FirebaseFirestore.instance.batch();
+    for (final doc in active) {
+      batch.update(doc.reference, {'dismissed': true, 'read': true});
+    }
+    await batch.commit();
   }
 
   Future<void> markAllAsReadForUser(String userId) async {

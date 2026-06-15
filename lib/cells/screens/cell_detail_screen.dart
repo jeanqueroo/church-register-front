@@ -330,6 +330,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
         cellId: cellId,
         helpers: helpers,
       );
+      await _memberService.clearNewBelieverForCellHelpers(selectedIds);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.cellHelpersSaved)),

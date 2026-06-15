@@ -77,6 +77,21 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
   bool _isLoading = false;
   bool _loadingRoles = false;
 
+  bool get _isVolunteerRegistrar =>
+      _churchOffice == ChurchOffice.voluntario;
+
+  Set<String> get _rolesForVolunteerRegistrar => {AppUserRole.registrar};
+
+  void _syncRolesForChurchOffice() {
+    if (_isVolunteerRegistrar) {
+      _selectedRoles = _rolesForVolunteerRegistrar;
+    }
+  }
+
+  bool get _hasValidVolunteerRegistrarRoles =>
+      _selectedRoles.contains(AppUserRole.registrar) &&
+      _selectedRoles.every((role) => role == AppUserRole.registrar);
+
   @override
   void initState() {
     super.initState();
@@ -137,7 +152,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     setState(() {
       _churchOffice = value;
       if (value == ChurchOffice.voluntario) {
-        _selectedRoles = {AppUserRole.registrar};
+        _selectedRoles = _rolesForVolunteerRegistrar;
       } else if (_selectedRoles.length == 1 &&
           _selectedRoles.contains(AppUserRole.registrar)) {
         _selectedRoles = {AppUserRole.leader};
@@ -305,8 +320,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
       _showMessage(l10n.leaderRegSelectAtLeastOneRole);
       return;
     }
-    if (_churchOffice == ChurchOffice.voluntario &&
-        _selectedRoles != {AppUserRole.registrar}) {
+    _syncRolesForChurchOffice();
+    if (_isVolunteerRegistrar && !_hasValidVolunteerRegistrarRoles) {
       _showMessage(l10n.assignableRolesVolunteerOnly);
       return;
     }
@@ -386,7 +401,10 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           appRoles: roles,
         );
 
-        final leaderId = await _leaderService.addLeader(leader);
+        final leaderId = await _leaderService.addLeaderWithMember(
+          leader: leader,
+          registeredBy: widget.registeredBy,
+        );
 
         await _userProfileService.setLeaderProfile(
           uid: authUserId,
@@ -641,10 +659,17 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                   AssignableRolesSection(
                     selectedRoles: _selectedRoles,
                     enabled: !_isLoading,
-                    allowedRoles: _churchOffice == ChurchOffice.voluntario
+                    allowedRoles: _isVolunteerRegistrar
                         ? const [AppUserRole.registrar]
                         : null,
-                    onChanged: (roles) => setState(() => _selectedRoles = roles),
+                    lockRegistrarWhenOnly: _isVolunteerRegistrar,
+                    onChanged: (roles) => setState(() {
+                      if (_isVolunteerRegistrar) {
+                        _selectedRoles = _rolesForVolunteerRegistrar;
+                      } else {
+                        _selectedRoles = roles;
+                      }
+                    }),
                   ),
                 if (widget.isEditing && widget.leaderToEdit?.authUserId == null)
                   Padding(

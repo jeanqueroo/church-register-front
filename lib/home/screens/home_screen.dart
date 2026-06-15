@@ -29,6 +29,7 @@ import '../../supervisors/screens/supervisor_my_leaders_screen.dart';
 import '../../baptism/screens/baptism_calendar_screen.dart';
 import '../../cells/screens/cell_absence_by_leader_screen.dart';
 import '../../cells/screens/cells_list_screen.dart';
+import '../../cells/screens/cells_over_capacity_screen.dart';
 import '../../cells/screens/my_assigned_cells_screen.dart';
 import '../../cells/screens/register_cell_screen.dart';
 import '../../dashboard/screens/pastoral_dashboard_screen.dart';
@@ -430,19 +431,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       }
-      if (p.canViewCellAttendanceSessionsMenu) {
+      if (p.canRegisterCell) {
         items.add(
           SlideMenuItem(
-            id: 'cellAttendanceSessions',
-            icon: Icons.history_outlined,
-            label: l10n.menuCellAttendanceSessions,
+            id: 'cellsOverCapacity',
+            icon: Icons.call_split_outlined,
+            label: l10n.menuCellsOverCapacity,
             onTap: () => _navigate(
-              CellsListScreen(
+              CellsOverCapacityScreen(
                 registeredBy: _email,
+                churchId: _churchId,
                 permissions: p,
-                mode: CellsListMode.manageSessions,
               ),
-              'cellAttendanceSessions',
+              'cellsOverCapacity',
             ),
           ),
         );

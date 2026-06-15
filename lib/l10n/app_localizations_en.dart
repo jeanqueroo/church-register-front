@@ -500,6 +500,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memberDetailEntrySource => 'Where they joined';
 
   @override
+  String get memberDetailLeadershipStatus => 'Pastoral status';
+
+  @override
   String get memberDetailAssignmentKind => 'Assignment type';
 
   @override
@@ -1621,6 +1624,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsMarkRead => 'Mark as read';
 
   @override
+  String get notificationsDismissAll => 'Dismiss all';
+
+  @override
+  String get notificationsDismissAllConfirmTitle => 'Dismiss all alerts?';
+
+  @override
+  String get notificationsDismissAllConfirmMessage =>
+      'Alerts will be removed from your list. This cannot be undone.';
+
+  @override
   String get notificationsLoadError =>
       'Could not load notifications. Check Firestore rules.';
 
@@ -1663,6 +1676,121 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String notificationCellCapacityBody(String cell, int count) {
     return 'Cell $cell has $count assigned disciples.';
+  }
+
+  @override
+  String get splitCellTitle => 'Split cell group';
+
+  @override
+  String get splitCellSourceCellLabel => 'Source cell group';
+
+  @override
+  String get splitCellNewCellSection => 'New cell group';
+
+  @override
+  String get splitCellSelectLeaderHelper => 'New cell group leader';
+
+  @override
+  String get splitCellSelectLeaderHelperHint =>
+      'Choose a helper from the source cell as leader';
+
+  @override
+  String get splitCellNoHelpers =>
+      'This cell has no helpers. Assign helpers in My cell group before splitting.';
+
+  @override
+  String get splitCellSelectMembers => 'Disciples for the new cell group';
+
+  @override
+  String splitCellSelectMembersHint(int max) {
+    return 'Select up to $max disciples from the source cell';
+  }
+
+  @override
+  String splitCellMembersMaxReached(int max) {
+    return 'Maximum $max disciples for the new cell group';
+  }
+
+  @override
+  String get splitCellLeaderRequired =>
+      'Select a helper as leader of the new cell group';
+
+  @override
+  String get splitCellMembersRequired =>
+      'Select at least one disciple for the new cell group';
+
+  @override
+  String get splitCellLeaderBusy =>
+      'That helper already leads another cell group';
+
+  @override
+  String get splitCellSuccess =>
+      'New cell group created and disciples transferred';
+
+  @override
+  String get splitCellCreateAction => 'Create new cell group';
+
+  @override
+  String get splitCellLoadError => 'Could not load the source cell group';
+
+  @override
+  String get splitCellLeaderAccountSection => 'Leader account';
+
+  @override
+  String get splitCellLeaderAccountHint =>
+      'An app login will be created for the helper selected as leader of the new cell group.';
+
+  @override
+  String get splitCellLeaderAlreadyHasAccount =>
+      'This helper already has a leader account in the system.';
+
+  @override
+  String get splitCellLeaderAccountRequired =>
+      'Enter email and password to create the leader account';
+
+  @override
+  String get splitCellLeaderBlocked =>
+      'That helper is blocked as a leader and cannot lead a cell group';
+
+  @override
+  String get memberLeadershipPromotedToLeader => 'Promoted to leader';
+
+  @override
+  String get memberLeadershipPromotedToVolunteer => 'Promoted to registrar';
+
+  @override
+  String get menuCellsOverCapacity => 'Cells to split';
+
+  @override
+  String get cellsOverCapacityTitle => 'Cell groups over 12 disciples';
+
+  @override
+  String get cellsOverCapacityDenied =>
+      'You do not have permission to split cell groups';
+
+  @override
+  String get cellsOverCapacityNoChurch =>
+      'No church is assigned to your account';
+
+  @override
+  String get cellsOverCapacityLoadError => 'Could not load cell groups';
+
+  @override
+  String get cellsOverCapacityEmpty => 'No cell groups exceed the limit';
+
+  @override
+  String cellsOverCapacityEmptySubtitle(int max) {
+    return 'All cell groups have $max disciples or fewer';
+  }
+
+  @override
+  String cellsOverCapacityIntro(int max) {
+    return 'These cell groups exceed $max disciples. Tap one to create a new cell group and transfer disciples.';
+  }
+
+  @override
+  String cellsOverCapacityLeaderLabel(String name) {
+    return 'Leader: $name';
   }
 
   @override

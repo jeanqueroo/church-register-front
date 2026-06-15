@@ -505,6 +505,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get memberDetailEntrySource => 'Dónde entró';
 
   @override
+  String get memberDetailLeadershipStatus => 'Estado pastoral';
+
+  @override
   String get memberDetailAssignmentKind => 'Tipo de asignación';
 
   @override
@@ -1632,6 +1635,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get notificationsMarkRead => 'Marcar leídas';
 
   @override
+  String get notificationsDismissAll => 'Quitar todas';
+
+  @override
+  String get notificationsDismissAllConfirmTitle =>
+      '¿Quitar todas las alertas?';
+
+  @override
+  String get notificationsDismissAllConfirmMessage =>
+      'Las alertas desaparecerán de tu lista. Esta acción no se puede deshacer.';
+
+  @override
   String get notificationsLoadError =>
       'No se pudieron cargar las notificaciones. Revisa las reglas de Firestore.';
 
@@ -1673,6 +1687,119 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String notificationCellCapacityBody(String cell, int count) {
     return 'La célula $cell tiene $count discípulos asignados.';
+  }
+
+  @override
+  String get splitCellTitle => 'Dividir célula';
+
+  @override
+  String get splitCellSourceCellLabel => 'Célula origen';
+
+  @override
+  String get splitCellNewCellSection => 'Nueva célula';
+
+  @override
+  String get splitCellSelectLeaderHelper => 'Líder de la nueva célula';
+
+  @override
+  String get splitCellSelectLeaderHelperHint =>
+      'Elige un ayudante de la célula origen como líder';
+
+  @override
+  String get splitCellNoHelpers =>
+      'Esta célula no tiene ayudantes. Asigna ayudantes en Mi célula antes de dividir.';
+
+  @override
+  String get splitCellSelectMembers => 'Discípulos para la nueva célula';
+
+  @override
+  String splitCellSelectMembersHint(int max) {
+    return 'Selecciona hasta $max discípulos de la célula origen';
+  }
+
+  @override
+  String splitCellMembersMaxReached(int max) {
+    return 'Máximo $max discípulos para la nueva célula';
+  }
+
+  @override
+  String get splitCellLeaderRequired =>
+      'Selecciona un ayudante como líder de la nueva célula';
+
+  @override
+  String get splitCellMembersRequired =>
+      'Selecciona al menos un discípulo para la nueva célula';
+
+  @override
+  String get splitCellLeaderBusy => 'Ese ayudante ya es líder de otra célula';
+
+  @override
+  String get splitCellSuccess =>
+      'Nueva célula creada y discípulos transferidos';
+
+  @override
+  String get splitCellCreateAction => 'Crear nueva célula';
+
+  @override
+  String get splitCellLoadError => 'No se pudo cargar la célula origen';
+
+  @override
+  String get splitCellLeaderAccountSection => 'Cuenta de líder';
+
+  @override
+  String get splitCellLeaderAccountHint =>
+      'Se creará un usuario de acceso para el ayudante seleccionado como líder de la nueva célula.';
+
+  @override
+  String get splitCellLeaderAlreadyHasAccount =>
+      'Este ayudante ya tiene cuenta de líder en el sistema.';
+
+  @override
+  String get splitCellLeaderAccountRequired =>
+      'Ingresa correo y contraseña para crear la cuenta del líder';
+
+  @override
+  String get splitCellLeaderBlocked =>
+      'Ese ayudante está bloqueado como líder y no puede liderar una célula';
+
+  @override
+  String get memberLeadershipPromotedToLeader => 'Pasó a líder';
+
+  @override
+  String get memberLeadershipPromotedToVolunteer => 'Pasó a registrador';
+
+  @override
+  String get menuCellsOverCapacity => 'Células para dividir';
+
+  @override
+  String get cellsOverCapacityTitle => 'Células con más de 12 discípulos';
+
+  @override
+  String get cellsOverCapacityDenied =>
+      'No tienes permiso para dividir células';
+
+  @override
+  String get cellsOverCapacityNoChurch => 'No hay iglesia asignada a tu cuenta';
+
+  @override
+  String get cellsOverCapacityLoadError => 'No se pudieron cargar las células';
+
+  @override
+  String get cellsOverCapacityEmpty => 'No hay células que superen el límite';
+
+  @override
+  String cellsOverCapacityEmptySubtitle(int max) {
+    return 'Todas las células tienen $max discípulos o menos';
+  }
+
+  @override
+  String cellsOverCapacityIntro(int max) {
+    return 'Estas células superan $max discípulos. Toca una para crear una nueva célula y transferir discípulos.';
+  }
+
+  @override
+  String cellsOverCapacityLeaderLabel(String name) {
+    return 'Líder: $name';
   }
 
   @override

@@ -114,6 +114,7 @@ class _MembersByLeaderBodyState extends State<_MembersByLeaderBody> {
     try {
       final stats = await _service.fetchMemberAssignmentStats(
         churchId: _churchId,
+        newBelieversOnly: true,
       );
       if (!mounted) return;
       setState(() {
@@ -142,6 +143,7 @@ class _MembersByLeaderBodyState extends State<_MembersByLeaderBody> {
       final page = await _service.fetchMembersPage(
         churchId: _churchId,
         searchQuery: _activeSearchQuery,
+        newBelieversOnly: true,
       );
       if (!mounted) return;
       setState(() {
@@ -168,6 +170,7 @@ class _MembersByLeaderBodyState extends State<_MembersByLeaderBody> {
         churchId: _churchId,
         searchQuery: _activeSearchQuery,
         startAfter: _lastDocument,
+        newBelieversOnly: true,
       );
       if (!mounted) return;
       setState(() {

@@ -60,6 +60,23 @@
       "collectionGroup": "members",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "assignedLeaderId", "order": "ASCENDING" },
+        { "fieldPath": "isNewBeliever", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "isNewBeliever", "order": "ASCENDING" },
+        { "fieldPath": "assignedLeaderId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "churchId", "order": "ASCENDING" },
         { "fieldPath": "isNewBeliever", "order": "ASCENDING" },
         { "fieldPath": "registeredAt", "order": "DESCENDING" }

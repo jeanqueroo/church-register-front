@@ -4,7 +4,9 @@ import '../../auth/models/app_user_role.dart';
 import '../../auth/services/user_profile_service.dart';
 import '../../core/search/firestore_search_text.dart';
 import '../../l10n/app_localizations.dart';
+import '../../members/services/member_service.dart';
 import '../models/church_leader.dart';
+import '../models/church_office.dart';
 import '../models/leaders_page.dart';
 
 class LeaderService {
@@ -161,6 +163,22 @@ class LeaderService {
     return doc.id;
   }
 
+  Future<String> addLeaderWithMember({
+    required ChurchLeader leader,
+    required String registeredBy,
+    String? existingMemberId,
+    MemberService? memberService,
+  }) async {
+    final leaderId = await addLeader(leader);
+    await (memberService ?? MemberService()).syncMemberForPromotedLeader(
+      leader: leader,
+      leaderId: leaderId,
+      registeredBy: registeredBy,
+      existingMemberId: existingMemberId,
+    );
+    return leaderId;
+  }
+
   Future<void> updateLeader(ChurchLeader leader) {
     final id = leader.id;
     if (id == null || id.isEmpty) {
@@ -244,6 +262,28 @@ class LeaderService {
       }
       rethrow;
     }
+  }
+
+  static bool isLeaderOrSupervisorInCollection(ChurchLeader leader) {
+    final roles = leader.appRoles;
+    if (roles != null && roles.isNotEmpty) {
+      return rolesAllowPastoralAssignment(roles);
+    }
+    return leader.churchOffice == ChurchOffice.lideres;
+  }
+
+  /// Líderes y supervisores de la iglesia según la colección `leaders`.
+  Future<int> countLeadersAndSupervisorsInChurch({String? churchId}) async {
+    var leaders = (await fetchAllLeaders(churchId: churchId))
+        .where((leader) => !leader.isBlocked)
+        .toList();
+    final normalizedChurchId = churchId?.trim();
+    if (normalizedChurchId != null && normalizedChurchId.isNotEmpty) {
+      leaders = leaders
+          .where((leader) => leader.belongsToChurch(normalizedChurchId))
+          .toList();
+    }
+    return leaders.where(isLeaderOrSupervisorInCollection).length;
   }
 
   Future<int> countLeadersWithPastoralRole({String? churchId}) async {

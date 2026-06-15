@@ -228,6 +228,7 @@
   "memberEntrySource": "Where did the believer join? *",
   "memberEntrySourceRequired": "Select where the believer joined",
   "memberDetailEntrySource": "Where they joined",
+  "memberDetailLeadershipStatus": "Pastoral status",
   "memberDetailAssignmentKind": "Assignment type",
   "memberAssignmentPastoral": "New believer (pastoral leader)",
   "memberAssignmentCell": "Cell group disciple",
@@ -815,6 +816,9 @@
   "notificationsTitle": "Notifications",
   "notificationsLeaderNotLinked": "Your leader account is not linked. Contact the administrator.",
   "notificationsMarkRead": "Mark as read",
+  "notificationsDismissAll": "Dismiss all",
+  "notificationsDismissAllConfirmTitle": "Dismiss all alerts?",
+  "notificationsDismissAllConfirmMessage": "Alerts will be removed from your list. This cannot be undone.",
   "notificationsLoadError": "Could not load notifications. Check Firestore rules.",
   "notificationsEmptyTitle": "You have no notifications",
   "notificationsEmptySubtitle": "When a new member is assigned to you, it will appear here.",
@@ -851,6 +855,68 @@
     "placeholders": {
       "cell": { "type": "String" },
       "count": { "type": "int" }
+    }
+  },
+  "splitCellTitle": "Split cell group",
+  "splitCellSourceCellLabel": "Source cell group",
+  "splitCellNewCellSection": "New cell group",
+  "splitCellSelectLeaderHelper": "New cell group leader",
+  "splitCellSelectLeaderHelperHint": "Choose a helper from the source cell as leader",
+  "splitCellNoHelpers": "This cell has no helpers. Assign helpers in My cell group before splitting.",
+  "splitCellSelectMembers": "Disciples for the new cell group",
+  "splitCellSelectMembersHint": "Select up to {max} disciples from the source cell",
+  "@splitCellSelectMembersHint": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "splitCellMembersMaxReached": "Maximum {max} disciples for the new cell group",
+  "@splitCellMembersMaxReached": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "splitCellLeaderRequired": "Select a helper as leader of the new cell group",
+  "splitCellMembersRequired": "Select at least one disciple for the new cell group",
+  "splitCellLeaderBusy": "That helper already leads another cell group",
+  "splitCellSuccess": "New cell group created and disciples transferred",
+  "splitCellCreateAction": "Create new cell group",
+  "splitCellLoadError": "Could not load the source cell group",
+  "splitCellLeaderAccountSection": "Leader account",
+  "splitCellLeaderAccountHint": "An app login will be created for the helper selected as leader of the new cell group.",
+  "splitCellLeaderAlreadyHasAccount": "This helper already has a leader account in the system.",
+  "splitCellLeaderAccountRequired": "Enter email and password to create the leader account",
+  "splitCellLeaderBlocked": "That helper is blocked as a leader and cannot lead a cell group",
+  "memberLeadershipPromotedToLeader": "Promoted to leader",
+  "memberLeadershipPromotedToVolunteer": "Promoted to registrar",
+  "menuCellsOverCapacity": "Cells to split",
+  "cellsOverCapacityTitle": "Cell groups over 12 disciples",
+  "cellsOverCapacityDenied": "You do not have permission to split cell groups",
+  "cellsOverCapacityNoChurch": "No church is assigned to your account",
+  "cellsOverCapacityLoadError": "Could not load cell groups",
+  "cellsOverCapacityEmpty": "No cell groups exceed the limit",
+  "cellsOverCapacityEmptySubtitle": "All cell groups have {max} disciples or fewer",
+  "@cellsOverCapacityEmptySubtitle": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "cellsOverCapacityIntro": "These cell groups exceed {max} disciples. Tap one to create a new cell group and transfer disciples.",
+  "@cellsOverCapacityIntro": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "cellsOverCapacityLeaderLabel": "Leader: {name}",
+  "@cellsOverCapacityLeaderLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
     }
   },
   "cellMemberCapacityAdminNotified": "Disciple registered. The administrator was alerted: the cell exceeds 12 disciples.",

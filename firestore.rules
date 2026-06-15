@@ -452,18 +452,9 @@ service cloud.firestore {
           request.resource.data.get('cellId', '') == cellId &&
           request.resource.data.get('leaderId', '') == currentUserLeaderId() &&
           request.resource.data.get('records', []) is list;
-        allow update, delete: if isSignedIn() && (
-          isSuperAdmin() ||
-          (
-            isChurchAdmin() &&
-            currentUserChurchId() != '' &&
-            cellDocumentData(cellId).get('churchId', '') == currentUserChurchId()
-          ) ||
-          (
-            isAssignedCellLeader(cellDocumentData(cellId).get('leaderId', '')) &&
-            resource.data.get('leaderId', '') == currentUserLeaderId()
-          )
-        );
+        allow update, delete: if isSignedIn() &&
+          isAssignedCellLeader(cellDocumentData(cellId).get('leaderId', '')) &&
+          resource.data.get('leaderId', '') == currentUserLeaderId();
       }
     }
 

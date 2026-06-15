@@ -124,16 +124,20 @@ class HomeDashboardService {
     final membersSnapshot =
         await _members.where('churchId', isEqualTo: churchId).get();
     final leaderCount =
-        await _leaderService.countLeadersWithPastoralRole(churchId: churchId);
+        await _leaderService.countLeadersAndSupervisorsInChurch(
+      churchId: churchId,
+    );
 
-    final memberDocs = membersSnapshot.docs;
     var memberCount = 0;
     var newBelieverCount = 0;
-    for (final doc in memberDocs) {
-      if (doc.data()['isNewBeliever'] == true) {
+    for (final doc in membersSnapshot.docs) {
+      final member = ChurchMember.fromFirestore(doc);
+      if (member.hasPromotedLeadershipStatus) {
+        continue;
+      }
+      memberCount++;
+      if (member.isNewBeliever) {
         newBelieverCount++;
-      } else {
-        memberCount++;
       }
     }
 
@@ -222,7 +226,11 @@ class HomeDashboardService {
           .where('assignedLeaderId', whereIn: batch)
           .get();
 
-      count += snapshot.docs.length;
+      for (final doc in snapshot.docs) {
+        if (doc.data()['isNewBeliever'] == true) {
+          count++;
+        }
+      }
     }
 
     return count;

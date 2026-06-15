@@ -289,6 +289,10 @@ class MemberDetailScreen extends StatelessWidget {
         l10n.memberDetailEntrySource,
         member.entrySourceLabel(l10n),
       ),
+      _Row(
+        l10n.memberDetailLeadershipStatus,
+        member.leadershipStatusLabel(l10n),
+      ),
       _Row(l10n.memberDetailFormDate, _formatDate(member.formDate)),
       _Row(l10n.memberDetailVolunteer, member.volunteer),
       _Row(l10n.memberDetailRegisteredBy, member.registeredBy),

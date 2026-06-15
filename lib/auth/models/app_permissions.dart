@@ -81,14 +81,12 @@ class AppPermissions {
     );
   }
 
-  /// Ver y gestionar asistencias registradas (líder de célula o admin).
+  /// Ver y gestionar asistencias registradas (líder de la célula).
   bool canManageCellAttendanceSessions(ChurchCell cell, {String? actingLeaderId}) {
-    if (isAdmin || isSuperAdmin) return true;
     return canRegisterCellAttendance(cell, actingLeaderId: actingLeaderId);
   }
 
-  bool get canViewCellAttendanceSessionsMenu =>
-      canViewMyAssignedCell || isAdmin || isSuperAdmin;
+  bool get canViewCellAttendanceSessionsMenu => canViewMyAssignedCell;
 
   /// Asignar ayudantes de célula (máx. 3): admin/registrador o líder de la célula.
   bool canManageCellHelpers(String? cellLeaderId, {String? actingLeaderId}) {
