@@ -27,6 +27,7 @@ import '../../notifications/services/leader_notification_service.dart';
 import '../../supervisors/screens/supervisor_leader_assignments_screen.dart';
 import '../../supervisors/screens/supervisor_my_leaders_screen.dart';
 import '../../baptism/screens/baptism_calendar_screen.dart';
+import '../../cells/screens/cell_absence_by_leader_screen.dart';
 import '../../cells/screens/cells_list_screen.dart';
 import '../../cells/screens/my_assigned_cells_screen.dart';
 import '../../cells/screens/register_cell_screen.dart';
@@ -364,6 +365,23 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       }
+      if (p.canViewCellAttendanceSessionsMenu) {
+        items.add(
+          SlideMenuItem(
+            id: 'cellAttendanceSessions',
+            icon: Icons.history_outlined,
+            label: l10n.menuCellAttendanceSessions,
+            onTap: () => _navigate(
+              MyAssignedCellsScreen(
+                session: widget.session,
+                registeredBy: _email,
+                mode: MyAssignedCellsMode.attendanceManage,
+              ),
+              'cellAttendanceSessions',
+            ),
+          ),
+        );
+      }
     }
 
     if (p.canViewCells) {
@@ -396,6 +414,39 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       );
+      if (p.canViewCellAbsenceByLeader) {
+        items.add(
+          SlideMenuItem(
+            id: 'cellAbsenceByLeader',
+            icon: Icons.warning_amber_outlined,
+            label: l10n.menuCellAbsenceByLeader,
+            onTap: () => _navigate(
+              CellAbsenceByLeaderScreen(
+                churchId: _churchId,
+                permissions: p,
+              ),
+              'cellAbsenceByLeader',
+            ),
+          ),
+        );
+      }
+      if (p.canViewCellAttendanceSessionsMenu) {
+        items.add(
+          SlideMenuItem(
+            id: 'cellAttendanceSessions',
+            icon: Icons.history_outlined,
+            label: l10n.menuCellAttendanceSessions,
+            onTap: () => _navigate(
+              CellsListScreen(
+                registeredBy: _email,
+                permissions: p,
+                mode: CellsListMode.manageSessions,
+              ),
+              'cellAttendanceSessions',
+            ),
+          ),
+        );
+      }
     }
 
     if (p.canRegisterCell) {

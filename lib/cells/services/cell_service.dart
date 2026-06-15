@@ -109,6 +109,16 @@ class CellService {
     return leaderIds;
   }
 
+  Future<List<ChurchCell>> fetchCellsForChurch(String churchId) async {
+    if (churchId.isEmpty) return [];
+
+    final snapshot =
+        await _cells.where('churchId', isEqualTo: churchId).get();
+    final list = snapshot.docs.map(ChurchCell.fromFirestore).toList();
+    list.sort((a, b) => a.code.compareTo(b.code));
+    return list;
+  }
+
   Future<List<ChurchCell>> fetchCellsForLeaderIds({
     required List<String> leaderIds,
     String? churchId,

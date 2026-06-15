@@ -1344,7 +1344,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaderDetailSectionLeadership => 'Leadership data';
 
   @override
-  String get leaderDetailSectionCellContact => 'Cell group and contact';
+  String get leaderDetailSectionCellContact => 'Contact';
 
   @override
   String get leaderDetailSectionRoles => 'App roles';
@@ -2304,6 +2304,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuViewCellAttendanceReport => 'Disciple attendance';
 
   @override
+  String get menuCellAbsenceByLeader => 'Absences by leader';
+
+  @override
+  String get menuCellAttendanceSessions => 'My attendance records';
+
+  @override
   String get menuRegisterCellDisciple => 'Register disciple';
 
   @override
@@ -2421,6 +2427,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Only the cell group leader can register attendance';
 
   @override
+  String get cellAttendanceNoDisciples =>
+      'Assign disciples to the cell before registering attendance';
+
+  @override
   String get cellAttendanceLeaderRequired =>
       'The cell group must have an assigned leader to register attendance';
 
@@ -2530,7 +2540,69 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cellAttendanceSaved => 'Attendance saved';
 
   @override
+  String get cellAttendanceUpdated => 'Attendance updated';
+
+  @override
+  String get cellAttendanceDeleted => 'Attendance deleted';
+
+  @override
+  String get cellAttendanceEditTitle => 'Edit attendance';
+
+  @override
+  String get cellAttendanceEditAction => 'Edit';
+
+  @override
+  String get cellAttendanceUpdateAction => 'Save changes';
+
+  @override
+  String get cellAttendanceDeleteTitle => 'Delete attendance';
+
+  @override
+  String get cellAttendanceDeleteAction => 'Delete';
+
+  @override
+  String cellAttendanceDeleteConfirm(String date) {
+    return 'Delete attendance for $date?';
+  }
+
+  @override
+  String get cellAttendanceSessionsTitle => 'My attendance records';
+
+  @override
+  String get cellAttendanceSessionsPickCellTitle => 'My attendance records';
+
+  @override
+  String get cellAttendanceSessionsPickCellHint =>
+      'Select the cell group to view and manage recorded attendance';
+
+  @override
+  String get cellAttendanceSessionsDateRangeTitle => 'Date range';
+
+  @override
+  String cellAttendanceSessionsFromDate(String date) {
+    return 'From $date';
+  }
+
+  @override
+  String cellAttendanceSessionsToDate(String date) {
+    return 'To $date';
+  }
+
+  @override
+  String get cellAttendanceSessionsEmpty =>
+      'No attendance records in this date range';
+
+  @override
+  String get cellAttendanceManageDenied =>
+      'You do not have permission to manage attendance for this cell';
+
+  @override
   String get cellAttendanceHistoryTitle => 'Recent attendance';
+
+  @override
+  String cellAttendanceHistoryRecentCount(int count) {
+    return 'Last $count';
+  }
 
   @override
   String cellAttendancePresentCount(int present, int total) {
@@ -2604,6 +2676,44 @@ class AppLocalizationsEn extends AppLocalizations {
       'Red: 3 or more consecutive absences';
 
   @override
+  String get cellAbsenceByLeaderTitle => 'Absences by leader';
+
+  @override
+  String get cellAbsenceByLeaderDenied =>
+      'Only the church administrator can view this report';
+
+  @override
+  String get cellAbsenceByLeaderNoChurch =>
+      'Your account has no church assigned';
+
+  @override
+  String get cellAbsenceByLeaderLoadError =>
+      'Could not load the absence report';
+
+  @override
+  String get cellAbsenceByLeaderEmpty =>
+      'There are no cell groups with an assigned leader in your church';
+
+  @override
+  String cellAbsenceByLeaderCellLabel(String code) {
+    return 'Cell $code';
+  }
+
+  @override
+  String cellAbsenceByLeaderCriticalCount(int count) {
+    return '$count disciples with 3+ consecutive absences';
+  }
+
+  @override
+  String cellAbsenceByLeaderTotalCritical(int count) {
+    return 'Total: $count disciples in red alert';
+  }
+
+  @override
+  String get cellAbsenceByLeaderLeaderOk =>
+      'No disciples with 3 or more consecutive absences';
+
+  @override
   String get cellAttendanceReportMembersTitle => 'Disciples';
 
   @override
@@ -2647,6 +2757,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cellMemberWantsVisitSubtitle =>
       'If a visit is requested, this cell group\'s leader will be assigned automatically';
+
+  @override
+  String get cellMemberIsNewBelieverSubtitle =>
+      'Turn on if this disciple should be registered as a new believer';
 
   @override
   String cellMemberVisitLeaderHint(String leader, String cell) {

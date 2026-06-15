@@ -2499,7 +2499,7 @@ abstract class AppLocalizations {
   /// No description provided for @leaderDetailSectionCellContact.
   ///
   /// In es, this message translates to:
-  /// **'Célula y contacto'**
+  /// **'Contacto'**
   String get leaderDetailSectionCellContact;
 
   /// No description provided for @leaderDetailSectionRoles.
@@ -4134,6 +4134,18 @@ abstract class AppLocalizations {
   /// **'Asistencia de discípulos'**
   String get menuViewCellAttendanceReport;
 
+  /// No description provided for @menuCellAbsenceByLeader.
+  ///
+  /// In es, this message translates to:
+  /// **'Inasistencias por líder'**
+  String get menuCellAbsenceByLeader;
+
+  /// No description provided for @menuCellAttendanceSessions.
+  ///
+  /// In es, this message translates to:
+  /// **'Mis asistencias'**
+  String get menuCellAttendanceSessions;
+
   /// No description provided for @menuRegisterCellDisciple.
   ///
   /// In es, this message translates to:
@@ -4344,6 +4356,12 @@ abstract class AppLocalizations {
   /// **'Solo el líder asignado a la célula puede registrar asistencia'**
   String get cellAttendanceDenied;
 
+  /// No description provided for @cellAttendanceNoDisciples.
+  ///
+  /// In es, this message translates to:
+  /// **'Asigna discípulos a la célula antes de registrar asistencia'**
+  String get cellAttendanceNoDisciples;
+
   /// No description provided for @cellAttendanceLeaderRequired.
   ///
   /// In es, this message translates to:
@@ -4530,11 +4548,113 @@ abstract class AppLocalizations {
   /// **'Asistencia registrada'**
   String get cellAttendanceSaved;
 
+  /// No description provided for @cellAttendanceUpdated.
+  ///
+  /// In es, this message translates to:
+  /// **'Asistencia actualizada'**
+  String get cellAttendanceUpdated;
+
+  /// No description provided for @cellAttendanceDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Asistencia eliminada'**
+  String get cellAttendanceDeleted;
+
+  /// No description provided for @cellAttendanceEditTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar asistencia'**
+  String get cellAttendanceEditTitle;
+
+  /// No description provided for @cellAttendanceEditAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar'**
+  String get cellAttendanceEditAction;
+
+  /// No description provided for @cellAttendanceUpdateAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar cambios'**
+  String get cellAttendanceUpdateAction;
+
+  /// No description provided for @cellAttendanceDeleteTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Eliminar asistencia'**
+  String get cellAttendanceDeleteTitle;
+
+  /// No description provided for @cellAttendanceDeleteAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Eliminar'**
+  String get cellAttendanceDeleteAction;
+
+  /// No description provided for @cellAttendanceDeleteConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Eliminar la asistencia del {date}?'**
+  String cellAttendanceDeleteConfirm(String date);
+
+  /// No description provided for @cellAttendanceSessionsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mis asistencias'**
+  String get cellAttendanceSessionsTitle;
+
+  /// No description provided for @cellAttendanceSessionsPickCellTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mis asistencias'**
+  String get cellAttendanceSessionsPickCellTitle;
+
+  /// No description provided for @cellAttendanceSessionsPickCellHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona la célula para ver y gestionar asistencias registradas'**
+  String get cellAttendanceSessionsPickCellHint;
+
+  /// No description provided for @cellAttendanceSessionsDateRangeTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Rango de fechas'**
+  String get cellAttendanceSessionsDateRangeTitle;
+
+  /// No description provided for @cellAttendanceSessionsFromDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Desde {date}'**
+  String cellAttendanceSessionsFromDate(String date);
+
+  /// No description provided for @cellAttendanceSessionsToDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Hasta {date}'**
+  String cellAttendanceSessionsToDate(String date);
+
+  /// No description provided for @cellAttendanceSessionsEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay asistencias registradas en este rango de fechas'**
+  String get cellAttendanceSessionsEmpty;
+
+  /// No description provided for @cellAttendanceManageDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'No tienes permiso para gestionar asistencias de esta célula'**
+  String get cellAttendanceManageDenied;
+
   /// No description provided for @cellAttendanceHistoryTitle.
   ///
   /// In es, this message translates to:
   /// **'Asistencias recientes'**
   String get cellAttendanceHistoryTitle;
+
+  /// No description provided for @cellAttendanceHistoryRecentCount.
+  ///
+  /// In es, this message translates to:
+  /// **'Últimas {count}'**
+  String cellAttendanceHistoryRecentCount(int count);
 
   /// No description provided for @cellAttendancePresentCount.
   ///
@@ -4650,6 +4770,60 @@ abstract class AppLocalizations {
   /// **'Rojo: 3 o más inasistencias seguidas'**
   String get cellAttendanceReportLegendCritical;
 
+  /// No description provided for @cellAbsenceByLeaderTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Inasistencias por líder'**
+  String get cellAbsenceByLeaderTitle;
+
+  /// No description provided for @cellAbsenceByLeaderDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo el administrador puede ver este reporte'**
+  String get cellAbsenceByLeaderDenied;
+
+  /// No description provided for @cellAbsenceByLeaderNoChurch.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu cuenta no tiene una iglesia asignada'**
+  String get cellAbsenceByLeaderNoChurch;
+
+  /// No description provided for @cellAbsenceByLeaderLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cargar el reporte de inasistencias'**
+  String get cellAbsenceByLeaderLoadError;
+
+  /// No description provided for @cellAbsenceByLeaderEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay células con líder asignado en tu iglesia'**
+  String get cellAbsenceByLeaderEmpty;
+
+  /// No description provided for @cellAbsenceByLeaderCellLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Célula {code}'**
+  String cellAbsenceByLeaderCellLabel(String code);
+
+  /// No description provided for @cellAbsenceByLeaderCriticalCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} discípulos con 3+ inasistencias seguidas'**
+  String cellAbsenceByLeaderCriticalCount(int count);
+
+  /// No description provided for @cellAbsenceByLeaderTotalCritical.
+  ///
+  /// In es, this message translates to:
+  /// **'Total: {count} discípulos en alerta roja'**
+  String cellAbsenceByLeaderTotalCritical(int count);
+
+  /// No description provided for @cellAbsenceByLeaderLeaderOk.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún discípulo con 3 o más inasistencias seguidas'**
+  String get cellAbsenceByLeaderLeaderOk;
+
   /// No description provided for @cellAttendanceReportMembersTitle.
   ///
   /// In es, this message translates to:
@@ -4725,6 +4899,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Si desea visita, se asignará automáticamente el líder de esta célula'**
   String get cellMemberWantsVisitSubtitle;
+
+  /// No description provided for @cellMemberIsNewBelieverSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Actívalo si el discípulo se registra como nuevo creyente'**
+  String get cellMemberIsNewBelieverSubtitle;
 
   /// No description provided for @cellMemberVisitLeaderHint.
   ///

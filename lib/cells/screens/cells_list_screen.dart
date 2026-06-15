@@ -13,8 +13,9 @@ import 'cell_detail_screen.dart';
 import 'register_cell_disciple_screen.dart';
 import 'register_cell_screen.dart';
 import 'cell_attendance_overview_screen.dart';
+import 'cell_attendance_sessions_screen.dart';
 
-enum CellsListMode { browse, pickDisciple, attendanceReport }
+enum CellsListMode { browse, pickDisciple, attendanceReport, manageSessions }
 
 class CellsListScreen extends StatelessWidget {
   const CellsListScreen({
@@ -37,6 +38,7 @@ class CellsListScreen extends StatelessWidget {
         CellsListMode.browse => _permissions.canViewCells,
         CellsListMode.pickDisciple => _permissions.canRegisterCellDisciple,
         CellsListMode.attendanceReport => _permissions.canViewCellAttendanceReport,
+        CellsListMode.manageSessions => _permissions.canViewCellAttendanceSessionsMenu,
       };
 
   @override
@@ -48,7 +50,9 @@ class CellsListScreen extends StatelessWidget {
           ? context.l10n.cellDiscipleDenied
           : mode == CellsListMode.attendanceReport
               ? context.l10n.cellAttendanceReportDenied
-              : null,
+              : mode == CellsListMode.manageSessions
+                  ? context.l10n.cellAttendanceManageDenied
+                  : null,
       child: _CellsListBody(
         registeredBy: registeredBy,
         cellService: cellService,
@@ -158,6 +162,25 @@ class _CellsListBodyState extends State<_CellsListBody> {
       return;
     }
 
+    if (widget.mode == CellsListMode.manageSessions) {
+      if (!widget.permissions.canManageCellAttendanceSessions(cell)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.cellAttendanceManageDenied)),
+        );
+        return;
+      }
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => CellAttendanceSessionsScreen(
+            cell: cell,
+            registeredBy: widget.registeredBy,
+            permissions: widget.permissions,
+          ),
+        ),
+      );
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => CellDetailScreen(
@@ -180,6 +203,8 @@ class _CellsListBodyState extends State<_CellsListBody> {
     final pickingDisciple = widget.mode == CellsListMode.pickDisciple;
     final pickingAttendanceReport =
         widget.mode == CellsListMode.attendanceReport;
+    final pickingManageSessions =
+        widget.mode == CellsListMode.manageSessions;
 
     return Scaffold(
       appBar: AppBar(
@@ -188,11 +213,14 @@ class _CellsListBodyState extends State<_CellsListBody> {
               ? l10n.cellDisciplePickCellTitle
               : pickingAttendanceReport
                   ? l10n.cellAttendanceReportPickCellTitle
-                  : l10n.cellsListTitle,
+                  : pickingManageSessions
+                      ? l10n.cellAttendanceSessionsPickCellTitle
+                      : l10n.cellsListTitle,
         ),
       ),
       floatingActionButton: !pickingDisciple &&
               !pickingAttendanceReport &&
+              !pickingManageSessions &&
               widget.permissions.canRegisterCell
           ? FloatingActionButton.extended(
               onPressed: () async {
@@ -253,6 +281,8 @@ class _CellsListBodyState extends State<_CellsListBody> {
     final pickingDisciple = widget.mode == CellsListMode.pickDisciple;
     final pickingAttendanceReport =
         widget.mode == CellsListMode.attendanceReport;
+    final pickingManageSessions =
+        widget.mode == CellsListMode.manageSessions;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -315,6 +345,35 @@ class _CellsListBodyState extends State<_CellsListBody> {
               ),
             ),
           ),
+        if (pickingManageSessions)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Card(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        l10n.cellAttendanceSessionsPickCellHint,
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: TextField(
@@ -363,7 +422,9 @@ class _CellsListBodyState extends State<_CellsListBody> {
                               ? Icons.person_add_outlined
                               : pickingAttendanceReport
                                   ? Icons.fact_check_outlined
-                                  : Icons.chevron_right,
+                                  : pickingManageSessions
+                                      ? Icons.history_outlined
+                                      : Icons.chevron_right,
                         ),
                         onTap: () => _onCellTap(cell),
                       ),

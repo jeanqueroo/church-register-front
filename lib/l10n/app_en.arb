@@ -680,7 +680,7 @@
   "leaderDetailUnblockLeader": "Unblock leader",
   "leaderDetailViewMembers": "View members assigned to visit",
   "leaderDetailSectionLeadership": "Leadership data",
-  "leaderDetailSectionCellContact": "Cell group and contact",
+  "leaderDetailSectionCellContact": "Contact",
   "leaderDetailSectionRoles": "App roles",
   "leaderDetailLastName": "Last name",
   "leaderDetailFirstNames": "First names",
@@ -1156,6 +1156,8 @@
   },
   "menuViewCells": "View cell groups",
   "menuViewCellAttendanceReport": "Disciple attendance",
+  "menuCellAbsenceByLeader": "Absences by leader",
+  "menuCellAttendanceSessions": "My attendance records",
   "menuRegisterCellDisciple": "Register disciple",
   "cellDisciplePickCellTitle": "Select cell group",
   "cellDisciplePickCellHint": "Choose the cell group to register the disciple in",
@@ -1207,6 +1209,7 @@
   "cellAttendancePickCellHint": "Select the cell group to register meeting attendance",
   "cellAttendanceNoOwnCell": "You do not have an assigned cell",
   "cellAttendanceDenied": "Only the cell group leader can register attendance",
+  "cellAttendanceNoDisciples": "Assign disciples to the cell before registering attendance",
   "cellAttendanceLeaderRequired": "The cell group must have an assigned leader to register attendance",
   "cellAttendanceMembersLoadError": "Could not load cell group disciples",
   "cellAttendanceSectionWhen": "Date and time",
@@ -1249,7 +1252,44 @@
   "cellAttendanceMarkAllAbsent": "All absent",
   "cellAttendanceSaveAction": "Save attendance",
   "cellAttendanceSaved": "Attendance saved",
+  "cellAttendanceUpdated": "Attendance updated",
+  "cellAttendanceDeleted": "Attendance deleted",
+  "cellAttendanceEditTitle": "Edit attendance",
+  "cellAttendanceEditAction": "Edit",
+  "cellAttendanceUpdateAction": "Save changes",
+  "cellAttendanceDeleteTitle": "Delete attendance",
+  "cellAttendanceDeleteAction": "Delete",
+  "cellAttendanceDeleteConfirm": "Delete attendance for {date}?",
+  "@cellAttendanceDeleteConfirm": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "cellAttendanceSessionsTitle": "My attendance records",
+  "cellAttendanceSessionsPickCellTitle": "My attendance records",
+  "cellAttendanceSessionsPickCellHint": "Select the cell group to view and manage recorded attendance",
+  "cellAttendanceSessionsDateRangeTitle": "Date range",
+  "cellAttendanceSessionsFromDate": "From {date}",
+  "@cellAttendanceSessionsFromDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "cellAttendanceSessionsToDate": "To {date}",
+  "@cellAttendanceSessionsToDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "cellAttendanceSessionsEmpty": "No attendance records in this date range",
+  "cellAttendanceManageDenied": "You do not have permission to manage attendance for this cell",
   "cellAttendanceHistoryTitle": "Recent attendance",
+  "cellAttendanceHistoryRecentCount": "Last {count}",
+  "@cellAttendanceHistoryRecentCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "cellAttendancePresentCount": "{present} of {total} present",
   "@cellAttendancePresentCount": {
     "placeholders": {
@@ -1291,6 +1331,30 @@
   "cellAttendanceReportLegendExcellent": "Green: 0 or 1 consecutive absence",
   "cellAttendanceReportLegendWarning": "Yellow: 2 consecutive absences",
   "cellAttendanceReportLegendCritical": "Red: 3 or more consecutive absences",
+  "cellAbsenceByLeaderTitle": "Absences by leader",
+  "cellAbsenceByLeaderDenied": "Only the church administrator can view this report",
+  "cellAbsenceByLeaderNoChurch": "Your account has no church assigned",
+  "cellAbsenceByLeaderLoadError": "Could not load the absence report",
+  "cellAbsenceByLeaderEmpty": "There are no cell groups with an assigned leader in your church",
+  "cellAbsenceByLeaderCellLabel": "Cell {code}",
+  "@cellAbsenceByLeaderCellLabel": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+  "cellAbsenceByLeaderCriticalCount": "{count} disciples with 3+ consecutive absences",
+  "@cellAbsenceByLeaderCriticalCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellAbsenceByLeaderTotalCritical": "Total: {count} disciples in red alert",
+  "@cellAbsenceByLeaderTotalCritical": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellAbsenceByLeaderLeaderOk": "No disciples with 3 or more consecutive absences",
   "cellAttendanceReportMembersTitle": "Disciples",
   "cellAttendanceReportEmpty": "No disciples in this cell or no attendance recorded yet",
   "cellAttendanceReportMemberStats": "{present} present · {consecutive} in a row · {total} roll calls",
@@ -1310,6 +1374,7 @@
   "cellMemberFormHint": "Register disciples for this cell group. If a visit is requested, the cell group leader will be assigned.",
   "cellMemberFormSubmit": "Register in cell group",
   "cellMemberWantsVisitSubtitle": "If a visit is requested, this cell group's leader will be assigned automatically",
+  "cellMemberIsNewBelieverSubtitle": "Turn on if this disciple should be registered as a new believer",
   "cellMemberVisitLeaderHint": "{leader} will be assigned as pastoral leader (cell group {cell})",
   "@cellMemberVisitLeaderHint": {
     "placeholders": {

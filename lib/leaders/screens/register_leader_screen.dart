@@ -51,7 +51,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
   final _firstNameController = TextEditingController();
   final _streetController = TextEditingController();
   final _streetNumberController = TextEditingController();
-  final _cellCodeController = TextEditingController();
   final _neighborhoodController = TextEditingController();
   final _localityController = TextEditingController();
   final _stateProvinceController = TextEditingController(text: 'Buenos Aires');
@@ -117,7 +116,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _firstNameController.text = leader.firstName;
     _streetController.text = leader.street ?? '';
     _streetNumberController.text = leader.streetNumber ?? '';
-    _cellCodeController.text = leader.cellCode ?? '';
     _neighborhoodController.text = leader.neighborhood ?? '';
     _localityController.text = leader.locality ?? '';
     _stateProvinceController.text = leader.stateProvince ?? 'Buenos Aires';
@@ -153,7 +151,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _firstNameController.dispose();
     _streetController.dispose();
     _streetNumberController.dispose();
-    _cellCodeController.dispose();
     _neighborhoodController.dispose();
     _localityController.dispose();
     _stateProvinceController.dispose();
@@ -359,9 +356,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           streetNumber: _streetNumberController.text.trim().isEmpty
               ? null
               : _streetNumberController.text.trim(),
-          cellCode: _cellCodeController.text.trim().isEmpty
-              ? null
-              : _cellCodeController.text.trim(),
           gender: _gender,
           idDocumentType: _idDocumentType,
           idDocumentNumber: _idDocumentNumberController.text.trim().isEmpty
@@ -421,9 +415,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         streetNumber: _streetNumberController.text.trim().isEmpty
             ? null
             : _streetNumberController.text.trim(),
-        cellCode: _cellCodeController.text.trim().isEmpty
-            ? null
-            : _cellCodeController.text.trim(),
+        cellCode: widget.leaderToEdit?.cellCode,
         gender: _gender,
         idDocumentType: _idDocumentType,
         idDocumentNumber: _idDocumentNumberController.text.trim().isEmpty
@@ -668,18 +660,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                   ),
                 const SizedBox(height: 24),
                 FormSectionTitle(l10n.leaderDetailSectionCellContact),
-                TextFormField(
-                  controller: _cellCodeController,
-                  enabled: !_isLoading,
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: InputDecoration(
-                    labelText: l10n.leaderRegCell,
-                    hintText: l10n.leaderRegCellHint,
-                    prefixIcon: const Icon(Icons.groups_outlined),
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
                 TextFormField(
                   controller: _mobilePhoneController,
                   keyboardType: TextInputType.phone,

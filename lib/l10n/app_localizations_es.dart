@@ -1353,7 +1353,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get leaderDetailSectionLeadership => 'Datos del liderazgo';
 
   @override
-  String get leaderDetailSectionCellContact => 'Célula y contacto';
+  String get leaderDetailSectionCellContact => 'Contacto';
 
   @override
   String get leaderDetailSectionRoles => 'Roles en la app';
@@ -2316,6 +2316,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuViewCellAttendanceReport => 'Asistencia de discípulos';
 
   @override
+  String get menuCellAbsenceByLeader => 'Inasistencias por líder';
+
+  @override
+  String get menuCellAttendanceSessions => 'Mis asistencias';
+
+  @override
   String get menuRegisterCellDisciple => 'Registrar discípulo';
 
   @override
@@ -2435,6 +2441,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Solo el líder asignado a la célula puede registrar asistencia';
 
   @override
+  String get cellAttendanceNoDisciples =>
+      'Asigna discípulos a la célula antes de registrar asistencia';
+
+  @override
   String get cellAttendanceLeaderRequired =>
       'La célula debe tener un líder asignado para registrar asistencia';
 
@@ -2545,7 +2555,69 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cellAttendanceSaved => 'Asistencia registrada';
 
   @override
+  String get cellAttendanceUpdated => 'Asistencia actualizada';
+
+  @override
+  String get cellAttendanceDeleted => 'Asistencia eliminada';
+
+  @override
+  String get cellAttendanceEditTitle => 'Editar asistencia';
+
+  @override
+  String get cellAttendanceEditAction => 'Editar';
+
+  @override
+  String get cellAttendanceUpdateAction => 'Guardar cambios';
+
+  @override
+  String get cellAttendanceDeleteTitle => 'Eliminar asistencia';
+
+  @override
+  String get cellAttendanceDeleteAction => 'Eliminar';
+
+  @override
+  String cellAttendanceDeleteConfirm(String date) {
+    return '¿Eliminar la asistencia del $date?';
+  }
+
+  @override
+  String get cellAttendanceSessionsTitle => 'Mis asistencias';
+
+  @override
+  String get cellAttendanceSessionsPickCellTitle => 'Mis asistencias';
+
+  @override
+  String get cellAttendanceSessionsPickCellHint =>
+      'Selecciona la célula para ver y gestionar asistencias registradas';
+
+  @override
+  String get cellAttendanceSessionsDateRangeTitle => 'Rango de fechas';
+
+  @override
+  String cellAttendanceSessionsFromDate(String date) {
+    return 'Desde $date';
+  }
+
+  @override
+  String cellAttendanceSessionsToDate(String date) {
+    return 'Hasta $date';
+  }
+
+  @override
+  String get cellAttendanceSessionsEmpty =>
+      'No hay asistencias registradas en este rango de fechas';
+
+  @override
+  String get cellAttendanceManageDenied =>
+      'No tienes permiso para gestionar asistencias de esta célula';
+
+  @override
   String get cellAttendanceHistoryTitle => 'Asistencias recientes';
+
+  @override
+  String cellAttendanceHistoryRecentCount(int count) {
+    return 'Últimas $count';
+  }
 
   @override
   String cellAttendancePresentCount(int present, int total) {
@@ -2619,6 +2691,44 @@ class AppLocalizationsEs extends AppLocalizations {
       'Rojo: 3 o más inasistencias seguidas';
 
   @override
+  String get cellAbsenceByLeaderTitle => 'Inasistencias por líder';
+
+  @override
+  String get cellAbsenceByLeaderDenied =>
+      'Solo el administrador puede ver este reporte';
+
+  @override
+  String get cellAbsenceByLeaderNoChurch =>
+      'Tu cuenta no tiene una iglesia asignada';
+
+  @override
+  String get cellAbsenceByLeaderLoadError =>
+      'No se pudo cargar el reporte de inasistencias';
+
+  @override
+  String get cellAbsenceByLeaderEmpty =>
+      'No hay células con líder asignado en tu iglesia';
+
+  @override
+  String cellAbsenceByLeaderCellLabel(String code) {
+    return 'Célula $code';
+  }
+
+  @override
+  String cellAbsenceByLeaderCriticalCount(int count) {
+    return '$count discípulos con 3+ inasistencias seguidas';
+  }
+
+  @override
+  String cellAbsenceByLeaderTotalCritical(int count) {
+    return 'Total: $count discípulos en alerta roja';
+  }
+
+  @override
+  String get cellAbsenceByLeaderLeaderOk =>
+      'Ningún discípulo con 3 o más inasistencias seguidas';
+
+  @override
   String get cellAttendanceReportMembersTitle => 'Discípulos';
 
   @override
@@ -2662,6 +2772,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get cellMemberWantsVisitSubtitle =>
       'Si desea visita, se asignará automáticamente el líder de esta célula';
+
+  @override
+  String get cellMemberIsNewBelieverSubtitle =>
+      'Actívalo si el discípulo se registra como nuevo creyente';
 
   @override
   String cellMemberVisitLeaderHint(String leader, String cell) {

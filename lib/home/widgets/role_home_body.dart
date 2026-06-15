@@ -174,14 +174,13 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
     final data = _dashboard ?? const HomeDashboardData(memberCount: 0);
     final supervisorOnly =
         widget.layout == HomeRoleLayout.supervisor && !_permissions.isLeader;
-    final showLeaderCellSummary = !supervisorOnly;
 
     final summaryLines = <Widget>[
-      if (showLeaderCellSummary) ...[
-        Text(
-          l10n.homeSummaryDisciplesCount(data.memberCount),
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
+      Text(
+        l10n.homeSummaryDisciplesCount(data.memberCount),
+        style: Theme.of(context).textTheme.bodyLarge,
+      ),
+      if (!supervisorOnly) ...[
         const SizedBox(height: 8),
         Text(
           l10n.homeSummaryAssignedNewBelieversCount(data.newBelieverCount),
@@ -190,7 +189,7 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
       ],
       if (widget.layout == HomeRoleLayout.supervisor &&
           data.leaderCount != null) ...[
-        if (showLeaderCellSummary) const SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
           l10n.homeLeadersCount(data.leaderCount!),
           style: Theme.of(context).textTheme.bodyLarge,

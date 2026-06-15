@@ -25,6 +25,13 @@ class CellAttendanceService {
         );
   }
 
+  Future<List<CellAttendanceSession>> fetchSessions(String cellId) async {
+    final snapshot = await _sessions(cellId)
+        .orderBy('sessionDate', descending: true)
+        .get();
+    return snapshot.docs.map(CellAttendanceSession.fromFirestore).toList();
+  }
+
   Future<String> addSession(
     CellAttendanceSession session, {
     MemberService? memberService,
@@ -33,6 +40,32 @@ class CellAttendanceService {
     await (memberService ?? MemberService())
         .graduateNewBelieversFromCellAttendance(cellId: session.cellId);
     return doc.id;
+  }
+
+  Future<void> updateSession(
+    CellAttendanceSession session, {
+    MemberService? memberService,
+  }) async {
+    final sessionId = session.id?.trim();
+    if (sessionId == null || sessionId.isEmpty) {
+      throw ArgumentError('session.id is required to update');
+    }
+    await _sessions(session.cellId).doc(sessionId).set(session.toMap());
+    await (memberService ?? MemberService())
+        .graduateNewBelieversFromCellAttendance(cellId: session.cellId);
+  }
+
+  Future<void> deleteSession({
+    required String cellId,
+    required String sessionId,
+    MemberService? memberService,
+  }) async {
+    if (cellId.isEmpty || sessionId.isEmpty) {
+      throw ArgumentError('cellId and sessionId are required');
+    }
+    await _sessions(cellId).doc(sessionId).delete();
+    await (memberService ?? MemberService())
+        .graduateNewBelieversFromCellAttendance(cellId: cellId);
   }
 
   static String messageFromFirestoreException(

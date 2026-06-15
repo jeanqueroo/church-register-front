@@ -31,6 +31,31 @@ List<DateTime> buildWeekOptions({
   return weeks;
 }
 
+/// Filtra sesiones por rango de fechas (inclusive, solo día calendario).
+List<CellAttendanceSession> filterSessionsByDateRange({
+  required List<CellAttendanceSession> sessions,
+  DateTime? startDate,
+  DateTime? endDate,
+}) {
+  final start = startDate == null
+      ? null
+      : DateTime(startDate.year, startDate.month, startDate.day);
+  final end = endDate == null
+      ? null
+      : DateTime(endDate.year, endDate.month, endDate.day);
+
+  return sessions.where((session) {
+    final day = DateTime(
+      session.sessionDate.year,
+      session.sessionDate.month,
+      session.sessionDate.day,
+    );
+    if (start != null && day.isBefore(start)) return false;
+    if (end != null && day.isAfter(end)) return false;
+    return true;
+  }).toList();
+}
+
 List<CellAttendanceSession> filterSessionsByWeekRange({
   required List<CellAttendanceSession> sessions,
   required DateTime startWeek,

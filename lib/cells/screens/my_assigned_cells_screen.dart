@@ -7,13 +7,15 @@ import '../../auth/widgets/role_gate.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/locale/weekday_labels.dart';
 import '../../l10n/app_localizations.dart';
+import '../../members/services/member_service.dart';
 import '../models/church_cell.dart';
 import '../services/cell_service.dart';
 import 'cell_detail_screen.dart';
 import 'register_cell_attendance_screen.dart';
 import 'cell_attendance_overview_screen.dart';
+import 'cell_attendance_sessions_screen.dart';
 
-enum MyAssignedCellsMode { browse, attendance, attendanceReport }
+enum MyAssignedCellsMode { browse, attendance, attendanceReport, attendanceManage }
 
 class MyAssignedCellsScreen extends StatefulWidget {
   const MyAssignedCellsScreen({
@@ -35,6 +37,7 @@ class MyAssignedCellsScreen extends StatefulWidget {
 
 class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
   late final CellService _cellService;
+  late final MemberService _memberService;
 
   List<ChurchCell> _cells = [];
   bool _loading = true;
@@ -45,6 +48,7 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
   void initState() {
     super.initState();
     _cellService = widget.cellService ?? CellService();
+    _memberService = MemberService();
     _loadCells();
   }
 
@@ -65,7 +69,7 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
         setState(() {
           _cells = [];
           _loading = false;
-          _missingLeaderProfile = permissions.isLeader;
+          _missingLeaderProfile = permissions.isLeader && !permissions.isSupervisor;
         });
         return;
       }
@@ -82,6 +86,13 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
       });
     } on FirebaseException catch (e) {
       if (!mounted) return;
+      if (e.code == 'permission-denied') {
+        setState(() {
+          _cells = [];
+          _loading = false;
+        });
+        return;
+      }
       setState(() {
         _loadError =
             CellService.messageFromFirestoreException(e, context.l10n);
@@ -110,7 +121,7 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
     );
   }
 
-  void _openRegisterAttendance(ChurchCell cell) {
+  Future<void> _openRegisterAttendance(ChurchCell cell) async {
     final permissions = widget.session.permissions;
     if (!permissions.canRegisterCellAttendance(
       cell,
@@ -122,13 +133,50 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
       return;
     }
 
-    Navigator.of(context).push<bool>(
+    final cellId = cell.id;
+    if (cellId == null || cellId.isEmpty) return;
+
+    final count = await _memberService.countMembersInCell(cellId);
+    if (count == 0) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.cellAttendanceNoDisciples)),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
         builder: (_) => RegisterCellAttendanceScreen(
           cell: cell,
           registeredBy: widget.registeredBy,
           actingLeaderId: widget.session.profile.leaderId,
           permissions: permissions,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openAttendanceManage(ChurchCell cell) async {
+    final permissions = widget.session.permissions;
+    if (!permissions.canManageCellAttendanceSessions(
+      cell,
+      actingLeaderId: widget.session.profile.leaderId,
+    )) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.cellAttendanceManageDenied)),
+      );
+      return;
+    }
+
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => CellAttendanceSessionsScreen(
+          cell: cell,
+          registeredBy: widget.registeredBy,
+          permissions: permissions,
+          actingLeaderId: widget.session.profile.leaderId,
         ),
       ),
     );
@@ -153,6 +201,8 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
         _openRegisterAttendance(cell);
       case MyAssignedCellsMode.attendanceReport:
         _openAttendanceReport(cell);
+      case MyAssignedCellsMode.attendanceManage:
+        _openAttendanceManage(cell);
       case MyAssignedCellsMode.browse:
         _openCellDetail(cell);
     }
@@ -162,6 +212,7 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
     return switch (widget.mode) {
       MyAssignedCellsMode.attendance => l10n.cellAttendancePickCellTitle,
       MyAssignedCellsMode.attendanceReport => l10n.cellAttendanceReportPickCellTitle,
+      MyAssignedCellsMode.attendanceManage => l10n.cellAttendanceSessionsPickCellTitle,
       MyAssignedCellsMode.browse => l10n.myAssignedCellTitle,
     };
   }
@@ -250,6 +301,14 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
           actingLeaderId: widget.session.profile.leaderId,
         );
       }
+      if (widget.mode == MyAssignedCellsMode.attendanceManage) {
+        return CellAttendanceSessionsScreen(
+          cell: _cells.first,
+          registeredBy: widget.registeredBy,
+          permissions: permissions,
+          actingLeaderId: widget.session.profile.leaderId,
+        );
+      }
       return CellDetailScreen(
         cell: _cells.first,
         registeredBy: widget.registeredBy,
@@ -267,20 +326,26 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
           padding: const EdgeInsets.all(16),
           itemCount: _cells.length +
               (widget.mode == MyAssignedCellsMode.attendance ||
-                      widget.mode == MyAssignedCellsMode.attendanceReport
+                      widget.mode == MyAssignedCellsMode.attendanceReport ||
+                      widget.mode == MyAssignedCellsMode.attendanceManage
                   ? 1
                   : 0),
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
             if ((widget.mode == MyAssignedCellsMode.attendance ||
-                    widget.mode == MyAssignedCellsMode.attendanceReport) &&
+                    widget.mode == MyAssignedCellsMode.attendanceReport ||
+                    widget.mode == MyAssignedCellsMode.attendanceManage) &&
                 index == 0) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  widget.mode == MyAssignedCellsMode.attendanceReport
-                      ? l10n.cellAttendanceReportPickCellHint
-                      : l10n.cellAttendancePickCellHint,
+                  switch (widget.mode) {
+                    MyAssignedCellsMode.attendanceReport =>
+                      l10n.cellAttendanceReportPickCellHint,
+                    MyAssignedCellsMode.attendanceManage =>
+                      l10n.cellAttendanceSessionsPickCellHint,
+                    _ => l10n.cellAttendancePickCellHint,
+                  },
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -289,7 +354,8 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
             }
 
             final cellIndex = (widget.mode == MyAssignedCellsMode.attendance ||
-                    widget.mode == MyAssignedCellsMode.attendanceReport)
+                    widget.mode == MyAssignedCellsMode.attendanceReport ||
+                    widget.mode == MyAssignedCellsMode.attendanceManage)
                 ? index - 1
                 : index;
             final cell = _cells[cellIndex];

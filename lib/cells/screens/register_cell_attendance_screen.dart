@@ -20,6 +20,7 @@ class RegisterCellAttendanceScreen extends StatefulWidget {
     required this.cell,
     required this.registeredBy,
     this.actingLeaderId,
+    this.sessionToEdit,
     this.attendanceService,
     this.memberService,
     this.permissions,
@@ -28,12 +29,15 @@ class RegisterCellAttendanceScreen extends StatefulWidget {
   final ChurchCell cell;
   final String registeredBy;
   final String? actingLeaderId;
+  final CellAttendanceSession? sessionToEdit;
   final CellAttendanceService? attendanceService;
   final MemberService? memberService;
   final AppPermissions? permissions;
 
   AppPermissions get _permissions =>
       permissions ?? AppPermissions.adminDefault();
+
+  bool get isEditing => sessionToEdit != null;
 
   @override
   State<RegisterCellAttendanceScreen> createState() =>
@@ -83,7 +87,36 @@ class _RegisterCellAttendanceScreenState
     _placeController.addListener(() {
       if (mounted) setState(() {});
     });
+    _applySessionToEdit(widget.sessionToEdit);
     _loadMembers();
+  }
+
+  void _applySessionToEdit(CellAttendanceSession? session) {
+    if (session == null) return;
+
+    _sessionDate = DateTime(
+      session.sessionDate.year,
+      session.sessionDate.month,
+      session.sessionDate.day,
+    );
+    _sessionTime = _parseTime(session.sessionTime);
+    _placeController.text = session.place;
+    _noteDayChangeForSession = session.noteDayChangeForSession;
+    _noteLocationChangeForSession = session.noteLocationChangeForSession;
+    _dayChangeReasonController.text = session.dayChangeReason ?? '';
+    _locationChangeReasonController.text = session.locationChangeReason ?? '';
+    _offeringCollectedController.text = session.offeringCollected ?? '';
+    _observationsController.text = session.observations ?? '';
+  }
+
+  TimeOfDay _parseTime(String value) {
+    final parts = value.split(':');
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0]) ?? 0;
+      final minute = int.tryParse(parts[1]) ?? 0;
+      return TimeOfDay(hour: hour, minute: minute);
+    }
+    return TimeOfDay.now();
   }
 
   @override
@@ -112,12 +145,23 @@ class _RegisterCellAttendanceScreenState
     try {
       final members = await _memberService.fetchMembersInCell(cellId);
       if (!mounted) return;
+      final session = widget.sessionToEdit;
       setState(() {
         _members = members;
         _presentByMemberId.clear();
         for (final member in members) {
           final id = member.id;
-          if (id != null && id.isNotEmpty) {
+          if (id == null || id.isEmpty) continue;
+          if (session != null) {
+            CellAttendanceRecord? record;
+            for (final item in session.records) {
+              if (item.memberId.trim() == id) {
+                record = item;
+                break;
+              }
+            }
+            _presentByMemberId[id] = record?.present ?? false;
+          } else {
             _presentByMemberId[id] = true;
           }
         }
@@ -174,10 +218,21 @@ class _RegisterCellAttendanceScreenState
     );
   }
 
+  bool get _canSave =>
+      !_isSaving &&
+      !_loadingMembers &&
+      _loadError == null &&
+      (widget.isEditing || _members.isNotEmpty);
+
   Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
 
     final l10n = context.l10n;
+
+    if (_members.isEmpty) {
+      _showMessage(l10n.cellAttendanceNoDisciples);
+      return;
+    }
     final cell = widget.cell;
     final cellId = cell.id;
     final leaderId = cell.leaderId?.trim();
@@ -220,55 +275,68 @@ class _RegisterCellAttendanceScreenState
 
     final presentCount = records.where((record) => record.present).length;
     final sessionWeekday = weekdayStorageValueFromDate(_sessionDate);
-    final now = DateTime.now();
+    final editing = widget.sessionToEdit;
+    final session = CellAttendanceSession(
+      id: editing?.id,
+      cellId: cellId,
+      cellCode: cell.code,
+      sessionDate: DateTime(
+        _sessionDate.year,
+        _sessionDate.month,
+        _sessionDate.day,
+      ),
+      sessionTime: _formatTime(_sessionTime),
+      place: _placeController.text.trim(),
+      registeredCellDay: cell.cellDay,
+      sessionWeekday: sessionWeekday,
+      dayDiffersFromRegistered: _dayDiffers,
+      noteDayChangeForSession: _dayDiffers && _noteDayChangeForSession,
+      dayChangeReason: _noteDayChangeForSession
+          ? _dayChangeReasonController.text.trim()
+          : null,
+      registeredPlace: _registeredPlace,
+      locationDiffersFromRegistered: _locationDiffers,
+      noteLocationChangeForSession:
+          _locationDiffers && _noteLocationChangeForSession,
+      locationChangeReason: _noteLocationChangeForSession
+          ? _locationChangeReasonController.text.trim()
+          : null,
+      offeringCollected: _offeringCollectedController.text.trim().isEmpty
+          ? null
+          : _offeringCollectedController.text.trim(),
+      observations: _observationsController.text.trim().isEmpty
+          ? null
+          : _observationsController.text.trim(),
+      records: records,
+      presentCount: presentCount,
+      totalCount: records.length,
+      leaderId: leaderId,
+      leaderName: cell.leaderName,
+      registeredAt: editing?.registeredAt ?? DateTime.now(),
+      registeredBy: editing?.registeredBy ?? widget.registeredBy,
+      churchId: cell.churchId,
+    );
 
     setState(() => _isSaving = true);
     try {
-      await _attendanceService.addSession(
-        CellAttendanceSession(
-          cellId: cellId,
-          cellCode: cell.code,
-          sessionDate: DateTime(
-            _sessionDate.year,
-            _sessionDate.month,
-            _sessionDate.day,
-          ),
-          sessionTime: _formatTime(_sessionTime),
-          place: _placeController.text.trim(),
-          registeredCellDay: cell.cellDay,
-          sessionWeekday: sessionWeekday,
-          dayDiffersFromRegistered: _dayDiffers,
-          noteDayChangeForSession: _dayDiffers && _noteDayChangeForSession,
-          dayChangeReason: _noteDayChangeForSession
-              ? _dayChangeReasonController.text.trim()
-              : null,
-          registeredPlace: _registeredPlace,
-          locationDiffersFromRegistered: _locationDiffers,
-          noteLocationChangeForSession:
-              _locationDiffers && _noteLocationChangeForSession,
-          locationChangeReason: _noteLocationChangeForSession
-              ? _locationChangeReasonController.text.trim()
-              : null,
-          offeringCollected: _offeringCollectedController.text.trim().isEmpty
-              ? null
-              : _offeringCollectedController.text.trim(),
-          observations: _observationsController.text.trim().isEmpty
-              ? null
-              : _observationsController.text.trim(),
-          records: records,
-          presentCount: presentCount,
-          totalCount: records.length,
-          leaderId: leaderId,
-          leaderName: cell.leaderName,
-          registeredAt: now,
-          registeredBy: widget.registeredBy,
-          churchId: cell.churchId,
-        ),
-        memberService: _memberService,
-      );
+      if (editing != null) {
+        await _attendanceService.updateSession(
+          session,
+          memberService: _memberService,
+        );
+      } else {
+        await _attendanceService.addSession(
+          session,
+          memberService: _memberService,
+        );
+      }
 
       if (!mounted) return;
-      _showMessage(l10n.cellAttendanceSaved);
+      _showMessage(
+        editing != null
+            ? l10n.cellAttendanceUpdated
+            : l10n.cellAttendanceSaved,
+      );
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
       if (!mounted) return;
@@ -480,24 +548,52 @@ class _RegisterCellAttendanceScreenState
     );
   }
 
+  Widget _noDisciplesBody(AppLocalizations l10n) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          l10n.cellAttendanceNoDisciples,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final cell = widget.cell;
+    final hasNoDisciples = !widget.isEditing &&
+        !_loadingMembers &&
+        _loadError == null &&
+        _members.isEmpty;
 
     return RoleGate(
       permissions: widget._permissions,
-      allowed: widget._permissions.canRegisterCellAttendance(
-        cell,
-        actingLeaderId: widget.actingLeaderId,
-      ),
+      allowed: widget.isEditing
+          ? widget._permissions.canManageCellAttendanceSessions(
+              cell,
+              actingLeaderId: widget.actingLeaderId,
+            )
+          : widget._permissions.canRegisterCellAttendance(
+              cell,
+              actingLeaderId: widget.actingLeaderId,
+            ),
       deniedMessage: l10n.cellAttendanceDenied,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(l10n.cellAttendanceRegisterTitle),
+          title: Text(
+            widget.isEditing
+                ? l10n.cellAttendanceEditTitle
+                : l10n.cellAttendanceRegisterTitle,
+          ),
         ),
         body: SafeArea(
-          child: SingleChildScrollView(
+          child: hasNoDisciples
+              ? _noDisciplesBody(l10n)
+              : SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
@@ -607,7 +703,7 @@ class _RegisterCellAttendanceScreenState
                   _attendanceSection(l10n),
                   const SizedBox(height: 32),
                   FilledButton.icon(
-                    onPressed: _isSaving || _loadingMembers ? null : _onSave,
+                    onPressed: _canSave ? _onSave : null,
                     icon: _isSaving
                         ? const SizedBox(
                             width: 20,
@@ -621,7 +717,9 @@ class _RegisterCellAttendanceScreenState
                     label: Text(
                       _isSaving
                           ? l10n.memberSaving
-                          : l10n.cellAttendanceSaveAction,
+                          : widget.isEditing
+                              ? l10n.cellAttendanceUpdateAction
+                              : l10n.cellAttendanceSaveAction,
                     ),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),

@@ -145,6 +145,18 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
   }
 
   Future<void> _openRegisterAttendance() async {
+    final cellId = _cell.id;
+    if (cellId == null || cellId.isEmpty) return;
+
+    final count = await _memberService.countMembersInCell(cellId);
+    if (count == 0) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.cellAttendanceNoDisciples)),
+      );
+      return;
+    }
+
     await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
         builder: (_) => RegisterCellAttendanceScreen(
@@ -348,49 +360,51 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
         final sessions = snapshot.data ?? [];
         if (sessions.isEmpty) return const SizedBox.shrink();
 
-        final recent = sessions.take(5).toList();
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              l10n.cellAttendanceHistoryTitle,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+        final recent = sessions.take(3).toList();
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              leading: const Icon(Icons.history_outlined),
+              title: Text(
+                l10n.cellAttendanceHistoryTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              subtitle: Text(l10n.cellAttendanceHistoryRecentCount(recent.length)),
+              children: recent.map((session) {
+                final dateText = _formatSessionDate(session.sessionDate);
+                final subtitleParts = <String>[
+                  '${l10n.cellAttendanceSessionTime}: ${session.sessionTime}',
+                  l10n.cellAttendancePresentCount(
+                    session.presentCount,
+                    session.totalCount,
                   ),
-            ),
-            const SizedBox(height: 12),
-            ...recent.map((session) {
-              final dateText = _formatSessionDate(session.sessionDate);
-              final subtitleParts = <String>[
-                '${l10n.cellAttendanceSessionTime}: ${session.sessionTime}',
-                l10n.cellAttendancePresentCount(
-                  session.presentCount,
-                  session.totalCount,
-                ),
-              ];
-              if (session.dayDiffersFromRegistered &&
-                  session.noteDayChangeForSession) {
-                subtitleParts.add(l10n.cellAttendanceDayChangedBadge);
-              }
-              if (session.locationDiffersFromRegistered &&
-                  session.noteLocationChangeForSession) {
-                subtitleParts.add(l10n.cellAttendanceLocationChangedBadge);
-              }
-              if (session.offeringCollected != null &&
-                  session.offeringCollected!.trim().isNotEmpty) {
-                subtitleParts.add(
-                  l10n.cellAttendanceOfferingSummary(
-                    session.offeringCollected!.trim(),
-                  ),
-                );
-              }
-              if (session.observations != null &&
-                  session.observations!.trim().isNotEmpty) {
-                subtitleParts.add(session.observations!.trim());
-              }
+                ];
+                if (session.dayDiffersFromRegistered &&
+                    session.noteDayChangeForSession) {
+                  subtitleParts.add(l10n.cellAttendanceDayChangedBadge);
+                }
+                if (session.locationDiffersFromRegistered &&
+                    session.noteLocationChangeForSession) {
+                  subtitleParts.add(l10n.cellAttendanceLocationChangedBadge);
+                }
+                if (session.offeringCollected != null &&
+                    session.offeringCollected!.trim().isNotEmpty) {
+                  subtitleParts.add(
+                    l10n.cellAttendanceOfferingSummary(
+                      session.offeringCollected!.trim(),
+                    ),
+                  );
+                }
+                if (session.observations != null &&
+                    session.observations!.trim().isNotEmpty) {
+                  subtitleParts.add(session.observations!.trim());
+                }
 
-              return Card(
-                child: ListTile(
+                return ListTile(
                   leading: const Icon(Icons.event_available_outlined),
                   title: Text(dateText),
                   subtitle: Text(
@@ -399,11 +413,10 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                       if (session.place.trim().isNotEmpty) session.place.trim(),
                     ].join('\n'),
                   ),
-                ),
-              );
-            }),
-            const SizedBox(height: 16),
-          ],
+                );
+              }).toList(),
+            ),
+          ),
         );
       },
     );
@@ -581,16 +594,6 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
-                if (_canRegisterAttendance) ...[
-                  FilledButton.icon(
-                    onPressed: _openRegisterAttendance,
-                    icon: const Icon(Icons.event_available_outlined),
-                    label: Text(l10n.cellAttendanceRegisterTitle),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                if (_canRegisterAttendance)
-                  _attendanceHistorySection(l10n, cellId),
                 StreamBuilder<List<ChurchMember>>(
                   stream: _memberService.watchMembersInCell(cellId),
                   builder: (context, snapshot) {
@@ -603,6 +606,16 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (_canRegisterAttendance && members.isNotEmpty) ...[
+                          FilledButton.icon(
+                            onPressed: _openRegisterAttendance,
+                            icon: const Icon(Icons.event_available_outlined),
+                            label: Text(l10n.cellAttendanceRegisterTitle),
+                          ),
+                          const SizedBox(height: 16),
+                          _attendanceHistorySection(l10n, cellId),
+                          const SizedBox(height: 16),
+                        ],
                         _helpersSection(l10n, members),
                         Text(
                           l10n.cellDiscipleListTitle,

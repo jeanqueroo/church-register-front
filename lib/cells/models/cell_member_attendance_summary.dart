@@ -3,9 +3,11 @@ enum CellMemberAbsenceAlert {
   warning,
   critical;
 
+  static const int criticalAbsenceThreshold = 3;
+
   /// Basado en inasistencias **consecutivas** (desde la última reunión).
   static CellMemberAbsenceAlert fromConsecutiveAbsences(int streak) {
-    if (streak >= 3) return CellMemberAbsenceAlert.critical;
+    if (streak >= criticalAbsenceThreshold) return CellMemberAbsenceAlert.critical;
     if (streak == 2) return CellMemberAbsenceAlert.warning;
     return CellMemberAbsenceAlert.excellent;
   }

@@ -70,6 +70,7 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
   MaritalStatus? _maritalStatus;
   GeoLocation? _memberLocation;
   bool _wantsVisit = false;
+  bool _isNewBeliever = false;
   bool _isSaving = false;
 
   String? get _effectiveChurchId {
@@ -252,7 +253,7 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
         assignedLeaderFromRegistration: false,
         assignmentKind: MemberAssignmentKind.cell,
         wantsVisit: _wantsVisit,
-        isNewBeliever: true,
+        isNewBeliever: _isNewBeliever,
         entrySource: MemberEntrySource.celula,
         formDate: now,
         registeredAt: now,
@@ -690,6 +691,16 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
                     onAddressCleared: () {
                       setState(() => _memberLocation = null);
                     },
+                  ),
+                  const SizedBox(height: 24),
+                  SwitchListTile(
+                    value: _isNewBeliever,
+                    onChanged: _isSaving
+                        ? null
+                        : (value) => setState(() => _isNewBeliever = value),
+                    title: Text(l10n.spiritualNewBeliever),
+                    subtitle: Text(l10n.cellMemberIsNewBelieverSubtitle),
+                    secondary: const Icon(Icons.favorite_outline),
                   ),
                   const SizedBox(height: 24),
                   _visitSection(l10n),
