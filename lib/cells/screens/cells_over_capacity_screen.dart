@@ -250,9 +250,10 @@ class _CellsOverCapacityScreenState extends State<CellsOverCapacityScreen> {
         subtitle: subtitleParts.join('\n'),
         subtitleMaxLines: 3,
         showDivider: false,
-        trailing: FilledButton.tonal(
+        trailing: IconButton(
+          icon: const Icon(Icons.call_split_outlined),
+          tooltip: l10n.splitCellCreateAction,
           onPressed: () => _openSplit(entry),
-          child: Text(l10n.splitCellCreateAction),
         ),
         onTap: () => _openSplit(entry),
       ),

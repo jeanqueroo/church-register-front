@@ -37,6 +37,8 @@ class VisitsDashboardScreen extends StatefulWidget {
 }
 
 class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
+  static const _visitChartMonthCount = 6;
+
   late final VisitDashboardService _dashboardService;
   late final ChurchService _churchService;
   late final LeaderService _leaderService;
@@ -152,7 +154,12 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
 
     try {
       final now = DateTime.now();
-      final rangeStart = _dashboardService.rangeStartFor(_period, now);
+      final rangeStart = _period == VisitChartPeriod.month
+          ? _dashboardService.rangeStartForMonthCount(
+              _visitChartMonthCount,
+              now,
+            )
+          : _dashboardService.rangeStartFor(_period, now);
       final rangeEnd = _dashboardService.rangeEndFor(_period, now);
 
       final visits = await _dashboardService.fetchVisits(
@@ -258,6 +265,49 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
     );
   }
 
+  Widget _buildPrayerRequestsSection(AppLocalizations l10n) {
+    final hasItems = _prayerRequestPoints.isNotEmpty;
+    final subtitle = _loading
+        ? l10n.dashboardPrayerRequestsSubtitle
+        : hasItems
+            ? l10n.dashboardPrayerRequestsSubtitle
+            : l10n.dashboardNoPrayerRequests;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          leading: const Icon(Icons.volunteer_activism_outlined),
+          title: Text(
+            l10n.dashboardTopPrayerRequests,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+          ),
+          children: [
+            if (_loading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 48),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else
+              VisitRankedList(
+                items: _prayerRequestPoints,
+                emptyMessage: l10n.dashboardNoPrayerRequests,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildLeaderBreakdown() {
     if (_leaderCounts.isEmpty) {
       return const SizedBox.shrink();
@@ -267,42 +317,44 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
     final entries = _leaderCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
+    return Card(
+      margin: const EdgeInsets.only(top: 8, bottom: 8),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          leading: const Icon(Icons.groups_outlined),
+          title: Text(
             l10n.dashboardVisitsByLeader,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
-          const SizedBox(height: 12),
-          Card(
-            child: Column(
-              children: entries.map((entry) {
-                final name = _leaderNames[entry.key] ?? entry.key;
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: AppColors.bubbleOutgoing,
-                    child: Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : '?',
-                      style: const TextStyle(color: AppColors.primary),
-                    ),
-                  ),
-                  title: Text(name),
-                  trailing: Chip(
-                    label: Text('${entry.value}'),
-                    backgroundColor: AppColors.primaryLight.withValues(
-                      alpha: 0.15,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+          subtitle: Text(
+            l10n.dashboardLeadersWithVisitsCount(entries.length),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
           ),
-        ],
+          children: entries.map((entry) {
+            final name = _leaderNames[entry.key] ?? entry.key;
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: AppColors.bubbleOutgoing,
+                child: Text(
+                  name.isNotEmpty ? name[0].toUpperCase() : '?',
+                  style: const TextStyle(color: AppColors.primary),
+                ),
+              ),
+              title: Text(name),
+              trailing: Chip(
+                label: Text('${entry.value}'),
+                backgroundColor: AppColors.primaryLight.withValues(
+                  alpha: 0.15,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -517,44 +569,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Card(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.dashboardTopPrayerRequests,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                      ),
-                      Text(
-                        l10n.dashboardPrayerRequestsSubtitle,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_loading)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 48),
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                else
-                  VisitRankedList(
-                    items: _prayerRequestPoints,
-                    emptyMessage: l10n.dashboardNoPrayerRequests,
-                  ),
-              ],
-            ),
-          ),
+          _buildPrayerRequestsSection(l10n),
           if (_filter?.restrictsLeaders == true || _leaderCounts.isNotEmpty)
             _buildLeaderBreakdown(),
         ],
@@ -567,7 +582,7 @@ class _VisitsDashboardScreenState extends State<VisitsDashboardScreen> {
       case VisitChartPeriod.day:
         return l10n.dashboardPeriodLast14Days;
       case VisitChartPeriod.month:
-        return l10n.dashboardPeriodLast12Months;
+        return l10n.dashboardPeriodLast6Months;
       case VisitChartPeriod.year:
         return l10n.dashboardPeriodLast5Years;
     }

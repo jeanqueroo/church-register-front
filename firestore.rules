@@ -250,7 +250,7 @@ service cloud.firestore {
       allow create: if isSignedIn() && (
         isSuperAdmin() ||
         (
-          (isChurchAdmin() || isRegistrar()) &&
+          isChurchAdmin() &&
           currentUserChurchId() != '' &&
           request.resource.data.get('churchId', '') == currentUserChurchId() &&
           request.resource.data.get('baptismDate', null) is timestamp
@@ -259,12 +259,19 @@ service cloud.firestore {
       allow delete: if isSignedIn() && (
         isSuperAdmin() ||
         (
-          (isChurchAdmin() || isRegistrar()) &&
+          isChurchAdmin() &&
           currentUserChurchId() != '' &&
           resource.data.get('churchId', '') == currentUserChurchId()
         )
       );
-      allow update: if false;
+      allow update: if isSignedIn() && (
+        isSuperAdmin() ||
+        (
+          currentUserChurchId() != '' &&
+          resource.data.get('churchId', '') == currentUserChurchId() &&
+          (isChurchAdmin() || isLeader() || isSupervisor())
+        )
+      );
     }
 
     match /disciples/{discipleId} {

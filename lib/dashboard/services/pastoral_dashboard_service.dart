@@ -210,8 +210,43 @@ class PastoralDashboardService {
         .toList();
   }
 
+  Future<List<FollowUpPerson>> loadFollowUpPersons({
+    required VisitDashboardFilter filter,
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    required Future<ChurchMember?> Function(String memberId) fetchMember,
+    required Future<String?> Function(String leaderId) fetchLeaderName,
+  }) async {
+    final visits = await fetchVisits(
+      filter: filter,
+      rangeStart: rangeStart,
+      rangeEnd: rangeEnd,
+    );
+    return loadFollowUpPersonsFromVisits(
+      visits: visits,
+      fetchMember: fetchMember,
+      fetchLeaderName: fetchLeaderName,
+    );
+  }
+
+  Future<List<FollowUpPerson>> loadFollowUpPersonsFromVisits({
+    required List<MemberVisit> visits,
+    required Future<ChurchMember?> Function(String memberId) fetchMember,
+    required Future<String?> Function(String leaderId) fetchLeaderName,
+  }) async {
+    final people = followUpPersonsFromVisits(visits);
+    return enrichFollowUpPersons(
+      people,
+      fetchMember: fetchMember,
+      fetchLeaderName: fetchLeaderName,
+    );
+  }
+
   DateTime rangeStartFor(VisitChartPeriod period, DateTime now) =>
       _visitDashboardService.rangeStartFor(period, now);
+
+  DateTime rangeStartForMonthCount(int monthCount, DateTime now) =>
+      _visitDashboardService.rangeStartForMonthCount(monthCount, now);
 
   DateTime rangeEndFor(VisitChartPeriod period, DateTime now) =>
       _visitDashboardService.rangeEndFor(period, now);

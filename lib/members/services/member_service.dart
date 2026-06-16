@@ -241,12 +241,47 @@ class MemberService {
     if (id == null || id.isEmpty) {
       throw ArgumentError('El integrante debe tener id para actualizar');
     }
-    await _members.doc(id).update(member.toMap());
+    final data = member.toMap();
+    if (!member.isBaptized) {
+      data['baptizedAt'] = FieldValue.delete();
+    }
+    await _members.doc(id).update(data);
     await _notifyLeaderIfAssigned(
       memberId: id,
       member: member,
       previousLeaderId: previousAssignedLeaderId,
     );
+  }
+
+  Future<void> updateMembersBaptismConfirmation({
+    required List<String> baptizedMemberIds,
+    required List<String> notBaptizedMemberIds,
+    required DateTime baptizedAt,
+  }) async {
+    final batch = FirebaseFirestore.instance.batch();
+    final at = Timestamp.fromDate(
+      DateTime(baptizedAt.year, baptizedAt.month, baptizedAt.day),
+    );
+
+    for (final id in baptizedMemberIds) {
+      if (id.trim().isEmpty) continue;
+      batch.update(_members.doc(id), {
+        'isBaptized': true,
+        'isNewBeliever': false,
+        'baptizedAt': at,
+      });
+    }
+
+    for (final id in notBaptizedMemberIds) {
+      if (id.trim().isEmpty) continue;
+      batch.update(_members.doc(id), {
+        'isBaptized': false,
+        'baptizedAt': FieldValue.delete(),
+      });
+    }
+
+    if (baptizedMemberIds.isEmpty && notBaptizedMemberIds.isEmpty) return;
+    await batch.commit();
   }
 
   Future<void> markMemberPromotedToLeader({
@@ -285,6 +320,18 @@ class MemberService {
     return MemberLeadershipStatus.promotedToLeader;
   }
 
+  /// Registro directo en «Nuevo líder» (rol líder o supervisor).
+  static MemberLeadershipStatus leadershipStatusForNewLeaderRegistration(
+    ChurchLeader leader,
+  ) {
+    final roles = leader.appRoles ?? const <String>[];
+    if (roles.contains(AppUserRole.registrar) ||
+        leader.churchOffice == ChurchOffice.voluntario) {
+      return MemberLeadershipStatus.promotedToVolunteer;
+    }
+    return MemberLeadershipStatus.createdAsLeader;
+  }
+
   /// Crea un integrante vinculado a un líder recién registrado.
   Future<String> createMemberForLeader({
     required ChurchLeader leader,
@@ -292,7 +339,7 @@ class MemberService {
     required String registeredBy,
   }) async {
     final now = DateTime.now();
-    final leadershipStatus = leadershipStatusForLeader(leader);
+    final leadershipStatus = leadershipStatusForNewLeaderRegistration(leader);
     final member = ChurchMember(
       firstName: leader.firstName,
       lastName: leader.lastName,
@@ -334,7 +381,7 @@ class MemberService {
       await markMemberLeadershipStatus(
         memberId: memberId,
         leaderId: leaderId,
-        status: leadershipStatusForLeader(leader),
+        status: MemberLeadershipStatus.promotedToLeader,
       );
       return;
     }
@@ -371,6 +418,70 @@ class MemberService {
     return list;
   }
 
+  /// Integrantes sin bautizar disponibles para asignar a una fecha de bautismo.
+  Future<List<ChurchMember>> fetchMembersForBaptismAssignment({
+    required String? churchId,
+    String? assignedLeaderId,
+    Set<String> includeMemberIds = const {},
+  }) async {
+    if (churchId == null || churchId.isEmpty) return [];
+
+    Query<Map<String, dynamic>> query =
+        _members.where('churchId', isEqualTo: churchId);
+    final leaderId = assignedLeaderId?.trim();
+    if (leaderId != null && leaderId.isNotEmpty) {
+      query = query.where('assignedLeaderId', isEqualTo: leaderId);
+    }
+
+    final snapshot = await query.get();
+    final pastBaptizedIds = await _memberIdsFromPastBaptisms(churchId);
+    final list = snapshot.docs.map(ChurchMember.fromFirestore).where((member) {
+      final id = member.id;
+      if (id == null || id.isEmpty) return false;
+      if (includeMemberIds.contains(id)) return true;
+      if (!member.canBeAssignedToBaptism) return false;
+      if (pastBaptizedIds.contains(id)) return false;
+      return true;
+    }).toList();
+    list.sort((a, b) => a.fullName.compareTo(b.fullName));
+    return list;
+  }
+
+  Future<Set<String>> _memberIdsFromPastBaptisms(String churchId) async {
+    final snapshot = await (FirebaseFirestore.instance)
+        .collection('baptismCalendar')
+        .where('churchId', isEqualTo: churchId)
+        .get();
+    final today = DateTime.now();
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    final ids = <String>{};
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final baptismTimestamp = data['baptismDate'];
+      if (baptismTimestamp is! Timestamp) continue;
+      final baptismDate = baptismTimestamp.toDate();
+      final dateOnly = DateTime(
+        baptismDate.year,
+        baptismDate.month,
+        baptismDate.day,
+      );
+      if (dateOnly.isAfter(todayOnly)) continue;
+
+      final assigned = data['assignedMembers'];
+      if (assigned is! List) continue;
+      for (final item in assigned) {
+        if (item is! Map) continue;
+        final memberId = item['memberId'];
+        if (memberId is String && memberId.isNotEmpty) {
+          ids.add(memberId);
+        }
+      }
+    }
+
+    return ids;
+  }
+
   Future<List<ChurchMember>> fetchMembersWithoutCell({
     required String? churchId,
     LeaderGender? matchingGender,
@@ -383,6 +494,7 @@ class MemberService {
     var list = snapshot.docs
         .map(ChurchMember.fromFirestore)
         .where((member) => !member.isAssignedToCell)
+        .where((member) => member.canBeAssignedAsCellDisciple)
         .toList();
     if (matchingGender != null) {
       list = list.where((member) => member.gender == matchingGender).toList();
@@ -412,6 +524,10 @@ class MemberService {
     }
     if (cellId == null || cellId.isEmpty) {
       throw ArgumentError('La célula debe tener id');
+    }
+
+    if (!member.canBeAssignedAsCellDisciple) {
+      throw CellAssignmentLeaderException();
     }
 
     if (requiredLeaderGender != null &&
@@ -613,6 +729,10 @@ class MemberService {
 
   static String messageForCellAssignmentLeaderOnly(AppLocalizations l10n) {
     return l10n.cellMemberRegisterLeaderOnlyAtCapacity;
+  }
+
+  static String messageForCellAssignmentLeader(AppLocalizations l10n) {
+    return l10n.cellMemberAssignLeaderExcluded;
   }
 
   static String messageFromFirestoreException(

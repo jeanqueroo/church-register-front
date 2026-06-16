@@ -9,7 +9,6 @@ import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../leaders/services/leader_service.dart';
-import '../../members/models/church_member.dart';
 import '../../members/models/member_visit.dart';
 import '../../members/screens/member_detail_screen.dart';
 import '../../members/services/member_service.dart';
@@ -46,6 +45,8 @@ class PastoralDashboardScreen extends StatefulWidget {
 }
 
 class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
+  static const _newMemberChartMonthCount = 6;
+
   late final PastoralDashboardService _dashboardService;
   late final ChurchService _churchService;
   late final LeaderService _leaderService;
@@ -64,6 +65,8 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
   );
   int _newMembersCount = 0;
   bool _loading = true;
+  bool _followUpLoading = false;
+  int _followUpRequestId = 0;
   String? _error;
 
   @override
@@ -147,16 +150,20 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
 
     setState(() {
       _loading = true;
+      _followUpLoading = true;
+      _followUpPeople = [];
       _error = null;
     });
 
     if (filter.leaderIds != null && filter.leaderIds!.isEmpty) {
+      _followUpRequestId++;
       setState(() {
         _newMemberPoints = [];
         _followUpPeople = [];
         _prayerStats = const PrayerVisitStats(totalVisits: 0, prayerVisits: 0);
         _newMembersCount = 0;
         _loading = false;
+        _followUpLoading = false;
       });
       return;
     }
@@ -165,6 +172,12 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
       final now = DateTime.now();
       final rangeStart = _dashboardService.rangeStartFor(_period, now);
       final rangeEnd = _dashboardService.rangeEndFor(_period, now);
+      final newMemberRangeStart = _period == VisitChartPeriod.month
+          ? _dashboardService.rangeStartForMonthCount(
+              _newMemberChartMonthCount,
+              now,
+            )
+          : rangeStart;
 
       final visitsFuture = _dashboardService.fetchVisits(
         filter: filter,
@@ -173,42 +186,60 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
       );
       final membersFuture = _dashboardService.fetchNewMembers(
         filter: filter,
-        rangeStart: rangeStart,
+        rangeStart: newMemberRangeStart,
         rangeEnd: rangeEnd,
       );
 
-      final results = await Future.wait([visitsFuture, membersFuture]);
-      final visits = results[0] as List<MemberVisit>;
-      final members = results[1] as List<ChurchMember>;
+      final visits = await visitsFuture;
+      _loadFollowUpPeopleFromVisits(visits);
+
+      final members = await membersFuture;
 
       final newMemberPoints = _dashboardService.buildNewMemberChartPoints(
         members: members,
         period: _period,
-        rangeStart: rangeStart,
+        rangeStart: newMemberRangeStart,
         rangeEnd: rangeEnd,
       );
       final prayerStats = _dashboardService.prayerVisitStats(visits);
-      var followUpPeople =
-          _dashboardService.followUpPersonsFromVisits(visits);
-      followUpPeople = await _dashboardService.enrichFollowUpPersons(
-        followUpPeople,
-        fetchMember: _memberService.fetchMemberById,
-        fetchLeaderName: _fetchLeaderName,
-      );
 
       if (!mounted) return;
       setState(() {
         _newMemberPoints = newMemberPoints;
-        _followUpPeople = followUpPeople;
         _prayerStats = prayerStats;
         _newMembersCount = members.length;
         _loading = false;
       });
     } catch (e) {
       if (!mounted) return;
+      _followUpRequestId++;
       setState(() {
         _loading = false;
+        _followUpLoading = false;
         _error = PastoralDashboardService.messageFromException(e, context.l10n);
+      });
+    }
+  }
+
+  Future<void> _loadFollowUpPeopleFromVisits(List<MemberVisit> visits) async {
+    final requestId = ++_followUpRequestId;
+
+    try {
+      final people = await _dashboardService.loadFollowUpPersonsFromVisits(
+        visits: visits,
+        fetchMember: _memberService.fetchMemberById,
+        fetchLeaderName: _fetchLeaderName,
+      );
+      if (!mounted || requestId != _followUpRequestId) return;
+      setState(() {
+        _followUpPeople = people;
+        _followUpLoading = false;
+      });
+    } catch (_) {
+      if (!mounted || requestId != _followUpRequestId) return;
+      setState(() {
+        _followUpPeople = [];
+        _followUpLoading = false;
       });
     }
   }
@@ -258,79 +289,82 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
 
   Widget _buildFollowUpSection() {
     final l10n = context.l10n;
+    final hasPeople = _followUpPeople.isNotEmpty;
+    final subtitle = _followUpLoading
+        ? l10n.dashboardFollowUpSubtitle
+        : hasPeople
+            ? l10n.dashboardFollowUpCount(_followUpPeople.length)
+            : l10n.dashboardFollowUpEmpty;
+
     return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.dashboardFollowUpTitle,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          leading: const Icon(Icons.flag_outlined),
+          title: Text(
+            l10n.dashboardFollowUpTitle,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-                Text(
-                  l10n.dashboardFollowUpSubtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          ),
+          subtitle: Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+          ),
+          children: [
+            if (_followUpLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 48),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_followUpPeople.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(
+                  l10n.dashboardFollowUpEmpty,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),
                 ),
-              ],
-            ),
-          ),
-          if (_loading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 48),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_followUpPeople.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                l10n.dashboardFollowUpEmpty,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-              ),
-            )
-          else
-            Column(
-              children: [
-                for (var i = 0; i < _followUpPeople.length; i++) ...[
-                  if (i > 0) const Divider(height: 1),
-                  ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: AppColors.bubbleOutgoing,
-                      child: Icon(
-                        Icons.flag_outlined,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                    ),
-                    title: Text(_followUpPeople[i].memberName),
-                    subtitle: Text(
-                      [
-                        l10n.dashboardVisitOnDate(
-                          _formatDate(_followUpPeople[i].visitDate),
+              )
+            else
+              for (var i = 0; i < _followUpPeople.length; i++)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (i > 0) const Divider(height: 1),
+                    ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: AppColors.bubbleOutgoing,
+                        child: Icon(
+                          Icons.flag_outlined,
+                          color: AppColors.primary,
+                          size: 20,
                         ),
-                        if (_followUpPeople[i].leaderName != null)
-                          l10n.dashboardLeaderPrefix(
-                            _followUpPeople[i].leaderName!,
+                      ),
+                      title: Text(_followUpPeople[i].memberName),
+                      subtitle: Text(
+                        [
+                          l10n.dashboardVisitOnDate(
+                            _formatDate(_followUpPeople[i].visitDate),
                           ),
-                      ].join('\n'),
+                          if (_followUpPeople[i].leaderName != null)
+                            l10n.dashboardLeaderPrefix(
+                              _followUpPeople[i].leaderName!,
+                            ),
+                        ].join('\n'),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _openMember(_followUpPeople[i]),
                     ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _openMember(_followUpPeople[i]),
-                  ),
-                ],
-              ],
-            ),
-        ],
+                  ],
+                ),
+          ],
+        ),
       ),
     );
   }
@@ -475,8 +509,6 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
           else
             PrayerPercentageCard(stats: _prayerStats),
           const SizedBox(height: 12),
-          _buildFollowUpSection(),
-          const SizedBox(height: 12),
           Card(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
@@ -490,7 +522,9 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
                         ),
                   ),
                   Text(
-                    l10n.dashboardNewMembersCount(_newMembersCount),
+                    _period == VisitChartPeriod.month
+                        ? '${l10n.dashboardNewMembersCount(_newMembersCount)} · ${l10n.dashboardPeriodLast6Months}'
+                        : l10n.dashboardNewMembersCount(_newMembersCount),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -510,6 +544,8 @@ class _PastoralDashboardScreenState extends State<PastoralDashboardScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          _buildFollowUpSection(),
         ],
       ),
     );

@@ -82,7 +82,7 @@ class CellService {
     required List<CellHelper> helpers,
   }) async {
     if (helpers.length > ChurchCell.maxHelpers) {
-      throw ArgumentError('Máximo ${ChurchCell.maxHelpers} ayudantes por célula');
+      throw ArgumentError('Máximo ${ChurchCell.maxHelpers} asistentes por célula');
     }
     await _cells.doc(cellId).update({
       'helpers': helpers.map((helper) => helper.toMap()).toList(),

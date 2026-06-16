@@ -5,7 +5,9 @@ import '../../auth/widgets/role_gate.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/whatsapp_list_tile.dart';
+import '../../cells/cell_member_capacity.dart';
 import '../../cells/screens/split_cell_from_capacity_screen.dart';
+import '../../members/services/member_service.dart';
 import '../models/admin_notification.dart';
 import '../services/admin_notification_service.dart';
 
@@ -26,6 +28,18 @@ class AdminNotificationsScreen extends StatefulWidget {
 
 class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
   late final AdminNotificationService _notificationService;
+  final _memberService = MemberService();
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<bool> _canSplitCellFromNotification(String cellId) async {
+    final memberCount = await _memberService.countMembersInCell(cellId);
+    return memberCount > CellMemberCapacity.maxMembers;
+  }
 
   @override
   void initState() {
@@ -52,6 +66,26 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
   }
 
   Future<void> _openNotification(AdminNotification notification) async {
+    final l10n = context.l10n;
+
+    if (notification.type == 'cell_capacity_exceeded') {
+      final cellId = notification.cellId?.trim();
+      if (cellId == null || cellId.isEmpty) return;
+
+      final canSplit = await _canSplitCellFromNotification(cellId);
+      if (!mounted) return;
+
+      if (!canSplit) {
+        final id = notification.id;
+        if (id != null) {
+          await _notificationService.dismiss(id);
+        }
+        if (!mounted) return;
+        _showMessage(l10n.notificationCellSplitNotRequired);
+        return;
+      }
+    }
+
     final id = notification.id;
     if (id != null) {
       await _notificationService.dismiss(id);

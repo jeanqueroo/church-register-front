@@ -99,6 +99,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   String? _cellDay;
   GeoLocation? _memberLocation;
   bool _wantsVisit = true;
+  bool _isBaptized = false;
   bool _includeAddress = true;
   bool _manualLeader = false;
   bool _isLoading = false;
@@ -229,6 +230,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     _entrySource = member.entrySource;
     _cellDay = member.cellDay;
     _wantsVisit = member.wantsVisit;
+    _isBaptized = member.isBaptized;
     _includeAddress = member.street != null && member.street!.trim().isNotEmpty;
     if (member.assignedLeaderId != null) {
       _pendingLeaderId = member.assignedLeaderId;
@@ -551,6 +553,12 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         isNewBeliever: widget.isEditing
             ? (widget.memberToEdit?.isNewBeliever ?? false)
             : true,
+        isBaptized: widget.isEditing ? _isBaptized : false,
+        baptizedAt: widget.isEditing
+            ? (_isBaptized
+                ? (widget.memberToEdit?.baptizedAt ?? DateTime.now())
+                : null)
+            : null,
         entrySource: _entrySource,
         formDate: _formDate,
         registeredAt: widget.memberToEdit?.registeredAt ?? DateTime.now(),
@@ -1223,6 +1231,18 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   ),
                 ),
                 FormSectionTitle(l10n.memberSectionVisit),
+                if (widget.isEditing) ...[
+                  SwitchListTile(
+                    value: _isBaptized,
+                    onChanged: _isLoading
+                        ? null
+                        : (value) => setState(() => _isBaptized = value),
+                    title: Text(l10n.memberIsBaptized),
+                    subtitle: Text(l10n.memberIsBaptizedSubtitle),
+                    secondary: const Icon(Icons.water_outlined),
+                  ),
+                  const SizedBox(height: 8),
+                ],
                 SwitchListTile(
                   value: _wantsVisit,
                   onChanged: _isLoading

@@ -47,7 +47,7 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
     super.initState();
     _dashboardService = widget.dashboardService ?? HomeDashboardService();
     if (_showsDashboard) {
-      _loadDashboard();
+      _loadDashboard(forceRefresh: true);
     }
   }
 
@@ -124,9 +124,12 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 24),
-      children: [
+    return RefreshIndicator(
+      onRefresh: () => _loadDashboard(forceRefresh: true),
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: 24),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
         if (_showsDashboard) ...[
           _buildDashboardSection(context, l10n),
           const SizedBox(height: 8),
@@ -144,7 +147,8 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
           ),
           ...quickActions,
         ],
-      ],
+        ],
+      ),
     );
   }
 

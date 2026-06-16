@@ -38,7 +38,7 @@
   "quickNewCellTitle": "Crear célula",
   "quickNewCellSubtitle": "Registrar un nuevo grupo celular",
   "quickBaptismCalendarTitle": "Calendario de bautismo",
-  "quickBaptismCalendarSubtitle": "Ver y registrar fechas de bautismo",
+  "quickBaptismCalendarSubtitle": "Ver fechas de bautismo programadas",
   "quickViewLeadersTitle": "Ver líderes",
   "quickViewLeadersSubtitle": "Lista de líderes registrados",
   "quickMySupervisedLeadersTitle": "Mis líderes asignados",
@@ -757,6 +757,14 @@
   "dashboardNoAssignedLeadersPastoral": "Cuando el administrador te asigne líderes, verás aquí el seguimiento pastoral.",
   "dashboardTotalPeriod": "Total en el período",
   "dashboardLeadersWithVisits": "Líderes con visitas",
+  "dashboardLeadersWithVisitsCount": "{count} líderes con visitas",
+  "@dashboardLeadersWithVisitsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dashboardVisitCount": "Número de visitas",
   "dashboardTopVisitPlaces": "Lugares de visita más frecuentes",
   "dashboardByVisitPlace": "Por lugar de la visita",
@@ -766,9 +774,18 @@
   "dashboardVisitsByLeader": "Visitas por líder",
   "dashboardPeriodLast14Days": "Últimos 14 días",
   "dashboardPeriodLast12Months": "Últimos 12 meses",
+  "dashboardPeriodLast6Months": "Últimos 6 meses",
   "dashboardPeriodLast5Years": "Últimos 5 años",
   "dashboardFollowUpTitle": "Personas que requieren seguimiento",
   "dashboardFollowUpSubtitle": "Marcadas en visitas del período",
+  "dashboardFollowUpCount": "{count} persona(s)",
+  "@dashboardFollowUpCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dashboardFollowUpEmpty": "No hay personas con seguimiento pendiente en este período.",
   "dashboardVisitOnDate": "Visita: {date}",
   "@dashboardVisitOnDate": {
@@ -857,12 +874,13 @@
       "count": { "type": "int" }
     }
   },
+  "notificationCellSplitNotRequired": "Esta célula ya no supera 12 discípulos. No es necesario dividirla.",
   "splitCellTitle": "Dividir célula",
   "splitCellSourceCellLabel": "Célula origen",
   "splitCellNewCellSection": "Nueva célula",
   "splitCellSelectLeaderHelper": "Líder de la nueva célula",
-  "splitCellSelectLeaderHelperHint": "Elige un ayudante de la célula origen como líder",
-  "splitCellNoHelpers": "Esta célula no tiene ayudantes. Asigna ayudantes en Mi célula antes de dividir.",
+  "splitCellSelectLeaderHelperHint": "Elige un asistente de la célula origen como líder",
+  "splitCellNoHelpers": "Esta célula no tiene asistentes. Asigna asistentes en Mi célula antes de dividir.",
   "splitCellSelectMembers": "Discípulos para la nueva célula",
   "splitCellSelectMembersHint": "Selecciona hasta {max} discípulos de la célula origen",
   "@splitCellSelectMembersHint": {
@@ -876,19 +894,20 @@
       "max": { "type": "int" }
     }
   },
-  "splitCellLeaderRequired": "Selecciona un ayudante como líder de la nueva célula",
+  "splitCellLeaderRequired": "Selecciona un asistente como líder de la nueva célula",
   "splitCellMembersRequired": "Selecciona al menos un discípulo para la nueva célula",
-  "splitCellLeaderBusy": "Ese ayudante ya es líder de otra célula",
+  "splitCellLeaderBusy": "Ese asistente ya es líder de otra célula",
   "splitCellSuccess": "Nueva célula creada y discípulos transferidos",
   "splitCellCreateAction": "Crear nueva célula",
   "splitCellLoadError": "No se pudo cargar la célula origen",
   "splitCellLeaderAccountSection": "Cuenta de líder",
-  "splitCellLeaderAccountHint": "Se creará un usuario de acceso para el ayudante seleccionado como líder de la nueva célula.",
-  "splitCellLeaderAlreadyHasAccount": "Este ayudante ya tiene cuenta de líder en el sistema.",
+  "splitCellLeaderAccountHint": "Se creará un usuario de acceso para el asistente seleccionado como líder de la nueva célula.",
+  "splitCellLeaderAlreadyHasAccount": "Este asistente ya tiene cuenta de líder en el sistema.",
   "splitCellLeaderAccountRequired": "Ingresa correo y contraseña para crear la cuenta del líder",
-  "splitCellLeaderBlocked": "Ese ayudante está bloqueado como líder y no puede liderar una célula",
+  "splitCellLeaderBlocked": "Ese asistente está bloqueado como líder y no puede liderar una célula",
   "memberLeadershipPromotedToLeader": "Pasó a líder",
   "memberLeadershipPromotedToVolunteer": "Pasó a registrador",
+  "memberLeadershipCreatedAsLeader": "Creado como líder",
   "menuCellsOverCapacity": "Células para dividir",
   "cellsOverCapacityTitle": "Células con más de 12 discípulos",
   "cellsOverCapacityDenied": "No tienes permiso para dividir células",
@@ -1244,17 +1263,25 @@
   "cellDiscipleAdd": "Registrar discípulo",
   "cellDiscipleListTitle": "Discípulos",
   "cellDiscipleListEmpty": "Aún no hay discípulos en esta célula",
+  "cellDiscipleListCount": "{count} discípulo(s)",
+  "@cellDiscipleListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "cellDiscipleDeleteTitle": "Eliminar discípulo",
   "cellDiscipleDeleted": "Discípulo eliminado",
-  "cellHelpersTitle": "Ayudantes de la célula",
-  "cellHelpersHint": "Selecciona hasta {max} discípulos de esta célula como ayudantes",
+  "cellHelpersTitle": "Asistentes de la célula",
+  "cellHelpersHint": "Selecciona hasta {max} discípulos de esta célula como asistentes",
   "@cellHelpersHint": {
     "placeholders": {
       "max": { "type": "int" }
     }
   },
-  "cellHelpersEmpty": "Aún no hay ayudantes asignados",
-  "cellHelpersSelectAction": "Seleccionar ayudantes",
+  "cellHelpersEmpty": "Aún no hay asistentes asignados",
+  "cellHelpersSelectAction": "Seleccionar asistentes",
   "cellHelpersCount": "{current} de {max}",
   "@cellHelpersCount": {
     "placeholders": {
@@ -1262,14 +1289,14 @@
       "max": { "type": "int" }
     }
   },
-  "cellHelpersMaxReached": "Máximo {max} ayudantes por célula",
+  "cellHelpersMaxReached": "Máximo {max} asistentes por célula",
   "@cellHelpersMaxReached": {
     "placeholders": {
       "max": { "type": "int" }
     }
   },
-  "cellHelpersSaved": "Ayudantes actualizados",
-  "cellHelpersBadge": "Ayudante",
+  "cellHelpersSaved": "Asistentes actualizados",
+  "cellHelpersBadge": "Asistente",
   "cellAttendanceRegisterTitle": "Registrar asistencia",
   "cellAttendancePickCellTitle": "Registrar asistencia",
   "cellAttendancePickCellHint": "Selecciona la célula para registrar la asistencia de la reunión",
@@ -1543,6 +1570,7 @@
   },
   "cellMemberAssignLeaderGenderMissing": "El líder de la célula no tiene sexo registrado. Completa su perfil antes de asignar discípulos.",
   "cellMemberAssignGenderMismatch": "Solo puedes asignar discípulos del mismo sexo que el líder de la célula.",
+  "cellMemberAssignLeaderExcluded": "No se pueden asignar líderes como discípulos de la célula.",
   "cellMemberSelectEmptyGender": "No hay discípulos sin célula del mismo sexo que el líder ({gender}).",
   "@cellMemberSelectEmptyGender": {
     "placeholders": {
@@ -1597,6 +1625,65 @@
       "date": {
         "type": "String"
       }
+    }
+  },
+  "baptismCalendarAssignMembersAction": "Asignar creyentes",
+  "baptismCalendarAssignMembersTitle": "Integrantes para el bautismo",
+  "baptismCalendarAssignMembersHint": "Marca los creyentes sin bautizar que se bautizarán en esta fecha",
+  "baptismCalendarAssignMembersSearchHint": "Buscar por nombre o teléfono",
+  "baptismCalendarAssignMembersEmpty": "No hay creyentes sin bautizar disponibles para asignar",
+  "memberIsBaptized": "Bautizado",
+  "memberIsBaptizedSubtitle": "Si está marcado, no aparecerá en el calendario de bautismo",
+  "baptismCalendarAssignMembersLoadError": "No se pudieron cargar los integrantes",
+  "baptismCalendarAssignMembersConfirm": "Guardar ({count})",
+  "@baptismCalendarAssignMembersConfirm": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "baptismCalendarAssignedCount": "{count} integrante(s) asignado(s)",
+  "@baptismCalendarAssignedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "baptismCalendarMembersAssigned": "{count} integrante(s) asignado(s) al bautismo",
+  "@baptismCalendarMembersAssigned": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "baptismCalendarAddForDay": "Programar bautismo este día",
+  "baptismCalendarUpdated": "Bautismo actualizado",
+  "baptismCalendarSelectEvent": "Evento del día",
+  "baptismCalendarMembersSection": "Integrantes asignados",
+  "baptismCalendarMembersEmpty": "Aún no hay integrantes asignados",
+  "baptismCalendarDeleteAction": "Eliminar bautismo",
+  "baptismCalendarCreateBelieverToBaptize": "Crear nuevo creyente a bautizar",
+  "baptismCalendarRegisterBelieverTitle": "Registrar creyente a bautizar",
+  "baptismCalendarRegisterBelieverButton": "Registrar creyente",
+  "baptismCalendarBelieverCreatedScheduleFirst": "Creyente registrado. Programa el bautismo del día para asignarlo.",
+  "baptismCalendarBelieverCreatedAndAssigned": "{name} registrado y asignado al bautismo",
+  "@baptismCalendarBelieverCreatedAndAssigned": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "baptismCalendarBelieverAlreadyBaptized": "El creyente ya está marcado como bautizado",
+  "baptismCalendarBelieverAlreadyAssigned": "{name} ya está asignado a este bautismo",
+  "@baptismCalendarBelieverAlreadyAssigned": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "baptismCalendarPastReadOnlyHint": "Este bautismo ya pasó. No se puede modificar; solo confirmar quiénes se bautizaron.",
+  "baptismCalendarConfirmBaptizedSection": "Confirmar bautizados",
+  "baptismCalendarConfirmBaptizedHint": "Marca los creyentes que se bautizaron en esta fecha",
+  "baptismCalendarConfirmBaptizedAction": "Guardar confirmación",
+  "baptismCalendarConfirmBaptizedSuccess": "{count} creyente(s) confirmado(s) como bautizados",
+  "@baptismCalendarConfirmBaptizedSuccess": {
+    "placeholders": {
+      "count": { "type": "int" }
     }
   },
   "leaderRegMobileRequired": "Ingresa el celular",

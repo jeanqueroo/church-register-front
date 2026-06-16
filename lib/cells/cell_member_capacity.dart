@@ -50,3 +50,5 @@ class CellAssignmentLimitException implements Exception {}
 class CellAssignmentLeaderOnlyException implements Exception {}
 
 class CellAssignmentGenderException implements Exception {}
+
+class CellAssignmentLeaderException implements Exception {}

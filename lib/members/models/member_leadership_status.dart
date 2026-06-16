@@ -2,7 +2,8 @@ import '../../l10n/app_localizations.dart';
 
 enum MemberLeadershipStatus {
   promotedToLeader,
-  promotedToVolunteer;
+  promotedToVolunteer,
+  createdAsLeader;
 
   String localizedLabel(AppLocalizations l10n) {
     switch (this) {
@@ -10,6 +11,8 @@ enum MemberLeadershipStatus {
         return l10n.memberLeadershipPromotedToLeader;
       case MemberLeadershipStatus.promotedToVolunteer:
         return l10n.memberLeadershipPromotedToVolunteer;
+      case MemberLeadershipStatus.createdAsLeader:
+        return l10n.memberLeadershipCreatedAsLeader;
     }
   }
 

@@ -124,7 +124,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickBaptismCalendarTitle => 'Baptism calendar';
 
   @override
-  String get quickBaptismCalendarSubtitle => 'View and register baptism dates';
+  String get quickBaptismCalendarSubtitle => 'View scheduled baptism dates';
 
   @override
   String get quickViewLeadersTitle => 'View leaders';
@@ -1529,6 +1529,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardLeadersWithVisits => 'Leaders with visits';
 
   @override
+  String dashboardLeadersWithVisitsCount(int count) {
+    return '$count leaders with visits';
+  }
+
+  @override
   String get dashboardVisitCount => 'Number of visits';
 
   @override
@@ -1557,6 +1562,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardPeriodLast12Months => 'Last 12 months';
 
   @override
+  String get dashboardPeriodLast6Months => 'Last 6 months';
+
+  @override
   String get dashboardPeriodLast5Years => 'Last 5 years';
 
   @override
@@ -1564,6 +1572,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardFollowUpSubtitle => 'Marked in visits during the period';
+
+  @override
+  String dashboardFollowUpCount(int count) {
+    return '$count person(s)';
+  }
 
   @override
   String get dashboardFollowUpEmpty =>
@@ -1679,6 +1692,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notificationCellSplitNotRequired =>
+      'This cell group no longer exceeds 12 disciples. Splitting is not needed.';
+
+  @override
   String get splitCellTitle => 'Split cell group';
 
   @override
@@ -1757,6 +1774,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get memberLeadershipPromotedToVolunteer => 'Promoted to registrar';
+
+  @override
+  String get memberLeadershipCreatedAsLeader => 'Created as leader';
 
   @override
   String get menuCellsOverCapacity => 'Cells to split';
@@ -2502,6 +2522,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cellDiscipleListEmpty => 'No disciples in this cell group yet';
 
   @override
+  String cellDiscipleListCount(int count) {
+    return '$count disciple(s)';
+  }
+
+  @override
   String get cellDiscipleDeleteTitle => 'Delete disciple';
 
   @override
@@ -3026,6 +3051,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can only assign disciples of the same sex as the cell leader.';
 
   @override
+  String get cellMemberAssignLeaderExcluded =>
+      'Leaders cannot be assigned as cell disciples.';
+
+  @override
   String cellMemberSelectEmptyGender(String gender) {
     return 'No disciples without a cell match the leader\'s sex ($gender).';
   }
@@ -3102,6 +3131,115 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String baptismCalendarDeleteConfirm(String date) {
     return 'Delete the baptism scheduled for $date?';
+  }
+
+  @override
+  String get baptismCalendarAssignMembersAction => 'Assign believers';
+
+  @override
+  String get baptismCalendarAssignMembersTitle => 'Members for baptism';
+
+  @override
+  String get baptismCalendarAssignMembersHint =>
+      'Select unbaptized believers who will be baptized on this date';
+
+  @override
+  String get baptismCalendarAssignMembersSearchHint =>
+      'Search by name or phone';
+
+  @override
+  String get baptismCalendarAssignMembersEmpty =>
+      'No unbaptized believers available to assign';
+
+  @override
+  String get memberIsBaptized => 'Baptized';
+
+  @override
+  String get memberIsBaptizedSubtitle =>
+      'When enabled, they will not appear in the baptism calendar';
+
+  @override
+  String get baptismCalendarAssignMembersLoadError => 'Could not load members';
+
+  @override
+  String baptismCalendarAssignMembersConfirm(int count) {
+    return 'Save ($count)';
+  }
+
+  @override
+  String baptismCalendarAssignedCount(int count) {
+    return '$count member(s) assigned';
+  }
+
+  @override
+  String baptismCalendarMembersAssigned(int count) {
+    return '$count member(s) assigned to the baptism';
+  }
+
+  @override
+  String get baptismCalendarAddForDay => 'Schedule baptism for this day';
+
+  @override
+  String get baptismCalendarUpdated => 'Baptism updated';
+
+  @override
+  String get baptismCalendarSelectEvent => 'Event for this day';
+
+  @override
+  String get baptismCalendarMembersSection => 'Assigned members';
+
+  @override
+  String get baptismCalendarMembersEmpty => 'No members assigned yet';
+
+  @override
+  String get baptismCalendarDeleteAction => 'Delete baptism';
+
+  @override
+  String get baptismCalendarCreateBelieverToBaptize =>
+      'Create new believer to baptize';
+
+  @override
+  String get baptismCalendarRegisterBelieverTitle =>
+      'Register believer to baptize';
+
+  @override
+  String get baptismCalendarRegisterBelieverButton => 'Register believer';
+
+  @override
+  String get baptismCalendarBelieverCreatedScheduleFirst =>
+      'Believer registered. Schedule the baptism for this day to assign them.';
+
+  @override
+  String baptismCalendarBelieverCreatedAndAssigned(String name) {
+    return '$name registered and assigned to the baptism';
+  }
+
+  @override
+  String get baptismCalendarBelieverAlreadyBaptized =>
+      'This believer is already marked as baptized';
+
+  @override
+  String baptismCalendarBelieverAlreadyAssigned(String name) {
+    return '$name is already assigned to this baptism';
+  }
+
+  @override
+  String get baptismCalendarPastReadOnlyHint =>
+      'This baptism date has passed. It cannot be edited; only confirm who was baptized.';
+
+  @override
+  String get baptismCalendarConfirmBaptizedSection => 'Confirm baptized';
+
+  @override
+  String get baptismCalendarConfirmBaptizedHint =>
+      'Check the believers who were baptized on this date';
+
+  @override
+  String get baptismCalendarConfirmBaptizedAction => 'Save confirmation';
+
+  @override
+  String baptismCalendarConfirmBaptizedSuccess(int count) {
+    return '$count believer(s) confirmed as baptized';
   }
 
   @override
