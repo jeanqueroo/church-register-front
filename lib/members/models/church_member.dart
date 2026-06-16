@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
 import '../../core/search/firestore_search_text.dart';
+import '../../core/utils/birthday_date.dart';
 import '../../l10n/app_localizations.dart';
 import 'id_document_type.dart';
 import 'marital_status.dart';
@@ -47,6 +48,8 @@ class ChurchMember {
     this.assignedDistanceKm,
     this.wantsVisit = true,
     this.isNewBeliever = false,
+    this.isBaptized = false,
+    this.baptizedAt,
     this.entrySource,
     this.entrySourceStored,
     required this.formDate,
@@ -95,6 +98,9 @@ class ChurchMember {
   final bool wantsVisit;
   /// `true` al registrar por primera vez; se conserva en ediciones posteriores.
   final bool isNewBeliever;
+  /// `true` si el integrante ya fue bautizado.
+  final bool isBaptized;
+  final DateTime? baptizedAt;
   final MemberEntrySource? entrySource;
   final String? entrySourceStored;
   final DateTime formDate;
@@ -119,8 +125,19 @@ class ChurchMember {
   bool get hasBeenPromotedToVolunteer =>
       leadershipStatus == MemberLeadershipStatus.promotedToVolunteer;
 
+  bool get wasCreatedAsLeader =>
+      leadershipStatus == MemberLeadershipStatus.createdAsLeader;
+
   bool get hasPromotedLeadershipStatus =>
-      hasBeenPromotedToLeader || hasBeenPromotedToVolunteer;
+      hasBeenPromotedToLeader ||
+      hasBeenPromotedToVolunteer ||
+      wasCreatedAsLeader;
+
+  /// Líderes y supervisores no pueden ser discípulos de célula; los registradores sí.
+  bool get canBeAssignedAsCellDisciple =>
+      !wasCreatedAsLeader && !hasBeenPromotedToLeader;
+
+  bool get canBeAssignedToBaptism => !isBaptized;
 
   String? leadershipStatusLabel(AppLocalizations l10n) =>
       leadershipStatus?.localizedLabel(l10n);
@@ -254,7 +271,9 @@ class ChurchMember {
       'phone': phone,
       'idDocumentType': idDocumentType?.name,
       'idDocumentNumber': idDocumentNumber,
-      'birthDate': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
+      'birthDate': birthDate != null
+          ? Timestamp.fromDate(BirthdayDate.normalize(birthDate)!)
+          : null,
       'occupation': occupation,
       'maritalStatus': maritalStatus?.name,
       'cellDay': cellDay,
@@ -276,6 +295,8 @@ class ChurchMember {
       'assignedDistanceKm': assignedDistanceKm,
       'wantsVisit': wantsVisit,
       'isNewBeliever': isNewBeliever,
+      'isBaptized': isBaptized,
+      if (baptizedAt != null) 'baptizedAt': Timestamp.fromDate(baptizedAt!),
       'entrySource': entrySource?.name,
       'formDate': Timestamp.fromDate(formDate),
       'registeredAt': Timestamp.fromDate(registeredAt),
@@ -334,7 +355,9 @@ class ChurchMember {
       idDocumentType:
           IdDocumentType.fromString(data['idDocumentType'] as String?),
       idDocumentNumber: data['idDocumentNumber'] as String?,
-      birthDate: (data['birthDate'] as Timestamp?)?.toDate(),
+      birthDate: BirthdayDate.normalize(
+        (data['birthDate'] as Timestamp?)?.toDate(),
+      ),
       occupation: data['occupation'] as String?,
       maritalStatus: MaritalStatus.fromString(data['maritalStatus'] as String?),
       cellDay: data['cellDay'] as String?,
@@ -356,6 +379,8 @@ class ChurchMember {
       assignedDistanceKm: (data['assignedDistanceKm'] as num?)?.toDouble(),
       wantsVisit: data['wantsVisit'] as bool? ?? true,
       isNewBeliever: data['isNewBeliever'] as bool? ?? false,
+      isBaptized: data['isBaptized'] as bool? ?? false,
+      baptizedAt: (data['baptizedAt'] as Timestamp?)?.toDate(),
       entrySource:
           MemberEntrySource.fromString(data['entrySource'] as String?),
       entrySourceStored: data['entrySource'] as String?,

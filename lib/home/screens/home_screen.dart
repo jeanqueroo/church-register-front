@@ -305,6 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
             BaptismCalendarScreen(
               registeredBy: _email,
               churchId: _churchId,
+              actingLeaderId: widget.session.profile.leaderId,
               permissions: p,
             ),
             'baptismCalendar',
@@ -546,20 +547,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (p.canViewChurchNotifications) {
-      items.add(
-        SlideMenuItem(
-          id: 'adminNotifications',
-          icon: Icons.notifications_active_outlined,
-          label: l10n.menuAdminNotifications,
-          onTap: () => _navigate(
-            AdminNotificationsScreen(session: widget.session),
-            'adminNotifications',
-          ),
-        ),
-      );
-    }
-
     if (p.canViewChurchesList) {
       items.add(
         SlideMenuItem(
@@ -725,6 +712,7 @@ class _HomeScreenState extends State<HomeScreen> {
           BaptismCalendarScreen(
             registeredBy: _email,
             churchId: _churchId,
+            actingLeaderId: widget.session.profile.leaderId,
             permissions: p,
           ),
           'baptismCalendar',

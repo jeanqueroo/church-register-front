@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -6,8 +5,10 @@ import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/widgets/form_section_title.dart';
+import '../../members/services/member_service.dart';
 import '../models/baptism_calendar_entry.dart';
 import '../services/baptism_calendar_service.dart';
+import '../widgets/baptism_day_panel.dart';
 import '../widgets/month_calendar_view.dart';
 
 class BaptismCalendarScreen extends StatefulWidget {
@@ -15,13 +16,17 @@ class BaptismCalendarScreen extends StatefulWidget {
     super.key,
     required this.registeredBy,
     this.churchId,
+    this.actingLeaderId,
     this.baptismCalendarService,
+    this.memberService,
     this.permissions,
   });
 
   final String registeredBy;
   final String? churchId;
+  final String? actingLeaderId;
   final BaptismCalendarService? baptismCalendarService;
+  final MemberService? memberService;
   final AppPermissions? permissions;
 
   AppPermissions get _permissions =>
@@ -33,17 +38,20 @@ class BaptismCalendarScreen extends StatefulWidget {
 
 class _BaptismCalendarScreenState extends State<BaptismCalendarScreen> {
   late final BaptismCalendarService _service;
+  late final MemberService _memberService;
   late DateTime _focusedMonth;
   DateTime? _selectedDate;
   bool _actionInProgress = false;
+
+  bool get _isEditingDay => _selectedDate != null;
 
   @override
   void initState() {
     super.initState();
     _service = widget.baptismCalendarService ?? BaptismCalendarService();
+    _memberService = widget.memberService ?? MemberService();
     final now = DateTime.now();
     _focusedMonth = DateTime(now.year, now.month);
-    _selectedDate = DateTime(now.year, now.month, now.day);
   }
 
   static DateTime _dateOnly(DateTime date) =>
@@ -83,222 +91,43 @@ class _BaptismCalendarScreenState extends State<BaptismCalendarScreen> {
     );
   }
 
-  Future<void> _openRegisterSheet({DateTime? initialDate}) async {
-    if (!widget._permissions.canRegisterBaptismCalendar) return;
-
-    final l10n = context.l10n;
-    final date = initialDate ?? _selectedDate ?? DateTime.now();
-    final timeController = TextEditingController();
-    final locationController = TextEditingController();
-    final notesController = TextEditingController();
-    var pickedDate = _dateOnly(date);
-
-    final saved = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom + 24,
-          ),
-          child: StatefulBuilder(
-            builder: (context, setSheetState) {
-              return SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l10n.baptismCalendarRegisterTitle,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: () async {
-                        final selected = await showDatePicker(
-                          context: context,
-                          initialDate: pickedDate,
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime(2100),
-                        );
-                        if (selected != null) {
-                          setSheetState(() => pickedDate = _dateOnly(selected));
-                        }
-                      },
-                      icon: const Icon(Icons.calendar_today_outlined),
-                      label: Text(_formatDate(pickedDate)),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: timeController,
-                      decoration: InputDecoration(
-                        labelText: l10n.baptismCalendarTime,
-                        hintText: l10n.baptismCalendarTimeHint,
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: locationController,
-                      textCapitalization: TextCapitalization.sentences,
-                      decoration: InputDecoration(
-                        labelText: l10n.baptismCalendarLocation,
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: notesController,
-                      maxLines: 3,
-                      textCapitalization: TextCapitalization.sentences,
-                      decoration: InputDecoration(
-                        labelText: l10n.baptismCalendarNotes,
-                        alignLabelWithHint: true,
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    FilledButton.icon(
-                      onPressed: () => Navigator.pop(sheetContext, true),
-                      icon: const Icon(Icons.save_outlined),
-                      label: Text(l10n.commonSave),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
-
-    if (saved != true || !mounted) {
-      timeController.dispose();
-      locationController.dispose();
-      notesController.dispose();
-      return;
-    }
-
-    setState(() => _actionInProgress = true);
-    try {
-      await _service.addEntry(
-        BaptismCalendarEntry(
-          baptismDate: pickedDate,
-          time: timeController.text.trim().isEmpty
-              ? null
-              : timeController.text.trim(),
-          location: locationController.text.trim().isEmpty
-              ? null
-              : locationController.text.trim(),
-          notes: notesController.text.trim().isEmpty
-              ? null
-              : notesController.text.trim(),
-          registeredAt: DateTime.now(),
-          registeredBy: widget.registeredBy,
-          churchId: widget.churchId,
-        ),
-      );
-      if (!mounted) return;
-      setState(() {
-        _selectedDate = pickedDate;
-        _focusedMonth = DateTime(pickedDate.year, pickedDate.month);
-      });
-      _showMessage(l10n.baptismCalendarSuccess);
-    } on FirebaseException catch (e) {
-      if (!mounted) return;
-      _showMessage(
-        BaptismCalendarService.messageFromFirestoreException(e, l10n),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      _showMessage(l10n.memberSaveUnexpectedError);
-    } finally {
-      timeController.dispose();
-      locationController.dispose();
-      notesController.dispose();
-      if (mounted) setState(() => _actionInProgress = false);
-    }
+  void _openDay(DateTime date, {DateTime? focusMonth}) {
+    setState(() {
+      _selectedDate = _dateOnly(date);
+      if (focusMonth != null) {
+        _focusedMonth = DateTime(focusMonth.year, focusMonth.month);
+      }
+    });
   }
 
-  Future<void> _confirmDelete(BaptismCalendarEntry entry) async {
-    final l10n = context.l10n;
-    final id = entry.id;
-    if (id == null || !widget._permissions.canRegisterBaptismCalendar) return;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.baptismCalendarDeleteTitle),
-        content: Text(l10n.baptismCalendarDeleteConfirm(_formatDate(entry.baptismDate))),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l10n.commonDelete),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    setState(() => _actionInProgress = true);
-    try {
-      await _service.deleteEntry(id);
-      if (!mounted) return;
-      _showMessage(l10n.baptismCalendarDeleted);
-    } on FirebaseException catch (e) {
-      if (!mounted) return;
-      _showMessage(
-        BaptismCalendarService.messageFromFirestoreException(e, l10n),
-      );
-    } finally {
-      if (mounted) setState(() => _actionInProgress = false);
-    }
+  void _closeDayEditor() {
+    setState(() => _selectedDate = null);
   }
 
-  Widget _buildEntryTile(BaptismCalendarEntry entry, {bool showDate = false}) {
+  Widget _buildUpcomingTile(BaptismCalendarEntry entry) {
     final details = <String>[
+      _formatDate(entry.baptismDate),
       if (entry.time != null && entry.time!.isNotEmpty) entry.time!,
       if (entry.location != null && entry.location!.isNotEmpty) entry.location!,
     ];
-    final title = showDate
-        ? [
-            _formatDate(entry.baptismDate),
-            ...details,
-          ].join(' · ')
-        : details.isEmpty
-            ? _formatDate(entry.baptismDate)
-            : details.join(' · ');
 
     return Card(
+      margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: CircleAvatar(
-          child: Icon(
-            showDate ? Icons.water_outlined : Icons.schedule_outlined,
+        leading: const CircleAvatar(
+          child: Icon(Icons.water_outlined),
+        ),
+        title: Text(details.join(' · ')),
+        subtitle: Text(
+          context.l10n.baptismCalendarAssignedCount(
+            entry.assignedMembers.length,
           ),
         ),
-        title: Text(title),
-        subtitle: entry.notes != null && entry.notes!.isNotEmpty
-            ? Text(entry.notes!)
-            : null,
-        trailing: widget._permissions.canRegisterBaptismCalendar
-            ? IconButton(
-                icon: const Icon(Icons.delete_outline),
-                onPressed: _actionInProgress
-                    ? null
-                    : () => _confirmDelete(entry),
-                tooltip: context.l10n.commonDelete,
-              )
-            : null,
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => _openDay(
+          entry.baptismDate,
+          focusMonth: entry.baptismDate,
+        ),
       ),
     );
   }
@@ -306,25 +135,28 @@ class _BaptismCalendarScreenState extends State<BaptismCalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final canRegister = widget._permissions.canRegisterBaptismCalendar;
 
     return RoleGate(
       permissions: widget._permissions,
       allowed: widget._permissions.canViewBaptismCalendar,
       deniedMessage: l10n.baptismCalendarDenied,
-      child: Scaffold(
+      child: PopScope(
+        canPop: !_isEditingDay,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          _closeDayEditor();
+        },
+        child: Scaffold(
         appBar: AppBar(
-          title: Text(l10n.baptismCalendarTitle),
+          leading: _isEditingDay
+              ? BackButton(onPressed: _closeDayEditor)
+              : null,
+          title: Text(
+            _isEditingDay && _selectedDate != null
+                ? l10n.baptismCalendarDayTitle(_formatDate(_selectedDate!))
+                : l10n.baptismCalendarTitle,
+          ),
         ),
-        floatingActionButton: canRegister
-            ? FloatingActionButton.extended(
-                onPressed: _actionInProgress
-                    ? null
-                    : () => _openRegisterSheet(initialDate: _selectedDate),
-                icon: const Icon(Icons.add),
-                label: Text(l10n.baptismCalendarAdd),
-              )
-            : null,
         body: StreamBuilder<List<BaptismCalendarEntry>>(
           stream: _service.watchEntries(churchId: widget.churchId),
           builder: (context, snapshot) {
@@ -350,42 +182,47 @@ class _BaptismCalendarScreenState extends State<BaptismCalendarScreen> {
 
             final entries = snapshot.data ?? [];
             final selected = _selectedDate;
-            final dayEntries =
-                selected == null ? <BaptismCalendarEntry>[] : _entriesForDay(entries, selected);
+            final dayEntries = selected == null
+                ? <BaptismCalendarEntry>[]
+                : _entriesForDay(entries, selected);
             final upcoming = _upcomingEntries(entries);
 
+            if (_isEditingDay && selected != null) {
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                children: [
+                  BaptismDayPanel(
+                    selectedDate: selected,
+                    entries: dayEntries,
+                    registeredBy: widget.registeredBy,
+                    churchId: widget.churchId,
+                    permissions: widget._permissions,
+                    baptismService: _service,
+                    memberService: _memberService,
+                    actingLeaderId: widget.actingLeaderId,
+                    busy: _actionInProgress,
+                    onBusyChanged: (busy) =>
+                        setState(() => _actionInProgress = busy),
+                    onMessage: _showMessage,
+                  ),
+                ],
+              );
+            }
+
             return ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               children: [
                 MonthCalendarView(
                   focusedMonth: _focusedMonth,
-                  selectedDate: _selectedDate,
+                  selectedDate: null,
                   markedDates: _markedDates(entries),
                   onMonthChanged: (month) {
-                    setState(() => _focusedMonth = DateTime(month.year, month.month));
+                    setState(
+                      () => _focusedMonth = DateTime(month.year, month.month),
+                    );
                   },
-                  onDateSelected: (date) {
-                    setState(() => _selectedDate = date);
-                  },
+                  onDateSelected: _openDay,
                 ),
-                const SizedBox(height: 16),
-                FormSectionTitle(
-                  selected == null
-                      ? l10n.baptismCalendarSelectDay
-                      : l10n.baptismCalendarDayTitle(_formatDate(selected)),
-                ),
-                if (dayEntries.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      l10n.baptismCalendarDayEmpty,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  )
-                else
-                  ...dayEntries.map((entry) => _buildEntryTile(entry)),
                 const SizedBox(height: 16),
                 FormSectionTitle(l10n.baptismCalendarUpcoming),
                 if (upcoming.isEmpty)
@@ -394,17 +231,17 @@ class _BaptismCalendarScreenState extends State<BaptismCalendarScreen> {
                     child: Text(
                       l10n.baptismCalendarEmpty,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                   )
                 else
-                  ...upcoming.map(
-                    (entry) => _buildEntryTile(entry, showDate: true),
-                  ),
+                  ...upcoming.map(_buildUpcomingTile),
               ],
             );
           },
+        ),
         ),
       ),
     );

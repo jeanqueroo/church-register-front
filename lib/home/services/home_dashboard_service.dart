@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../auth/models/user_profile.dart';
+import '../../cells/models/church_cell.dart';
 import '../../cells/services/cell_service.dart';
+import '../../core/utils/birthday_date.dart';
 import '../../core/utils/timed_cache.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../members/models/church_member.dart';
@@ -70,33 +72,56 @@ class HomeDashboardService {
         .where((id) => id.isNotEmpty)
         .toList();
 
-    final cellIdSet = cellIds.toSet();
-    final cellCodeById = {
-      for (final cell in cells)
+    final birthdayCells = _cellsLedBy(
+      leaderId: session.profile.leaderId?.trim(),
+      from: cells,
+    );
+    final birthdayCellIds = birthdayCells
+        .map((cell) => cell.id)
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    final birthdayCellCodeById = {
+      for (final cell in birthdayCells)
         if (cell.id != null) cell.id!: cell.code,
     };
 
     final memberResultsFuture = _loadMembersForCells(
       cellIds: cellIds,
-      cellIdSet: cellIdSet,
-      churchId: churchId,
+      cells: cells,
     );
-    final discipleResultsFuture = _loadDisciplesForCells(
-      cellIds: cellIds,
-      cellCodeById: cellCodeById,
+    final leaderBirthdaysFuture = _loadLeaderBirthdaysForCells(cells: birthdayCells);
+    final birthdayMembersFuture = _loadBirthdaysForCells(
+      cellIds: birthdayCellIds.toList(),
+      cells: birthdayCells,
+    );
+    final discipleBirthdaysFuture = _loadDiscipleBirthdaysForCells(
+      cellIds: birthdayCellIds.toList(),
+      cellCodeById: birthdayCellCodeById,
     );
 
     final memberResult = await memberResultsFuture;
-    final discipleResult = await discipleResultsFuture;
+    final leaderBirthdays = await leaderBirthdaysFuture;
+    final birthdayMembers = await birthdayMembersFuture;
+    final discipleBirthdays = await discipleBirthdaysFuture;
     final assignedNewBelieverCount = await _loadPastoralNewBelieversForLeaders(
       leaderIds: leaderIds,
       churchId: churchId,
     );
 
-    final birthdays = [
-      ...memberResult.birthdays,
-      ...discipleResult.birthdays,
-    ]..sort((a, b) => a.name.compareTo(b.name));
+    final seenBirthdays = <String>{};
+    final birthdays = <CellBirthdayPerson>[];
+    for (final person in [
+      ...birthdayMembers,
+      ...discipleBirthdays,
+      ...leaderBirthdays,
+    ]) {
+      final key = '${person.name.trim().toLowerCase()}|${person.cellCode ?? ''}';
+      if (seenBirthdays.add(key)) {
+        birthdays.add(person);
+      }
+    }
+    birthdays.sort((a, b) => a.name.compareTo(b.name));
 
     final data = HomeDashboardData(
       memberCount: memberResult.count,
@@ -160,48 +185,142 @@ class HomeDashboardService {
     ].join(':');
   }
 
-  Future<({int count, List<CellBirthdayPerson> birthdays})> _loadMembersForCells({
+  List<ChurchCell> _cellsLedBy({
+    required String? leaderId,
+    required List<ChurchCell> from,
+  }) {
+    if (leaderId == null || leaderId.isEmpty) return [];
+    return from.where((cell) => cell.leaderId?.trim() == leaderId).toList();
+  }
+
+  Future<List<CellBirthdayPerson>> _loadBirthdaysForCells({
     required List<String> cellIds,
-    required Set<String> cellIdSet,
-    required String? churchId,
+    required List<ChurchCell> cells,
   }) async {
-    if (cellIds.isEmpty ||
-        churchId == null ||
-        churchId.isEmpty ||
-        cellIdSet.isEmpty) {
-      return (count: 0, birthdays: <CellBirthdayPerson>[]);
-    }
+    if (cellIds.isEmpty) return [];
 
-    var count = 0;
+    final cellCodeById = {
+      for (final cell in cells)
+        if (cell.id != null) cell.id!: cell.code,
+    };
+
     final birthdays = <CellBirthdayPerson>[];
+    final countedMemberIds = <String>{};
 
-    for (var i = 0; i < cellIds.length; i += _whereInLimit) {
-      final end = i + _whereInLimit > cellIds.length
-          ? cellIds.length
-          : i + _whereInLimit;
-      final batch = cellIds.sublist(i, end);
-
-      final snapshot = await _members
-          .where('churchId', isEqualTo: churchId)
-          .where('assignedCellId', whereIn: batch)
-          .get();
+    for (final cellId in cellIds) {
+      final snapshot =
+          await _members.where('assignedCellId', isEqualTo: cellId).get();
 
       for (final doc in snapshot.docs) {
+        if (!countedMemberIds.add(doc.id)) continue;
+
         final member = ChurchMember.fromFirestore(doc);
-        count++;
-        if (_isBirthdayToday(member.birthDate)) {
+        if (BirthdayDate.isToday(member.birthDate)) {
           birthdays.add(
             CellBirthdayPerson(
               name: member.fullName,
               age: member.age,
-              cellCode: member.assignedCellCode,
+              cellCode: member.assignedCellCode ?? cellCodeById[cellId],
             ),
           );
         }
       }
     }
 
-    return (count: count, birthdays: birthdays);
+    for (final cell in cells) {
+      final cellId = cell.id;
+      if (cellId == null || cellId.isEmpty) continue;
+      final cellCode = cell.code;
+
+      for (final helper in cell.helpers) {
+        final helperId = helper.memberId.trim();
+        if (helperId.isEmpty || countedMemberIds.contains(helperId)) continue;
+
+        final doc = await _members.doc(helperId).get();
+        if (!doc.exists) continue;
+
+        final member = ChurchMember.fromFirestore(doc);
+        countedMemberIds.add(helperId);
+        if (BirthdayDate.isToday(member.birthDate)) {
+          birthdays.add(
+            CellBirthdayPerson(
+              name: member.fullName.isNotEmpty ? member.fullName : helper.fullName,
+              age: member.age,
+              cellCode: member.assignedCellCode ?? cellCode,
+            ),
+          );
+        }
+      }
+    }
+
+    return birthdays;
+  }
+
+  Future<({int count})> _loadMembersForCells({
+    required List<String> cellIds,
+    required List<ChurchCell> cells,
+  }) async {
+    if (cellIds.isEmpty) {
+      return (count: 0);
+    }
+
+    var count = 0;
+    final countedMemberIds = <String>{};
+
+    for (final cellId in cellIds) {
+      final snapshot =
+          await _members.where('assignedCellId', isEqualTo: cellId).get();
+
+      for (final doc in snapshot.docs) {
+        if (!countedMemberIds.add(doc.id)) continue;
+        count++;
+      }
+    }
+
+    for (final cell in cells) {
+      final cellId = cell.id;
+      if (cellId == null || cellId.isEmpty) continue;
+
+      for (final helper in cell.helpers) {
+        final helperId = helper.memberId.trim();
+        if (helperId.isEmpty || countedMemberIds.contains(helperId)) continue;
+
+        final doc = await _members.doc(helperId).get();
+        if (!doc.exists) continue;
+
+        countedMemberIds.add(helperId);
+        count++;
+      }
+    }
+
+    return (count: count);
+  }
+
+  Future<List<CellBirthdayPerson>> _loadLeaderBirthdaysForCells({
+    required List<ChurchCell> cells,
+  }) async {
+    final birthdays = <CellBirthdayPerson>[];
+    final seenLeaderIds = <String>{};
+
+    for (final cell in cells) {
+      final leaderId = cell.leaderId?.trim();
+      if (leaderId == null || leaderId.isEmpty || !seenLeaderIds.add(leaderId)) {
+        continue;
+      }
+
+      final leader = await _leaderService.fetchLeaderById(leaderId);
+      if (leader == null || !BirthdayDate.isToday(leader.birthDate)) continue;
+
+      birthdays.add(
+        CellBirthdayPerson(
+          name: leader.fullName,
+          age: leader.age,
+          cellCode: cell.code,
+        ),
+      );
+    }
+
+    return birthdays;
   }
 
   Future<int> _loadPastoralNewBelieversForLeaders({
@@ -236,13 +355,11 @@ class HomeDashboardService {
     return count;
   }
 
-  Future<({int count, List<CellBirthdayPerson> birthdays})> _loadDisciplesForCells({
+  Future<List<CellBirthdayPerson>> _loadDiscipleBirthdaysForCells({
     required List<String> cellIds,
     required Map<String, String> cellCodeById,
   }) async {
-    if (cellIds.isEmpty) {
-      return (count: 0, birthdays: <CellBirthdayPerson>[]);
-    }
+    if (cellIds.isEmpty) return [];
 
     final snapshots = await Future.wait(
       cellIds.map(
@@ -250,13 +367,11 @@ class HomeDashboardService {
       ),
     );
 
-    var count = 0;
     final birthdays = <CellBirthdayPerson>[];
     for (var index = 0; index < cellIds.length; index++) {
       final cellId = cellIds[index];
       final cellCode = cellCodeById[cellId];
       for (final doc in snapshots[index].docs) {
-        count++;
         final data = doc.data();
         final firstName = data['firstName'] as String? ?? '';
         final lastName = data['lastName'] as String? ?? '';
@@ -265,7 +380,7 @@ class HomeDashboardService {
             .join(' ')
             .trim();
         final birthDate = (data['birthDate'] as Timestamp?)?.toDate();
-        if (_isBirthdayToday(birthDate)) {
+        if (BirthdayDate.isToday(birthDate)) {
           birthdays.add(
             CellBirthdayPerson(
               name: name.isEmpty ? 'Sin nombre' : name,
@@ -277,7 +392,7 @@ class HomeDashboardService {
       }
     }
 
-    return (count: count, birthdays: birthdays);
+    return birthdays;
   }
 
   Future<({List<String> leaderIds, int? supervisedLeaderCount})>
@@ -308,18 +423,13 @@ class HomeDashboardService {
     );
   }
 
-  static bool _isBirthdayToday(DateTime? birthDate) {
-    if (birthDate == null) return false;
-    final now = DateTime.now();
-    return birthDate.month == now.month && birthDate.day == now.day;
-  }
-
   static int? _ageFromBirthDate(DateTime? birthDate) {
-    if (birthDate == null) return null;
+    final normalized = BirthdayDate.normalize(birthDate);
+    if (normalized == null) return null;
     final now = DateTime.now();
-    var years = now.year - birthDate.year;
-    if (now.month < birthDate.month ||
-        (now.month == birthDate.month && now.day < birthDate.day)) {
+    var years = now.year - normalized.year;
+    if (now.month < normalized.month ||
+        (now.month == normalized.month && now.day < normalized.day)) {
       years--;
     }
     return years;

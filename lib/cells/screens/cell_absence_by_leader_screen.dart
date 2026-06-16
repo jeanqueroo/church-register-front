@@ -236,7 +236,6 @@ class _LeaderAbsenceCard extends StatelessWidget {
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          initiallyExpanded: hasCritical,
           leading: CircleAvatar(
             backgroundColor:
                 hasCritical ? errorColor : Theme.of(context).colorScheme.primary,

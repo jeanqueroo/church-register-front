@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../models/baptism_assigned_member.dart';
 import '../models/baptism_calendar_entry.dart';
 
 class BaptismCalendarService {
@@ -29,6 +30,42 @@ class BaptismCalendarService {
 
   Future<void> deleteEntry(String id) {
     return _entries.doc(id).delete();
+  }
+
+  Future<void> updateEntry(BaptismCalendarEntry entry) {
+    final entryId = entry.id;
+    if (entryId == null || entryId.isEmpty) {
+      throw ArgumentError('Entry id is required');
+    }
+
+    final time = entry.time?.trim();
+    final location = entry.location?.trim();
+    final notes = entry.notes?.trim();
+
+    return _entries.doc(entryId).update({
+      'baptismDate': Timestamp.fromDate(entry.dateOnly),
+      if (time != null && time.isNotEmpty)
+        'time': time
+      else
+        'time': FieldValue.delete(),
+      if (location != null && location.isNotEmpty)
+        'location': location
+      else
+        'location': FieldValue.delete(),
+      if (notes != null && notes.isNotEmpty)
+        'notes': notes
+      else
+        'notes': FieldValue.delete(),
+    });
+  }
+
+  Future<void> updateAssignedMembers({
+    required String entryId,
+    required List<BaptismAssignedMember> members,
+  }) {
+    return _entries.doc(entryId).update({
+      'assignedMembers': BaptismAssignedMember.toFirestoreList(members),
+    });
   }
 
   static String messageFromFirestoreException(

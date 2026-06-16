@@ -38,7 +38,7 @@
   "quickNewCellTitle": "Create cell group",
   "quickNewCellSubtitle": "Register a new cell group",
   "quickBaptismCalendarTitle": "Baptism calendar",
-  "quickBaptismCalendarSubtitle": "View and register baptism dates",
+  "quickBaptismCalendarSubtitle": "View scheduled baptism dates",
   "quickViewLeadersTitle": "View leaders",
   "quickViewLeadersSubtitle": "List of registered leaders",
   "quickMySupervisedLeadersTitle": "My assigned leaders",
@@ -757,6 +757,14 @@
   "dashboardNoAssignedLeadersPastoral": "When the administrator assigns leaders, you will see pastoral follow-up here.",
   "dashboardTotalPeriod": "Total in period",
   "dashboardLeadersWithVisits": "Leaders with visits",
+  "dashboardLeadersWithVisitsCount": "{count} leaders with visits",
+  "@dashboardLeadersWithVisitsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dashboardVisitCount": "Number of visits",
   "dashboardTopVisitPlaces": "Most frequent visit places",
   "dashboardByVisitPlace": "By visit place",
@@ -766,9 +774,18 @@
   "dashboardVisitsByLeader": "Visits by leader",
   "dashboardPeriodLast14Days": "Last 14 days",
   "dashboardPeriodLast12Months": "Last 12 months",
+  "dashboardPeriodLast6Months": "Last 6 months",
   "dashboardPeriodLast5Years": "Last 5 years",
   "dashboardFollowUpTitle": "People requiring follow-up",
   "dashboardFollowUpSubtitle": "Marked in visits during the period",
+  "dashboardFollowUpCount": "{count} person(s)",
+  "@dashboardFollowUpCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dashboardFollowUpEmpty": "No people with pending follow-up in this period.",
   "dashboardVisitOnDate": "Visit: {date}",
   "@dashboardVisitOnDate": {
@@ -857,6 +874,7 @@
       "count": { "type": "int" }
     }
   },
+  "notificationCellSplitNotRequired": "This cell group no longer exceeds 12 disciples. Splitting is not needed.",
   "splitCellTitle": "Split cell group",
   "splitCellSourceCellLabel": "Source cell group",
   "splitCellNewCellSection": "New cell group",
@@ -889,6 +907,7 @@
   "splitCellLeaderBlocked": "That helper is blocked as a leader and cannot lead a cell group",
   "memberLeadershipPromotedToLeader": "Promoted to leader",
   "memberLeadershipPromotedToVolunteer": "Promoted to registrar",
+  "memberLeadershipCreatedAsLeader": "Created as leader",
   "menuCellsOverCapacity": "Cells to split",
   "cellsOverCapacityTitle": "Cell groups over 12 disciples",
   "cellsOverCapacityDenied": "You do not have permission to split cell groups",
@@ -1244,6 +1263,14 @@
   "cellDiscipleAdd": "Register disciple",
   "cellDiscipleListTitle": "Disciples",
   "cellDiscipleListEmpty": "No disciples in this cell group yet",
+  "cellDiscipleListCount": "{count} disciple(s)",
+  "@cellDiscipleListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "cellDiscipleDeleteTitle": "Delete disciple",
   "cellDiscipleDeleted": "Disciple deleted",
   "cellHelpersTitle": "Cell group helpers",
@@ -1543,6 +1570,7 @@
   },
   "cellMemberAssignLeaderGenderMissing": "The cell leader has no sex on file. Complete their profile before assigning disciples.",
   "cellMemberAssignGenderMismatch": "You can only assign disciples of the same sex as the cell leader.",
+  "cellMemberAssignLeaderExcluded": "Leaders cannot be assigned as cell disciples.",
   "cellMemberSelectEmptyGender": "No disciples without a cell match the leader's sex ({gender}).",
   "@cellMemberSelectEmptyGender": {
     "placeholders": {
@@ -1597,6 +1625,65 @@
       "date": {
         "type": "String"
       }
+    }
+  },
+  "baptismCalendarAssignMembersAction": "Assign believers",
+  "baptismCalendarAssignMembersTitle": "Members for baptism",
+  "baptismCalendarAssignMembersHint": "Select unbaptized believers who will be baptized on this date",
+  "baptismCalendarAssignMembersSearchHint": "Search by name or phone",
+  "baptismCalendarAssignMembersEmpty": "No unbaptized believers available to assign",
+  "memberIsBaptized": "Baptized",
+  "memberIsBaptizedSubtitle": "When enabled, they will not appear in the baptism calendar",
+  "baptismCalendarAssignMembersLoadError": "Could not load members",
+  "baptismCalendarAssignMembersConfirm": "Save ({count})",
+  "@baptismCalendarAssignMembersConfirm": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "baptismCalendarAssignedCount": "{count} member(s) assigned",
+  "@baptismCalendarAssignedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "baptismCalendarMembersAssigned": "{count} member(s) assigned to the baptism",
+  "@baptismCalendarMembersAssigned": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "baptismCalendarAddForDay": "Schedule baptism for this day",
+  "baptismCalendarUpdated": "Baptism updated",
+  "baptismCalendarSelectEvent": "Event for this day",
+  "baptismCalendarMembersSection": "Assigned members",
+  "baptismCalendarMembersEmpty": "No members assigned yet",
+  "baptismCalendarDeleteAction": "Delete baptism",
+  "baptismCalendarCreateBelieverToBaptize": "Create new believer to baptize",
+  "baptismCalendarRegisterBelieverTitle": "Register believer to baptize",
+  "baptismCalendarRegisterBelieverButton": "Register believer",
+  "baptismCalendarBelieverCreatedScheduleFirst": "Believer registered. Schedule the baptism for this day to assign them.",
+  "baptismCalendarBelieverCreatedAndAssigned": "{name} registered and assigned to the baptism",
+  "@baptismCalendarBelieverCreatedAndAssigned": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "baptismCalendarBelieverAlreadyBaptized": "This believer is already marked as baptized",
+  "baptismCalendarBelieverAlreadyAssigned": "{name} is already assigned to this baptism",
+  "@baptismCalendarBelieverAlreadyAssigned": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "baptismCalendarPastReadOnlyHint": "This baptism date has passed. It cannot be edited; only confirm who was baptized.",
+  "baptismCalendarConfirmBaptizedSection": "Confirm baptized",
+  "baptismCalendarConfirmBaptizedHint": "Check the believers who were baptized on this date",
+  "baptismCalendarConfirmBaptizedAction": "Save confirmation",
+  "baptismCalendarConfirmBaptizedSuccess": "{count} believer(s) confirmed as baptized",
+  "@baptismCalendarConfirmBaptizedSuccess": {
+    "placeholders": {
+      "count": { "type": "int" }
     }
   },
   "leaderRegMobileRequired": "Enter the mobile number",

@@ -447,85 +447,142 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
     AppLocalizations l10n,
     List<ChurchMember> members,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          leading: const Icon(Icons.handshake_outlined),
+          title: Text(
+            l10n.cellHelpersTitle,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          subtitle: Text(
+            l10n.cellHelpersCount(
+              _cell.helpers.length,
+              ChurchCell.maxHelpers,
+            ),
+          ),
           children: [
-            Expanded(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: Text(
-                l10n.cellHelpersTitle,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                l10n.cellHelpersHint(ChurchCell.maxHelpers),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
               ),
             ),
-            Text(
-              l10n.cellHelpersCount(
-                _cell.helpers.length,
-                ChurchCell.maxHelpers,
-              ),
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
+            if (_cell.helpers.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(
+                  l10n.cellHelpersEmpty,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              )
+            else
+              ..._cell.helpers.map((helper) {
+                return ListTile(
+                  leading: CircleAvatar(
+                    child: Text(
+                      helper.fullName.isNotEmpty
+                          ? helper.fullName[0].toUpperCase()
+                          : '?',
+                    ),
                   ),
-            ),
+                  title: Text(helper.fullName),
+                  trailing: Chip(
+                    label: Text(l10n.cellHelpersBadge),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                );
+              }),
+            if (_canManageHelpers && members.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: OutlinedButton.icon(
+                  onPressed: _savingHelpers
+                      ? null
+                      : () => _openSelectHelpers(members),
+                  icon: _savingHelpers
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.handshake_outlined),
+                  label: Text(l10n.cellHelpersSelectAction),
+                ),
+              ),
           ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          l10n.cellHelpersHint(ChurchCell.maxHelpers),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-        ),
-        const SizedBox(height: 12),
-        if (_cell.helpers.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              l10n.cellHelpersEmpty,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-          )
-        else
-          ..._cell.helpers.map((helper) {
-            return Card(
-              child: ListTile(
-                leading: CircleAvatar(
-                  child: Text(
-                    helper.fullName.isNotEmpty
-                        ? helper.fullName[0].toUpperCase()
-                        : '?',
-                  ),
+      ),
+    );
+  }
+
+  Widget _disciplesSection(
+    AppLocalizations l10n,
+    List<ChurchMember> members,
+    Set<String> helperIds,
+  ) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          leading: const Icon(Icons.groups_outlined),
+          title: Text(
+            l10n.cellDiscipleListTitle,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-                title: Text(helper.fullName),
-                trailing: Chip(
-                  label: Text(l10n.cellHelpersBadge),
-                  visualDensity: VisualDensity.compact,
-                ),
-              ),
-            );
-          }),
-        if (_canManageHelpers && members.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: _savingHelpers
-                ? null
-                : () => _openSelectHelpers(members),
-            icon: _savingHelpers
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.handshake_outlined),
-            label: Text(l10n.cellHelpersSelectAction),
           ),
-        ],
-        const SizedBox(height: 16),
-      ],
+          subtitle: Text(
+            members.isEmpty
+                ? l10n.cellDiscipleListEmpty
+                : l10n.cellDiscipleListCount(members.length),
+          ),
+          children: [
+            if (members.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(
+                  l10n.cellDiscipleListEmpty,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              )
+            else
+              ...members.map((member) {
+                final memberId = member.id;
+                final isHelper =
+                    memberId != null && helperIds.contains(memberId);
+                return ListTile(
+                  leading: CircleAvatar(
+                    child: Text(
+                      member.fullName.isNotEmpty
+                          ? member.fullName[0].toUpperCase()
+                          : '?',
+                    ),
+                  ),
+                  title: Text(member.fullName),
+                  subtitle: Text(
+                    [
+                      member.phone,
+                      if (isHelper) l10n.cellHelpersBadge,
+                    ].join(' · '),
+                  ),
+                );
+              }),
+          ],
+        ),
+      ),
     );
   }
 
@@ -618,53 +675,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                           const SizedBox(height: 16),
                         ],
                         _helpersSection(l10n, members),
-                        Text(
-                          l10n.cellDiscipleListTitle,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (members.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Text(
-                              l10n.cellDiscipleListEmpty,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
-                            ),
-                          )
-                        else
-                          ...members.map((member) {
-                            final memberId = member.id;
-                            final isHelper = memberId != null &&
-                                helperIds.contains(memberId);
-                            return Card(
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  child: Text(
-                                    member.fullName.isNotEmpty
-                                        ? member.fullName[0].toUpperCase()
-                                        : '?',
-                                  ),
-                                ),
-                                title: Text(member.fullName),
-                                subtitle: Text(
-                                  [
-                                    member.phone,
-                                    if (isHelper) l10n.cellHelpersBadge,
-                                  ].join(' · '),
-                                ),
-                              ),
-                            );
-                          }),
+                        _disciplesSection(l10n, members, helperIds),
                       ],
                     );
                   },

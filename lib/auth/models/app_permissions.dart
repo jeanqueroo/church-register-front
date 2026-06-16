@@ -101,7 +101,14 @@ class AppPermissions {
   }
   bool get canViewBaptismCalendar =>
       isAdmin || isSupervisor || isLeader;
+  /// Solo el administrador de iglesia puede crear o eliminar fechas de bautismo.
   bool get canRegisterBaptismCalendar => isAdmin;
+
+  /// Confirmar bautizados en fechas pasadas (solo administrador de iglesia).
+  bool get canConfirmBaptismMembers => isAdmin;
+
+  /// Asignar integrantes a una fecha de bautismo (admin, supervisor o líder).
+  bool get canAssignBaptismCalendarMembers => canViewBaptismCalendar;
   bool get canViewMembersList => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canViewMembersByLeader => isAdmin;
   bool get canViewLeadersList => isAdmin;

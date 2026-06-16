@@ -329,7 +329,7 @@ abstract class AppLocalizations {
   /// No description provided for @quickBaptismCalendarSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Ver y registrar fechas de bautismo'**
+  /// **'Ver fechas de bautismo programadas'**
   String get quickBaptismCalendarSubtitle;
 
   /// No description provided for @quickViewLeadersTitle.
@@ -2790,6 +2790,12 @@ abstract class AppLocalizations {
   /// **'Líderes con visitas'**
   String get dashboardLeadersWithVisits;
 
+  /// No description provided for @dashboardLeadersWithVisitsCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} líderes con visitas'**
+  String dashboardLeadersWithVisitsCount(int count);
+
   /// No description provided for @dashboardVisitCount.
   ///
   /// In es, this message translates to:
@@ -2844,6 +2850,12 @@ abstract class AppLocalizations {
   /// **'Últimos 12 meses'**
   String get dashboardPeriodLast12Months;
 
+  /// No description provided for @dashboardPeriodLast6Months.
+  ///
+  /// In es, this message translates to:
+  /// **'Últimos 6 meses'**
+  String get dashboardPeriodLast6Months;
+
   /// No description provided for @dashboardPeriodLast5Years.
   ///
   /// In es, this message translates to:
@@ -2861,6 +2873,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Marcadas en visitas del período'**
   String get dashboardFollowUpSubtitle;
+
+  /// No description provided for @dashboardFollowUpCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} persona(s)'**
+  String dashboardFollowUpCount(int count);
 
   /// No description provided for @dashboardFollowUpEmpty.
   ///
@@ -3042,6 +3060,12 @@ abstract class AppLocalizations {
   /// **'La célula {cell} tiene {count} discípulos asignados.'**
   String notificationCellCapacityBody(String cell, int count);
 
+  /// No description provided for @notificationCellSplitNotRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta célula ya no supera 12 discípulos. No es necesario dividirla.'**
+  String get notificationCellSplitNotRequired;
+
   /// No description provided for @splitCellTitle.
   ///
   /// In es, this message translates to:
@@ -3069,13 +3093,13 @@ abstract class AppLocalizations {
   /// No description provided for @splitCellSelectLeaderHelperHint.
   ///
   /// In es, this message translates to:
-  /// **'Elige un ayudante de la célula origen como líder'**
+  /// **'Elige un asistente de la célula origen como líder'**
   String get splitCellSelectLeaderHelperHint;
 
   /// No description provided for @splitCellNoHelpers.
   ///
   /// In es, this message translates to:
-  /// **'Esta célula no tiene ayudantes. Asigna ayudantes en Mi célula antes de dividir.'**
+  /// **'Esta célula no tiene asistentes. Asigna asistentes en Mi célula antes de dividir.'**
   String get splitCellNoHelpers;
 
   /// No description provided for @splitCellSelectMembers.
@@ -3099,7 +3123,7 @@ abstract class AppLocalizations {
   /// No description provided for @splitCellLeaderRequired.
   ///
   /// In es, this message translates to:
-  /// **'Selecciona un ayudante como líder de la nueva célula'**
+  /// **'Selecciona un asistente como líder de la nueva célula'**
   String get splitCellLeaderRequired;
 
   /// No description provided for @splitCellMembersRequired.
@@ -3111,7 +3135,7 @@ abstract class AppLocalizations {
   /// No description provided for @splitCellLeaderBusy.
   ///
   /// In es, this message translates to:
-  /// **'Ese ayudante ya es líder de otra célula'**
+  /// **'Ese asistente ya es líder de otra célula'**
   String get splitCellLeaderBusy;
 
   /// No description provided for @splitCellSuccess.
@@ -3141,13 +3165,13 @@ abstract class AppLocalizations {
   /// No description provided for @splitCellLeaderAccountHint.
   ///
   /// In es, this message translates to:
-  /// **'Se creará un usuario de acceso para el ayudante seleccionado como líder de la nueva célula.'**
+  /// **'Se creará un usuario de acceso para el asistente seleccionado como líder de la nueva célula.'**
   String get splitCellLeaderAccountHint;
 
   /// No description provided for @splitCellLeaderAlreadyHasAccount.
   ///
   /// In es, this message translates to:
-  /// **'Este ayudante ya tiene cuenta de líder en el sistema.'**
+  /// **'Este asistente ya tiene cuenta de líder en el sistema.'**
   String get splitCellLeaderAlreadyHasAccount;
 
   /// No description provided for @splitCellLeaderAccountRequired.
@@ -3159,7 +3183,7 @@ abstract class AppLocalizations {
   /// No description provided for @splitCellLeaderBlocked.
   ///
   /// In es, this message translates to:
-  /// **'Ese ayudante está bloqueado como líder y no puede liderar una célula'**
+  /// **'Ese asistente está bloqueado como líder y no puede liderar una célula'**
   String get splitCellLeaderBlocked;
 
   /// No description provided for @memberLeadershipPromotedToLeader.
@@ -3173,6 +3197,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Pasó a registrador'**
   String get memberLeadershipPromotedToVolunteer;
+
+  /// No description provided for @memberLeadershipCreatedAsLeader.
+  ///
+  /// In es, this message translates to:
+  /// **'Creado como líder'**
+  String get memberLeadershipCreatedAsLeader;
 
   /// No description provided for @menuCellsOverCapacity.
   ///
@@ -4476,6 +4506,12 @@ abstract class AppLocalizations {
   /// **'Aún no hay discípulos en esta célula'**
   String get cellDiscipleListEmpty;
 
+  /// No description provided for @cellDiscipleListCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} discípulo(s)'**
+  String cellDiscipleListCount(int count);
+
   /// No description provided for @cellDiscipleDeleteTitle.
   ///
   /// In es, this message translates to:
@@ -4491,25 +4527,25 @@ abstract class AppLocalizations {
   /// No description provided for @cellHelpersTitle.
   ///
   /// In es, this message translates to:
-  /// **'Ayudantes de la célula'**
+  /// **'Asistentes de la célula'**
   String get cellHelpersTitle;
 
   /// No description provided for @cellHelpersHint.
   ///
   /// In es, this message translates to:
-  /// **'Selecciona hasta {max} discípulos de esta célula como ayudantes'**
+  /// **'Selecciona hasta {max} discípulos de esta célula como asistentes'**
   String cellHelpersHint(int max);
 
   /// No description provided for @cellHelpersEmpty.
   ///
   /// In es, this message translates to:
-  /// **'Aún no hay ayudantes asignados'**
+  /// **'Aún no hay asistentes asignados'**
   String get cellHelpersEmpty;
 
   /// No description provided for @cellHelpersSelectAction.
   ///
   /// In es, this message translates to:
-  /// **'Seleccionar ayudantes'**
+  /// **'Seleccionar asistentes'**
   String get cellHelpersSelectAction;
 
   /// No description provided for @cellHelpersCount.
@@ -4521,19 +4557,19 @@ abstract class AppLocalizations {
   /// No description provided for @cellHelpersMaxReached.
   ///
   /// In es, this message translates to:
-  /// **'Máximo {max} ayudantes por célula'**
+  /// **'Máximo {max} asistentes por célula'**
   String cellHelpersMaxReached(int max);
 
   /// No description provided for @cellHelpersSaved.
   ///
   /// In es, this message translates to:
-  /// **'Ayudantes actualizados'**
+  /// **'Asistentes actualizados'**
   String get cellHelpersSaved;
 
   /// No description provided for @cellHelpersBadge.
   ///
   /// In es, this message translates to:
-  /// **'Ayudante'**
+  /// **'Asistente'**
   String get cellHelpersBadge;
 
   /// No description provided for @cellAttendanceRegisterTitle.
@@ -5312,6 +5348,12 @@ abstract class AppLocalizations {
   /// **'Solo puedes asignar discípulos del mismo sexo que el líder de la célula.'**
   String get cellMemberAssignGenderMismatch;
 
+  /// No description provided for @cellMemberAssignLeaderExcluded.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pueden asignar líderes como discípulos de la célula.'**
+  String get cellMemberAssignLeaderExcluded;
+
   /// No description provided for @cellMemberSelectEmptyGender.
   ///
   /// In es, this message translates to:
@@ -5443,6 +5485,180 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'¿Eliminar el bautismo programado para el {date}?'**
   String baptismCalendarDeleteConfirm(String date);
+
+  /// No description provided for @baptismCalendarAssignMembersAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignar creyentes'**
+  String get baptismCalendarAssignMembersAction;
+
+  /// No description provided for @baptismCalendarAssignMembersTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Integrantes para el bautismo'**
+  String get baptismCalendarAssignMembersTitle;
+
+  /// No description provided for @baptismCalendarAssignMembersHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Marca los creyentes sin bautizar que se bautizarán en esta fecha'**
+  String get baptismCalendarAssignMembersHint;
+
+  /// No description provided for @baptismCalendarAssignMembersSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar por nombre o teléfono'**
+  String get baptismCalendarAssignMembersSearchHint;
+
+  /// No description provided for @baptismCalendarAssignMembersEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay creyentes sin bautizar disponibles para asignar'**
+  String get baptismCalendarAssignMembersEmpty;
+
+  /// No description provided for @memberIsBaptized.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautizado'**
+  String get memberIsBaptized;
+
+  /// No description provided for @memberIsBaptizedSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Si está marcado, no aparecerá en el calendario de bautismo'**
+  String get memberIsBaptizedSubtitle;
+
+  /// No description provided for @baptismCalendarAssignMembersLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar los integrantes'**
+  String get baptismCalendarAssignMembersLoadError;
+
+  /// No description provided for @baptismCalendarAssignMembersConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar ({count})'**
+  String baptismCalendarAssignMembersConfirm(int count);
+
+  /// No description provided for @baptismCalendarAssignedCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} integrante(s) asignado(s)'**
+  String baptismCalendarAssignedCount(int count);
+
+  /// No description provided for @baptismCalendarMembersAssigned.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} integrante(s) asignado(s) al bautismo'**
+  String baptismCalendarMembersAssigned(int count);
+
+  /// No description provided for @baptismCalendarAddForDay.
+  ///
+  /// In es, this message translates to:
+  /// **'Programar bautismo este día'**
+  String get baptismCalendarAddForDay;
+
+  /// No description provided for @baptismCalendarUpdated.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautismo actualizado'**
+  String get baptismCalendarUpdated;
+
+  /// No description provided for @baptismCalendarSelectEvent.
+  ///
+  /// In es, this message translates to:
+  /// **'Evento del día'**
+  String get baptismCalendarSelectEvent;
+
+  /// No description provided for @baptismCalendarMembersSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Integrantes asignados'**
+  String get baptismCalendarMembersSection;
+
+  /// No description provided for @baptismCalendarMembersEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay integrantes asignados'**
+  String get baptismCalendarMembersEmpty;
+
+  /// No description provided for @baptismCalendarDeleteAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Eliminar bautismo'**
+  String get baptismCalendarDeleteAction;
+
+  /// No description provided for @baptismCalendarCreateBelieverToBaptize.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear nuevo creyente a bautizar'**
+  String get baptismCalendarCreateBelieverToBaptize;
+
+  /// No description provided for @baptismCalendarRegisterBelieverTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar creyente a bautizar'**
+  String get baptismCalendarRegisterBelieverTitle;
+
+  /// No description provided for @baptismCalendarRegisterBelieverButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar creyente'**
+  String get baptismCalendarRegisterBelieverButton;
+
+  /// No description provided for @baptismCalendarBelieverCreatedScheduleFirst.
+  ///
+  /// In es, this message translates to:
+  /// **'Creyente registrado. Programa el bautismo del día para asignarlo.'**
+  String get baptismCalendarBelieverCreatedScheduleFirst;
+
+  /// No description provided for @baptismCalendarBelieverCreatedAndAssigned.
+  ///
+  /// In es, this message translates to:
+  /// **'{name} registrado y asignado al bautismo'**
+  String baptismCalendarBelieverCreatedAndAssigned(String name);
+
+  /// No description provided for @baptismCalendarBelieverAlreadyBaptized.
+  ///
+  /// In es, this message translates to:
+  /// **'El creyente ya está marcado como bautizado'**
+  String get baptismCalendarBelieverAlreadyBaptized;
+
+  /// No description provided for @baptismCalendarBelieverAlreadyAssigned.
+  ///
+  /// In es, this message translates to:
+  /// **'{name} ya está asignado a este bautismo'**
+  String baptismCalendarBelieverAlreadyAssigned(String name);
+
+  /// No description provided for @baptismCalendarPastReadOnlyHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Este bautismo ya pasó. No se puede modificar; solo confirmar quiénes se bautizaron.'**
+  String get baptismCalendarPastReadOnlyHint;
+
+  /// No description provided for @baptismCalendarConfirmBaptizedSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Confirmar bautizados'**
+  String get baptismCalendarConfirmBaptizedSection;
+
+  /// No description provided for @baptismCalendarConfirmBaptizedHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Marca los creyentes que se bautizaron en esta fecha'**
+  String get baptismCalendarConfirmBaptizedHint;
+
+  /// No description provided for @baptismCalendarConfirmBaptizedAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar confirmación'**
+  String get baptismCalendarConfirmBaptizedAction;
+
+  /// No description provided for @baptismCalendarConfirmBaptizedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} creyente(s) confirmado(s) como bautizados'**
+  String baptismCalendarConfirmBaptizedSuccess(int count);
 
   /// No description provided for @leaderRegMobileRequired.
   ///

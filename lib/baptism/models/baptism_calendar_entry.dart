@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'baptism_assigned_member.dart';
+
 /// Fecha programada de bautismo (colección `baptismCalendar`).
 class BaptismCalendarEntry {
   const BaptismCalendarEntry({
@@ -11,6 +13,7 @@ class BaptismCalendarEntry {
     required this.registeredAt,
     required this.registeredBy,
     this.churchId,
+    this.assignedMembers = const [],
   });
 
   final String? id;
@@ -21,6 +24,7 @@ class BaptismCalendarEntry {
   final DateTime registeredAt;
   final String registeredBy;
   final String? churchId;
+  final List<BaptismAssignedMember> assignedMembers;
 
   DateTime get dateOnly =>
       DateTime(baptismDate.year, baptismDate.month, baptismDate.day);
@@ -35,7 +39,32 @@ class BaptismCalendarEntry {
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
+      'assignedMembers': BaptismAssignedMember.toFirestoreList(assignedMembers),
     };
+  }
+
+  BaptismCalendarEntry copyWith({
+    String? id,
+    DateTime? baptismDate,
+    String? time,
+    String? location,
+    String? notes,
+    DateTime? registeredAt,
+    String? registeredBy,
+    String? churchId,
+    List<BaptismAssignedMember>? assignedMembers,
+  }) {
+    return BaptismCalendarEntry(
+      id: id ?? this.id,
+      baptismDate: baptismDate ?? this.baptismDate,
+      time: time ?? this.time,
+      location: location ?? this.location,
+      notes: notes ?? this.notes,
+      registeredAt: registeredAt ?? this.registeredAt,
+      registeredBy: registeredBy ?? this.registeredBy,
+      churchId: churchId ?? this.churchId,
+      assignedMembers: assignedMembers ?? this.assignedMembers,
+    );
   }
 
   factory BaptismCalendarEntry.fromFirestore(
@@ -52,6 +81,9 @@ class BaptismCalendarEntry {
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,
+      assignedMembers: BaptismAssignedMember.fromFirestoreList(
+        data['assignedMembers'],
+      ),
     );
   }
 }

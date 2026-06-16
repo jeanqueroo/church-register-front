@@ -148,16 +148,23 @@ class VisitDashboardService {
             .subtract(const Duration(days: 13));
         return start;
       case VisitChartPeriod.month:
-        var month = now.month - 11;
-        var year = now.year;
-        while (month <= 0) {
-          month += 12;
-          year--;
-        }
-        return DateTime(year, month, 1);
+        return rangeStartForMonthCount(12, now);
       case VisitChartPeriod.year:
         return DateTime(now.year - 4, 1, 1);
     }
+  }
+
+  DateTime rangeStartForMonthCount(int monthCount, DateTime now) {
+    if (monthCount < 1) {
+      throw ArgumentError.value(monthCount, 'monthCount', 'must be >= 1');
+    }
+    var month = now.month - (monthCount - 1);
+    var year = now.year;
+    while (month <= 0) {
+      month += 12;
+      year--;
+    }
+    return DateTime(year, month, 1);
   }
 
   DateTime rangeEndFor(VisitChartPeriod period, DateTime now) {

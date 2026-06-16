@@ -126,7 +126,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get quickBaptismCalendarSubtitle =>
-      'Ver y registrar fechas de bautismo';
+      'Ver fechas de bautismo programadas';
 
   @override
   String get quickViewLeadersTitle => 'Ver líderes';
@@ -1538,6 +1538,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dashboardLeadersWithVisits => 'Líderes con visitas';
 
   @override
+  String dashboardLeadersWithVisitsCount(int count) {
+    return '$count líderes con visitas';
+  }
+
+  @override
   String get dashboardVisitCount => 'Número de visitas';
 
   @override
@@ -1567,6 +1572,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dashboardPeriodLast12Months => 'Últimos 12 meses';
 
   @override
+  String get dashboardPeriodLast6Months => 'Últimos 6 meses';
+
+  @override
   String get dashboardPeriodLast5Years => 'Últimos 5 años';
 
   @override
@@ -1574,6 +1582,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get dashboardFollowUpSubtitle => 'Marcadas en visitas del período';
+
+  @override
+  String dashboardFollowUpCount(int count) {
+    return '$count persona(s)';
+  }
 
   @override
   String get dashboardFollowUpEmpty =>
@@ -1690,6 +1703,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get notificationCellSplitNotRequired =>
+      'Esta célula ya no supera 12 discípulos. No es necesario dividirla.';
+
+  @override
   String get splitCellTitle => 'Dividir célula';
 
   @override
@@ -1703,11 +1720,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get splitCellSelectLeaderHelperHint =>
-      'Elige un ayudante de la célula origen como líder';
+      'Elige un asistente de la célula origen como líder';
 
   @override
   String get splitCellNoHelpers =>
-      'Esta célula no tiene ayudantes. Asigna ayudantes en Mi célula antes de dividir.';
+      'Esta célula no tiene asistentes. Asigna asistentes en Mi célula antes de dividir.';
 
   @override
   String get splitCellSelectMembers => 'Discípulos para la nueva célula';
@@ -1724,14 +1741,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get splitCellLeaderRequired =>
-      'Selecciona un ayudante como líder de la nueva célula';
+      'Selecciona un asistente como líder de la nueva célula';
 
   @override
   String get splitCellMembersRequired =>
       'Selecciona al menos un discípulo para la nueva célula';
 
   @override
-  String get splitCellLeaderBusy => 'Ese ayudante ya es líder de otra célula';
+  String get splitCellLeaderBusy => 'Ese asistente ya es líder de otra célula';
 
   @override
   String get splitCellSuccess =>
@@ -1748,11 +1765,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get splitCellLeaderAccountHint =>
-      'Se creará un usuario de acceso para el ayudante seleccionado como líder de la nueva célula.';
+      'Se creará un usuario de acceso para el asistente seleccionado como líder de la nueva célula.';
 
   @override
   String get splitCellLeaderAlreadyHasAccount =>
-      'Este ayudante ya tiene cuenta de líder en el sistema.';
+      'Este asistente ya tiene cuenta de líder en el sistema.';
 
   @override
   String get splitCellLeaderAccountRequired =>
@@ -1760,13 +1777,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get splitCellLeaderBlocked =>
-      'Ese ayudante está bloqueado como líder y no puede liderar una célula';
+      'Ese asistente está bloqueado como líder y no puede liderar una célula';
 
   @override
   String get memberLeadershipPromotedToLeader => 'Pasó a líder';
 
   @override
   String get memberLeadershipPromotedToVolunteer => 'Pasó a registrador';
+
+  @override
+  String get memberLeadershipCreatedAsLeader => 'Creado como líder';
 
   @override
   String get menuCellsOverCapacity => 'Células para dividir';
@@ -2515,24 +2535,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cellDiscipleListEmpty => 'Aún no hay discípulos en esta célula';
 
   @override
+  String cellDiscipleListCount(int count) {
+    return '$count discípulo(s)';
+  }
+
+  @override
   String get cellDiscipleDeleteTitle => 'Eliminar discípulo';
 
   @override
   String get cellDiscipleDeleted => 'Discípulo eliminado';
 
   @override
-  String get cellHelpersTitle => 'Ayudantes de la célula';
+  String get cellHelpersTitle => 'Asistentes de la célula';
 
   @override
   String cellHelpersHint(int max) {
-    return 'Selecciona hasta $max discípulos de esta célula como ayudantes';
+    return 'Selecciona hasta $max discípulos de esta célula como asistentes';
   }
 
   @override
-  String get cellHelpersEmpty => 'Aún no hay ayudantes asignados';
+  String get cellHelpersEmpty => 'Aún no hay asistentes asignados';
 
   @override
-  String get cellHelpersSelectAction => 'Seleccionar ayudantes';
+  String get cellHelpersSelectAction => 'Seleccionar asistentes';
 
   @override
   String cellHelpersCount(int current, int max) {
@@ -2541,14 +2566,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cellHelpersMaxReached(int max) {
-    return 'Máximo $max ayudantes por célula';
+    return 'Máximo $max asistentes por célula';
   }
 
   @override
-  String get cellHelpersSaved => 'Ayudantes actualizados';
+  String get cellHelpersSaved => 'Asistentes actualizados';
 
   @override
-  String get cellHelpersBadge => 'Ayudante';
+  String get cellHelpersBadge => 'Asistente';
 
   @override
   String get cellAttendanceRegisterTitle => 'Registrar asistencia';
@@ -3044,6 +3069,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Solo puedes asignar discípulos del mismo sexo que el líder de la célula.';
 
   @override
+  String get cellMemberAssignLeaderExcluded =>
+      'No se pueden asignar líderes como discípulos de la célula.';
+
+  @override
   String cellMemberSelectEmptyGender(String gender) {
     return 'No hay discípulos sin célula del mismo sexo que el líder ($gender).';
   }
@@ -3122,6 +3151,117 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String baptismCalendarDeleteConfirm(String date) {
     return '¿Eliminar el bautismo programado para el $date?';
+  }
+
+  @override
+  String get baptismCalendarAssignMembersAction => 'Asignar creyentes';
+
+  @override
+  String get baptismCalendarAssignMembersTitle =>
+      'Integrantes para el bautismo';
+
+  @override
+  String get baptismCalendarAssignMembersHint =>
+      'Marca los creyentes sin bautizar que se bautizarán en esta fecha';
+
+  @override
+  String get baptismCalendarAssignMembersSearchHint =>
+      'Buscar por nombre o teléfono';
+
+  @override
+  String get baptismCalendarAssignMembersEmpty =>
+      'No hay creyentes sin bautizar disponibles para asignar';
+
+  @override
+  String get memberIsBaptized => 'Bautizado';
+
+  @override
+  String get memberIsBaptizedSubtitle =>
+      'Si está marcado, no aparecerá en el calendario de bautismo';
+
+  @override
+  String get baptismCalendarAssignMembersLoadError =>
+      'No se pudieron cargar los integrantes';
+
+  @override
+  String baptismCalendarAssignMembersConfirm(int count) {
+    return 'Guardar ($count)';
+  }
+
+  @override
+  String baptismCalendarAssignedCount(int count) {
+    return '$count integrante(s) asignado(s)';
+  }
+
+  @override
+  String baptismCalendarMembersAssigned(int count) {
+    return '$count integrante(s) asignado(s) al bautismo';
+  }
+
+  @override
+  String get baptismCalendarAddForDay => 'Programar bautismo este día';
+
+  @override
+  String get baptismCalendarUpdated => 'Bautismo actualizado';
+
+  @override
+  String get baptismCalendarSelectEvent => 'Evento del día';
+
+  @override
+  String get baptismCalendarMembersSection => 'Integrantes asignados';
+
+  @override
+  String get baptismCalendarMembersEmpty => 'Aún no hay integrantes asignados';
+
+  @override
+  String get baptismCalendarDeleteAction => 'Eliminar bautismo';
+
+  @override
+  String get baptismCalendarCreateBelieverToBaptize =>
+      'Crear nuevo creyente a bautizar';
+
+  @override
+  String get baptismCalendarRegisterBelieverTitle =>
+      'Registrar creyente a bautizar';
+
+  @override
+  String get baptismCalendarRegisterBelieverButton => 'Registrar creyente';
+
+  @override
+  String get baptismCalendarBelieverCreatedScheduleFirst =>
+      'Creyente registrado. Programa el bautismo del día para asignarlo.';
+
+  @override
+  String baptismCalendarBelieverCreatedAndAssigned(String name) {
+    return '$name registrado y asignado al bautismo';
+  }
+
+  @override
+  String get baptismCalendarBelieverAlreadyBaptized =>
+      'El creyente ya está marcado como bautizado';
+
+  @override
+  String baptismCalendarBelieverAlreadyAssigned(String name) {
+    return '$name ya está asignado a este bautismo';
+  }
+
+  @override
+  String get baptismCalendarPastReadOnlyHint =>
+      'Este bautismo ya pasó. No se puede modificar; solo confirmar quiénes se bautizaron.';
+
+  @override
+  String get baptismCalendarConfirmBaptizedSection => 'Confirmar bautizados';
+
+  @override
+  String get baptismCalendarConfirmBaptizedHint =>
+      'Marca los creyentes que se bautizaron en esta fecha';
+
+  @override
+  String get baptismCalendarConfirmBaptizedAction => 'Guardar confirmación';
+
+  @override
+  String baptismCalendarConfirmBaptizedSuccess(int count) {
+    return '$count creyente(s) confirmado(s) como bautizados';
   }
 
   @override

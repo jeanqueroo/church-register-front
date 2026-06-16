@@ -181,6 +181,9 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
       } on CellAssignmentGenderException {
         errorMessage = MemberService.messageForCellAssignmentGender(l10n);
         break;
+      } on CellAssignmentLeaderException {
+        errorMessage = MemberService.messageForCellAssignmentLeader(l10n);
+        break;
       } on FirebaseException catch (e) {
         errorMessage = MemberService.messageFromFirestoreException(e, l10n);
         break;
