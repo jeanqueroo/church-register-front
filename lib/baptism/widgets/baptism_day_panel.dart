@@ -399,6 +399,7 @@ class _BaptismDayPanelState extends State<BaptismDayPanel> {
         baptizedMemberIds: baptized,
         notBaptizedMemberIds: notBaptized,
         baptizedAt: widget.selectedDate,
+        performedBy: widget.registeredBy,
       );
       _showMessage(l10n.baptismCalendarConfirmBaptizedSuccess(baptized.length));
     } on FirebaseException catch (e) {

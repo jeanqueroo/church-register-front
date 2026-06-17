@@ -9,6 +9,7 @@ Aplicación Flutter de **gestión pastoral** para la iglesia: integrantes, líde
 | **Bundle iOS** (pendiente alinear) | `com.church.register.churchRegister` |
 | **Versión actual** | Ver `pubspec.yaml` (ej. `1.0.2+3`) |
 | **Guía de despliegue** | [`DESPLIEGUE.md`](DESPLIEGUE.md) |
+| **Estados e historial** | [`docs/estados-e-historial-creyentes-lideres.md`](docs/estados-e-historial-creyentes-lideres.md) |
 | **Proyecto Firebase** | `church-register-ce4de` |
 | **Contacto** | contacto@manantialdebendiciones.org |
 
@@ -19,6 +20,8 @@ Aplicación Flutter de **gestión pastoral** para la iglesia: integrantes, líde
 ```
 church-register-front/
 ├── lib/                    # Código Flutter (es/en i18n)
+├── docs/                   # Documentación técnica del dominio
+│   └── estados-e-historial-creyentes-lideres.md
 ├── android/                # Config Android + firma release
 ├── ios/                    # Config iOS (requiere Mac)
 ├── hosting/public/         # Páginas web → Firebase Hosting
@@ -37,6 +40,16 @@ church-register-front/
 ```
 
 **Importante:** `hosting/public/` es solo para la web (políticas legales). `store/` es para gráficos y textos de Google Play.
+
+---
+
+## Documentación del proyecto
+
+| Documento | Contenido |
+|-----------|-----------|
+| [`docs/estados-e-historial-creyentes-lideres.md`](docs/estados-e-historial-creyentes-lideres.md) | Estados de creyentes y líderes, recorrido (registro → líder → célula → bautismo), subcolecciones `history` y `visits`, campos en Firestore y flujos por pantalla |
+| [`DESPLIEGUE.md`](DESPLIEGUE.md) | Despliegue y publicación |
+| [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md) | Configuración Firebase |
 
 ---
 

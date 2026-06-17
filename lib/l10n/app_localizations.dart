@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Crear célula'**
   String get menuNewCell;
 
+  /// No description provided for @menuCellDashboard.
+  ///
+  /// In es, this message translates to:
+  /// **'Estadísticas de células'**
+  String get menuCellDashboard;
+
   /// No description provided for @menuBaptismGroup.
   ///
   /// In es, this message translates to:
@@ -133,6 +139,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Calendario de bautismo'**
   String get menuBaptismCalendar;
+
+  /// No description provided for @menuBaptismDashboard.
+  ///
+  /// In es, this message translates to:
+  /// **'Estadísticas de bautismo'**
+  String get menuBaptismDashboard;
 
   /// No description provided for @menuNewMember.
   ///
@@ -331,6 +343,204 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ver fechas de bautismo programadas'**
   String get quickBaptismCalendarSubtitle;
+
+  /// No description provided for @quickBaptismDashboardTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estadísticas de bautismo'**
+  String get quickBaptismDashboardTitle;
+
+  /// No description provided for @quickBaptismDashboardSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautizados desde registro de creyente'**
+  String get quickBaptismDashboardSubtitle;
+
+  /// No description provided for @baptismDashboardTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estadísticas de bautismo'**
+  String get baptismDashboardTitle;
+
+  /// No description provided for @baptismDashboardDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'No tienes permiso para ver las estadísticas de bautismo.'**
+  String get baptismDashboardDenied;
+
+  /// No description provided for @baptismDashboardLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar las estadísticas de bautismo.'**
+  String get baptismDashboardLoadError;
+
+  /// No description provided for @baptismDashboardBaptizedInPeriod.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautizados en el periodo'**
+  String get baptismDashboardBaptizedInPeriod;
+
+  /// No description provided for @baptismDashboardBaptizedInYear.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautizados en el año'**
+  String get baptismDashboardBaptizedInYear;
+
+  /// No description provided for @baptismDashboardBaptizedInMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautizados en el mes'**
+  String get baptismDashboardBaptizedInMonth;
+
+  /// No description provided for @baptismDashboardNewBelieversAmongBaptized.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevos creyentes entre los bautizados (registro de creyente)'**
+  String get baptismDashboardNewBelieversAmongBaptized;
+
+  /// No description provided for @baptismDashboardSelectYear.
+  ///
+  /// In es, this message translates to:
+  /// **'Año'**
+  String get baptismDashboardSelectYear;
+
+  /// No description provided for @baptismDashboardSelectMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Mes'**
+  String get baptismDashboardSelectMonth;
+
+  /// No description provided for @baptismDashboardAllMonths.
+  ///
+  /// In es, this message translates to:
+  /// **'Todo el año'**
+  String get baptismDashboardAllMonths;
+
+  /// No description provided for @baptismDashboardChartTitleYear.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautizados por mes en {year}'**
+  String baptismDashboardChartTitleYear(int year);
+
+  /// No description provided for @baptismDashboardChartTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautizados por periodo'**
+  String get baptismDashboardChartTitle;
+
+  /// No description provided for @baptismDashboardListTitleYear.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautizados en el año'**
+  String get baptismDashboardListTitleYear;
+
+  /// No description provided for @baptismDashboardListTitleMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautizados en {month}'**
+  String baptismDashboardListTitleMonth(String month);
+
+  /// No description provided for @baptismDashboardListTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautizados en el periodo'**
+  String get baptismDashboardListTitle;
+
+  /// No description provided for @baptismDashboardListSelectMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona un mes para ver los bautizados.'**
+  String get baptismDashboardListSelectMonth;
+
+  /// No description provided for @baptismDashboardListCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 bautizado} other{{count} bautizados}}'**
+  String baptismDashboardListCount(int count);
+
+  /// No description provided for @baptismDashboardListEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay bautizados en este periodo.'**
+  String get baptismDashboardListEmpty;
+
+  /// No description provided for @baptismDashboardPeriodLastMonths.
+  ///
+  /// In es, this message translates to:
+  /// **'Últimos {count} meses'**
+  String baptismDashboardPeriodLastMonths(int count);
+
+  /// No description provided for @baptismDashboardPeriodLastYears.
+  ///
+  /// In es, this message translates to:
+  /// **'Últimos {count} años'**
+  String baptismDashboardPeriodLastYears(int count);
+
+  /// No description provided for @baptismDashboardConversionHint.
+  ///
+  /// In es, this message translates to:
+  /// **'La tasa de bautismo cuenta solo creyentes registrados desde «Registro de creyente» (no desde célula ni bautismo directo). El gráfico usa la fecha de bautismo confirmada.'**
+  String get baptismDashboardConversionHint;
+
+  /// No description provided for @cellDashboardTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estadísticas de células'**
+  String get cellDashboardTitle;
+
+  /// No description provided for @cellDashboardDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'No tienes permiso para ver las estadísticas de células.'**
+  String get cellDashboardDenied;
+
+  /// No description provided for @cellDashboardLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar las estadísticas de células.'**
+  String get cellDashboardLoadError;
+
+  /// No description provided for @cellDashboardCreatedInYear.
+  ///
+  /// In es, this message translates to:
+  /// **'Células creadas en el año'**
+  String get cellDashboardCreatedInYear;
+
+  /// No description provided for @cellDashboardCreatedInMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Células creadas en el mes'**
+  String get cellDashboardCreatedInMonth;
+
+  /// No description provided for @cellDashboardChartTitleYear.
+  ///
+  /// In es, this message translates to:
+  /// **'Células creadas por mes en {year}'**
+  String cellDashboardChartTitleYear(int year);
+
+  /// No description provided for @cellDashboardListTitleMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Células creadas en {month}'**
+  String cellDashboardListTitleMonth(String month);
+
+  /// No description provided for @cellDashboardListSelectMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona un mes para ver las células creadas.'**
+  String get cellDashboardListSelectMonth;
+
+  /// No description provided for @cellDashboardListCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 célula} other{{count} células}}'**
+  String cellDashboardListCount(int count);
+
+  /// No description provided for @cellDashboardListEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay células creadas en este periodo.'**
+  String get cellDashboardListEmpty;
 
   /// No description provided for @quickViewLeadersTitle.
   ///
@@ -1025,7 +1235,7 @@ abstract class AppLocalizations {
   /// No description provided for @memberAssignmentPastoral.
   ///
   /// In es, this message translates to:
-  /// **'Nuevo creyente (líder pastoral)'**
+  /// **'Nuevo creyente'**
   String get memberAssignmentPastoral;
 
   /// No description provided for @memberAssignmentCell.
@@ -1033,6 +1243,102 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Discípulo de célula'**
   String get memberAssignmentCell;
+
+  /// No description provided for @memberDetailSectionJourney.
+  ///
+  /// In es, this message translates to:
+  /// **'Recorrido'**
+  String get memberDetailSectionJourney;
+
+  /// No description provided for @memberDetailRegistrationSource.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrado desde'**
+  String get memberDetailRegistrationSource;
+
+  /// No description provided for @memberDetailPastoralAssignedAt.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignado a líder'**
+  String get memberDetailPastoralAssignedAt;
+
+  /// No description provided for @memberDetailCellAssignedAt.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignado a célula'**
+  String get memberDetailCellAssignedAt;
+
+  /// No description provided for @memberDetailBaptizedAt.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha de bautismo'**
+  String get memberDetailBaptizedAt;
+
+  /// No description provided for @memberDetailJourneyComplete.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro de creyente → célula → bautismo'**
+  String get memberDetailJourneyComplete;
+
+  /// No description provided for @memberDetailHistoryTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Historial de cambios'**
+  String get memberDetailHistoryTitle;
+
+  /// No description provided for @memberRegistrationSourceRegisterMember.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro de creyente'**
+  String get memberRegistrationSourceRegisterMember;
+
+  /// No description provided for @memberRegistrationSourceRegisterMemberCell.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro de creyente en célula'**
+  String get memberRegistrationSourceRegisterMemberCell;
+
+  /// No description provided for @memberRegistrationSourceRegisterCellMember.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro en célula'**
+  String get memberRegistrationSourceRegisterCellMember;
+
+  /// No description provided for @memberRegistrationSourceRegisterBaptismBeliever.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro para bautismo'**
+  String get memberRegistrationSourceRegisterBaptismBeliever;
+
+  /// No description provided for @memberHistoryEventRegistered.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro creado'**
+  String get memberHistoryEventRegistered;
+
+  /// No description provided for @memberHistoryEventPastoralAssigned.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignado a líder'**
+  String get memberHistoryEventPastoralAssigned;
+
+  /// No description provided for @memberHistoryEventCellAssigned.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignado a célula'**
+  String get memberHistoryEventCellAssigned;
+
+  /// No description provided for @memberHistoryEventCellUnassigned.
+  ///
+  /// In es, this message translates to:
+  /// **'Retirado de célula'**
+  String get memberHistoryEventCellUnassigned;
+
+  /// No description provided for @memberHistoryEventBaptizedConfirmed.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautismo confirmado'**
+  String get memberHistoryEventBaptizedConfirmed;
 
   /// No description provided for @memberDetailAssignedCell.
   ///
@@ -5155,7 +5461,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberVisitLeaderHint.
   ///
   /// In es, this message translates to:
-  /// **'Se asignará a {leader} como líder pastoral (célula {cell})'**
+  /// **'Se asignará a {leader} como líder (célula {cell})'**
   String cellMemberVisitLeaderHint(String leader, String cell);
 
   /// No description provided for @cellMemberVisitNoLeader.
@@ -5219,7 +5525,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberAssignHint.
   ///
   /// In es, this message translates to:
-  /// **'Asigna discípulos sin célula a {cell}. La asignación a célula es independiente del líder pastoral del discípulo.'**
+  /// **'Asigna discípulos sin célula a {cell}. La asignación a célula es independiente del líder asignado al discípulo.'**
   String cellMemberAssignHint(String cell);
 
   /// No description provided for @cellMemberListTitle.

@@ -6,6 +6,7 @@ import '../../core/locale/weekday_labels.dart';
 import '../../auth/models/app_permissions.dart';
 import '../../l10n/app_localizations.dart';
 import '../models/church_member.dart';
+import '../models/member_history_event.dart';
 import '../services/member_service.dart';
 import '../widgets/member_visits_section.dart';
 import 'register_member_screen.dart';
@@ -181,6 +182,17 @@ class MemberDetailScreen extends StatelessWidget {
               memberId: member.id!,
               permissions: _permissions,
             ),
+          if (member.hasTrackedSpiritualJourney)
+            _Section(
+              title: l10n.memberDetailSectionJourney,
+              rows: _journeyRows(l10n),
+            ),
+          if (member.id != null && _permissions.canManageMembers)
+            _MemberHistorySection(
+              memberId: member.id!,
+              memberService: memberService ?? MemberService(),
+              formatDate: _formatDate,
+            ),
           _Section(
             title: l10n.memberDetailSectionRegistration,
             rows: _registrationRows(l10n),
@@ -283,6 +295,31 @@ class MemberDetailScreen extends StatelessWidget {
     ];
   }
 
+  List<_Row> _journeyRows(AppLocalizations l10n) {
+    return [
+      _Row(
+        l10n.memberDetailRegistrationSource,
+        member.registrationSourceLabel(l10n),
+      ),
+      _Row(
+        l10n.memberDetailPastoralAssignedAt,
+        member.pastoralAssignedAt != null
+            ? _formatDate(member.pastoralAssignedAt)
+            : null,
+      ),
+      _Row(
+        l10n.memberDetailCellAssignedAt,
+        member.cellAssignedAt != null ? _formatDate(member.cellAssignedAt) : null,
+      ),
+      _Row(
+        l10n.memberDetailBaptizedAt,
+        member.isBaptized ? _formatDate(member.baptizedAt) : null,
+      ),
+      if (member.followedPastoralCellBaptismJourney)
+        _Row('', l10n.memberDetailJourneyComplete),
+    ];
+  }
+
   List<_Row> _registrationRows(AppLocalizations l10n) {
     return [
       _Row(
@@ -352,4 +389,72 @@ class _Row {
   final String? value;
 
   bool get hasValue => value != null && value!.trim().isNotEmpty;
+}
+
+class _MemberHistorySection extends StatelessWidget {
+  const _MemberHistorySection({
+    required this.memberId,
+    required this.memberService,
+    required this.formatDate,
+  });
+
+  final String memberId;
+  final MemberService memberService;
+  final String Function(DateTime?) formatDate;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    return StreamBuilder<List<MemberHistoryEvent>>(
+      stream: memberService.watchMemberHistory(memberId),
+      builder: (context, snapshot) {
+        final events = snapshot.data ?? const <MemberHistoryEvent>[];
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            events.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.only(bottom: 24),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (events.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.memberDetailHistoryTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                child: Column(
+                  children: [
+                    for (var i = 0; i < events.length; i++)
+                      ListTile(
+                        leading: const Icon(Icons.history),
+                        title: Text(events[i].type.localizedLabel(l10n)),
+                        subtitle: Text(
+                          [
+                            formatDate(events[i].occurredAt),
+                            if (events[i].performedBy?.trim().isNotEmpty ==
+                                true)
+                              events[i].performedBy!.trim(),
+                          ].join(' · '),
+                        ),
+                        dense: true,
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

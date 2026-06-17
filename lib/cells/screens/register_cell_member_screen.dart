@@ -14,6 +14,7 @@ import '../../members/models/church_member.dart';
 import '../../members/models/marital_status.dart';
 import '../../members/models/member_assignment_kind.dart';
 import '../../members/models/member_entry_source.dart';
+import '../../members/models/member_registration_source.dart';
 import '../../members/services/member_service.dart';
 import '../cell_leader_gender.dart';
 import '../cell_member_capacity.dart';
@@ -259,6 +260,7 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
         registeredAt: now,
         registeredBy: widget.registeredBy,
         churchId: _effectiveChurchId,
+        registrationSource: MemberRegistrationSource.registerCellMember,
       );
 
       final memberId = await _memberService.addMember(
@@ -282,6 +284,7 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
         actingLeaderId: widget.actingLeaderId,
         requiredLeaderGender: _cellLeaderGender,
         allowExceedCapacityForNewRegistration: true,
+        performedBy: widget.registeredBy,
       );
 
       if (!mounted) return;

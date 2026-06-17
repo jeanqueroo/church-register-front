@@ -15,6 +15,7 @@ import '../../notifications/services/cell_capacity_notification_service.dart';
 import '../../notifications/services/leader_notification_service.dart';
 import '../models/church_member.dart';
 import '../models/member_assignment_kind.dart';
+import '../models/member_history_event.dart';
 import '../models/member_leadership_status.dart';
 import '../models/members_page.dart';
 import '../../cells/models/cell_attendance_record.dart';
@@ -223,6 +224,35 @@ class MemberService {
     bool notifyLeader = true,
   }) async {
     final ref = await _members.add(member.toMap());
+    await _appendMemberHistory(
+      memberId: ref.id,
+      event: MemberHistoryEvent(
+        type: MemberHistoryEventType.registered,
+        occurredAt: member.registeredAt,
+        performedBy: member.registeredBy,
+        details: {
+          if (member.registrationSource != null)
+            'registrationSource': member.registrationSource!.storageKey,
+          if (member.churchId != null) 'churchId': member.churchId,
+        },
+      ),
+    );
+    if (member.pastoralAssignedAt != null &&
+        member.assignedLeaderId?.trim().isNotEmpty == true) {
+      await _appendMemberHistory(
+        memberId: ref.id,
+        event: MemberHistoryEvent(
+          type: MemberHistoryEventType.pastoralAssigned,
+          occurredAt: member.pastoralAssignedAt!,
+          performedBy: member.registeredBy,
+          details: {
+            'leaderId': member.assignedLeaderId,
+            if (member.assignedLeaderName != null)
+              'leaderName': member.assignedLeaderName,
+          },
+        ),
+      );
+    }
     if (notifyLeader) {
       await _notifyLeaderIfAssigned(
         memberId: ref.id,
@@ -257,11 +287,13 @@ class MemberService {
     required List<String> baptizedMemberIds,
     required List<String> notBaptizedMemberIds,
     required DateTime baptizedAt,
+    String? performedBy,
   }) async {
     final batch = FirebaseFirestore.instance.batch();
     final at = Timestamp.fromDate(
       DateTime(baptizedAt.year, baptizedAt.month, baptizedAt.day),
     );
+    final confirmedAt = DateTime.now();
 
     for (final id in baptizedMemberIds) {
       if (id.trim().isEmpty) continue;
@@ -282,6 +314,21 @@ class MemberService {
 
     if (baptizedMemberIds.isEmpty && notBaptizedMemberIds.isEmpty) return;
     await batch.commit();
+
+    for (final id in baptizedMemberIds) {
+      if (id.trim().isEmpty) continue;
+      await _appendMemberHistory(
+        memberId: id,
+        event: MemberHistoryEvent(
+          type: MemberHistoryEventType.baptizedConfirmed,
+          occurredAt: confirmedAt,
+          performedBy: performedBy,
+          details: {
+            'baptizedAt': at.millisecondsSinceEpoch,
+          },
+        ),
+      );
+    }
   }
 
   Future<void> markMemberPromotedToLeader({
@@ -516,6 +563,7 @@ class MemberService {
     String? actingLeaderId,
     LeaderGender? requiredLeaderGender,
     bool allowExceedCapacityForNewRegistration = false,
+    String? performedBy,
   }) async {
     final memberId = member.id;
     final cellId = cell.id;
@@ -556,14 +604,34 @@ class MemberService {
       throw CellAssignmentLimitException();
     }
 
+    final memberSnap = await _members.doc(memberId).get();
+    final existingData = memberSnap.data();
+    final hasCellAssignedAt =
+        existingData?['cellAssignedAt'] is Timestamp;
+
     final updates = <String, dynamic>{
       'assignedCellId': cellId,
       'assignedCellCode': cell.code.trim(),
       'assignmentKind': MemberAssignmentKind.cell.storageKey,
       'assignedLeaderFromRegistration': false,
+      if (!hasCellAssignedAt) 'cellAssignedAt': FieldValue.serverTimestamp(),
     };
 
     await _members.doc(memberId).update(updates);
+
+    await _appendMemberHistory(
+      memberId: memberId,
+      event: MemberHistoryEvent(
+        type: MemberHistoryEventType.cellAssigned,
+        occurredAt: DateTime.now(),
+        performedBy: performedBy ?? member.registeredBy,
+        details: {
+          'cellId': cellId,
+          'cellCode': cell.code.trim(),
+          if (actingLeaderId != null) 'actingLeaderId': actingLeaderId,
+        },
+      ),
+    );
 
     final memberCount = await countMembersInCell(cellId);
     final capacityExceeded = memberCount > CellMemberCapacity.maxMembers;
@@ -596,7 +664,10 @@ class MemberService {
     );
   }
 
-  Future<void> unassignMemberFromCell(String memberId) async {
+  Future<void> unassignMemberFromCell(
+    String memberId, {
+    String? performedBy,
+  }) async {
     if (memberId.isEmpty) {
       throw ArgumentError('El integrante debe tener id');
     }
@@ -632,6 +703,41 @@ class MemberService {
     }
 
     await batch.commit();
+
+    if (cellId.isNotEmpty) {
+      await _appendMemberHistory(
+        memberId: memberId,
+        event: MemberHistoryEvent(
+          type: MemberHistoryEventType.cellUnassigned,
+          occurredAt: DateTime.now(),
+          performedBy: performedBy,
+          details: {'cellId': cellId},
+        ),
+      );
+    }
+  }
+
+  CollectionReference<Map<String, dynamic>> _memberHistory(String memberId) {
+    return _members.doc(memberId).collection('history');
+  }
+
+  Future<void> _appendMemberHistory({
+    required String memberId,
+    required MemberHistoryEvent event,
+  }) async {
+    if (memberId.trim().isEmpty) return;
+    await _memberHistory(memberId).add(event.toMap());
+  }
+
+  Stream<List<MemberHistoryEvent>> watchMemberHistory(String memberId) {
+    return _memberHistory(memberId)
+        .orderBy('occurredAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(MemberHistoryEvent.fromFirestore)
+              .toList(),
+        );
   }
 
   /// Al asignar ayudantes de célula dejan de figurar como nuevo creyente.

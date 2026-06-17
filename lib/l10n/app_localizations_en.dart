@@ -21,10 +21,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuNewCell => 'Create cell group';
 
   @override
+  String get menuCellDashboard => 'Cell statistics';
+
+  @override
   String get menuBaptismGroup => 'Baptism';
 
   @override
   String get menuBaptismCalendar => 'Baptism calendar';
+
+  @override
+  String get menuBaptismDashboard => 'Baptism statistics';
 
   @override
   String get menuNewMember => 'New member';
@@ -125,6 +131,141 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quickBaptismCalendarSubtitle => 'View scheduled baptism dates';
+
+  @override
+  String get quickBaptismDashboardTitle => 'Baptism statistics';
+
+  @override
+  String get quickBaptismDashboardSubtitle =>
+      'Baptized from believer registration';
+
+  @override
+  String get baptismDashboardTitle => 'Baptism statistics';
+
+  @override
+  String get baptismDashboardDenied =>
+      'You do not have permission to view baptism statistics.';
+
+  @override
+  String get baptismDashboardLoadError => 'Could not load baptism statistics.';
+
+  @override
+  String get baptismDashboardBaptizedInPeriod => 'Baptized in period';
+
+  @override
+  String get baptismDashboardBaptizedInYear => 'Baptized in year';
+
+  @override
+  String get baptismDashboardBaptizedInMonth => 'Baptized in month';
+
+  @override
+  String get baptismDashboardNewBelieversAmongBaptized =>
+      'New believers among baptized (believer registration)';
+
+  @override
+  String get baptismDashboardSelectYear => 'Year';
+
+  @override
+  String get baptismDashboardSelectMonth => 'Month';
+
+  @override
+  String get baptismDashboardAllMonths => 'Full year';
+
+  @override
+  String baptismDashboardChartTitleYear(int year) {
+    return 'Baptisms per month in $year';
+  }
+
+  @override
+  String get baptismDashboardChartTitle => 'Baptisms per period';
+
+  @override
+  String get baptismDashboardListTitleYear => 'Baptized in year';
+
+  @override
+  String baptismDashboardListTitleMonth(String month) {
+    return 'Baptized in $month';
+  }
+
+  @override
+  String get baptismDashboardListTitle => 'Baptized in period';
+
+  @override
+  String get baptismDashboardListSelectMonth =>
+      'Select a month to see baptized believers.';
+
+  @override
+  String baptismDashboardListCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count baptized',
+      one: '1 baptized',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get baptismDashboardListEmpty =>
+      'No baptized believers in this period.';
+
+  @override
+  String baptismDashboardPeriodLastMonths(int count) {
+    return 'Last $count months';
+  }
+
+  @override
+  String baptismDashboardPeriodLastYears(int count) {
+    return 'Last $count years';
+  }
+
+  @override
+  String get baptismDashboardConversionHint =>
+      'The baptism rate only includes believers registered from «Believer registration» (not cell or direct baptism registration). The chart uses the confirmed baptism date.';
+
+  @override
+  String get cellDashboardTitle => 'Cell statistics';
+
+  @override
+  String get cellDashboardDenied =>
+      'You do not have permission to view cell statistics.';
+
+  @override
+  String get cellDashboardLoadError => 'Could not load cell statistics.';
+
+  @override
+  String get cellDashboardCreatedInYear => 'Cells created in year';
+
+  @override
+  String get cellDashboardCreatedInMonth => 'Cells created in month';
+
+  @override
+  String cellDashboardChartTitleYear(int year) {
+    return 'Cells created per month in $year';
+  }
+
+  @override
+  String cellDashboardListTitleMonth(String month) {
+    return 'Cells created in $month';
+  }
+
+  @override
+  String get cellDashboardListSelectMonth =>
+      'Select a month to see cells created.';
+
+  @override
+  String cellDashboardListCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cells',
+      one: '1 cell',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cellDashboardListEmpty => 'No cells created in this period.';
 
   @override
   String get quickViewLeadersTitle => 'View leaders';
@@ -506,10 +647,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memberDetailAssignmentKind => 'Assignment type';
 
   @override
-  String get memberAssignmentPastoral => 'New believer (pastoral leader)';
+  String get memberAssignmentPastoral => 'New believer';
 
   @override
   String get memberAssignmentCell => 'Cell group disciple';
+
+  @override
+  String get memberDetailSectionJourney => 'Journey';
+
+  @override
+  String get memberDetailRegistrationSource => 'Registered from';
+
+  @override
+  String get memberDetailPastoralAssignedAt => 'Assigned to leader';
+
+  @override
+  String get memberDetailCellAssignedAt => 'Assigned to cell group';
+
+  @override
+  String get memberDetailBaptizedAt => 'Baptism date';
+
+  @override
+  String get memberDetailJourneyComplete =>
+      'Believer registration → cell → baptism';
+
+  @override
+  String get memberDetailHistoryTitle => 'Change history';
+
+  @override
+  String get memberRegistrationSourceRegisterMember => 'Believer registration';
+
+  @override
+  String get memberRegistrationSourceRegisterMemberCell =>
+      'Believer registration in cell';
+
+  @override
+  String get memberRegistrationSourceRegisterCellMember =>
+      'Cell group registration';
+
+  @override
+  String get memberRegistrationSourceRegisterBaptismBeliever =>
+      'Baptism registration';
+
+  @override
+  String get memberHistoryEventRegistered => 'Record created';
+
+  @override
+  String get memberHistoryEventPastoralAssigned => 'Assigned to leader';
+
+  @override
+  String get memberHistoryEventCellAssigned => 'Assigned to cell group';
+
+  @override
+  String get memberHistoryEventCellUnassigned => 'Removed from cell group';
+
+  @override
+  String get memberHistoryEventBaptizedConfirmed => 'Baptism confirmed';
 
   @override
   String get memberDetailAssignedCell => 'Assigned cell group';
@@ -2917,7 +3110,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cellMemberVisitLeaderHint(String leader, String cell) {
-    return '$leader will be assigned as pastoral leader (cell group $cell)';
+    return '$leader will be assigned as leader (cell group $cell)';
   }
 
   @override
@@ -2962,7 +3155,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cellMemberAssignHint(String cell) {
-    return 'Assign disciples without a cell to $cell. Cell assignment is separate from the disciple\'s pastoral leader.';
+    return 'Assign disciples without a cell to $cell. Cell assignment is separate from the disciple\'s assigned leader.';
   }
 
   @override

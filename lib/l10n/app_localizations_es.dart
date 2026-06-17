@@ -21,10 +21,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuNewCell => 'Crear célula';
 
   @override
+  String get menuCellDashboard => 'Estadísticas de células';
+
+  @override
   String get menuBaptismGroup => 'Bautismo';
 
   @override
   String get menuBaptismCalendar => 'Calendario de bautismo';
+
+  @override
+  String get menuBaptismDashboard => 'Estadísticas de bautismo';
 
   @override
   String get menuNewMember => 'Nuevo creyente';
@@ -127,6 +133,143 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get quickBaptismCalendarSubtitle =>
       'Ver fechas de bautismo programadas';
+
+  @override
+  String get quickBaptismDashboardTitle => 'Estadísticas de bautismo';
+
+  @override
+  String get quickBaptismDashboardSubtitle =>
+      'Bautizados desde registro de creyente';
+
+  @override
+  String get baptismDashboardTitle => 'Estadísticas de bautismo';
+
+  @override
+  String get baptismDashboardDenied =>
+      'No tienes permiso para ver las estadísticas de bautismo.';
+
+  @override
+  String get baptismDashboardLoadError =>
+      'No se pudieron cargar las estadísticas de bautismo.';
+
+  @override
+  String get baptismDashboardBaptizedInPeriod => 'Bautizados en el periodo';
+
+  @override
+  String get baptismDashboardBaptizedInYear => 'Bautizados en el año';
+
+  @override
+  String get baptismDashboardBaptizedInMonth => 'Bautizados en el mes';
+
+  @override
+  String get baptismDashboardNewBelieversAmongBaptized =>
+      'Nuevos creyentes entre los bautizados (registro de creyente)';
+
+  @override
+  String get baptismDashboardSelectYear => 'Año';
+
+  @override
+  String get baptismDashboardSelectMonth => 'Mes';
+
+  @override
+  String get baptismDashboardAllMonths => 'Todo el año';
+
+  @override
+  String baptismDashboardChartTitleYear(int year) {
+    return 'Bautizados por mes en $year';
+  }
+
+  @override
+  String get baptismDashboardChartTitle => 'Bautizados por periodo';
+
+  @override
+  String get baptismDashboardListTitleYear => 'Bautizados en el año';
+
+  @override
+  String baptismDashboardListTitleMonth(String month) {
+    return 'Bautizados en $month';
+  }
+
+  @override
+  String get baptismDashboardListTitle => 'Bautizados en el periodo';
+
+  @override
+  String get baptismDashboardListSelectMonth =>
+      'Selecciona un mes para ver los bautizados.';
+
+  @override
+  String baptismDashboardListCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bautizados',
+      one: '1 bautizado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get baptismDashboardListEmpty => 'No hay bautizados en este periodo.';
+
+  @override
+  String baptismDashboardPeriodLastMonths(int count) {
+    return 'Últimos $count meses';
+  }
+
+  @override
+  String baptismDashboardPeriodLastYears(int count) {
+    return 'Últimos $count años';
+  }
+
+  @override
+  String get baptismDashboardConversionHint =>
+      'La tasa de bautismo cuenta solo creyentes registrados desde «Registro de creyente» (no desde célula ni bautismo directo). El gráfico usa la fecha de bautismo confirmada.';
+
+  @override
+  String get cellDashboardTitle => 'Estadísticas de células';
+
+  @override
+  String get cellDashboardDenied =>
+      'No tienes permiso para ver las estadísticas de células.';
+
+  @override
+  String get cellDashboardLoadError =>
+      'No se pudieron cargar las estadísticas de células.';
+
+  @override
+  String get cellDashboardCreatedInYear => 'Células creadas en el año';
+
+  @override
+  String get cellDashboardCreatedInMonth => 'Células creadas en el mes';
+
+  @override
+  String cellDashboardChartTitleYear(int year) {
+    return 'Células creadas por mes en $year';
+  }
+
+  @override
+  String cellDashboardListTitleMonth(String month) {
+    return 'Células creadas en $month';
+  }
+
+  @override
+  String get cellDashboardListSelectMonth =>
+      'Selecciona un mes para ver las células creadas.';
+
+  @override
+  String cellDashboardListCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count células',
+      one: '1 célula',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cellDashboardListEmpty =>
+      'No hay células creadas en este periodo.';
 
   @override
   String get quickViewLeadersTitle => 'Ver líderes';
@@ -511,10 +654,61 @@ class AppLocalizationsEs extends AppLocalizations {
   String get memberDetailAssignmentKind => 'Tipo de asignación';
 
   @override
-  String get memberAssignmentPastoral => 'Nuevo creyente (líder pastoral)';
+  String get memberAssignmentPastoral => 'Nuevo creyente';
 
   @override
   String get memberAssignmentCell => 'Discípulo de célula';
+
+  @override
+  String get memberDetailSectionJourney => 'Recorrido';
+
+  @override
+  String get memberDetailRegistrationSource => 'Registrado desde';
+
+  @override
+  String get memberDetailPastoralAssignedAt => 'Asignado a líder';
+
+  @override
+  String get memberDetailCellAssignedAt => 'Asignado a célula';
+
+  @override
+  String get memberDetailBaptizedAt => 'Fecha de bautismo';
+
+  @override
+  String get memberDetailJourneyComplete =>
+      'Registro de creyente → célula → bautismo';
+
+  @override
+  String get memberDetailHistoryTitle => 'Historial de cambios';
+
+  @override
+  String get memberRegistrationSourceRegisterMember => 'Registro de creyente';
+
+  @override
+  String get memberRegistrationSourceRegisterMemberCell =>
+      'Registro de creyente en célula';
+
+  @override
+  String get memberRegistrationSourceRegisterCellMember => 'Registro en célula';
+
+  @override
+  String get memberRegistrationSourceRegisterBaptismBeliever =>
+      'Registro para bautismo';
+
+  @override
+  String get memberHistoryEventRegistered => 'Registro creado';
+
+  @override
+  String get memberHistoryEventPastoralAssigned => 'Asignado a líder';
+
+  @override
+  String get memberHistoryEventCellAssigned => 'Asignado a célula';
+
+  @override
+  String get memberHistoryEventCellUnassigned => 'Retirado de célula';
+
+  @override
+  String get memberHistoryEventBaptizedConfirmed => 'Bautismo confirmado';
 
   @override
   String get memberDetailAssignedCell => 'Célula asignada';
@@ -2931,7 +3125,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cellMemberVisitLeaderHint(String leader, String cell) {
-    return 'Se asignará a $leader como líder pastoral (célula $cell)';
+    return 'Se asignará a $leader como líder (célula $cell)';
   }
 
   @override
@@ -2977,7 +3171,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cellMemberAssignHint(String cell) {
-    return 'Asigna discípulos sin célula a $cell. La asignación a célula es independiente del líder pastoral del discípulo.';
+    return 'Asigna discípulos sin célula a $cell. La asignación a célula es independiente del líder asignado al discípulo.';
   }
 
   @override

@@ -22,6 +22,7 @@ import '../models/id_document_type.dart';
 import '../models/marital_status.dart';
 import '../models/member_assignment_kind.dart';
 import '../models/member_entry_source.dart';
+import '../models/member_registration_source.dart';
 import '../services/leader_assignment_service.dart';
 import '../services/member_service.dart';
 
@@ -497,6 +498,9 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
               ? MemberAssignmentKind.pastoral
               : (widget.isEditing ? widget.memberToEdit?.assignmentKind : null));
 
+      final registrationTimestamp =
+          widget.memberToEdit?.registeredAt ?? DateTime.now();
+
       final member = ChurchMember(
         id: widget.memberToEdit?.id,
         firstName: _firstNameController.text.trim(),
@@ -561,9 +565,20 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
             : null,
         entrySource: _entrySource,
         formDate: _formDate,
-        registeredAt: widget.memberToEdit?.registeredAt ?? DateTime.now(),
+        registeredAt: registrationTimestamp,
         registeredBy: widget.memberToEdit?.registeredBy ?? widget.registeredBy,
         churchId: widget.memberToEdit?.churchId ?? _effectiveChurchId,
+        registrationSource: widget.isEditing
+            ? widget.memberToEdit?.registrationSource
+            : (isCellRegistration
+                ? MemberRegistrationSource.registerMemberCell
+                : MemberRegistrationSource.registerMember),
+        pastoralAssignedAt: widget.isEditing
+            ? widget.memberToEdit?.pastoralAssignedAt
+            : (assignedLeaderFromRegistration ? registrationTimestamp : null),
+        cellAssignedAt: widget.isEditing
+            ? widget.memberToEdit?.cellAssignedAt
+            : null,
       );
 
       String? newMemberId;
@@ -635,6 +650,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
           actingLeaderId: widget.actingLeaderId,
           requiredLeaderGender: _cellLeaderGender,
           allowExceedCapacityForNewRegistration: true,
+          performedBy: widget.registeredBy,
         );
       }
 

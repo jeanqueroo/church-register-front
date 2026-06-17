@@ -343,6 +343,7 @@ class CellSplitService {
         member: member,
         cell: createdCell,
         requiredLeaderGender: leaderGender,
+        performedBy: registeredBy,
       );
       transferredIds.add(memberId);
     }
@@ -351,7 +352,10 @@ class CellSplitService {
     if (leaderMemberId != null &&
         leaderMemberId.isNotEmpty &&
         !transferredIds.contains(leaderMemberId)) {
-      await _memberService.unassignMemberFromCell(leaderMemberId);
+      await _memberService.unassignMemberFromCell(
+        leaderMemberId,
+        performedBy: registeredBy,
+      );
     }
 
     final remainingHelpers = sourceCell.helpers

@@ -10,6 +10,7 @@ import 'marital_status.dart';
 import 'member_assignment_kind.dart';
 import 'member_entry_source.dart';
 import 'member_leadership_status.dart';
+import 'member_registration_source.dart';
 import 'spiritual_state.dart';
 
 class ChurchMember {
@@ -59,6 +60,9 @@ class ChurchMember {
     this.leadershipStatus,
     this.linkedLeaderId,
     this.promotedToLeaderAt,
+    this.registrationSource,
+    this.pastoralAssignedAt,
+    this.cellAssignedAt,
   });
 
   final String? id;
@@ -118,6 +122,12 @@ class ChurchMember {
   /// Id del documento en `leaders` vinculado a este integrante.
   final String? linkedLeaderId;
   final DateTime? promotedToLeaderAt;
+  /// Pantalla con la que se registró por primera vez (no cambia después).
+  final MemberRegistrationSource? registrationSource;
+  /// Primera asignación a líder pastoral (registro pastoral).
+  final DateTime? pastoralAssignedAt;
+  /// Primera asignación a una célula.
+  final DateTime? cellAssignedAt;
 
   bool get hasBeenPromotedToLeader =>
       leadershipStatus == MemberLeadershipStatus.promotedToLeader;
@@ -227,6 +237,23 @@ class ChurchMember {
   String? assignmentKindLabel(AppLocalizations l10n) =>
       assignmentKind?.label(l10n);
 
+  String? registrationSourceLabel(AppLocalizations l10n) =>
+      registrationSource?.localizedLabel(l10n);
+
+  /// Recorrido: registro pastoral → célula → bautismo confirmado.
+  bool get followedPastoralCellBaptismJourney =>
+      registrationSource == MemberRegistrationSource.registerMember &&
+      pastoralAssignedAt != null &&
+      cellAssignedAt != null &&
+      isBaptized;
+
+  /// Recorrido parcial o completo con historial en documento.
+  bool get hasTrackedSpiritualJourney =>
+      registrationSource != null ||
+      pastoralAssignedAt != null ||
+      cellAssignedAt != null ||
+      baptizedAt != null;
+
   /// Edad en años completos según la fecha de nacimiento.
   int? get age {
     if (birthDate == null) return null;
@@ -310,6 +337,12 @@ class ChurchMember {
         'linkedLeaderId': linkedLeaderId,
       if (promotedToLeaderAt != null)
         'promotedToLeaderAt': Timestamp.fromDate(promotedToLeaderAt!),
+      if (registrationSource != null)
+        'registrationSource': registrationSource!.storageKey,
+      if (pastoralAssignedAt != null)
+        'pastoralAssignedAt': Timestamp.fromDate(pastoralAssignedAt!),
+      if (cellAssignedAt != null)
+        'cellAssignedAt': Timestamp.fromDate(cellAssignedAt!),
     };
   }
 
@@ -395,6 +428,12 @@ class ChurchMember {
       linkedLeaderId: data['linkedLeaderId'] as String?,
       promotedToLeaderAt:
           (data['promotedToLeaderAt'] as Timestamp?)?.toDate(),
+      registrationSource: MemberRegistrationSource.fromString(
+        data['registrationSource'] as String?,
+      ),
+      pastoralAssignedAt:
+          (data['pastoralAssignedAt'] as Timestamp?)?.toDate(),
+      cellAssignedAt: (data['cellAssignedAt'] as Timestamp?)?.toDate(),
     );
   }
 }

@@ -173,6 +173,7 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
           cell: widget.cell,
           actingLeaderId: widget.actingLeaderId,
           requiredLeaderGender: _cellLeaderGender,
+          performedBy: widget.registeredBy,
         );
         assigned++;
       } on CellAssignmentLimitException {
@@ -243,7 +244,10 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
     if (confirmed != true || !mounted) return;
 
     try {
-      await _memberService.unassignMemberFromCell(memberId);
+      await _memberService.unassignMemberFromCell(
+        memberId,
+        performedBy: widget.registeredBy,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.cellMemberUnassigned(member.fullName))),

@@ -16,6 +16,7 @@ import '../../members/models/id_document_type.dart';
 import '../../members/models/marital_status.dart';
 import '../../members/models/member_assignment_kind.dart';
 import '../../members/models/member_entry_source.dart';
+import '../../members/models/member_registration_source.dart';
 import '../../members/services/member_service.dart';
 
 class RegisterBaptismBelieverScreen extends StatefulWidget {
@@ -273,6 +274,9 @@ class _RegisterBaptismBelieverScreenState
         registeredAt: DateTime.now(),
         registeredBy: widget.registeredBy,
         churchId: _effectiveChurchId,
+        registrationSource: MemberRegistrationSource.registerBaptismBeliever,
+        pastoralAssignedAt:
+            assignedLeaderId != null ? DateTime.now() : null,
       );
 
       final memberId = await _memberService.addMember(

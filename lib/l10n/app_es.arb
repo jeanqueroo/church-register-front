@@ -4,8 +4,10 @@
   "menuRegistration": "Registro",
   "menuCellGroup": "Célula",
   "menuNewCell": "Crear célula",
+  "menuCellDashboard": "Estadísticas de células",
   "menuBaptismGroup": "Bautismo",
   "menuBaptismCalendar": "Calendario de bautismo",
+  "menuBaptismDashboard": "Estadísticas de bautismo",
   "menuNewMember": "Nuevo creyente",
   "menuMembers": "Ver nuevos creyentes",
   "menuByLeader": "Ver nuevos creyentes por líder",
@@ -39,6 +41,95 @@
   "quickNewCellSubtitle": "Registrar un nuevo grupo celular",
   "quickBaptismCalendarTitle": "Calendario de bautismo",
   "quickBaptismCalendarSubtitle": "Ver fechas de bautismo programadas",
+  "quickBaptismDashboardTitle": "Estadísticas de bautismo",
+  "quickBaptismDashboardSubtitle": "Bautizados desde registro de creyente",
+  "baptismDashboardTitle": "Estadísticas de bautismo",
+  "baptismDashboardDenied": "No tienes permiso para ver las estadísticas de bautismo.",
+  "baptismDashboardLoadError": "No se pudieron cargar las estadísticas de bautismo.",
+  "baptismDashboardBaptizedInPeriod": "Bautizados en el periodo",
+  "baptismDashboardBaptizedInYear": "Bautizados en el año",
+  "baptismDashboardBaptizedInMonth": "Bautizados en el mes",
+  "baptismDashboardNewBelieversAmongBaptized": "Nuevos creyentes entre los bautizados (registro de creyente)",
+  "baptismDashboardSelectYear": "Año",
+  "baptismDashboardSelectMonth": "Mes",
+  "baptismDashboardAllMonths": "Todo el año",
+  "baptismDashboardChartTitleYear": "Bautizados por mes en {year}",
+  "@baptismDashboardChartTitleYear": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "baptismDashboardChartTitle": "Bautizados por periodo",
+  "baptismDashboardListTitleYear": "Bautizados en el año",
+  "baptismDashboardListTitleMonth": "Bautizados en {month}",
+  "@baptismDashboardListTitleMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "baptismDashboardListTitle": "Bautizados en el periodo",
+  "baptismDashboardListSelectMonth": "Selecciona un mes para ver los bautizados.",
+  "baptismDashboardListCount": "{count, plural, =1{1 bautizado} other{{count} bautizados}}",
+  "@baptismDashboardListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baptismDashboardListEmpty": "No hay bautizados en este periodo.",
+  "baptismDashboardPeriodLastMonths": "Últimos {count} meses",
+  "@baptismDashboardPeriodLastMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baptismDashboardPeriodLastYears": "Últimos {count} años",
+  "@baptismDashboardPeriodLastYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baptismDashboardConversionHint": "La tasa de bautismo cuenta solo creyentes registrados desde «Registro de creyente» (no desde célula ni bautismo directo). El gráfico usa la fecha de bautismo confirmada.",
+  "cellDashboardTitle": "Estadísticas de células",
+  "cellDashboardDenied": "No tienes permiso para ver las estadísticas de células.",
+  "cellDashboardLoadError": "No se pudieron cargar las estadísticas de células.",
+  "cellDashboardCreatedInYear": "Células creadas en el año",
+  "cellDashboardCreatedInMonth": "Células creadas en el mes",
+  "cellDashboardChartTitleYear": "Células creadas por mes en {year}",
+  "@cellDashboardChartTitleYear": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "cellDashboardListTitleMonth": "Células creadas en {month}",
+  "@cellDashboardListTitleMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "cellDashboardListSelectMonth": "Selecciona un mes para ver las células creadas.",
+  "cellDashboardListCount": "{count, plural, =1{1 célula} other{{count} células}}",
+  "@cellDashboardListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cellDashboardListEmpty": "No hay células creadas en este periodo.",
   "quickViewLeadersTitle": "Ver líderes",
   "quickViewLeadersSubtitle": "Lista de líderes registrados",
   "quickMySupervisedLeadersTitle": "Mis líderes asignados",
@@ -230,8 +321,24 @@
   "memberDetailEntrySource": "Dónde entró",
   "memberDetailLeadershipStatus": "Estado pastoral",
   "memberDetailAssignmentKind": "Tipo de asignación",
-  "memberAssignmentPastoral": "Nuevo creyente (líder pastoral)",
+  "memberAssignmentPastoral": "Nuevo creyente",
   "memberAssignmentCell": "Discípulo de célula",
+  "memberDetailSectionJourney": "Recorrido",
+  "memberDetailRegistrationSource": "Registrado desde",
+  "memberDetailPastoralAssignedAt": "Asignado a líder",
+  "memberDetailCellAssignedAt": "Asignado a célula",
+  "memberDetailBaptizedAt": "Fecha de bautismo",
+  "memberDetailJourneyComplete": "Registro de creyente → célula → bautismo",
+  "memberDetailHistoryTitle": "Historial de cambios",
+  "memberRegistrationSourceRegisterMember": "Registro de creyente",
+  "memberRegistrationSourceRegisterMemberCell": "Registro de creyente en célula",
+  "memberRegistrationSourceRegisterCellMember": "Registro en célula",
+  "memberRegistrationSourceRegisterBaptismBeliever": "Registro para bautismo",
+  "memberHistoryEventRegistered": "Registro creado",
+  "memberHistoryEventPastoralAssigned": "Asignado a líder",
+  "memberHistoryEventCellAssigned": "Asignado a célula",
+  "memberHistoryEventCellUnassigned": "Retirado de célula",
+  "memberHistoryEventBaptizedConfirmed": "Bautismo confirmado",
   "memberDetailAssignedCell": "Célula asignada",
   "entrySourceCampaignOutside": "Campaña fuera de la iglesia",
   "entrySourceCell": "Célula",
@@ -1468,7 +1575,7 @@
   "cellMemberFormSubmit": "Registrar en la célula",
   "cellMemberWantsVisitSubtitle": "Si desea visita, se asignará automáticamente el líder de esta célula",
   "cellMemberIsNewBelieverSubtitle": "Actívalo si el discípulo se registra como nuevo creyente",
-  "cellMemberVisitLeaderHint": "Se asignará a {leader} como líder pastoral (célula {cell})",
+  "cellMemberVisitLeaderHint": "Se asignará a {leader} como líder (célula {cell})",
   "@cellMemberVisitLeaderHint": {
     "placeholders": {
       "leader": { "type": "String" },
@@ -1502,7 +1609,7 @@
       "cell": { "type": "String" }
     }
   },
-  "cellMemberAssignHint": "Asigna discípulos sin célula a {cell}. La asignación a célula es independiente del líder pastoral del discípulo.",
+  "cellMemberAssignHint": "Asigna discípulos sin célula a {cell}. La asignación a célula es independiente del líder asignado al discípulo.",
   "@cellMemberAssignHint": {
     "placeholders": {
       "cell": { "type": "String" }

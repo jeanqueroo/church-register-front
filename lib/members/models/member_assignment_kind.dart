@@ -2,7 +2,7 @@ import '../../l10n/app_localizations.dart';
 
 /// Origen de la asignación al líder / célula.
 enum MemberAssignmentKind {
-  /// Nuevo creyente registrado y asignado a un líder pastoral para visita.
+  /// Nuevo creyente registrado y asignado a un líder para visita.
   pastoral,
 
   /// Integrante o discípulo asignado a una célula.
