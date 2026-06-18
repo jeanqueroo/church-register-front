@@ -38,5 +38,26 @@
         "*.local"
       ]
     }
-  ]
+  ],
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "church-register-qa",
+          "appId": "1:401692251430:android:50d2c2b6d227cb6ee31de7",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "church-register-qa",
+          "configurations": {
+            "android": "1:401692251430:android:50d2c2b6d227cb6ee31de7",
+            "ios": "1:401692251430:ios:3fbfc9dd0144b8fbe31de7",
+            "web": "1:401692251430:web:e844e745bfe73e6de31de7"
+          }
+        }
+      }
+    }
+  }
 }

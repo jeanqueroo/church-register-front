@@ -1,13 +1,12 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'auth/widgets/auth_gate.dart';
 import 'core/firebase/app_check_bootstrap.dart';
+import 'core/firebase/firebase_bootstrap.dart';
 import 'core/locale/locale_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
-import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
@@ -17,9 +16,7 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await ensureFirebaseInitialized();
   await activateFirebaseAppCheck();
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   final localeController = await LocaleController.load();

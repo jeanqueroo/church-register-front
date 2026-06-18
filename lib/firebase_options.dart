@@ -20,28 +20,27 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyANYcA8s0GlHDLxfv1sVfhHLzZ8-eacvSU',
-    appId: '1:1096220304922:android:e9e8a6af687016364713a3',
-    messagingSenderId: '1096220304922',
-    projectId: 'church-register-ce4de',
-    storageBucket: 'church-register-ce4de.firebasestorage.app',
+    apiKey: 'AIzaSyC-V8o1o9WKBVZTxx0vaeaUYkrv4UJKfLg',
+    appId: '1:401692251430:android:50d2c2b6d227cb6ee31de7',
+    messagingSenderId: '401692251430',
+    projectId: 'church-register-qa',
+    storageBucket: 'church-register-qa.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'TU_API_KEY_IOS',
-    appId: 'TU_APP_ID_IOS',
-    messagingSenderId: '1096220304922',
-    projectId: 'church-register-ce4de',
-    storageBucket: 'church-register-ce4de.firebasestorage.app',
+    apiKey: 'AIzaSyC5BybJdYxYMP15dnJpJ_-q0ffbaxYOyXo',
+    appId: '1:401692251430:ios:3fbfc9dd0144b8fbe31de7',
+    messagingSenderId: '401692251430',
+    projectId: 'church-register-qa',
+    storageBucket: 'church-register-qa.firebasestorage.app',
     iosBundleId: 'com.church.register.churchRegister',
   );
-
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'TU_API_KEY_WEB',
-    appId: 'TU_APP_ID_WEB',
-    messagingSenderId: '1096220304922',
-    projectId: 'church-register-ce4de',
-    storageBucket: 'church-register-ce4de.firebasestorage.app',
-    authDomain: 'church-register-ce4de.firebaseapp.com',
+    apiKey: 'AIzaSyDqkm7YOkbWeHELY69JpC4Lv1SIlj3Jw2g',
+    appId: '1:401692251430:web:e844e745bfe73e6de31de7',
+    messagingSenderId: '401692251430',
+    projectId: 'church-register-qa',
+    authDomain: 'church-register-qa.firebaseapp.com',
+    storageBucket: 'church-register-qa.firebasestorage.app',
+    measurementId: 'G-8HGHY2V1FL',
   );
 }

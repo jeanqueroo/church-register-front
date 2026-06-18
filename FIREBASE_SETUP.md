@@ -1,91 +1,134 @@
 # Configuración de Firebase
 
-El login usa **Firebase Authentication** (correo y contraseña). Sigue estos pasos una sola vez.
+Guía para configurar un **proyecto Firebase nuevo** con esta app. El login usa **Firebase Authentication** (correo y contraseña).
 
-## 1. Crear proyecto en Firebase
+Los mapas usan **OpenStreetMap** (Nominatim + flutter_map). **No** hace falta API key de Google Maps.
 
-1. Entra en [Firebase Console](https://console.firebase.google.com/).
-2. Crea un proyecto (o usa uno existente).
-3. Ve a **Build → Authentication → Sign-in method**.
-4. Habilita **Correo electrónico/Contraseña**.
+---
 
-## 2. Registrar la app Android
+## Checklist rápido (orden recomendado)
 
-1. En la configuración del proyecto, añade una app **Android**.
-2. **Package name:** `com.church.register.church_registe` (debe coincidir exactamente con Firebase)
-3. Descarga `google-services.json` y colócalo en:
+1. Crear proyecto en [Firebase Console](https://console.firebase.google.com/).
+2. Habilitar **Authentication → Correo/Contraseña**.
+3. Crear **Firestore Database** y **Storage** (misma región si es posible).
+4. Registrar app **Android** con package `com.church.register.manantial`.
+5. Ejecutar `flutterfire configure` (actualiza `lib/firebase_options.dart` y `google-services.json`).
+6. Actualizar `.firebaserc` con el nuevo `projectId`.
+7. Publicar reglas e índices: `firebase deploy --only firestore:rules,firestore:indexes,storage`.
+8. Activar plan **Blaze** y desplegar functions: `firebase deploy --only functions` (luego `firebase functions:artifacts:setpolicy --location us-central1` si aparece el aviso de cleanup).
+9. Configurar **App Check** (token debug en desarrollo).
+10. Crear usuario en Authentication y probar login.
+11. Crear iglesia, administrador y flujo completo (creyente, líder, célula).
 
-   ```
-   android/app/google-services.json
-   ```
+---
 
-## 3. Generar configuración Flutter (recomendado)
+## 1. Firebase Console
 
-En la raíz del proyecto:
+### Authentication
+
+1. **Build → Authentication → Sign-in method**.
+2. Habilita **Correo electrónico/Contraseña**.
+3. Crea el primer usuario en **Users → Add user**.
+
+### Firestore
+
+1. **Build → Firestore Database → Create database**.
+2. Modo **producción** (las reglas del repo limitan el acceso por roles).
+3. Elige ubicación (p. ej. `us-central1` o la más cercana a tus usuarios).
+
+### Storage
+
+1. **Build → Storage → Get started**.
+2. Usa la misma región que Firestore si puedes.
+3. Sirve para logos de iglesia: `church_profiles/{churchId}/logo.jpg`.
+
+### Cloud Messaging
+
+1. **Build → Cloud Messaging** — suele activarse al registrar la app Android.
+2. **iOS (opcional):** sube la clave APNs en *Project settings → Cloud Messaging → Apple app configuration*.
+
+### App Check
+
+Necesario para subir el logo de la iglesia si Storage tiene enforcement activo.
+
+1. **Build → App Check** → registra la app Android.
+2. **Desarrollo:** proveedor **Debug** → genera token (ver sección [App Check](#app-check)).
+3. **Producción:** **Play Integrity** (app firmada; idealmente desde Play Console).
+
+---
+
+## 2. Registrar las apps
+
+| Plataforma | Identificador |
+|------------|---------------|
+| **Android** | `com.church.register.manantial` |
+| **iOS** (opcional) | `com.church.register.churchRegister` |
+
+### Android
+
+1. En configuración del proyecto Firebase, añade una app **Android**.
+2. **Package name:** `com.church.register.manantial` (debe coincidir exactamente con `android/app/build.gradle.kts`).
+3. Descarga `google-services.json` → `android/app/google-services.json`.
+4. (Recomendado) Añade **SHA-1** y **SHA-256** del keystore de debug/release en *Project settings → Your apps* (útil para App Check / Play Integrity).
+
+### iOS (opcional)
+
+1. Añade app iOS con bundle ID `com.church.register.churchRegister`.
+2. Descarga `GoogleService-Info.plist` → `ios/Runner/`.
+3. Vuelve a ejecutar `flutterfire configure`.
+
+---
+
+## 3. Configuración en el proyecto Flutter
+
+### FlutterFire (recomendado)
+
+En la raíz del repositorio:
 
 ```powershell
 dart pub global activate flutterfire_cli
+firebase login
 dart pub global run flutterfire_cli:flutterfire configure --project=TU_PROJECT_ID
 ```
 
-Esto actualiza `lib/firebase_options.dart` automáticamente.
+Esto actualiza automáticamente:
 
-## 4. Activar Firestore (registro de miembros)
+- `lib/firebase_options.dart`
+- `android/app/google-services.json`
+- `ios/Runner/GoogleService-Info.plist` (si configuras iOS)
 
-1. Ve a **Build → Firestore Database** → **Create database**.
-2. Elige modo **producción** (o prueba para desarrollo).
-3. En **Rules**, usa reglas que solo permitan lectura/escritura a usuarios autenticados:
+### Vincular Firebase CLI
 
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /members/{memberId} {
-      allow read, write: if request.auth != null;
-    }
-    match /leaders/{leaderId} {
-      allow read, write: if request.auth != null;
-    }
-    match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow create, update: if request.auth != null;
-    }
-    match /notifications/{notificationId} {
-      allow create: if request.auth != null;
-      allow read, update: if request.auth != null && (
-        resource.data.recipientUserId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.leaderId
-          == resource.data.leaderId
-      );
-    }
+Edita `.firebaserc`:
+
+```json
+{
+  "projects": {
+    "default": "TU_PROJECT_ID"
   }
 }
 ```
 
-4. Publica las reglas.
+### Publicar reglas, índices y Storage
 
-Los integrantes se guardan en `members`. Los líderes se guardan en `leaders`. Los perfiles de acceso en `users` con campo **`roles`** (array). Las notificaciones para líderes (nuevo integrante asignado) en `notifications`.
+Las reglas **reales** del proyecto están en el repositorio (no uses reglas mínimas de ejemplo):
 
-## Notificaciones al líder
+| Archivo | Contenido |
+|---------|-----------|
+| `firestore.rules` | Permisos por roles (superadmin, admin, líder, supervisor, etc.) |
+| `firestore.indexes.json` | Índices para consultas de creyentes, líderes y visitas |
+| `storage.rules` | Lectura/escritura de logos para usuarios autenticados |
 
-Cuando se registra o reasigna un integrante con un líder, la app crea un documento en `notifications` con el campo **`leaderId`** (id del documento en `leaders`). El líder las ve en **Notificaciones** si su perfil en `users` tiene el mismo `leaderId`.
+```powershell
+firebase use TU_PROJECT_ID
+firebase deploy --only firestore:rules,firestore:indexes,storage
+```
 
-Al iniciar sesión, la app sincroniza avisos para integrantes ya asignados que aún no tenían notificación.
+Si la app muestra un enlace para crear un índice al consultar datos, créalo desde el enlace o vuelve a desplegar `firestore.indexes.json`.
 
-**Importante:** publica las reglas de `notifications` de arriba. Si solo permites lectura por `recipientUserId`, el líder no verá los avisos aunque existan en la base de datos.
+### Cloud Functions (notificaciones push)
 
-## Notificaciones push en el teléfono (FCM)
-
-Para que el líder reciba un aviso en la **bandeja del sistema** (app cerrada o en segundo plano), además de la notificación dentro de la app:
-
-### 1. App (automático al iniciar sesión como líder)
-
-- Pide permiso de notificaciones (Android 13+ / iOS).
-- Guarda el token en `users/{uid}.fcmToken`.
-
-### 2. Cloud Function (obligatorio)
-
-En la raíz del proyecto:
+Requiere plan **Blaze** (facturación por uso; en desarrollo suele costar $0).
 
 ```powershell
 npm install -g firebase-tools
@@ -97,46 +140,115 @@ cd ..
 firebase deploy --only functions
 ```
 
-La función `notifyLeaderOnMemberAssigned` se ejecuta al crear un documento en `notifications` y envía el push al `fcmToken` del líder.
+La función `notifyLeaderOnMemberAssigned` envía push al crear un documento en `notifications` (tipo `member_assigned`).
 
-### 3. Firebase Console
+#### Política de limpieza de imágenes (Artifact Registry)
 
-1. **Build → Cloud Messaging** — asegúrate de que esté habilitado.
-2. **Android:** con `google-services.json` suele bastar.
-3. **iOS:** sube la clave APNs en *Project settings → Cloud Messaging → Apple app configuration*.
+En Firebase CLI 14+, al desplegar por primera vez puede aparecer:
 
-### 4. Probar
+```
+Functions successfully deployed but could not set up cleanup policy in location us-central1.
+Pass the --force option to automatically set up a cleanup policy or run
+'firebase functions:artifacts:setpolicy' to manually set up a cleanup policy.
+```
 
-1. Instala la app en un teléfono físico (el emulador a veces no recibe push).
-2. Inicia sesión como **líder** y acepta notificaciones.
-3. En Firestore, comprueba que `users/{uid}` tenga `fcmToken`.
-4. Desde otra cuenta, registra un integrante asignado a ese líder.
-5. Deberías ver el aviso en el teléfono y en **Notificaciones** dentro de la app.
+**La función sí se desplegó.** El aviso solo indica que falta configurar la limpieza automática de imágenes de contenedor en Artifact Registry (evita costos pequeños de almacenamiento).
 
-Si no llega el push pero sí el aviso en la app, revisa que la función esté desplegada y que exista `fcmToken` en el perfil del líder.
+Configúralo **una vez** en tu máquina (modo interactivo):
 
-## Roles de usuario
+```powershell
+firebase functions:artifacts:setpolicy --location us-central1 --days 7
+```
 
-Un usuario puede tener **varios roles** a la vez. Valores válidos en `roles`:
+- `--days 7` borra imágenes de más de 7 días (puedes usar `1` o `30`).
+- En el próximo deploy también puedes usar: `firebase deploy --only functions --force`.
+- Si despliegas desde CI/CD, ejecuta `artifacts:setpolicy` en local primero o añade `--force` al pipeline.
+- Para no borrar imágenes automáticamente: `firebase functions:artifacts:setpolicy --location us-central1 --none` (no recomendado).
 
-| Valor en Firestore | Etiqueta                 | Permisos en la app                                      |
-|--------------------|--------------------------|---------------------------------------------------------|
-| `superadmin`       | Super administrador      | Crear iglesias y registrar administradores de iglesia   |
-| `admin`            | Administrador de iglesia | Gestiona su sede (`churchId`); integrantes y líderes    |
-| `registrador`      | Registrador              | Solo registrar integrantes y líderes (sin listas)       |
-| `leader`           | Líder                    | Ver sus integrantes asignados (solo lectura)            |
+### Ejecutar la app
 
-Ejemplo de documento en `users/{uid}`:
+```powershell
+flutter pub get
+flutter run
+```
+
+Con App Check en desarrollo:
+
+```powershell
+flutter run --dart-define=APP_CHECK_DEBUG_TOKEN=TU-TOKEN-DEBUG
+```
+
+---
+
+## 4. Google Cloud (vinculado automáticamente)
+
+Al crear el proyecto Firebase se crea un proyecto en Google Cloud. Revisa:
+
+| Elemento | Para qué |
+|----------|----------|
+| **Plan Blaze** | Desplegar Cloud Functions |
+| **APIs** | Firestore, Storage, FCM y Functions se activan al usarlas |
+| **Play Integrity** | App Check en producción Android (vía Play Console) |
+
+**No** necesitas configurar Google Maps API: la app usa OpenStreetMap.
+
+---
+
+## 5. Colecciones de Firestore
+
+| Colección | Uso |
+|-----------|-----|
+| `churches` | Datos de cada iglesia |
+| `users` | Perfiles, `roles`, `churchId`, `leaderId`, `fcmToken` |
+| `members` | Creyentes (+ subcolecciones `history`, `visits`) |
+| `leaders` | Líderes |
+| `cells` | Células (+ subcolecciones `disciples`, `sessions`) |
+| `disciples` | Discípulos sin célula asignada |
+| `notifications` | Avisos en la app y trigger de push |
+| `baptismCalendar` | Fechas de bautismo programadas |
+
+---
+
+## 6. Roles de usuario
+
+Un usuario puede tener **varios roles**. Valores válidos en `roles`:
+
+| Valor en Firestore | Etiqueta | Permisos principales |
+|--------------------|----------|----------------------|
+| `superadmin` | Super administrador | Crear iglesias y administradores |
+| `admin` | Administrador de iglesia | Gestiona su sede (`churchId`) |
+| `registrador` | Registrador | Registrar creyentes y líderes |
+| `supervisor` | Supervisor | Supervisa líderes asignados |
+| `leader` | Líder | Su célula, asistencia, creyentes asignados |
+
+### Super administrador
+
+Si un usuario autenticado **no tiene documento** en `users`, la app lo trata como **super administrador** (primera cuenta de Firebase Console).
+
+Opcional en `users/{uid}`:
 
 ```json
 {
-  "email": "usuario@ejemplo.com",
-  "roles": ["admin"],
-  "fullName": "Nombre Apellido"
+  "email": "admin@tudominio.com",
+  "roles": ["superadmin"],
+  "fullName": "Administrador"
 }
 ```
 
-Ejemplo de **líder** (sin `fullName`; el nombre está en `leaders`):
+### Administrador de iglesia
+
+```json
+{
+  "email": "admin@iglesia.com",
+  "roles": ["admin"],
+  "churchId": "ID_DE_LA_IGLESIA",
+  "fullName": "María García"
+}
+```
+
+### Líder
+
+El nombre va en `leaders/{leaderId}`; en `users` solo `roles`, `leaderId` y `email`:
 
 ```json
 {
@@ -146,146 +258,117 @@ Ejemplo de **líder** (sin `fullName`; el nombre está en `leaders`):
 }
 ```
 
-- **Administrador / registrador:** pueden usar `fullName` en `users` si lo necesitas.
-- **Líder:** al registrarse desde la app solo se guardan `roles`, `leaderId` y `email` en `users`; `firstName` y `lastName` van en `leaders/{leaderId}`.
+---
 
-Si un usuario autenticado **no tiene documento** en `users`, la app lo trata como **super administrador** (compatibilidad con la primera cuenta en Firebase Console).
+## 7. Notificaciones al líder
 
-## Datos de la iglesia
+Al registrar o reasignar un creyente con líder, la app crea un documento en `notifications` con `leaderId`. El líder lo ve en **Notificaciones** si su `users/{uid}.leaderId` coincide.
 
-- **Super administrador** (`roles: ["superadmin"]`): menú **Iglesias** (listar, editar, crear) y **Nuevo administrador**.
-- **Administrador de iglesia** (`roles: ["admin"]` + `churchId`): menú **Datos de la iglesia** y gestión de la sede.
+Al iniciar sesión, la app sincroniza avisos pendientes para creyentes ya asignados.
 
-Firestore → colección `churches` (un documento por iglesia). Logo opcional en Storage → `church_profiles/{churchId}/logo.jpg`.
+### Push en el teléfono (FCM)
 
-Ejemplo de administrador de iglesia en `users/{uid}`:
+1. **App:** al iniciar sesión como líder, pide permiso y guarda `fcmToken` en `users/{uid}`.
+2. **Cloud Function:** desplegada con `firebase deploy --only functions`.
+3. **Probar:** teléfono físico, login como líder, registrar creyente asignado desde otra cuenta.
 
-```json
-{
-  "email": "admin@iglesia.com",
-  "roles": ["admin"],
-  "churchId": "abc123church",
-  "fullName": "María García"
-}
-```
+Si el aviso aparece en la app pero no en la bandeja del sistema, revisa `fcmToken` en Firestore y que la función esté desplegada.
 
-Activa **Storage** y publica reglas:
+---
 
-```bash
-firebase deploy --only firestore:rules,storage
-```
+## 8. Datos de la iglesia y Storage
 
-## App Check (obligatorio para subir el logo)
+- **Super admin:** menú **Iglesias** y **Nuevo administrador**.
+- **Admin:** menú **Datos de la iglesia** (su `churchId`).
 
-Si al guardar la iglesia con logo ves en logcat:
+Logo opcional en Storage: `church_profiles/{churchId}/logo.jpg`.
 
-`Error getting App Check token; using placeholder token instead`
+---
 
-o `No AppCheckProvider`, Firebase **Storage** tiene App Check activo y la app debe enviar un token válido.
+## App Check
 
-La app ya llama a `activateFirebaseAppCheck()` al iniciar (`lib/core/firebase/app_check_bootstrap.dart`).
+La app llama a `activateFirebaseAppCheck()` al iniciar (`lib/core/firebase/app_check_bootstrap.dart`).
 
-### Desarrollo (debug en emulador o dispositivo)
+### Desarrollo (debug)
 
-El token **no aparece** en la consola de `flutter run`. Usa uno de estos métodos:
+El token **no aparece** en la consola de `flutter run`.
 
 #### Método A — Generar token en Firebase (recomendado)
 
-1. [Firebase Console → App Check](https://console.firebase.google.com/project/church-register-ce4de/appcheck) → app **Android** → **Manage debug tokens**.
+1. Firebase Console → **App Check** → app **Android** → **Manage debug tokens**.
 2. **Add debug token** → **Generate token** → copia el UUID.
-3. Ejecuta la app con ese token:
+3. Ejecuta:
 
 ```powershell
 flutter run --dart-define=APP_CHECK_DEBUG_TOKEN=PEGAR-TOKEN-AQUI
 ```
 
 4. Cierra y vuelve a abrir la app si ya estaba corriendo.
-5. Intenta subir el logo de la iglesia.
+5. Prueba subir el logo de la iglesia.
 
-#### Método B — Buscar en logcat (Android)
-
-Con el teléfono/emulador conectado por USB:
+#### Método B — Logcat (Android)
 
 ```powershell
 adb logcat -s DebugAppCheckProvider
 ```
 
-En otra terminal: `flutter run`. Busca una línea como:
-
-```
-D DebugAppCheckProvider: Enter this debug secret into the allow list...: XXXXXXXX-...
-```
-
-- Usa **Android Studio → Logcat** (no la pestaña Run de Flutter).
-- Filtro: `DebugAppCheckProvider` o `AppCheck`.
-- Si no sale: desinstala la app, `flutter run` de nuevo y toca algo que use Firebase (login, subir logo).
-
-Registra el token en Firebase Console → App Check → **Manage debug tokens** → **Add**.
+En otra terminal: `flutter run`. Registra el token que aparezca en Firebase Console → App Check → **Manage debug tokens**.
 
 ### Producción (Play Store)
 
-- La app usa **Play Integrity** en builds `release`.
-- En App Check, registra el proveedor **Play Integrity** para Android.
-- La app debe estar firmada y, para pruebas reales de Integrity, instalada desde Play (internal testing) o con licencia de Play en el dispositivo.
+- Builds `release` usan **Play Integrity**.
+- Registra el proveedor en App Check para Android.
+- Para pruebas reales de Integrity, instala desde Play (internal testing) o usa dispositivo con licencia Play.
 
-### Error «Too many attempts»
+### Errores frecuentes
 
-Firebase limita los reintentos de App Check. Si ves ese mensaje:
+| Síntoma | Solución |
+|---------|----------|
+| `Error getting App Check token` | Registra debug token o desactiva enforcement en Storage (solo pruebas) |
+| `Too many attempts` | Cierra la app 15–30 min, registra token, reintenta una vez |
+| Error 404 al subir logo | Activa Storage en Console y `firebase deploy --only storage` |
+| `permission-denied` en Firestore | `firebase deploy --only firestore:rules` |
 
-1. **Cierra la app por completo** (no solo minimizar).
-2. Espera **15–30 minutos** sin abrir la app.
-3. Registra el **debug token** en Firebase Console (pasos de arriba).
-4. Vuelve a abrir la app e intenta subir el logo **una vez**.
+### Solo pruebas (menos seguro)
 
-O desactiva temporalmente **Enforcement** en App Check → Storage.
+Firebase Console → App Check → **Storage** → desactiva **Enforcement**. No recomendado en producción.
 
-### Error 404 al subir logo (`terminated the upload session`)
+---
 
-Suele ser **Storage no activado** o **App Check** rechazando la subida.
+## 9. Mi cuenta
 
-1. Firebase Console → **Build → Storage** → si pide **Comenzar / Get started**, créalo (elige ubicación, p. ej. `us-central1`).
-2. Publica reglas: `firebase deploy --only storage`
-3. Confirma el bucket: `church-register-ce4de.firebasestorage.app`
-4. Revisa App Check (debug token o desactivar enforcement en pruebas).
+Todos los usuarios autenticados pueden abrir **Mi cuenta**:
 
-### Si no quieres App Check (solo pruebas)
+- **Datos personales:** admins actualizan `fullName` en `users`; líderes editan nombre en `leaders`.
+- **Cambiar contraseña:** formulario aparte (Firebase Authentication).
 
-En Firebase Console → App Check → **Storage** → desactiva **Enforcement** (menos seguro; no recomendado en producción).
+---
 
-## Mi cuenta (datos y contraseña)
+## 10. Verificación final
 
-Todos los usuarios autenticados pueden abrir **Mi cuenta** desde el menú:
+Comprueba que todo funciona:
 
-- **Datos personales:** administradores actualizan `fullName` en `users`; líderes editan nombre y apellido en `leaders`.
-- **Cambiar contraseña:** formulario aparte que pide la contraseña actual y la nueva (Firebase Authentication).
+- [ ] Login con correo/contraseña
+- [ ] Crear iglesia (superadmin)
+- [ ] Crear administrador con `churchId`
+- [ ] Registrar creyente, líder y célula
+- [ ] Subir logo de iglesia (App Check + Storage)
+- [ ] Asignar creyente a líder → notificación en app
+- [ ] Push al líder (functions + `fcmToken` en dispositivo físico)
+- [ ] Dashboards de bautismo y células sin `permission-denied`
 
-Los formularios están separados a propósito; cambiar la clave no se hace desde «Datos personales».
-
-## 5. Crear usuarios de prueba
-
-En Firebase Console → **Authentication → Users** → **Add user**, crea un correo y contraseña para probar el login.
-
-## 6. Ejecutar la app
-
-```powershell
-flutter run
-```
+---
 
 ## Direcciones y mapas (OpenStreetMap)
 
-La app usa **OpenStreetMap** sin API key de Google:
+- **Autocompletado:** [Nominatim](https://nominatim.openstreetmap.org/)
+- **Mapa:** [flutter_map](https://pub.dev/packages/flutter_map) con tiles OSM
+- **Asignación de líderes:** geocodificación Nominatim + distancia en km
 
-- **Autocompletado:** [Nominatim](https://nominatim.openstreetmap.org/) (búsqueda de direcciones)
-- **Mapa:** [flutter_map](https://pub.dev/packages/flutter_map) con tiles de OSM
-- **Asignación de líderes:** geocodificación con Nominatim + distancia en km
+Uso moderado en producción (máx. ~1 petición/segundo recomendado para Nominatim).
 
-No requiere configuración en Google Cloud. Nominatim pide uso moderado (máx. ~1 petición/segundo en producción).
+---
 
-## iOS (opcional)
+## Referencia: proyecto actual en el repo
 
-1. Añade app iOS en Firebase con bundle ID `com.church.register.churchRegister`.
-2. Descarga `GoogleService-Info.plist` en `ios/Runner/`.
-3. Vuelve a ejecutar `flutterfire configure`.
-
-flutter run --dart-define=0ccd78b5-d996-46d4-a7b9-d84c7eaa44f7
-
+El `.firebaserc` del repositorio apunta por defecto a `church-register-qa`.

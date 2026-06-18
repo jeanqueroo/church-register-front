@@ -1,12 +1,11 @@
 import 'dart:io';
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../auth/services/user_profile_service.dart';
-import '../../firebase_options.dart';
+import '../../core/firebase/firebase_bootstrap.dart';
 
 const androidChannelId = 'leader_assignments';
 const androidChannelName = 'Asignación de integrantes';
@@ -14,9 +13,7 @@ const androidChannelName = 'Asignación de integrantes';
 /// Maneja mensajes FCM cuando la app está en segundo plano o cerrada.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await ensureFirebaseInitialized();
 }
 
 typedef PushTapCallback = void Function(RemoteMessage message);
