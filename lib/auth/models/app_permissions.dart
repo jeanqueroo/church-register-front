@@ -38,12 +38,12 @@ class AppPermissions {
 
   bool get canRegisterMember => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canRegisterLeader => isAdmin;
-  bool get canRegisterCell => isAdmin || isSuperAdmin;
-  bool get canEditCell => isAdmin || isSuperAdmin;
-  bool get canViewCells => isAdmin || isSuperAdmin;
-  bool get canViewCellDashboard => isAdmin || isSuperAdmin;
-  bool get canRegisterCellDisciple => isAdmin || isSuperAdmin;
-  bool get canAssignCellMembers => isAdmin || isSuperAdmin;
+  bool get canRegisterCell => isAdmin;
+  bool get canEditCell => isAdmin;
+  bool get canViewCells => isAdmin;
+  bool get canViewCellDashboard => isAdmin;
+  bool get canRegisterCellDisciple => isAdmin;
+  bool get canAssignCellMembers => isAdmin;
 
   /// Registrar creyente nuevo en la célula (con cupo lleno solo el líder).
   bool canRegisterNewCellMember(
@@ -109,7 +109,7 @@ class AppPermissions {
   bool get canConfirmBaptismMembers => isAdmin;
 
   /// Estadísticas de bautismos (administrador / super administrador).
-  bool get canViewBaptismDashboard => isAdmin || isSuperAdmin;
+  bool get canViewBaptismDashboard => isAdmin;
 
   /// Asignar integrantes a una fecha de bautismo (admin, supervisor o líder).
   bool get canAssignBaptismCalendarMembers => canViewBaptismCalendar;
