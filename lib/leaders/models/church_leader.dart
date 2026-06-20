@@ -3,8 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
 import '../../core/search/firestore_search_text.dart';
+import '../../l10n/app_localizations.dart';
 import '../../members/models/id_document_type.dart';
 import 'church_office.dart';
+import 'leader_registration_source.dart';
 
 class ChurchLeader {
   const ChurchLeader({
@@ -30,6 +32,7 @@ class ChurchLeader {
     required this.registeredAt,
     required this.registeredBy,
     this.churchId,
+    this.registrationSource,
     this.churchOffice,
     this.appRoles,
     this.isBlocked = false,
@@ -57,6 +60,7 @@ class ChurchLeader {
   final DateTime registeredAt;
   final String registeredBy;
   final String? churchId;
+  final LeaderRegistrationSource? registrationSource;
   final ChurchOffice? churchOffice;
   /// Roles de app en `users` (p. ej. leader, supervisor, registrador).
   final List<String>? appRoles;
@@ -64,6 +68,9 @@ class ChurchLeader {
 
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
+
+  String? registrationSourceLabel(AppLocalizations l10n) =>
+      registrationSource?.localizedLabel(l10n);
 
   /// Índice en minúsculas para búsqueda (nombre + apellido).
   String buildSearchIndex() {
@@ -173,6 +180,8 @@ class ChurchLeader {
       'searchName': buildSearchIndex(),
       'searchLastFirst': buildSearchLastFirstIndex(),
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
+      if (registrationSource != null)
+        'registrationSource': registrationSource!.storageKey,
       if (churchOffice != null) 'churchOffice': churchOffice!.code,
       if (appRoles != null && appRoles!.isNotEmpty) 'appRoles': appRoles,
       'isBlocked': isBlocked,
@@ -207,6 +216,9 @@ class ChurchLeader {
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,
+      registrationSource: LeaderRegistrationSource.fromString(
+        data['registrationSource'] as String?,
+      ),
       churchOffice: ChurchOffice.fromCode(data['churchOffice'] as String?),
       appRoles: (data['appRoles'] as List<dynamic>?)
           ?.map((e) => e.toString())

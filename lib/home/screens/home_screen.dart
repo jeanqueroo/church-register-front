@@ -13,6 +13,7 @@ import '../../core/widgets/slide_menu_scaffold.dart';
 import '../../auth/screens/admins_list_screen.dart';
 import '../../auth/screens/register_admin_screen.dart';
 import '../../church/screens/churches_list_screen.dart';
+import '../../dashboard/screens/leader_dashboard_screen.dart';
 import '../../leaders/screens/leader_assigned_members_screen.dart';
 import '../../leaders/screens/leaders_list_screen.dart';
 import '../../leaders/screens/register_leader_screen.dart';
@@ -228,6 +229,26 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    if (p.canViewMySupervisedLeaders) {
+      items.add(
+        SlideMenuItem(
+          id: 'mySupervisedLeaders',
+          icon: Icons.account_tree_outlined,
+          label: l10n.menuMySupervisedLeaders,
+          onTap: () => _navigate(
+            SupervisorMyLeadersScreen(session: widget.session),
+            'mySupervisedLeaders',
+          ),
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  List<SlideMenuItem> _buildLeaderMenuItems(AppPermissions p, AppLocalizations l10n) {
+    final items = <SlideMenuItem>[];
+
     if (p.canRegisterLeader) {
       items.add(
         SlideMenuItem(
@@ -263,20 +284,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (p.canViewMySupervisedLeaders) {
-      items.add(
-        SlideMenuItem(
-          id: 'mySupervisedLeaders',
-          icon: Icons.account_tree_outlined,
-          label: l10n.menuMySupervisedLeaders,
-          onTap: () => _navigate(
-            SupervisorMyLeadersScreen(session: widget.session),
-            'mySupervisedLeaders',
-          ),
-        ),
-      );
-    }
-
     if (p.canAssignSupervisorLeaders) {
       items.add(
         SlideMenuItem(
@@ -286,6 +293,20 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () => _navigate(
             SupervisorLeaderAssignmentsScreen(session: widget.session),
             'supervisorLeaders',
+          ),
+        ),
+      );
+    }
+
+    if (p.canViewLeaderDashboard) {
+      items.add(
+        SlideMenuItem(
+          id: 'leaderDashboard',
+          icon: Icons.bar_chart_outlined,
+          label: l10n.menuLeaderDashboard,
+          onTap: () => _navigate(
+            LeaderDashboardScreen(session: widget.session),
+            'leaderDashboard',
           ),
         ),
       );
@@ -523,6 +544,20 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    if (p.canViewLeaderMenu) {
+      final leaderItems = _buildLeaderMenuItems(p, l10n);
+      if (leaderItems.isNotEmpty) {
+        items.add(
+          SlideMenuItem(
+            id: 'leaderGroup',
+            icon: Icons.supervisor_account_outlined,
+            label: l10n.menuLeaderGroup,
+            children: leaderItems,
+          ),
+        );
+      }
+    }
+
     final cellItems = _buildCellMenuItems(p, l10n);
     if (cellItems.isNotEmpty) {
       items.add(
@@ -631,7 +666,125 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> _buildQuickAccessList(AppLocalizations l10n) {
     final p = _permissions;
-    final entries = <({IconData icon, String title, String subtitle, VoidCallback onTap})>[];
+    final entries = p.isAdmin
+        ? _buildAdminQuickAccessEntries(l10n, p)
+        : _buildDefaultQuickAccessEntries(l10n, p);
+
+    return [
+      for (var i = 0; i < entries.length; i++)
+        WhatsappListTile(
+          icon: entries[i].icon,
+          title: entries[i].title,
+          subtitle: entries[i].subtitle,
+          onTap: entries[i].onTap,
+          showDivider: i < entries.length - 1,
+        ),
+    ];
+  }
+
+  List<({IconData icon, String title, String subtitle, VoidCallback onTap})>
+      _buildAdminQuickAccessEntries(AppLocalizations l10n, AppPermissions p) {
+    final entries =
+        <({IconData icon, String title, String subtitle, VoidCallback onTap})>[];
+
+    void addEntry({
+      required IconData icon,
+      required String title,
+      required String subtitle,
+      required VoidCallback onTap,
+    }) {
+      entries.add((icon: icon, title: title, subtitle: subtitle, onTap: onTap));
+    }
+
+    if (p.canRegisterMember) {
+      addEntry(
+        icon: Icons.person_add_outlined,
+        title: l10n.quickNewMemberTitle,
+        subtitle: l10n.quickNewMemberSubtitle,
+        onTap: () => _navigate(
+          RegisterMemberScreen(
+            registeredBy: _email,
+            churchId: _churchId,
+            permissions: p,
+          ),
+          'newMember',
+        ),
+      );
+    }
+    if (p.canViewMembersList) {
+      addEntry(
+        icon: Icons.people_outlined,
+        title: l10n.quickViewMembersTitle,
+        subtitle: l10n.quickViewMembersSubtitle,
+        onTap: () => _navigate(
+          MembersListScreen(registeredBy: _email, permissions: p),
+          'members',
+        ),
+      );
+    }
+    if (p.canRegisterLeader) {
+      addEntry(
+        icon: Icons.supervisor_account_outlined,
+        title: l10n.quickRegisterLeaderTitle,
+        subtitle: l10n.quickRegisterLeaderSubtitle,
+        onTap: () => _navigate(
+          RegisterLeaderScreen(
+            registeredBy: _email,
+            churchId: _churchId,
+            permissions: p,
+          ),
+          'newLeader',
+        ),
+      );
+    }
+    if (p.canViewLeadersList) {
+      addEntry(
+        icon: Icons.groups_outlined,
+        title: l10n.quickViewLeadersTitle,
+        subtitle: l10n.quickViewLeadersSubtitle,
+        onTap: () => _navigate(
+          LeadersListScreen(registeredBy: _email, permissions: p),
+          'leaders',
+        ),
+      );
+    }
+    if (p.canRegisterCell) {
+      addEntry(
+        icon: Icons.add_circle_outline,
+        title: l10n.quickNewCellTitle,
+        subtitle: l10n.quickNewCellSubtitle,
+        onTap: () => _navigate(
+          RegisterCellScreen(
+            registeredBy: _email,
+            churchId: _churchId,
+            permissions: p,
+          ),
+          'newCell',
+        ),
+      );
+    }
+    if (p.canViewCells) {
+      addEntry(
+        icon: Icons.list_alt_outlined,
+        title: l10n.quickViewCellsTitle,
+        subtitle: l10n.quickViewCellsSubtitle,
+        onTap: () => _navigate(
+          CellsListScreen(
+            registeredBy: _email,
+            permissions: p,
+          ),
+          'cellsList',
+        ),
+      );
+    }
+
+    return entries;
+  }
+
+  List<({IconData icon, String title, String subtitle, VoidCallback onTap})>
+      _buildDefaultQuickAccessEntries(AppLocalizations l10n, AppPermissions p) {
+    final entries =
+        <({IconData icon, String title, String subtitle, VoidCallback onTap})>[];
 
     void addEntry({
       required IconData icon,
@@ -856,16 +1009,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return [
-      for (var i = 0; i < entries.length; i++)
-        WhatsappListTile(
-          icon: entries[i].icon,
-          title: entries[i].title,
-          subtitle: entries[i].subtitle,
-          onTap: entries[i].onTap,
-          showDivider: i < entries.length - 1,
-        ),
-    ];
+    return entries;
   }
 
   Widget? _buildAdminSummarySection(AppLocalizations l10n) {

@@ -9,6 +9,7 @@ import '../../core/locale/l10n_extensions.dart';
 import '../../core/models/leader_gender.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../../cells/services/cell_service.dart';
 import '../models/church_leader.dart';
 import '../services/leader_service.dart';
 import '../services/leaders_excel_export_service.dart';
@@ -67,6 +68,7 @@ class _LeadersListBodyState extends State<_LeadersListBody>
   final _searchFocusNode = FocusNode();
   final _scrollController = ScrollController();
   final _excelExportService = LeadersExcelExportService();
+  final _cellService = CellService();
   late final TabController _tabController;
 
   bool _exporting = false;
@@ -321,7 +323,14 @@ class _LeadersListBodyState extends State<_LeadersListBody>
         );
         return;
       }
-      await _excelExportService.shareLeaders(leaders);
+      final cellCodeByLeaderId = await _cellService.fetchCellCodeByLeaderId(
+        churchId: _churchId,
+      );
+      if (!mounted) return;
+      await _excelExportService.shareLeaders(
+        leaders,
+        cellCodeByLeaderId: cellCodeByLeaderId,
+      );
     } on LeadersExcelExportException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -4,7 +4,6 @@ import '../../church/screens/register_church_screen.dart';
 import '../../core/locale/language_settings_screen.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/theme/theme_settings_screen.dart';
 import '../../core/widgets/whatsapp_list_tile.dart';
 import '../models/user_profile.dart';
 import 'change_password_screen.dart';
@@ -189,18 +188,6 @@ class AccountHubScreen extends StatelessWidget {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
                           builder: (_) => const LanguageSettingsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  WhatsappListTile(
-                    icon: Icons.palette_outlined,
-                    title: l10n.theme,
-                    subtitle: l10n.themeSubtitle,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const ThemeSettingsScreen(),
                         ),
                       );
                     },

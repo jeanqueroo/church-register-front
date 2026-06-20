@@ -3,20 +3,20 @@ import 'package:intl/intl.dart';
 
 import '../../auth/models/user_profile.dart';
 import '../../auth/widgets/role_gate.dart';
-import '../../cells/models/church_cell.dart';
-import '../../cells/screens/cell_detail_screen.dart';
 import '../../church/models/church_record.dart';
 import '../../church/services/church_service.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../l10n/app_localizations.dart';
-import '../models/cell_dashboard_data.dart';
+import '../../leaders/models/church_leader.dart';
+import '../../leaders/screens/leader_detail_screen.dart';
+import '../models/leader_dashboard_data.dart';
 import '../models/visit_chart_point.dart';
-import '../services/cell_dashboard_service.dart';
+import '../services/leader_dashboard_service.dart';
 import '../widgets/dashboard_church_filter.dart';
 import '../widgets/visit_count_bar_chart.dart';
 
-class CellDashboardScreen extends StatefulWidget {
-  const CellDashboardScreen({
+class LeaderDashboardScreen extends StatefulWidget {
+  const LeaderDashboardScreen({
     super.key,
     required this.session,
     this.dashboardService,
@@ -24,22 +24,22 @@ class CellDashboardScreen extends StatefulWidget {
   });
 
   final UserSession session;
-  final CellDashboardService? dashboardService;
+  final LeaderDashboardService? dashboardService;
   final ChurchService? churchService;
 
   @override
-  State<CellDashboardScreen> createState() => _CellDashboardScreenState();
+  State<LeaderDashboardScreen> createState() => _LeaderDashboardScreenState();
 }
 
-class _CellDashboardScreenState extends State<CellDashboardScreen> {
-  late final CellDashboardService _dashboardService;
+class _LeaderDashboardScreenState extends State<LeaderDashboardScreen> {
+  late final LeaderDashboardService _dashboardService;
   late final ChurchService _churchService;
 
   String? _selectedChurchId;
   late int _selectedYear;
   int? _selectedMonth;
   List<ChurchRecord> _churches = [];
-  CellDashboardData? _data;
+  LeaderDashboardData? _data;
   String? _scopeLabel;
   bool _loading = true;
   String? _error;
@@ -47,7 +47,7 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _dashboardService = widget.dashboardService ?? CellDashboardService();
+    _dashboardService = widget.dashboardService ?? LeaderDashboardService();
     _churchService = widget.churchService ?? ChurchService();
     final now = DateTime.now();
     _selectedYear = now.year;
@@ -72,7 +72,7 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = CellDashboardService.messageFromException(
+        _error = LeaderDashboardService.messageFromException(
           error,
           context.l10n,
         );
@@ -105,12 +105,12 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
   List<int> get _selectableYears {
     final currentYear = DateTime.now().year;
     return List.generate(
-      currentYear - CellDashboardService.firstSelectableYear + 1,
+      currentYear - LeaderDashboardService.firstSelectableYear + 1,
       (index) => currentYear - index,
     );
   }
 
-  int get _maxSelectableMonth => CellDashboardService.lastSelectableMonth(
+  int get _maxSelectableMonth => LeaderDashboardService.lastSelectableMonth(
         _selectedYear,
         DateTime.now(),
       );
@@ -142,7 +142,7 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = CellDashboardService.messageFromException(
+        _error = LeaderDashboardService.messageFromException(
           error,
           context.l10n,
         );
@@ -152,7 +152,7 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
 
   Future<void> _onYearChanged(int? year) async {
     if (year == null || year == _selectedYear) return;
-    final maxMonth = CellDashboardService.lastSelectableMonth(
+    final maxMonth = LeaderDashboardService.lastSelectableMonth(
       year,
       DateTime.now(),
     );
@@ -198,20 +198,20 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
     return '$day/$month/${date.year}';
   }
 
-  String _cellListSubtitle(ChurchCell cell) {
-    final parts = <String>[_formatDate(cell.registeredAt)];
-    final leader = cell.leaderName?.trim();
-    if (leader != null && leader.isNotEmpty) {
-      parts.add(leader);
+  String _leaderListSubtitle(AppLocalizations l10n, ChurchLeader leader) {
+    final registeredOn = _formatDate(leader.registeredAt);
+    final source = leader.registrationSource;
+    if (source == null) {
+      return '$registeredOn · ${l10n.leaderRegistrationSourceRegisterLeader}';
     }
-    return parts.join(' · ');
+    return '$registeredOn · ${source.localizedLabel(l10n)}';
   }
 
-  void _openCellDetail(ChurchCell cell) {
+  void _openLeaderDetail(ChurchLeader leader) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => CellDetailScreen(
-          cell: cell,
+        builder: (_) => LeaderDetailScreen(
+          leader: leader,
           registeredBy: widget.session.email,
           permissions: widget.session.permissions,
         ),
@@ -226,11 +226,11 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
 
     return RoleGate(
       permissions: permissions,
-      allowed: permissions.canViewCellDashboard,
-      deniedMessage: l10n.cellDashboardDenied,
+      allowed: permissions.canViewLeaderDashboard,
+      deniedMessage: l10n.leaderDashboardDenied,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(l10n.cellDashboardTitle),
+          title: Text(l10n.leaderDashboardTitle),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
@@ -282,7 +282,7 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
           if (_scopeLabel != null)
             Card(
               child: ListTile(
-                leading: const Icon(Icons.groups_2_outlined),
+                leading: const Icon(Icons.supervisor_account_outlined),
                 title: Text(
                   _scopeLabel!,
                   overflow: TextOverflow.ellipsis,
@@ -308,43 +308,74 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
           _buildChartCard(
             l10n,
             data,
-            title: l10n.cellDashboardChartTitleYear(_selectedYear),
+            title: l10n.leaderDashboardChartTitleYear(_selectedYear),
           ),
           const SizedBox(height: 16),
           _buildMonthSelector(l10n),
           const SizedBox(height: 16),
           if (data != null) ...[
-            _buildSummaryCard(l10n, data),
+            ..._buildSummaryCards(l10n, data),
             const SizedBox(height: 16),
           ],
-          if (!_loading) _buildCellsListSection(l10n, data),
+          if (!_loading) _buildLeadersListSection(l10n, data),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryCard(AppLocalizations l10n, CellDashboardData data) {
-    final subtitle = _selectedMonth == null
-        ? l10n.cellDashboardCreatedInYear
-        : l10n.cellDashboardCreatedInMonth;
+  List<Widget> _buildSummaryCards(
+    AppLocalizations l10n,
+    LeaderDashboardData data,
+  ) {
+    final totalSubtitle = _selectedMonth == null
+        ? l10n.leaderDashboardCreatedInYear
+        : l10n.leaderDashboardCreatedInMonth;
 
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.add_home_outlined),
-        title: Text(
-          '${data.cellsCreatedInRange}',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+    return [
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.groups_outlined),
+          title: Text(
+            '${data.leadersCreatedInRange}',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          subtitle: Text(totalSubtitle),
         ),
-        subtitle: Text(subtitle),
       ),
-    );
+      const SizedBox(height: 12),
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.supervisor_account_outlined),
+          title: Text(
+            '${data.leadersFromRegisterLeaderInRange}',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          subtitle: Text(l10n.leaderDashboardFromRegisterLeader),
+        ),
+      ),
+      const SizedBox(height: 12),
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.groups_2_outlined),
+          title: Text(
+            '${data.leadersFromCellInRange}',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          subtitle: Text(l10n.leaderDashboardFromCell),
+        ),
+      ),
+    ];
   }
 
   Widget _buildChartCard(
     AppLocalizations l10n,
-    CellDashboardData? data, {
+    LeaderDashboardData? data, {
     required String title,
   }) {
     return Card(
@@ -367,7 +398,7 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
               )
             else
               VisitCountBarChart(
-                points: data?.cellChartPoints ?? const [],
+                points: data?.leaderChartPoints ?? const [],
                 period: VisitChartPeriod.month,
               ),
           ],
@@ -441,16 +472,16 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
     );
   }
 
-  Widget _buildCellsListSection(
+  Widget _buildLeadersListSection(
     AppLocalizations l10n,
-    CellDashboardData? data,
+    LeaderDashboardData? data,
   ) {
     if (_selectedMonth == null) {
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Text(
-            l10n.cellDashboardListSelectMonth,
+            l10n.leaderDashboardListSelectMonth,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -459,12 +490,12 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
       );
     }
 
-    final cells = data?.cellsInRange ?? const <ChurchCell>[];
+    final leaders = data?.leadersInRange ?? const <ChurchLeader>[];
     final listTitle =
-        l10n.cellDashboardListTitleMonth(_monthName(_selectedMonth!));
-    final subtitle = cells.isEmpty
-        ? l10n.cellDashboardListEmpty
-        : l10n.cellDashboardListCount(cells.length);
+        l10n.leaderDashboardListTitleMonth(_monthName(_selectedMonth!));
+    final subtitle = leaders.isEmpty
+        ? l10n.leaderDashboardListEmpty
+        : l10n.leaderDashboardListCount(leaders.length);
 
     return Card(
       child: Theme(
@@ -484,30 +515,33 @@ class _CellDashboardScreenState extends State<CellDashboardScreen> {
                 ),
           ),
           children: [
-            if (cells.isEmpty)
+            if (leaders.isEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Text(
-                  l10n.cellDashboardListEmpty,
+                  l10n.leaderDashboardListEmpty,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                 ),
               )
             else
-              ...cells.map(
-                (cell) => ListTile(
+              ...leaders.map(
+                (leader) => ListTile(
                   leading: CircleAvatar(
                     child: Text(
-                      cell.code.isNotEmpty ? cell.code[0].toUpperCase() : '?',
+                      leader.firstName.isNotEmpty
+                          ? leader.firstName[0].toUpperCase()
+                          : '?',
                     ),
                   ),
-                  title: Text(cell.displayLabel),
-                  subtitle: Text(_cellListSubtitle(cell)),
-                  trailing: cell.id != null
+                  title: Text(leader.fullName),
+                  subtitle: Text(_leaderListSubtitle(l10n, leader)),
+                  trailing: leader.id != null
                       ? const Icon(Icons.chevron_right)
                       : null,
-                  onTap: cell.id != null ? () => _openCellDetail(cell) : null,
+                  onTap:
+                      leader.id != null ? () => _openLeaderDetail(leader) : null,
                 ),
               ),
           ],

@@ -7,6 +7,7 @@ import '../../address/widgets/address_fields_section.dart';
 import '../../core/models/geo_location.dart';
 import '../../core/widgets/form_section_title.dart';
 import '../../leaders/models/church_leader.dart';
+import '../../leaders/models/leader_registration_source.dart';
 import '../../leaders/services/leader_service.dart';
 import '../models/user_profile.dart';
 import '../services/user_profile_service.dart';
@@ -238,6 +239,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
               registeredAt: leader.registeredAt,
               registeredBy: leader.registeredBy,
               churchId: leader.churchId,
+              registrationSource: leader.registrationSource,
               churchOffice: leader.churchOffice,
               isBlocked: leader.isBlocked,
             ),
@@ -254,6 +256,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                 registeredAt: DateTime.now(),
                 registeredBy: widget.session.email,
                 churchId: widget.session.profile.churchId,
+                registrationSource: LeaderRegistrationSource.registerLeader,
               ),
               registeredBy: widget.session.email,
             );
@@ -273,6 +276,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                 mobilePhone: leader?.mobilePhone ?? '-',
                 registeredAt: leader?.registeredAt ?? DateTime.now(),
                 registeredBy: leader?.registeredBy ?? widget.session.email,
+                churchId: leader?.churchId ?? widget.session.profile.churchId,
+                registrationSource: leader?.registrationSource ??
+                    LeaderRegistrationSource.registerLeader,
               ),
             );
           }

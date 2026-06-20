@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @menuRegistration.
   ///
   /// In es, this message translates to:
-  /// **'Registro'**
+  /// **'Registro de nuevos creyentes'**
   String get menuRegistration;
 
   /// No description provided for @menuCellGroup.
@@ -115,6 +115,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Célula'**
   String get menuCellGroup;
+
+  /// No description provided for @menuLeaderGroup.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro de líderes'**
+  String get menuLeaderGroup;
 
   /// No description provided for @menuNewCell.
   ///
@@ -179,7 +185,7 @@ abstract class AppLocalizations {
   /// No description provided for @menuNewLeader.
   ///
   /// In es, this message translates to:
-  /// **'Nuevo líder'**
+  /// **'Crear líder'**
   String get menuNewLeader;
 
   /// No description provided for @menuLeaders.
@@ -211,6 +217,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Líderes por supervisor'**
   String get menuSupervisorLeaders;
+
+  /// No description provided for @menuLeaderDashboard.
+  ///
+  /// In es, this message translates to:
+  /// **'Estadísticas de líderes'**
+  String get menuLeaderDashboard;
 
   /// No description provided for @menuChurches.
   ///
@@ -311,7 +323,7 @@ abstract class AppLocalizations {
   /// No description provided for @quickRegisterLeaderTitle.
   ///
   /// In es, this message translates to:
-  /// **'Registrar líder'**
+  /// **'Registro de líderes'**
   String get quickRegisterLeaderTitle;
 
   /// No description provided for @quickRegisterLeaderSubtitle.
@@ -331,6 +343,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Registrar un nuevo grupo celular'**
   String get quickNewCellSubtitle;
+
+  /// No description provided for @quickViewCellsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver células'**
+  String get quickViewCellsTitle;
+
+  /// No description provided for @quickViewCellsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Lista de células registradas'**
+  String get quickViewCellsSubtitle;
 
   /// No description provided for @quickBaptismCalendarTitle.
   ///
@@ -541,6 +565,90 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No hay células creadas en este periodo.'**
   String get cellDashboardListEmpty;
+
+  /// No description provided for @leaderDashboardTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estadísticas de líderes'**
+  String get leaderDashboardTitle;
+
+  /// No description provided for @leaderDashboardDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'No tienes permiso para ver las estadísticas de líderes.'**
+  String get leaderDashboardDenied;
+
+  /// No description provided for @leaderDashboardLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar las estadísticas de líderes.'**
+  String get leaderDashboardLoadError;
+
+  /// No description provided for @leaderDashboardCreatedInYear.
+  ///
+  /// In es, this message translates to:
+  /// **'Líderes creados en el año'**
+  String get leaderDashboardCreatedInYear;
+
+  /// No description provided for @leaderDashboardCreatedInMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Líderes creados en el mes'**
+  String get leaderDashboardCreatedInMonth;
+
+  /// No description provided for @leaderDashboardFromRegisterLeader.
+  ///
+  /// In es, this message translates to:
+  /// **'Desde registro de líderes'**
+  String get leaderDashboardFromRegisterLeader;
+
+  /// No description provided for @leaderDashboardFromCell.
+  ///
+  /// In es, this message translates to:
+  /// **'Desde célula'**
+  String get leaderDashboardFromCell;
+
+  /// No description provided for @leaderDashboardChartTitleYear.
+  ///
+  /// In es, this message translates to:
+  /// **'Líderes creados por mes en {year}'**
+  String leaderDashboardChartTitleYear(int year);
+
+  /// No description provided for @leaderDashboardListTitleMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Líderes creados en {month}'**
+  String leaderDashboardListTitleMonth(String month);
+
+  /// No description provided for @leaderDashboardListSelectMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona un mes para ver los líderes creados.'**
+  String get leaderDashboardListSelectMonth;
+
+  /// No description provided for @leaderDashboardListCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 líder} other{{count} líderes}}'**
+  String leaderDashboardListCount(int count);
+
+  /// No description provided for @leaderDashboardListEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay líderes creados en este periodo.'**
+  String get leaderDashboardListEmpty;
+
+  /// No description provided for @leaderRegistrationSourceRegisterLeader.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro de líderes'**
+  String get leaderRegistrationSourceRegisterLeader;
+
+  /// No description provided for @leaderRegistrationSourceRegisterCell.
+  ///
+  /// In es, this message translates to:
+  /// **'Célula'**
+  String get leaderRegistrationSourceRegisterCell;
 
   /// No description provided for @quickViewLeadersTitle.
   ///
@@ -4734,6 +4842,18 @@ abstract class AppLocalizations {
   /// **'No se pudieron cargar las células'**
   String get cellsListLoadError;
 
+  /// No description provided for @cellsListFilterOverCapacity.
+  ///
+  /// In es, this message translates to:
+  /// **'Más de {max} discípulos'**
+  String cellsListFilterOverCapacity(int max);
+
+  /// No description provided for @cellsListMemberCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} discípulos'**
+  String cellsListMemberCount(int count);
+
   /// No description provided for @cellDiscipleTitle.
   ///
   /// In es, this message translates to:
@@ -5965,6 +6085,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count} creyente(s) confirmado(s) como bautizados'**
   String baptismCalendarConfirmBaptizedSuccess(int count);
+
+  /// No description provided for @baptismCalendarRemoveMemberTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar del bautismo'**
+  String get baptismCalendarRemoveMemberTitle;
+
+  /// No description provided for @baptismCalendarRemoveMemberConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Quitar a {name} de este bautismo?'**
+  String baptismCalendarRemoveMemberConfirm(String name);
+
+  /// No description provided for @baptismCalendarRemoveMemberAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar'**
+  String get baptismCalendarRemoveMemberAction;
+
+  /// No description provided for @baptismCalendarRemoveMemberSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'{name} ya no está asignado a este bautismo'**
+  String baptismCalendarRemoveMemberSuccess(String name);
 
   /// No description provided for @leaderRegMobileRequired.
   ///

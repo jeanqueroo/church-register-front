@@ -282,16 +282,38 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
               currentMemberCount: memberCount,
               actingLeaderId: widget.actingLeaderId,
             );
+        final showAssignFab = cellId != null &&
+            cellId.isNotEmpty &&
+            _canAssign;
 
         return Scaffold(
       appBar: AppBar(
         title: Text(l10n.cellMemberAssignTitle),
       ),
-      floatingActionButton: showRegisterFab
-          ? FloatingActionButton.extended(
-              onPressed: _openRegisterMember,
-              icon: const Icon(Icons.person_add_alt_1_outlined),
-              label: Text(l10n.cellMemberRegisterNew),
+      floatingActionButton: showRegisterFab || showAssignFab
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (showAssignFab)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: showRegisterFab ? 12 : 0),
+                    child: FloatingActionButton.extended(
+                      heroTag: 'cell_assign_select_members',
+                      onPressed:
+                          _canAssignByGender ? _openSelectMember : null,
+                      icon: const Icon(Icons.group_add_outlined),
+                      label: Text(l10n.cellMemberAssignAdd),
+                    ),
+                  ),
+                if (showRegisterFab)
+                  FloatingActionButton.extended(
+                    heroTag: 'cell_register_member',
+                    onPressed: _openRegisterMember,
+                    icon: const Icon(Icons.person_add_alt_1_outlined),
+                    label: Text(l10n.cellMemberRegisterNew),
+                  ),
+              ],
             )
           : null,
       body: cellId == null || cellId.isEmpty
@@ -391,14 +413,6 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
                   ),
                 ],
                 const SizedBox(height: 16),
-                if (_canAssign) ...[
-                  FilledButton.icon(
-                    onPressed: _canAssignByGender ? _openSelectMember : null,
-                    icon: const Icon(Icons.person_add_outlined),
-                    label: Text(l10n.cellMemberAssignAdd),
-                  ),
-                  const SizedBox(height: 16),
-                ],
                 Text(
                   l10n.cellMemberListTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(

@@ -10,6 +10,7 @@ import '../../church/widgets/church_search_field.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/widgets/form_section_title.dart';
 import '../../leaders/models/church_leader.dart';
+import '../../leaders/models/leader_registration_source.dart';
 import '../../leaders/services/leader_service.dart';
 import '../models/admin_user_record.dart';
 import '../models/app_permissions.dart';
@@ -257,6 +258,9 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
       latitude: existing?.latitude,
       longitude: existing?.longitude,
       churchId: existing?.churchId ?? _selectedChurch?.id,
+      registrationSource:
+          existing?.registrationSource ??
+          LeaderRegistrationSource.registerLeader,
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../core/locale/l10n_extensions.dart';
+import '../../l10n/app_localizations.dart';
 import '../../members/models/church_member.dart';
 import '../../members/screens/member_detail_screen.dart';
 import '../../members/services/member_service.dart';
@@ -28,6 +29,7 @@ class BaptismDayPanel extends StatefulWidget {
     this.onBusyChanged,
     this.onMessage,
     this.onEntryCreated,
+    this.onAssignedMembersExpansionChanged,
   });
 
   final DateTime selectedDate;
@@ -42,12 +44,13 @@ class BaptismDayPanel extends StatefulWidget {
   final ValueChanged<bool>? onBusyChanged;
   final ValueChanged<String>? onMessage;
   final VoidCallback? onEntryCreated;
+  final ValueChanged<bool>? onAssignedMembersExpansionChanged;
 
   @override
-  State<BaptismDayPanel> createState() => _BaptismDayPanelState();
+  BaptismDayPanelState createState() => BaptismDayPanelState();
 }
 
-class _BaptismDayPanelState extends State<BaptismDayPanel> {
+class BaptismDayPanelState extends State<BaptismDayPanel> {
   BaptismCalendarEntry? _activeEntry;
   late final TextEditingController _timeController;
   late final TextEditingController _locationController;
@@ -413,6 +416,58 @@ class _BaptismDayPanelState extends State<BaptismDayPanel> {
     }
   }
 
+  Future<void> _confirmRemoveAssignedMember(
+    BaptismAssignedMember member,
+  ) async {
+    if (_isPastBaptism) return;
+    final entry = _activeEntry;
+    final entryId = entry?.id;
+    if (entryId == null ||
+        !widget.permissions.canAssignBaptismCalendarMembers) {
+      return;
+    }
+
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.baptismCalendarRemoveMemberTitle),
+        content: Text(l10n.baptismCalendarRemoveMemberConfirm(member.fullName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.baptismCalendarRemoveMemberAction),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final updated = entry!.assignedMembers
+        .where((assigned) => assigned.memberId != member.memberId)
+        .toList();
+
+    _setBusy(true);
+    try {
+      await widget.baptismService.updateAssignedMembers(
+        entryId: entryId,
+        members: updated,
+      );
+      _showMessage(l10n.baptismCalendarRemoveMemberSuccess(member.fullName));
+    } on FirebaseException catch (e) {
+      _showMessage(
+        BaptismCalendarService.messageFromFirestoreException(e, l10n),
+      );
+    } finally {
+      _setBusy(false);
+    }
+  }
+
   Future<void> _openMemberDetail(String memberId) async {
     final member = await widget.memberService.fetchMemberById(memberId);
     if (!mounted) return;
@@ -427,10 +482,16 @@ class _BaptismDayPanelState extends State<BaptismDayPanel> {
           member: member,
           registeredBy: widget.registeredBy,
           permissions: widget.permissions,
+          readOnly: true,
         ),
       ),
     );
   }
+
+  Future<void> assignMembers() => _assignMembers();
+
+  Future<void> registerNewBelieverToBaptize() =>
+      _registerNewBelieverToBaptize();
 
   Future<void> _confirmDelete() async {
     if (_isPastBaptism) return;
@@ -480,7 +541,6 @@ class _BaptismDayPanelState extends State<BaptismDayPanel> {
     final canRegister = widget.permissions.canRegisterBaptismCalendar;
     final canAssign = widget.permissions.canAssignBaptismCalendarMembers;
     final canConfirm = widget.permissions.canConfirmBaptismMembers;
-    final canRegisterMember = widget.permissions.canRegisterMember;
     final entry = _activeEntry;
     final isPast = _isPastBaptism;
     final canEditEntry = canRegister && !isPast;
@@ -634,127 +694,157 @@ class _BaptismDayPanelState extends State<BaptismDayPanel> {
               ),
               const SizedBox(height: 12),
             ],
-            Text(
-              isPast
-                  ? l10n.baptismCalendarConfirmBaptizedSection
-                  : l10n.baptismCalendarMembersSection,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+            if (entry != null) _buildAssignedMembersExpansion(
+              l10n: l10n,
+              entry: entry,
+              isPast: isPast,
+              canAssign: canAssign,
+              canConfirm: canConfirm,
             ),
-            const SizedBox(height: 4),
-            Text(
-              isPast
-                  ? l10n.baptismCalendarConfirmBaptizedHint
-                  : l10n.baptismCalendarAssignedCount(
-                      entry?.assignedMembers.length ?? 0,
-                    ),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+            if (canEditEntry) ...[
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: widget.busy ? null : _confirmDelete,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.error,
                   ),
-            ),
-            const SizedBox(height: 12),
-            if (entry != null && entry.assignedMembers.isEmpty)
-              Text(
+                ),
+                icon: const Icon(Icons.delete_outline),
+                label: Text(l10n.baptismCalendarDeleteAction),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAssignedMembersExpansion({
+    required AppLocalizations l10n,
+    required BaptismCalendarEntry entry,
+    required bool isPast,
+    required bool canAssign,
+    required bool canConfirm,
+  }) {
+    final assignedCount = entry.assignedMembers.length;
+    final subtitle = isPast
+        ? l10n.baptismCalendarConfirmBaptizedHint
+        : assignedCount == 0
+            ? l10n.baptismCalendarMembersEmpty
+            : l10n.baptismCalendarAssignedCount(assignedCount);
+
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        leading: Icon(
+          isPast ? Icons.check_circle_outline : Icons.people_outline,
+        ),
+        title: Text(
+          isPast
+              ? l10n.baptismCalendarConfirmBaptizedSection
+              : l10n.baptismCalendarMembersSection,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+        onExpansionChanged: widget.onAssignedMembersExpansionChanged,
+        children: [
+          if (assignedCount == 0)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text(
                 l10n.baptismCalendarMembersEmpty,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
+              ),
+            )
+          else if (isPast) ...[
+            if (_loadingConfirmationState)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(child: CircularProgressIndicator()),
               )
-            else if (entry != null && isPast) ...[
-              if (_loadingConfirmationState)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else
-                ...entry.assignedMembers.map((member) {
-                  final isConfirmed =
-                      _confirmedBaptized[member.memberId] ?? false;
-                  return CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: isConfirmed,
-                    onChanged: widget.busy || !canConfirm
-                        ? null
-                        : (checked) {
-                            setState(() {
-                              _confirmedBaptized[member.memberId] =
-                                  checked == true;
-                            });
-                          },
-                    title: Text(member.fullName),
-                    secondary: CircleAvatar(
-                      child: Text(
-                        member.fullName.isNotEmpty
-                            ? member.fullName[0].toUpperCase()
-                            : '?',
-                      ),
-                    ),
-                    controlAffinity: ListTileControlAffinity.leading,
-                  );
-                }),
-              if (canConfirm && entry.assignedMembers.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                FilledButton.icon(
-                  onPressed: widget.busy || _loadingConfirmationState
+            else
+              ...entry.assignedMembers.map((member) {
+                final isConfirmed =
+                    _confirmedBaptized[member.memberId] ?? false;
+                return CheckboxListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  value: isConfirmed,
+                  onChanged: widget.busy || !canConfirm
                       ? null
-                      : _confirmBaptizedMembers,
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: Text(l10n.baptismCalendarConfirmBaptizedAction),
-                ),
-              ],
-            ] else if (entry != null)
-              ...entry.assignedMembers.map(
-                (member) => ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
+                      : (checked) {
+                          setState(() {
+                            _confirmedBaptized[member.memberId] =
+                                checked == true;
+                          });
+                        },
+                  title: Text(member.fullName),
+                  secondary: CircleAvatar(
                     child: Text(
                       member.fullName.isNotEmpty
                           ? member.fullName[0].toUpperCase()
                           : '?',
                     ),
                   ),
-                  title: Text(member.fullName),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: widget.busy
+                  controlAffinity: ListTileControlAffinity.leading,
+                );
+              }),
+            if (canConfirm && assignedCount > 0) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: FilledButton.icon(
+                  onPressed: widget.busy || _loadingConfirmationState
                       ? null
-                      : () => _openMemberDetail(member.memberId),
+                      : _confirmBaptizedMembers,
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: Text(l10n.baptismCalendarConfirmBaptizedAction),
                 ),
               ),
-            if (canAssign && !isPast) ...[
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: widget.busy ? null : _assignMembers,
-                icon: const Icon(Icons.person_add_alt_1_outlined),
-                label: Text(l10n.baptismCalendarAssignMembersAction),
-              ),
-              if (canRegisterMember) ...[
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: widget.busy ? null : _registerNewBelieverToBaptize,
-                  icon: const Icon(Icons.person_add_outlined),
-                  label: Text(l10n.baptismCalendarCreateBelieverToBaptize),
-                ),
-              ],
             ],
-            if (canEditEntry) ...[
-              const SizedBox(height: 12),
-              TextButton.icon(
-                onPressed: widget.busy ? null : _confirmDelete,
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                label: Text(
-                  l10n.baptismCalendarDeleteAction,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
+          ] else
+            ...entry.assignedMembers.map(
+              (member) => ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                leading: CircleAvatar(
+                  child: Text(
+                    member.fullName.isNotEmpty
+                        ? member.fullName[0].toUpperCase()
+                        : '?',
                   ),
                 ),
+                title: Text(member.fullName),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (canAssign)
+                      IconButton(
+                        icon: const Icon(Icons.person_remove_outlined),
+                        tooltip: l10n.baptismCalendarRemoveMemberAction,
+                        onPressed: widget.busy
+                            ? null
+                            : () => _confirmRemoveAssignedMember(member),
+                      ),
+                    const Icon(Icons.chevron_right),
+                  ],
+                ),
+                onTap: widget.busy
+                    ? null
+                    : () => _openMemberDetail(member.memberId),
               ),
-            ],
-          ],
-        ),
+            ),
+          if (!isPast && assignedCount > 0 && canAssign)
+            const SizedBox(height: 180),
+        ],
       ),
     );
   }

@@ -1,67 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'church_palette.dart';
 import 'theme_templates.dart';
 
-/// Valores de modo: [system], [light], [dark].
+/// Tema fijo: plantilla Manantial y modo claro.
 class ThemeController extends ChangeNotifier {
-  ThemeController(this._prefs);
+  ThemeController();
 
-  static const preferenceSystem = 'system';
-  static const preferenceLight = 'light';
-  static const preferenceDark = 'dark';
+  static Future<ThemeController> load() async => ThemeController();
 
-  static const _modePrefKey = 'theme_preference';
-  static const _templatePrefKey = 'color_template_preference';
+  String get templateId => ThemeTemplateIds.manantial;
 
-  final SharedPreferences _prefs;
-  late String _preference;
-  late String _templateId;
-
-  static Future<ThemeController> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final controller = ThemeController(prefs);
-    controller._preference = prefs.getString(_modePrefKey) ?? preferenceSystem;
-    controller._templateId =
-        prefs.getString(_templatePrefKey) ?? defaultTemplateId;
-    return controller;
-  }
-
-  String get preference => _preference;
-
-  String get templateId => _templateId;
-
-  ThemeTemplate get template => themeTemplateById(_templateId);
+  ThemeTemplate get template => manantialTemplate;
 
   ChurchPalette get lightPalette => template.light;
 
   ChurchPalette get darkPalette => template.dark;
 
-  ThemeMode get themeMode {
-    switch (_preference) {
-      case preferenceLight:
-        return ThemeMode.light;
-      case preferenceDark:
-        return ThemeMode.dark;
-      default:
-        return ThemeMode.system;
-    }
-  }
-
-  Future<void> setPreference(String value) async {
-    if (_preference == value) return;
-    _preference = value;
-    await _prefs.setString(_modePrefKey, value);
-    notifyListeners();
-  }
-
-  Future<void> setTemplateId(String id) async {
-    if (_templateId == id) return;
-    _templateId = id;
-    await _prefs.setString(_templatePrefKey, id);
-    notifyListeners();
-  }
+  ThemeMode get themeMode => ThemeMode.light;
 }
 
 class AppThemeScope extends InheritedNotifier<ThemeController> {

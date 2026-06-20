@@ -23,8 +23,9 @@ class ChurchCell {
     this.notes,
     this.helpers = const [],
     required this.registeredAt,
-    required this.registeredBy,
+    required     this.registeredBy,
     this.churchId,
+    this.memberCount,
   });
 
   static const maxHelpers = 3;
@@ -48,6 +49,7 @@ class ChurchCell {
   final DateTime registeredAt;
   final String registeredBy;
   final String? churchId;
+  final int? memberCount;
 
   String get displayLabel {
     final trimmedName = name?.trim();
@@ -99,6 +101,7 @@ class ChurchCell {
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
+      if (memberCount != null) 'memberCount': memberCount,
     };
   }
 
@@ -126,6 +129,7 @@ class ChurchCell {
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,
+      memberCount: (data['memberCount'] as num?)?.toInt(),
     );
   }
 }

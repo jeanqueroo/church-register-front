@@ -398,7 +398,7 @@ class _BaptismDashboardScreenState extends State<BaptismDashboardScreen> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
         child: DropdownButtonFormField<int>(
-          value: _selectedYear,
+          initialValue: _selectedYear,
           decoration: InputDecoration(
             labelText: l10n.baptismDashboardSelectYear,
             border: InputBorder.none,

@@ -8,7 +8,10 @@ import 'package:share_plus/share_plus.dart';
 import '../models/church_leader.dart';
 
 class LeadersExcelExportService {
-  Future<void> shareLeaders(List<ChurchLeader> leaders) async {
+  Future<void> shareLeaders(
+    List<ChurchLeader> leaders, {
+    Map<String, String> cellCodeByLeaderId = const {},
+  }) async {
     if (leaders.isEmpty) {
       throw LeadersExcelExportException('No hay líderes para exportar');
     }
@@ -39,7 +42,7 @@ class LeadersExcelExportService {
               : '',
         ),
         TextCellValue(leader.age?.toString() ?? ''),
-        TextCellValue(leader.cellCode ?? ''),
+        TextCellValue(_cellCodeFor(leader, cellCodeByLeaderId)),
         TextCellValue(leader.mobilePhone),
         TextCellValue(leader.email ?? ''),
         TextCellValue(leader.street ?? ''),
@@ -78,6 +81,19 @@ class LeadersExcelExportService {
         text: 'Listado de ${leaders.length} líder(es)',
       ),
     );
+  }
+
+  static String _cellCodeFor(
+    ChurchLeader leader,
+    Map<String, String> cellCodeByLeaderId,
+  ) {
+    final stored = leader.cellCode?.trim();
+    if (stored != null && stored.isNotEmpty) return stored;
+
+    final leaderId = leader.id?.trim();
+    if (leaderId == null || leaderId.isEmpty) return '';
+
+    return cellCodeByLeaderId[leaderId] ?? '';
   }
 
   static const _headers = [

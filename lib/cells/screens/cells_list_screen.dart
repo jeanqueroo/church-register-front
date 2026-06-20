@@ -7,6 +7,8 @@ import '../../auth/widgets/role_gate.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/locale/weekday_labels.dart';
 import '../../l10n/app_localizations.dart';
+import '../../members/services/member_service.dart';
+import '../cell_member_capacity.dart';
 import '../models/church_cell.dart';
 import '../services/cell_service.dart';
 import 'cell_detail_screen.dart';
@@ -84,9 +86,16 @@ class _CellsListBodyState extends State<_CellsListBody> {
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   List<ChurchCell> _cells = [];
+  Map<String, int> _memberCountByCellId = {};
   bool _loading = true;
+  bool _memberCountsLoaded = false;
+  bool _loadingMemberCounts = false;
+  bool _filterOverCapacity = false;
   Object? _loadError;
   StreamSubscription<List<ChurchCell>>? _cellsSubscription;
+  final _memberService = MemberService();
+
+  bool get _isBrowseMode => widget.mode == CellsListMode.browse;
 
   @override
   void initState() {
@@ -113,6 +122,43 @@ class _CellsListBodyState extends State<_CellsListBody> {
         );
   }
 
+  bool get _cellsHaveStoredMemberCounts =>
+      _cells.isNotEmpty && _cells.every((cell) => cell.memberCount != null);
+
+  bool get _needsBulkMemberCounts =>
+      _filterOverCapacity &&
+      !_cellsHaveStoredMemberCounts &&
+      !_memberCountsLoaded;
+
+  Future<void> _loadMemberCountsIfNeeded() async {
+    if (_cellsHaveStoredMemberCounts || _memberCountsLoaded || _loadingMemberCounts) {
+      return;
+    }
+
+    setState(() => _loadingMemberCounts = true);
+    try {
+      final counts = await _memberService.fetchMemberCountsByCellForChurch(
+        widget.permissions.churchId,
+      );
+      if (!mounted) return;
+      setState(() {
+        _memberCountByCellId = counts;
+        _memberCountsLoaded = true;
+        _loadingMemberCounts = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingMemberCounts = false);
+    }
+  }
+
+  void _onOverCapacityFilterChanged(bool selected) {
+    setState(() => _filterOverCapacity = selected);
+    if (selected) {
+      _loadMemberCountsIfNeeded();
+    }
+  }
+
   @override
   void dispose() {
     _cellsSubscription?.cancel();
@@ -132,6 +178,20 @@ class _CellsListBodyState extends State<_CellsListBody> {
       localizedWeekday(l10n, cell.cellDay),
     ].whereType<String>().join(' ').toLowerCase();
     return haystack.contains(q);
+  }
+
+  bool _isOverCapacity(ChurchCell cell) {
+    final cellId = cell.id?.trim();
+    if (cellId == null || cellId.isEmpty) return false;
+    final count = _memberCountByCellId[cellId] ?? 0;
+    return count > CellMemberCapacity.maxMembers;
+  }
+
+  int _memberCountFor(ChurchCell cell) {
+    if (cell.memberCount != null) return cell.memberCount!;
+    final cellId = cell.id?.trim();
+    if (cellId == null || cellId.isEmpty) return 0;
+    return _memberCountByCellId[cellId] ?? 0;
   }
 
   void _onCellTap(ChurchCell cell) {
@@ -196,9 +256,13 @@ class _CellsListBodyState extends State<_CellsListBody> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final filtered = _cells
+    var filtered = _cells
         .where((cell) => _matchesSearch(cell, _searchController.text, l10n))
         .toList();
+
+    if (_filterOverCapacity) {
+      filtered = filtered.where(_isOverCapacity).toList();
+    }
 
     final pickingDisciple = widget.mode == CellsListMode.pickDisciple;
     final pickingAttendanceReport =
@@ -388,9 +452,29 @@ class _CellsListBodyState extends State<_CellsListBody> {
             ),
           ),
         ),
+        if (_isBrowseMode) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FilterChip(
+                label: Text(
+                  l10n.cellsListFilterOverCapacity(CellMemberCapacity.maxMembers),
+                ),
+                selected: _filterOverCapacity,
+                onSelected: _loadingMemberCounts
+                    ? null
+                    : _onOverCapacityFilterChanged,
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: 8),
         Expanded(
-          child: filtered.isEmpty
+          child: _needsBulkMemberCounts && _loadingMemberCounts
+              ? const Center(child: CircularProgressIndicator())
+              : filtered.isEmpty
               ? Center(child: Text(l10n.commonNoMatches))
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
@@ -398,7 +482,10 @@ class _CellsListBodyState extends State<_CellsListBody> {
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final cell = filtered[index];
+                    final memberCount = _memberCountFor(cell);
                     final parts = <String>[
+                      if (_filterOverCapacity)
+                        l10n.cellsListMemberCount(memberCount),
                       if (cell.cellDay != null)
                         localizedWeekday(l10n, cell.cellDay!) ?? cell.cellDay!,
                       if (cell.leaderName != null) cell.leaderName!,

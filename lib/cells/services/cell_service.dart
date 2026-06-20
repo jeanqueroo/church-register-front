@@ -70,6 +70,14 @@ class CellService {
     return ChurchCell.fromFirestore(doc);
   }
 
+  Future<void> adjustMemberCount(String cellId, int delta) async {
+    if (cellId.trim().isEmpty || delta == 0) return;
+    await _cells.doc(cellId).set(
+      {'memberCount': FieldValue.increment(delta)},
+      SetOptions(merge: true),
+    );
+  }
+
   Stream<ChurchCell?> watchCellById(String id) {
     return _cells.doc(id).snapshots().map((doc) {
       if (!doc.exists) return null;
@@ -155,6 +163,29 @@ class CellService {
 
     result.sort((a, b) => a.code.compareTo(b.code));
     return result;
+  }
+
+  /// Código de célula por `leaderId` (líder titular de la célula).
+  Future<Map<String, String>> fetchCellCodeByLeaderId({String? churchId}) async {
+    Query<Map<String, dynamic>> query = _cells;
+    if (churchId != null && churchId.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: churchId);
+    }
+
+    final snapshot = await query.get();
+    final map = <String, String>{};
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final leaderId = (data['leaderId'] as String? ?? '').trim();
+      final code = (data['code'] as String? ?? '').trim();
+      if (leaderId.isEmpty || code.isEmpty) continue;
+
+      final existing = map[leaderId];
+      map[leaderId] = existing == null ? code : '$existing, $code';
+    }
+
+    return map;
   }
 
   Stream<List<ChurchCell>> watchCellsForLeaderId(String leaderId) {

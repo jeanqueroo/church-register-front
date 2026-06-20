@@ -1,8 +1,9 @@
 {
   "@@locale": "en",
   "menuHome": "Home",
-  "menuRegistration": "Registration",
+  "menuRegistration": "New believers registration",
   "menuCellGroup": "Cell group",
+  "menuLeaderGroup": "Leader registration",
   "menuNewCell": "Create cell group",
   "menuCellDashboard": "Cell statistics",
   "menuBaptismGroup": "Baptism",
@@ -13,12 +14,13 @@
   "menuByLeader": "View new believers by leader",
   "menuMyMembers": "My new believers",
   "menuMyAssignedCell": "My cell",
-  "menuNewLeader": "New leader",
+  "menuNewLeader": "Create leader",
   "menuLeaders": "View leaders",
   "menuMySupervisedLeaders": "My assigned leaders",
   "menuVisitsDashboard": "Visits dashboard",
   "menuPastoralDashboard": "Pastoral dashboard",
   "menuSupervisorLeaders": "Leaders by supervisor",
+  "menuLeaderDashboard": "Leader statistics",
   "menuChurches": "Churches",
   "menuAdmins": "Administrators",
   "menuNewAdmin": "New administrator",
@@ -35,10 +37,12 @@
   "quickMyMembersSubtitle": "Believers assigned to your visits",
   "quickMyAssignedCellTitle": "My assigned cell",
   "quickMyAssignedCellSubtitle": "Cell details and disciples",
-  "quickRegisterLeaderTitle": "Register leader",
+  "quickRegisterLeaderTitle": "Leader registration",
   "quickRegisterLeaderSubtitle": "Leadership details",
   "quickNewCellTitle": "Create cell group",
   "quickNewCellSubtitle": "Register a new cell group",
+  "quickViewCellsTitle": "View cell groups",
+  "quickViewCellsSubtitle": "List of registered cell groups",
   "quickBaptismCalendarTitle": "Baptism calendar",
   "quickBaptismCalendarSubtitle": "View scheduled baptism dates",
   "quickBaptismDashboardTitle": "Baptism statistics",
@@ -130,6 +134,41 @@
     }
   },
   "cellDashboardListEmpty": "No cells created in this period.",
+  "leaderDashboardTitle": "Leader statistics",
+  "leaderDashboardDenied": "You do not have permission to view leader statistics.",
+  "leaderDashboardLoadError": "Could not load leader statistics.",
+  "leaderDashboardCreatedInYear": "Leaders created in the year",
+  "leaderDashboardCreatedInMonth": "Leaders created in the month",
+  "leaderDashboardFromRegisterLeader": "From leader registration",
+  "leaderDashboardFromCell": "From cell group",
+  "leaderDashboardChartTitleYear": "Leaders created per month in {year}",
+  "@leaderDashboardChartTitleYear": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderDashboardListTitleMonth": "Leaders created in {month}",
+  "@leaderDashboardListTitleMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderDashboardListSelectMonth": "Select a month to view created leaders.",
+  "leaderDashboardListCount": "{count, plural, =1{1 leader} other{{count} leaders}}",
+  "@leaderDashboardListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderDashboardListEmpty": "No leaders created in this period.",
+  "leaderRegistrationSourceRegisterLeader": "Leader registration",
+  "leaderRegistrationSourceRegisterCell": "Cell group",
   "quickViewLeadersTitle": "View leaders",
   "quickViewLeadersSubtitle": "List of registered leaders",
   "quickMySupervisedLeadersTitle": "My assigned leaders",
@@ -1357,6 +1396,22 @@
   "cellsListSearchHint": "Search by code, name, leader, or address",
   "cellsListEmpty": "No cell groups registered",
   "cellsListLoadError": "Could not load cell groups",
+  "cellsListFilterOverCapacity": "More than {max} disciples",
+  "@cellsListFilterOverCapacity": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "cellsListMemberCount": "{count} disciples",
+  "@cellsListMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "cellDiscipleTitle": "Register disciple",
   "cellDiscipleForCell": "Cell group",
   "cellDiscipleDenied": "You do not have permission to register disciples",
@@ -1791,6 +1846,20 @@
   "@baptismCalendarConfirmBaptizedSuccess": {
     "placeholders": {
       "count": { "type": "int" }
+    }
+  },
+  "baptismCalendarRemoveMemberTitle": "Remove from baptism",
+  "baptismCalendarRemoveMemberConfirm": "Remove {name} from this baptism?",
+  "@baptismCalendarRemoveMemberConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "baptismCalendarRemoveMemberAction": "Remove",
+  "baptismCalendarRemoveMemberSuccess": "{name} is no longer assigned to this baptism",
+  "@baptismCalendarRemoveMemberSuccess": {
+    "placeholders": {
+      "name": { "type": "String" }
     }
   },
   "leaderRegMobileRequired": "Enter the mobile number",

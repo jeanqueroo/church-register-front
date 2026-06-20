@@ -37,6 +37,17 @@ class MemberService {
   final LeaderNotificationService _notificationService;
   final CellCapacityNotificationService _capacityNotificationService;
 
+  CollectionReference<Map<String, dynamic>> get _cells =>
+      _members.firestore.collection('cells');
+
+  Future<void> _adjustCellMemberCount(String cellId, int delta) async {
+    if (cellId.trim().isEmpty || delta == 0) return;
+    await _cells.doc(cellId).set(
+      {'memberCount': FieldValue.increment(delta)},
+      SetOptions(merge: true),
+    );
+  }
+
   static const int membersPageSize = 50;
 
   /// Presente en más de esta cantidad de reuniones de célula → deja de ser nuevo creyente.
@@ -557,6 +568,27 @@ class MemberService {
     return snapshot.docs.length;
   }
 
+  /// Integrantes asignados por `assignedCellId` (una consulta por iglesia).
+  Future<Map<String, int>> fetchMemberCountsByCellForChurch(
+    String? churchId,
+  ) async {
+    Query<Map<String, dynamic>> query = _members;
+    if (churchId != null && churchId.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: churchId);
+    }
+
+    final snapshot = await query.get();
+    final counts = <String, int>{};
+
+    for (final doc in snapshot.docs) {
+      final cellId = (doc.data()['assignedCellId'] as String? ?? '').trim();
+      if (cellId.isEmpty) continue;
+      counts[cellId] = (counts[cellId] ?? 0) + 1;
+    }
+
+    return counts;
+  }
+
   Future<bool> assignMemberToCell({
     required ChurchMember member,
     required ChurchCell cell,
@@ -586,7 +618,7 @@ class MemberService {
       throw CellAssignmentGenderException();
     }
 
-    final currentCount = await countMembersInCell(cellId);
+    final currentCount = cell.memberCount ?? await countMembersInCell(cellId);
     if (allowExceedCapacityForNewRegistration &&
         currentCount >= CellMemberCapacity.maxMembers &&
         !CellMemberCapacity.isCellLeader(
@@ -606,6 +638,8 @@ class MemberService {
 
     final memberSnap = await _members.doc(memberId).get();
     final existingData = memberSnap.data();
+    final previousCellId =
+        (existingData?['assignedCellId'] as String? ?? '').trim();
     final hasCellAssignedAt =
         existingData?['cellAssignedAt'] is Timestamp;
 
@@ -618,6 +652,13 @@ class MemberService {
     };
 
     await _members.doc(memberId).update(updates);
+
+    if (previousCellId != cellId) {
+      if (previousCellId.isNotEmpty) {
+        await _adjustCellMemberCount(previousCellId, -1);
+      }
+      await _adjustCellMemberCount(cellId, 1);
+    }
 
     await _appendMemberHistory(
       memberId: memberId,
@@ -633,7 +674,8 @@ class MemberService {
       ),
     );
 
-    final memberCount = await countMembersInCell(cellId);
+    final memberCount =
+        previousCellId == cellId ? currentCount : currentCount + 1;
     final capacityExceeded = memberCount > CellMemberCapacity.maxMembers;
     if (capacityExceeded) {
       _notifyCapacityExceededInBackground(
@@ -705,6 +747,7 @@ class MemberService {
     await batch.commit();
 
     if (cellId.isNotEmpty) {
+      await _adjustCellMemberCount(cellId, -1);
       await _appendMemberHistory(
         memberId: memberId,
         event: MemberHistoryEvent(

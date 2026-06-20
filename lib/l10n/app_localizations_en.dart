@@ -12,10 +12,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuHome => 'Home';
 
   @override
-  String get menuRegistration => 'Registration';
+  String get menuRegistration => 'New believers registration';
 
   @override
   String get menuCellGroup => 'Cell group';
+
+  @override
+  String get menuLeaderGroup => 'Leader registration';
 
   @override
   String get menuNewCell => 'Create cell group';
@@ -48,7 +51,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuMyAssignedCell => 'My cell';
 
   @override
-  String get menuNewLeader => 'New leader';
+  String get menuNewLeader => 'Create leader';
 
   @override
   String get menuLeaders => 'View leaders';
@@ -64,6 +67,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuSupervisorLeaders => 'Leaders by supervisor';
+
+  @override
+  String get menuLeaderDashboard => 'Leader statistics';
 
   @override
   String get menuChurches => 'Churches';
@@ -115,7 +121,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickMyAssignedCellSubtitle => 'Cell details and disciples';
 
   @override
-  String get quickRegisterLeaderTitle => 'Register leader';
+  String get quickRegisterLeaderTitle => 'Leader registration';
 
   @override
   String get quickRegisterLeaderSubtitle => 'Leadership details';
@@ -125,6 +131,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quickNewCellSubtitle => 'Register a new cell group';
+
+  @override
+  String get quickViewCellsTitle => 'View cell groups';
+
+  @override
+  String get quickViewCellsSubtitle => 'List of registered cell groups';
 
   @override
   String get quickBaptismCalendarTitle => 'Baptism calendar';
@@ -266,6 +278,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cellDashboardListEmpty => 'No cells created in this period.';
+
+  @override
+  String get leaderDashboardTitle => 'Leader statistics';
+
+  @override
+  String get leaderDashboardDenied =>
+      'You do not have permission to view leader statistics.';
+
+  @override
+  String get leaderDashboardLoadError => 'Could not load leader statistics.';
+
+  @override
+  String get leaderDashboardCreatedInYear => 'Leaders created in the year';
+
+  @override
+  String get leaderDashboardCreatedInMonth => 'Leaders created in the month';
+
+  @override
+  String get leaderDashboardFromRegisterLeader => 'From leader registration';
+
+  @override
+  String get leaderDashboardFromCell => 'From cell group';
+
+  @override
+  String leaderDashboardChartTitleYear(int year) {
+    return 'Leaders created per month in $year';
+  }
+
+  @override
+  String leaderDashboardListTitleMonth(String month) {
+    return 'Leaders created in $month';
+  }
+
+  @override
+  String get leaderDashboardListSelectMonth =>
+      'Select a month to view created leaders.';
+
+  @override
+  String leaderDashboardListCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count leaders',
+      one: '1 leader',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get leaderDashboardListEmpty => 'No leaders created in this period.';
+
+  @override
+  String get leaderRegistrationSourceRegisterLeader => 'Leader registration';
+
+  @override
+  String get leaderRegistrationSourceRegisterCell => 'Cell group';
 
   @override
   String get quickViewLeadersTitle => 'View leaders';
@@ -2673,6 +2741,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cellsListLoadError => 'Could not load cell groups';
 
   @override
+  String cellsListFilterOverCapacity(int max) {
+    return 'More than $max disciples';
+  }
+
+  @override
+  String cellsListMemberCount(int count) {
+    return '$count disciples';
+  }
+
+  @override
   String get cellDiscipleTitle => 'Register disciple';
 
   @override
@@ -3433,6 +3511,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String baptismCalendarConfirmBaptizedSuccess(int count) {
     return '$count believer(s) confirmed as baptized';
+  }
+
+  @override
+  String get baptismCalendarRemoveMemberTitle => 'Remove from baptism';
+
+  @override
+  String baptismCalendarRemoveMemberConfirm(String name) {
+    return 'Remove $name from this baptism?';
+  }
+
+  @override
+  String get baptismCalendarRemoveMemberAction => 'Remove';
+
+  @override
+  String baptismCalendarRemoveMemberSuccess(String name) {
+    return '$name is no longer assigned to this baptism';
   }
 
   @override

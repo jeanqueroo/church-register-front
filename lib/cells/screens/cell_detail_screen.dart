@@ -605,6 +605,12 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
               currentMemberCount: memberCount,
               actingLeaderId: widget.actingLeaderId,
             );
+        final showAssignFab = cellId != null &&
+            cellId.isNotEmpty &&
+            _permissions.canAssignCellMembersFor(
+              _cell,
+              actingLeaderId: widget.actingLeaderId,
+            );
 
         return Scaffold(
       appBar: AppBar(
@@ -618,12 +624,29 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
             ),
         ],
       ),
-      floatingActionButton: showRegisterFab
-          ? FloatingActionButton.extended(
-              heroTag: 'cell_register_member',
-              onPressed: _openRegisterMember,
-              icon: const Icon(Icons.person_add_alt_1_outlined),
-              label: Text(l10n.cellMemberRegisterNew),
+      floatingActionButton: showRegisterFab || showAssignFab
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (showAssignFab)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: showRegisterFab ? 12 : 0),
+                    child: FloatingActionButton.extended(
+                      heroTag: 'cell_assign_members',
+                      onPressed: _openAssignMembers,
+                      icon: const Icon(Icons.group_add_outlined),
+                      label: Text(l10n.cellDetailAssignDisciplesAction),
+                    ),
+                  ),
+                if (showRegisterFab)
+                  FloatingActionButton.extended(
+                    heroTag: 'cell_register_member',
+                    onPressed: _openRegisterMember,
+                    icon: const Icon(Icons.person_add_alt_1_outlined),
+                    label: Text(l10n.cellMemberRegisterNew),
+                  ),
+              ],
             )
           : null,
       body: cellId == null || cellId.isEmpty
@@ -638,17 +661,6 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                     onPressed: _openEdit,
                     icon: const Icon(Icons.edit_outlined),
                     label: Text(l10n.cellEditTitle),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                if (_permissions.canAssignCellMembersFor(
-                  _cell,
-                  actingLeaderId: widget.actingLeaderId,
-                )) ...[
-                  OutlinedButton.icon(
-                    onPressed: _openAssignMembers,
-                    icon: const Icon(Icons.group_add_outlined),
-                    label: Text(l10n.cellDetailAssignDisciplesAction),
                   ),
                   const SizedBox(height: 16),
                 ],

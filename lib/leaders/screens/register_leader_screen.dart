@@ -16,6 +16,7 @@ import '../../core/widgets/form_section_title.dart';
 import '../../l10n/app_localizations.dart';
 import '../../members/models/id_document_type.dart';
 import '../models/church_leader.dart';
+import '../models/leader_registration_source.dart';
 import '../models/church_office.dart';
 import '../services/leader_service.dart';
 
@@ -397,6 +398,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           registeredAt: DateTime.now(),
           registeredBy: widget.registeredBy,
           churchId: widget.churchId,
+          registrationSource: LeaderRegistrationSource.registerLeader,
           churchOffice: _churchOffice,
           appRoles: roles,
         );
@@ -460,6 +462,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         registeredAt: widget.leaderToEdit?.registeredAt ?? DateTime.now(),
         registeredBy: widget.leaderToEdit?.registeredBy ?? widget.registeredBy,
         churchId: widget.leaderToEdit?.churchId ?? widget.churchId,
+        registrationSource:
+            widget.leaderToEdit?.registrationSource ??
+            LeaderRegistrationSource.registerLeader,
         churchOffice: _churchOffice,
         appRoles: roles,
         isBlocked: widget.leaderToEdit?.isBlocked ?? false,

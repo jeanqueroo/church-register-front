@@ -38,6 +38,8 @@ class AppPermissions {
 
   bool get canRegisterMember => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canRegisterLeader => isAdmin;
+  bool get canViewLeaderMenu => isAdmin;
+  bool get canViewLeaderDashboard => isAdmin;
   bool get canRegisterCell => isAdmin;
   bool get canEditCell => isAdmin;
   bool get canViewCells => isAdmin;

@@ -402,7 +402,7 @@ class _WeekRangeFilterCard extends StatelessWidget {
             if (!showAllWeeks) ...[
               const SizedBox(height: 12),
               DropdownButtonFormField<DateTime>(
-                value: options.contains(effectiveStart)
+                initialValue: options.contains(effectiveStart)
                     ? effectiveStart
                     : options.first,
                 decoration: InputDecoration(
@@ -424,7 +424,7 @@ class _WeekRangeFilterCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<DateTime>(
-                value: options.contains(effectiveEnd)
+                initialValue: options.contains(effectiveEnd)
                     ? effectiveEnd
                     : options.last,
                 decoration: InputDecoration(

@@ -2,6 +2,7 @@ import '../../auth/models/app_user_role.dart';
 import '../../auth/services/auth_service.dart';
 import '../../auth/services/user_profile_service.dart';
 import '../../leaders/models/church_leader.dart';
+import '../../leaders/models/leader_registration_source.dart';
 import '../../leaders/models/church_office.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../members/models/church_member.dart';
@@ -164,6 +165,7 @@ class CellSplitService {
       registeredAt: leader.registeredAt,
       registeredBy: leader.registeredBy,
       churchId: leader.churchId ?? churchId,
+      registrationSource: leader.registrationSource,
       churchOffice: leader.churchOffice ?? ChurchOffice.lideres,
       appRoles: roles,
       isBlocked: leader.isBlocked,
@@ -231,6 +233,7 @@ class CellSplitService {
       registeredAt: DateTime.now(),
       registeredBy: registeredBy,
       churchId: churchId,
+      registrationSource: LeaderRegistrationSource.registerCell,
       churchOffice: ChurchOffice.lideres,
       appRoles: roles,
     );

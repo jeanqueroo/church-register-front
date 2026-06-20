@@ -20,6 +20,7 @@ class MemberDetailScreen extends StatelessWidget {
     this.memberService,
     this.permissions,
     this.leaderId,
+    this.readOnly = false,
   });
 
   final ChurchMember member;
@@ -27,6 +28,7 @@ class MemberDetailScreen extends StatelessWidget {
   final MemberService? memberService;
   final AppPermissions? permissions;
   final String? leaderId;
+  final bool readOnly;
 
   AppPermissions get _permissions =>
       permissions ?? AppPermissions.fromRoles([]);
@@ -137,7 +139,7 @@ class MemberDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(member.fullName),
         actions: [
-          if (_permissions.canManageMembers) ...[
+          if (!readOnly && _permissions.canManageMembers) ...[
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               tooltip: l10n.commonEdit,
@@ -187,7 +189,7 @@ class MemberDetailScreen extends StatelessWidget {
               title: l10n.memberDetailSectionJourney,
               rows: _journeyRows(l10n),
             ),
-          if (member.id != null && _permissions.canManageMembers)
+          if (member.id != null && !readOnly && _permissions.canManageMembers)
             _MemberHistorySection(
               memberId: member.id!,
               memberService: memberService ?? MemberService(),
@@ -198,7 +200,7 @@ class MemberDetailScreen extends StatelessWidget {
             rows: _registrationRows(l10n),
           ),
           const SizedBox(height: 16),
-          if (_canRegisterVisit) ...[
+          if (!readOnly && _canRegisterVisit) ...[
             FilledButton.icon(
               onPressed: () => _registerVisit(context),
               icon: const Icon(Icons.event_note_outlined),
@@ -206,7 +208,7 @@ class MemberDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-          if (_permissions.canManageMembers) ...[
+          if (!readOnly && _permissions.canManageMembers) ...[
             FilledButton.icon(
               onPressed: () => _edit(context),
               icon: const Icon(Icons.edit_outlined),
