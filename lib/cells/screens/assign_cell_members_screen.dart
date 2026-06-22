@@ -129,29 +129,11 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
       return;
     }
 
-    final count = await _memberService.countMembersInCell(cellId);
-    final maxSelection = CellMemberCapacity.remainingAssignableSlots(
-      currentCount: count,
-      cell: widget.cell,
-      actingLeaderId: widget.actingLeaderId,
-    );
-
-    if (maxSelection <= 0) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(MemberService.messageForCellAssignmentLimit(context.l10n)),
-        ),
-      );
-      return;
-    }
-
     final selected = await Navigator.of(context).push<List<ChurchMember>>(
       MaterialPageRoute<List<ChurchMember>>(
         builder: (_) => SelectMemberForCellScreen(
           churchId: widget.cell.churchId ?? _permissions.churchId,
           memberService: widget.memberService,
-          maxSelection: maxSelection,
           requiredGender: _cellLeaderGender,
         ),
       ),
@@ -176,9 +158,6 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
           performedBy: widget.registeredBy,
         );
         assigned++;
-      } on CellAssignmentLimitException {
-        errorMessage = MemberService.messageForCellAssignmentLimit(l10n);
-        break;
       } on CellAssignmentGenderException {
         errorMessage = MemberService.messageForCellAssignmentGender(l10n);
         break;
@@ -189,12 +168,6 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
         errorMessage = MemberService.messageFromFirestoreException(e, l10n);
         break;
       }
-    }
-
-    if (assigned > 0 &&
-        assigned < members.length &&
-        errorMessage == null) {
-      errorMessage = l10n.cellMemberAssignLimitPartial(assigned, members.length);
     }
 
     if (!mounted) return;

@@ -1,0 +1,26 @@
+{
+  "name": "church-register-firestore-to-postgres",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Migración batch Firestore → PostgreSQL (sin cambiar la app Flutter)",
+  "type": "module",
+  "scripts": {
+    "migrate": "node migrate.mjs",
+    "normalize": "node normalize.mjs",
+    "verify": "node verify.mjs",
+    "docker:up": "docker compose up postgres migrate normalize",
+    "docker:migrate": "docker compose up postgres migrate",
+    "docker:normalize": "docker compose run --rm normalize",
+    "docker:verify": "docker compose --profile verify run --rm verify",
+    "docker:down": "docker compose down",
+    "docker:reset": "docker compose down -v"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "firebase-admin": "^13.4.0",
+    "pg": "^8.13.1"
+  }
+}

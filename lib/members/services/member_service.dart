@@ -627,14 +627,6 @@ class MemberService {
         )) {
       throw CellAssignmentLeaderOnlyException();
     }
-    if (!allowExceedCapacityForNewRegistration &&
-        !CellMemberCapacity.canAssignAnother(
-          currentCount: currentCount,
-          cell: cell,
-          actingLeaderId: actingLeaderId,
-        )) {
-      throw CellAssignmentLimitException();
-    }
 
     final memberSnap = await _members.doc(memberId).get();
     final existingData = memberSnap.data();
