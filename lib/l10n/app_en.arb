@@ -279,6 +279,30 @@
   "homeCellBirthdaysTitle": "Today's birthdays in my cell",
   "homeBirthdaysEmpty": "No birthdays today in your cell.",
   "homeQuickActionsTitle": "Quick actions",
+  "homeWelcomeSubtitle": "Thank you for leading with purpose.",
+  "homeSummarySeeDetail": "See details",
+  "homeStatMembersTitle": "Members",
+  "homeStatMembersSubtitle": "Total active members",
+  "homeStatNewBelieversTitle": "New believers",
+  "homeStatNewBelieversSubtitle": "Registered new believers",
+  "homeStatLeadersTitle": "Leaders",
+  "homeStatLeadersSubtitle": "Registered active leaders",
+  "homeStatCellsTitle": "Cells",
+  "homeStatCellsSubtitle": "Active cells",
+  "homeStatBaptismsTitle": "Baptisms",
+  "homeStatBaptismsSubtitle": "Scheduled baptisms",
+  "homeStatDisciplesTitle": "Disciples",
+  "homeStatDisciplesSubtitle": "Assigned disciples",
+  "homeStatMyDisciplesTitle": "My disciples",
+  "homeStatMyDisciplesSubtitle": "In your assigned cell",
+  "homeStatMyNewBelieversTitle": "My new believers",
+  "homeStatMyNewBelieversSubtitle": "Assigned to your leadership",
+  "homeStatMyAssignedLeadersTitle": "My assigned leaders",
+  "homeStatMyAssignedLeadersSubtitle": "Leaders under your supervision",
+  "homeNavBelievers": "Believers",
+  "homeNavLeaders": "Leaders",
+  "homeNavCells": "Cells",
+  "homeNavMore": "More",
   "homeRegisterAttendanceTitle": "Register attendance",
   "homeRegisterAttendanceSubtitle": "Select your cell to register attendance",
   "homeDashboardLoadError": "Could not load the home summary.",
@@ -1638,6 +1662,12 @@
     }
   },
   "cellMemberVisitNoLeader": "This cell group has no assigned leader. Assign a leader to the cell group or turn off the visit request.",
+  "cellClaimLeadershipTitle": "No cell leader assigned",
+  "cellClaimLeadershipSubtitle": "This cell group has no leader. You can assign yourself to register visits and disciples.",
+  "cellClaimLeadershipAction": "Assign myself as leader",
+  "cellClaimLeadershipSuccess": "You are now the leader of this cell group.",
+  "cellClaimLeadershipAlreadyAssigned": "You already lead another cell group. A leader can only lead one cell group.",
+  "cellClaimLeadershipDenied": "You do not have permission to assign yourself as leader of this cell group.",
   "cellMemberRegisteredWithCellLeader": "{name} registered in {cell} with visit assigned to {leader}",
   "@cellMemberRegisteredWithCellLeader": {
     "placeholders": {
@@ -1673,7 +1703,7 @@
   "cellMemberListTitle": "Disciples",
   "cellMemberListEmpty": "No disciples assigned to this cell yet",
   "cellMemberSelectTitle": "Select disciples",
-  "cellMemberSelectHint": "Select one or more disciples without a cell, then confirm at the bottom",
+  "cellMemberSelectHint": "Only disciples assigned to this cell group's leader through pastoral registration, without another cell, are shown",
   "cellMemberSelectConfirm": "Assign {count}",
   "@cellMemberSelectConfirm": {
     "placeholders": {
@@ -1682,25 +1712,32 @@
   },
   "cellMemberSelectRequiresChurch": "Cannot assign disciples without a church on your account",
   "cellMemberSelectSearchHint": "Search by name, phone or leader",
-  "cellMemberSelectEmpty": "No disciples without a cell in your church",
+  "cellMemberSelectEmpty": "No disciples from this cell group's leader are available to assign",
   "cellMemberSelectMaxReached": "Maximum {max} disciple(s) per cell",
   "@cellMemberSelectMaxReached": {
     "placeholders": {
       "max": { "type": "int" }
     }
   },
-  "cellMemberSelectLimitHint": "You can select up to {max} disciple(s). A cell holds 12 at most.",
+  "cellMemberSelectLimitHint": "You can select up to {max} disciple(s). A cell holds {total} at most.",
   "@cellMemberSelectLimitHint": {
+    "placeholders": {
+      "max": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "cellMemberAssignLimitReached": "This cell already has the maximum of {max} disciples. No more can be assigned.",
+  "@cellMemberAssignLimitReached": {
     "placeholders": {
       "max": { "type": "int" }
     }
   },
-  "cellMemberAssignLimitReached": "This cell already has 12 disciples. No more can be assigned.",
-  "cellMemberAssignLimitPartial": "Assigned {assigned} of {requested}: a cell holds 12 disciples at most.",
+  "cellMemberAssignLimitPartial": "Assigned {assigned} of {requested}: a cell holds {max} disciples at most.",
   "@cellMemberAssignLimitPartial": {
     "placeholders": {
       "assigned": { "type": "int" },
-      "requested": { "type": "int" }
+      "requested": { "type": "int" },
+      "max": { "type": "int" }
     }
   },
   "cellMemberSelectLoadError": "Could not load disciples",
@@ -1731,15 +1768,16 @@
     }
   },
   "cellMemberAssignLeaderGenderMissing": "The cell leader has no sex on file. Complete their profile before assigning disciples.",
+  "cellMemberAssignCellLeaderRequired": "This cell group must have an assigned leader before you can select disciples.",
   "cellMemberAssignGenderMismatch": "You can only assign disciples of the same sex as the cell leader.",
   "cellMemberAssignLeaderExcluded": "Leaders cannot be assigned as cell disciples.",
-  "cellMemberSelectEmptyGender": "No disciples without a cell match the leader's sex ({gender}).",
+  "cellMemberSelectEmptyGender": "No disciples from this cell group's leader match the leader's sex ({gender}).",
   "@cellMemberSelectEmptyGender": {
     "placeholders": {
       "gender": { "type": "String" }
     }
   },
-  "cellMemberSelectGenderHint": "Only disciples without a cell who match the leader's sex ({gender}) are shown.",
+  "cellMemberSelectGenderHint": "Only pastoral-registration disciples of this cell group's leader, matching sex ({gender}), without another cell, are shown.",
   "@cellMemberSelectGenderHint": {
     "placeholders": {
       "gender": { "type": "String" }

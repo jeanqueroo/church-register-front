@@ -224,7 +224,9 @@ class MemberService {
           return memberChurchId == churchId;
         }).toList();
       }
-      list = list.where((member) => member.isNewBeliever).toList();
+      list = list
+          .where((member) => member.isPastoralAssignmentFromRegisterMember)
+          .toList();
       list.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
       return list;
     });
@@ -561,6 +563,35 @@ class MemberService {
     return list;
   }
 
+  /// Discípulos del líder de la célula (registro pastoral) aún sin célula asignada.
+  Future<List<ChurchMember>> fetchMembersForCellAssignment({
+    required String? churchId,
+    required String? cellLeaderId,
+    LeaderGender? matchingGender,
+  }) async {
+    if (churchId == null || churchId.isEmpty) return [];
+
+    final leaderId = cellLeaderId?.trim();
+    if (leaderId == null || leaderId.isEmpty) return [];
+
+    final snapshot = await _members
+        .where('churchId', isEqualTo: churchId)
+        .where('assignedLeaderId', isEqualTo: leaderId)
+        .get();
+
+    var list = snapshot.docs
+        .map(ChurchMember.fromFirestore)
+        .where((member) => !member.isAssignedToCell)
+        .where((member) => member.canBeAssignedAsCellDisciple)
+        .where((member) => member.isPastoralAssignmentFromRegisterMember)
+        .toList();
+    if (matchingGender != null) {
+      list = list.where((member) => member.gender == matchingGender).toList();
+    }
+    list.sort((a, b) => a.fullName.compareTo(b.fullName));
+    return list;
+  }
+
   Future<int> countMembersInCell(String cellId) async {
     if (cellId.isEmpty) return 0;
     final snapshot =
@@ -596,6 +627,7 @@ class MemberService {
     LeaderGender? requiredLeaderGender,
     bool allowExceedCapacityForNewRegistration = false,
     String? performedBy,
+    Iterable<String> supervisedLeaderIds = const [],
   }) async {
     final memberId = member.id;
     final cellId = cell.id;
@@ -619,13 +651,26 @@ class MemberService {
     }
 
     final currentCount = cell.memberCount ?? await countMembersInCell(cellId);
+    if (currentCount >= CellMemberCapacity.maxAssignableMembers) {
+      throw CellAssignmentLimitException();
+    }
     if (allowExceedCapacityForNewRegistration &&
         currentCount >= CellMemberCapacity.maxMembers &&
-        !CellMemberCapacity.isCellLeader(
+        !CellMemberCapacity.canManageCellMembers(
+          cell: cell,
+          actingLeaderId: actingLeaderId,
+          supervisedLeaderIds: supervisedLeaderIds,
+        )) {
+      throw CellAssignmentLeaderOnlyException();
+    }
+
+    if (!allowExceedCapacityForNewRegistration &&
+        !CellMemberCapacity.canAssignAnother(
+          currentCount: currentCount,
           cell: cell,
           actingLeaderId: actingLeaderId,
         )) {
-      throw CellAssignmentLeaderOnlyException();
+      throw CellAssignmentLimitException();
     }
 
     final memberSnap = await _members.doc(memberId).get();
@@ -861,7 +906,9 @@ class MemberService {
   }
 
   static String messageForCellAssignmentLimit(AppLocalizations l10n) {
-    return l10n.cellMemberAssignLimitReached;
+    return l10n.cellMemberAssignLimitReached(
+      CellMemberCapacity.maxAssignableMembers,
+    );
   }
 
   static String messageForCellAssignmentGender(AppLocalizations l10n) {

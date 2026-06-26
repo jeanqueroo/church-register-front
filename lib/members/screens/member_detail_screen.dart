@@ -139,18 +139,18 @@ class MemberDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(member.fullName),
         actions: [
-          if (!readOnly && _permissions.canManageMembers) ...[
+          if (!readOnly && _permissions.canEditMember(member))
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               tooltip: l10n.commonEdit,
               onPressed: () => _edit(context),
             ),
+          if (!readOnly && _permissions.canManageMembers)
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: l10n.commonDelete,
               onPressed: () => _delete(context),
             ),
-          ],
         ],
       ),
       body: ListView(
@@ -208,13 +208,15 @@ class MemberDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-          if (!readOnly && _permissions.canManageMembers) ...[
+          if (!readOnly && _permissions.canEditMember(member)) ...[
             FilledButton.icon(
               onPressed: () => _edit(context),
               icon: const Icon(Icons.edit_outlined),
               label: Text(l10n.memberDetailEditMember),
             ),
             const SizedBox(height: 12),
+          ],
+          if (!readOnly && _permissions.canManageMembers) ...[
             OutlinedButton.icon(
               onPressed: () => _delete(context),
               icon: const Icon(Icons.delete_outline),

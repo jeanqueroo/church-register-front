@@ -28,7 +28,7 @@ bool isMemberAssignedToLeader(ChurchMember member, ChurchLeader leader) {
   return false;
 }
 
-/// Creyentes asignados a [leader] (misma lista que en «por líder»).
+/// Creyentes asignados a [leader] desde registro pastoral ([RegisterMemberScreen]).
 List<ChurchMember> membersAssignedToLeader(
   ChurchLeader leader,
   List<ChurchMember> members,
@@ -36,6 +36,7 @@ List<ChurchMember> membersAssignedToLeader(
   final assigned = members
       .where((member) => isMemberAssignedToLeader(member, leader))
       .where((member) => member.isNewBeliever)
+      .where((member) => member.isPastoralAssignmentFromRegisterMember)
       .toList();
 
   assigned.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));

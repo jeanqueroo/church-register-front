@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../locale/l10n_extensions.dart';
 import '../theme/app_theme.dart';
 import 'church_display_name.dart';
+import 'church_logo.dart';
 
 class SlideMenuItem {
   SlideMenuItem({
@@ -25,7 +26,7 @@ class SlideMenuItem {
   bool get isGroup => children != null && children!.isNotEmpty;
 }
 
-/// Scaffold con menú lateral estilo WhatsApp.
+/// Scaffold con menú lateral deslizable.
 class SlideMenuScaffold extends StatefulWidget {
   const SlideMenuScaffold({
     super.key,
@@ -35,8 +36,10 @@ class SlideMenuScaffold extends StatefulWidget {
     required this.menuItems,
     required this.onSignOut,
     this.selectedMenuId,
+    this.drawerRoleLabel,
     this.actions,
     this.floatingActionButton,
+    this.bottomNavigationBar,
   });
 
   final String? churchId;
@@ -45,14 +48,16 @@ class SlideMenuScaffold extends StatefulWidget {
   final List<SlideMenuItem> menuItems;
   final VoidCallback onSignOut;
   final String? selectedMenuId;
+  final String? drawerRoleLabel;
   final List<Widget>? actions;
   final Widget? floatingActionButton;
+  final Widget? bottomNavigationBar;
 
   @override
-  State<SlideMenuScaffold> createState() => _SlideMenuScaffoldState();
+  State<SlideMenuScaffold> createState() => SlideMenuScaffoldState();
 }
 
-class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
+class SlideMenuScaffoldState extends State<SlideMenuScaffold>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<Offset> _slideAnimation;
@@ -86,6 +91,12 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
   }
 
   void _syncExpandedGroups() {
+    _expandedGroups.clear();
+    for (final item in widget.menuItems) {
+      if (item.isGroup) {
+        _expandedGroups.add(item.id);
+      }
+    }
     final selectedId = widget.selectedMenuId;
     if (selectedId == null) return;
     for (final item in widget.menuItems) {
@@ -95,21 +106,13 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
     }
   }
 
-  String? _labelForMenuId(String id) {
-    for (final item in widget.menuItems) {
-      if (item.id == id) return item.label;
-      for (final child in item.children ?? const <SlideMenuItem>[]) {
-        if (child.id == id) return child.label;
-      }
-    }
-    return null;
-  }
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
+
+  void openMenu() => _openMenu();
 
   void _closeMenu() => _controller.reverse();
 
@@ -130,47 +133,21 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
     onTap();
   }
 
-  void _toggleGroup(SlideMenuItem item) {
-    setState(() {
-      if (_expandedGroups.contains(item.id)) {
-        _expandedGroups.remove(item.id);
-      } else {
-        _expandedGroups.add(item.id);
-      }
-    });
-  }
-
   Widget _buildMenuEntry(SlideMenuItem item, String selectedId) {
     if (item.isGroup) {
-      final expanded = _expandedGroups.contains(item.id);
-      final groupActive =
-          item.children!.any((child) => child.id == selectedId);
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _DrawerMenuTile(
-            icon: item.icon,
-            label: item.label,
-            isActive: groupActive,
-            trailing: Icon(
-              expanded ? Icons.expand_less : Icons.expand_more,
-              color: context.churchPalette.textSecondary,
+          _DrawerSectionHeader(label: item.label),
+          ...item.children!.map(
+            (child) => _DrawerMenuTile(
+              icon: child.icon,
+              label: child.label,
+              isActive: child.id == selectedId,
+              dense: true,
+              onTap: () => _onItemTap(child),
             ),
-            onTap: () => _toggleGroup(item),
           ),
-          if (expanded)
-            ...item.children!.map(
-              (child) => Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: _DrawerMenuTile(
-                  icon: child.icon,
-                  label: child.label,
-                  isActive: child.id == selectedId,
-                  dense: true,
-                  onTap: () => _onItemTap(child),
-                ),
-              ),
-            ),
         ],
       );
     }
@@ -189,20 +166,20 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
     final drawerWidth = MediaQuery.sizeOf(context).width * 0.85;
     final selectedId =
         widget.selectedMenuId ?? widget.menuItems.firstOrNull?.id ?? 'home';
-    final headerLabel = _labelForMenuId(selectedId) ??
-        (widget.menuItems.isNotEmpty ? widget.menuItems.first.label : '');
+    final roleLabel = widget.drawerRoleLabel?.trim();
 
     final palette = context.churchPalette;
 
     return Scaffold(
       backgroundColor: palette.scaffoldBackground,
       floatingActionButton: widget.floatingActionButton,
+      bottomNavigationBar: widget.bottomNavigationBar,
       body: Stack(
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _WhatsappAppBar(
+              _HomeAppBar(
                 churchId: widget.churchId,
                 titleFallback: widget.titleFallback,
                 onMenuPressed: _toggleMenu,
@@ -233,7 +210,7 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
               alignment: Alignment.centerLeft,
               child: Material(
                 elevation: 8,
-                color: palette.surface,
+                color: palette.drawerBackground,
                 child: SizedBox(
                   width: drawerWidth,
                   height: MediaQuery.sizeOf(context).height,
@@ -243,12 +220,12 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
                       _DrawerProfileHeader(
                         churchId: widget.churchId,
                         titleFallback: widget.titleFallback,
-                        subtitle: headerLabel,
+                        roleLabel: roleLabel,
                         onClose: _closeMenu,
                       ),
                       Expanded(
                         child: ListView(
-                          padding: EdgeInsets.zero,
+                          padding: const EdgeInsets.only(top: 4, bottom: 8),
                           children: [
                             ...widget.menuItems.map(
                               (item) => _buildMenuEntry(item, selectedId),
@@ -261,6 +238,7 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
                         icon: Icons.logout_rounded,
                         label: l10n.signOut,
                         iconColor: Colors.red.shade700,
+                        labelColor: Colors.red.shade700,
                         onTap: () {
                           _closeMenu();
                           widget.onSignOut();
@@ -279,8 +257,8 @@ class _SlideMenuScaffoldState extends State<SlideMenuScaffold>
   }
 }
 
-class _WhatsappAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _WhatsappAppBar({
+class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _HomeAppBar({
     required this.churchId,
     required this.titleFallback,
     required this.onMenuPressed,
@@ -301,6 +279,7 @@ class _WhatsappAppBar extends StatelessWidget implements PreferredSizeWidget {
     final palette = context.churchPalette;
     return Material(
       color: palette.primary,
+      elevation: 0,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -319,7 +298,7 @@ class _WhatsappAppBar extends StatelessWidget implements PreferredSizeWidget {
                   layout: ChurchDisplayNameLayout.appBar,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 17,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -337,38 +316,41 @@ class _DrawerProfileHeader extends StatelessWidget {
   const _DrawerProfileHeader({
     required this.churchId,
     required this.titleFallback,
-    required this.subtitle,
     required this.onClose,
+    this.roleLabel,
   });
 
   final String? churchId;
   final String titleFallback;
-  final String subtitle;
+  final String? roleLabel;
   final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.churchPalette;
     return Container(
-      color: palette.primary,
+      color: palette.drawerBackground,
       padding: EdgeInsets.only(
         top: MediaQuery.paddingOf(context).top + 8,
         left: 8,
         right: 16,
-        bottom: 20,
+        bottom: 16,
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(Icons.arrow_back, color: palette.onSurface),
             onPressed: onClose,
           ),
           CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.white.withValues(alpha: 0.2),
-            child: const Icon(Icons.church, color: Colors.white, size: 30),
+            radius: 22,
+            backgroundColor: palette.primary.withValues(alpha: 0.1),
+            child: ClipOval(
+              child: ChurchLogo(size: 40, churchId: churchId),
+            ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,25 +359,57 @@ class _DrawerProfileHeader extends StatelessWidget {
                   churchId: churchId,
                   fallback: titleFallback,
                   layout: ChurchDisplayNameLayout.drawer,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    fontSize: 14,
+                    color: palette.primary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    height: 1.25,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
+                if (roleLabel != null && roleLabel!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    roleLabel!,
+                    style: TextStyle(
+                      color: palette.textSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: palette.primary.withValues(alpha: 0.08),
+            child: Icon(Icons.person_rounded, color: palette.primary, size: 26),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _DrawerSectionHeader extends StatelessWidget {
+  const _DrawerSectionHeader({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.churchPalette;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          color: palette.textSecondary,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+          height: 1.3,
+        ),
       ),
     );
   }
@@ -408,7 +422,7 @@ class _DrawerMenuTile extends StatelessWidget {
     required this.onTap,
     this.isActive = false,
     this.iconColor,
-    this.trailing,
+    this.labelColor,
     this.dense = false,
   });
 
@@ -417,41 +431,48 @@ class _DrawerMenuTile extends StatelessWidget {
   final VoidCallback onTap;
   final bool isActive;
   final Color? iconColor;
-  final Widget? trailing;
+  final Color? labelColor;
   final bool dense;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.churchPalette;
-    return Material(
-      color: isActive ? palette.selectedTile : Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: dense ? 10 : 14,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                color: iconColor ?? palette.textSecondary,
-                size: dense ? 22 : 24,
-              ),
-              const SizedBox(width: 28),
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: iconColor ?? palette.onSurface,
-                    fontSize: dense ? 15 : 16,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+    final activeColor = palette.primary.withValues(alpha: 0.1);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: Material(
+        color: isActive ? activeColor : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: dense ? 10 : 12,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: iconColor ??
+                      (isActive ? palette.primary : palette.textSecondary),
+                  size: dense ? 22 : 24,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: labelColor ??
+                          (isActive ? palette.primary : palette.onSurface),
+                      fontSize: dense ? 14 : 15,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                    ),
                   ),
                 ),
-              ),
-              if (trailing != null) trailing!,
-            ],
+              ],
+            ),
           ),
         ),
       ),

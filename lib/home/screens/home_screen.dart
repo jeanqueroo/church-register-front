@@ -7,8 +7,6 @@ import '../../auth/services/auth_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/widgets/church_logo.dart';
-import '../../core/widgets/whatsapp_list_tile.dart';
 import '../../core/widgets/slide_menu_scaffold.dart';
 import '../../auth/screens/admins_list_screen.dart';
 import '../../auth/screens/register_admin_screen.dart';
@@ -41,6 +39,7 @@ import '../home_role_layout.dart';
 import '../models/home_dashboard_data.dart';
 import '../services/home_dashboard_service.dart';
 import '../widgets/role_home_body.dart';
+import '../widgets/home_design_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -59,7 +58,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const _menuHome = 'home';
 
+  final _menuKey = GlobalKey<SlideMenuScaffoldState>();
   String _selectedMenuId = _menuHome;
+  HomeBottomNavItem _bottomNav = HomeBottomNavItem.home;
   final _leaderService = LeaderService();
   final _notificationService = LeaderNotificationService();
   final _adminNotificationService = AdminNotificationService();
@@ -672,14 +673,113 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return [
       for (var i = 0; i < entries.length; i++)
-        WhatsappListTile(
+        HomeQuickActionTile(
           icon: entries[i].icon,
           title: entries[i].title,
           subtitle: entries[i].subtitle,
           onTap: entries[i].onTap,
+          accentColor: homeQuickActionAccent(i),
           showDivider: i < entries.length - 1,
         ),
     ];
+  }
+
+  List<HomeStatCardData> _buildAdminStatCards(
+    AppLocalizations l10n,
+    HomeDashboardData data,
+  ) {
+    final cards = <HomeStatCardData>[
+      HomeStatCardData(
+        value: '${data.memberCount}',
+        title: l10n.homeStatMembersTitle,
+        subtitle: l10n.homeStatMembersSubtitle,
+        icon: HomeStatStyles.members.icon,
+        backgroundColor: HomeStatStyles.members.bg,
+        foregroundColor: HomeStatStyles.members.fg,
+        onTap: _permissions.canViewMembersList
+            ? () => _navigate(
+                  MembersListScreen(registeredBy: _email, permissions: _permissions),
+                  'members',
+                )
+            : null,
+      ),
+      HomeStatCardData(
+        value: '${data.newBelieverCount}',
+        title: l10n.homeStatNewBelieversTitle,
+        subtitle: l10n.homeStatNewBelieversSubtitle,
+        icon: HomeStatStyles.newBelievers.icon,
+        backgroundColor: HomeStatStyles.newBelievers.bg,
+        foregroundColor: HomeStatStyles.newBelievers.fg,
+        onTap: _permissions.canViewMembersList
+            ? () => _navigate(
+                  MembersListScreen(registeredBy: _email, permissions: _permissions),
+                  'members',
+                )
+            : null,
+      ),
+    ];
+
+    if (data.leaderCount != null) {
+      cards.add(
+        HomeStatCardData(
+          value: '${data.leaderCount}',
+          title: l10n.homeStatLeadersTitle,
+          subtitle: l10n.homeStatLeadersSubtitle,
+          icon: HomeStatStyles.leaders.icon,
+          backgroundColor: HomeStatStyles.leaders.bg,
+          foregroundColor: HomeStatStyles.leaders.fg,
+          onTap: _permissions.canViewLeadersList
+              ? () => _navigate(
+                    LeadersListScreen(registeredBy: _email, permissions: _permissions),
+                    'leaders',
+                  )
+              : null,
+        ),
+      );
+    }
+    if (data.cellCount != null) {
+      cards.add(
+        HomeStatCardData(
+          value: '${data.cellCount}',
+          title: l10n.homeStatCellsTitle,
+          subtitle: l10n.homeStatCellsSubtitle,
+          icon: HomeStatStyles.cells.icon,
+          backgroundColor: HomeStatStyles.cells.bg,
+          foregroundColor: HomeStatStyles.cells.fg,
+          onTap: _permissions.canViewCells
+              ? () => _navigate(
+                    CellsListScreen(registeredBy: _email, permissions: _permissions),
+                    'cellsList',
+                  )
+              : null,
+        ),
+      );
+    }
+    if (data.baptismCount != null) {
+      cards.add(
+        HomeStatCardData(
+          value: '${data.baptismCount}',
+          title: l10n.homeStatBaptismsTitle,
+          subtitle: l10n.homeStatBaptismsSubtitle,
+          icon: HomeStatStyles.baptisms.icon,
+          backgroundColor: HomeStatStyles.baptisms.bg,
+          foregroundColor: HomeStatStyles.baptisms.fg,
+          onTap: _permissions.canViewBaptismCalendar
+              ? () => _navigate(
+                    BaptismCalendarScreen(
+                      registeredBy: _email,
+                      churchId: _churchId,
+                      actingLeaderId: widget.session.profile.leaderId,
+                      permissions: _permissions,
+                    ),
+                    'baptismCalendar',
+                  )
+              : null,
+        ),
+      );
+    }
+
+    return cards;
   }
 
   List<({IconData icon, String title, String subtitle, VoidCallback onTap})>
@@ -1043,43 +1143,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            l10n.homeSummaryTitle,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF111B21),
-                ),
-          ),
-        ),
-        Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.homeSummaryMembersCount(data.memberCount),
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.homeSummaryNewBelieversCount(data.newBelieverCount),
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                if (data.leaderCount != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.homeSummaryLeadersCount(data.leaderCount!),
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
+        HomeSectionHeader(title: l10n.homeSummaryTitle),
+        HomeStatCardsRow(cards: _buildAdminStatCards(l10n, data)),
         const SizedBox(height: 8),
       ],
     );
@@ -1099,7 +1164,7 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: Badge(
                 isLabelVisible: unread > 0,
                 label: Text(unread > 9 ? '9+' : '$unread'),
-                child: const Icon(Icons.notifications_outlined),
+                child: const Icon(Icons.notifications_outlined, color: Colors.white),
               ),
               onPressed: () => _navigate(
                 AdminNotificationsScreen(session: widget.session),
@@ -1126,7 +1191,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Badge(
               isLabelVisible: unread > 0,
               label: Text(unread > 9 ? '9+' : '$unread'),
-              child: const Icon(Icons.notifications_outlined),
+              child: const Icon(Icons.notifications_outlined, color: Colors.white),
             ),
             onPressed: () => _navigate(
               LeaderNotificationsScreen(session: widget.session),
@@ -1139,36 +1204,77 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAccountActionButton(AppLocalizations l10n) {
+    final palette = context.churchPalette;
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: Material(
-        color: Colors.transparent,
-        child: Ink(
-          width: 40,
-          height: 40,
+      padding: const EdgeInsets.only(right: 12),
+      child: InkWell(
+        onTap: () => _navigate(
+          AccountHubScreen(session: widget.session),
+          'myAccount',
+        ),
+        customBorder: const CircleBorder(),
+        child: Container(
+          padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            color: AppColors.accent,
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: Border.all(color: const Color(0xFF43A047), width: 2),
           ),
-          child: IconButton(
-            tooltip: l10n.menuMyAccount,
-            padding: EdgeInsets.zero,
-            icon: const Icon(Icons.person, color: Colors.white, size: 22),
-            onPressed: () => _navigate(
-              AccountHubScreen(session: widget.session),
-              'myAccount',
-            ),
+          child: CircleAvatar(
+            radius: 16,
+            backgroundColor: palette.surface,
+            child: Icon(Icons.person_rounded, color: palette.primary, size: 20),
           ),
         ),
       ),
     );
+  }
+
+  List<HomeBottomNavItem> _visibleBottomNavItems(AppPermissions p) {
+    final items = <HomeBottomNavItem>[HomeBottomNavItem.home];
+    if (p.canViewMembersList) {
+      items.add(HomeBottomNavItem.believers);
+    }
+    if (p.canViewLeadersList) {
+      items.add(HomeBottomNavItem.leaders);
+    }
+    if (p.canViewCells) {
+      items.add(HomeBottomNavItem.cells);
+    }
+    items.add(HomeBottomNavItem.more);
+    return items;
+  }
+
+  void _onBottomNavSelected(HomeBottomNavItem item) {
+    final p = _permissions;
+    setState(() => _bottomNav = item);
+
+    switch (item) {
+      case HomeBottomNavItem.home:
+        setState(() => _selectedMenuId = _menuHome);
+      case HomeBottomNavItem.believers:
+        if (p.canViewMembersList) {
+          _navigate(
+            MembersListScreen(registeredBy: _email, permissions: p),
+            'members',
+          );
+        }
+      case HomeBottomNavItem.leaders:
+        if (p.canViewLeadersList) {
+          _navigate(
+            LeadersListScreen(registeredBy: _email, permissions: p),
+            'leaders',
+          );
+        }
+      case HomeBottomNavItem.cells:
+        if (p.canViewCells) {
+          _navigate(
+            CellsListScreen(registeredBy: _email, permissions: p),
+            'cellsList',
+          );
+        }
+      case HomeBottomNavItem.more:
+        _menuKey.currentState?.openMenu();
+    }
   }
 
   @override
@@ -1181,48 +1287,43 @@ class _HomeScreenState extends State<HomeScreen> {
         layout == HomeRoleLayout.superAdmin;
     final quickAccess = _buildQuickAccessList(l10n);
     final adminSummary = _buildAdminSummarySection(l10n);
+    final roleLabels = widget.session.profile.permissions.roleLabelsFor(l10n);
+    final drawerRole =
+        roleLabels.isNotEmpty ? roleLabels.join(' · ') : null;
+
+    final welcomeBanner = HomeWelcomeBanner(
+      welcomeText: l10n.homeWelcomeName(welcomeName),
+      subtitle: l10n.homeWelcomeSubtitle,
+      churchId: widget.session.profile.churchId,
+    );
 
     return SlideMenuScaffold(
+      key: _menuKey,
       churchId: widget.session.profile.churchId,
       selectedMenuId: _selectedMenuId,
+      drawerRoleLabel: drawerRole,
       onSignOut: _logout,
       actions: [
         ?(_buildNotificationsAction(l10n)),
         _buildAccountActionButton(l10n),
       ],
       menuItems: _buildMenuItems(l10n),
+      bottomNavigationBar: HomeBottomNavBar(
+        current: _bottomNav,
+        onSelected: _onBottomNavSelected,
+        visibleItems: _visibleBottomNavItems(_permissions),
+        labels: {
+          HomeBottomNavItem.home: l10n.menuHome,
+          HomeBottomNavItem.believers: l10n.homeNavBelievers,
+          HomeBottomNavItem.leaders: l10n.homeNavLeaders,
+          HomeBottomNavItem.cells: l10n.homeNavCells,
+          HomeBottomNavItem.more: l10n.homeNavMore,
+        },
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            color: AppColors.surface,
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                  child: ClipOval(
-                    child: ChurchLogo(
-                      size: 48,
-                      churchId: widget.session.profile.churchId,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    l10n.homeWelcomeName(welcomeName),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF111B21),
-                        ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: AppColors.divider),
+          welcomeBanner,
           Expanded(
             child: isAdminHome
                 ? (quickAccess.isEmpty && adminSummary == null)
@@ -1239,26 +1340,22 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       )
-                    : ListView(
-                        children: [
-                          ?adminSummary,
-                          if (quickAccess.isNotEmpty) ...[
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                              child: Text(
-                                l10n.homeQuickActionsTitle,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF111B21),
-                                    ),
+                    : RefreshIndicator(
+                        onRefresh: () =>
+                            _loadAdminDashboard(forceRefresh: true),
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(bottom: 16),
+                          children: [
+                            ?adminSummary,
+                            if (quickAccess.isNotEmpty) ...[
+                              HomeSectionHeader(
+                                title: l10n.homeQuickActionsTitle,
                               ),
-                            ),
-                            ...quickAccess,
+                              ...quickAccess,
+                            ],
                           ],
-                        ],
+                        ),
                       )
                 : RoleHomeBody(
                     session: widget.session,

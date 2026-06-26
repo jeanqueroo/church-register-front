@@ -215,7 +215,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
   }
 
   Future<void> _exportToExcel() async {
-    if (_exporting) return;
+    if (_exporting || !widget.permissions.canExportExcel) return;
 
     setState(() => _exporting = true);
     try {
@@ -365,11 +365,12 @@ class _MembersListBodyState extends State<_MembersListBody> {
               value: 'view',
               child: Text(l10n.membersMapViewDetail),
             ),
-            if (widget.permissions.canManageMembers) ...[
+            if (widget.permissions.canEditMember(member))
               PopupMenuItem(
                 value: 'edit',
                 child: Text(l10n.commonEdit),
               ),
+            if (widget.permissions.canManageMembers)
               PopupMenuItem(
                 value: 'delete',
                 child: Text(
@@ -377,7 +378,6 @@ class _MembersListBodyState extends State<_MembersListBody> {
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
-            ],
           ],
         ),
         onTap: () {
@@ -427,7 +427,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
       appBar: AppBar(
         title: Text(l10n.membersListTitle),
         actions: [
-          if (!_loading)
+          if (!_loading && widget.permissions.canExportExcel)
             IconButton(
               tooltip: l10n.membersListExportExcel,
               onPressed: _exporting ? null : _exportToExcel,

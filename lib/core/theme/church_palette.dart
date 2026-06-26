@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// Verde estándar para acciones positivas (FAB, FilledButton, acciones rápidas).
+const Color kPositiveActionColor = Color(0xFF16A34A);
+const Color kPositiveActionColorDark = Color(0xFF15803D);
+
 /// Colores semánticos de la app (claro / oscuro) vía [ThemeExtension].
 @immutable
 class ChurchPalette extends ThemeExtension<ChurchPalette> {

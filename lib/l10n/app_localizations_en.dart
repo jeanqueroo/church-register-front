@@ -462,6 +462,79 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeQuickActionsTitle => 'Quick actions';
 
   @override
+  String get homeWelcomeSubtitle => 'Thank you for leading with purpose.';
+
+  @override
+  String get homeSummarySeeDetail => 'See details';
+
+  @override
+  String get homeStatMembersTitle => 'Members';
+
+  @override
+  String get homeStatMembersSubtitle => 'Total active members';
+
+  @override
+  String get homeStatNewBelieversTitle => 'New believers';
+
+  @override
+  String get homeStatNewBelieversSubtitle => 'Registered new believers';
+
+  @override
+  String get homeStatLeadersTitle => 'Leaders';
+
+  @override
+  String get homeStatLeadersSubtitle => 'Registered active leaders';
+
+  @override
+  String get homeStatCellsTitle => 'Cells';
+
+  @override
+  String get homeStatCellsSubtitle => 'Active cells';
+
+  @override
+  String get homeStatBaptismsTitle => 'Baptisms';
+
+  @override
+  String get homeStatBaptismsSubtitle => 'Scheduled baptisms';
+
+  @override
+  String get homeStatDisciplesTitle => 'Disciples';
+
+  @override
+  String get homeStatDisciplesSubtitle => 'Assigned disciples';
+
+  @override
+  String get homeStatMyDisciplesTitle => 'My disciples';
+
+  @override
+  String get homeStatMyDisciplesSubtitle => 'In your assigned cell';
+
+  @override
+  String get homeStatMyNewBelieversTitle => 'My new believers';
+
+  @override
+  String get homeStatMyNewBelieversSubtitle => 'Assigned to your leadership';
+
+  @override
+  String get homeStatMyAssignedLeadersTitle => 'My assigned leaders';
+
+  @override
+  String get homeStatMyAssignedLeadersSubtitle =>
+      'Leaders under your supervision';
+
+  @override
+  String get homeNavBelievers => 'Believers';
+
+  @override
+  String get homeNavLeaders => 'Leaders';
+
+  @override
+  String get homeNavCells => 'Cells';
+
+  @override
+  String get homeNavMore => 'More';
+
+  @override
   String get homeRegisterAttendanceTitle => 'Register attendance';
 
   @override
@@ -3196,6 +3269,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'This cell group has no assigned leader. Assign a leader to the cell group or turn off the visit request.';
 
   @override
+  String get cellClaimLeadershipTitle => 'No cell leader assigned';
+
+  @override
+  String get cellClaimLeadershipSubtitle =>
+      'This cell group has no leader. You can assign yourself to register visits and disciples.';
+
+  @override
+  String get cellClaimLeadershipAction => 'Assign myself as leader';
+
+  @override
+  String get cellClaimLeadershipSuccess =>
+      'You are now the leader of this cell group.';
+
+  @override
+  String get cellClaimLeadershipAlreadyAssigned =>
+      'You already lead another cell group. A leader can only lead one cell group.';
+
+  @override
+  String get cellClaimLeadershipDenied =>
+      'You do not have permission to assign yourself as leader of this cell group.';
+
+  @override
   String cellMemberRegisteredWithCellLeader(
     String name,
     String cell,
@@ -3247,7 +3342,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cellMemberSelectHint =>
-      'Select one or more disciples without a cell, then confirm at the bottom';
+      'Only disciples assigned to this cell group\'s leader through pastoral registration, without another cell, are shown';
 
   @override
   String cellMemberSelectConfirm(int count) {
@@ -3263,7 +3358,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cellMemberSelectEmpty =>
-      'No disciples without a cell in your church';
+      'No disciples from this cell group\'s leader are available to assign';
 
   @override
   String cellMemberSelectMaxReached(int max) {
@@ -3271,17 +3366,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String cellMemberSelectLimitHint(int max) {
-    return 'You can select up to $max disciple(s). A cell holds 12 at most.';
+  String cellMemberSelectLimitHint(int max, int total) {
+    return 'You can select up to $max disciple(s). A cell holds $total at most.';
   }
 
   @override
-  String get cellMemberAssignLimitReached =>
-      'This cell already has 12 disciples. No more can be assigned.';
+  String cellMemberAssignLimitReached(int max) {
+    return 'This cell already has the maximum of $max disciples. No more can be assigned.';
+  }
 
   @override
-  String cellMemberAssignLimitPartial(int assigned, int requested) {
-    return 'Assigned $assigned of $requested: a cell holds 12 disciples at most.';
+  String cellMemberAssignLimitPartial(int assigned, int requested, int max) {
+    return 'Assigned $assigned of $requested: a cell holds $max disciples at most.';
   }
 
   @override
@@ -3318,6 +3414,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The cell leader has no sex on file. Complete their profile before assigning disciples.';
 
   @override
+  String get cellMemberAssignCellLeaderRequired =>
+      'This cell group must have an assigned leader before you can select disciples.';
+
+  @override
   String get cellMemberAssignGenderMismatch =>
       'You can only assign disciples of the same sex as the cell leader.';
 
@@ -3327,12 +3427,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cellMemberSelectEmptyGender(String gender) {
-    return 'No disciples without a cell match the leader\'s sex ($gender).';
+    return 'No disciples from this cell group\'s leader match the leader\'s sex ($gender).';
   }
 
   @override
   String cellMemberSelectGenderHint(String gender) {
-    return 'Only disciples without a cell who match the leader\'s sex ($gender) are shown.';
+    return 'Only pastoral-registration disciples of this cell group\'s leader, matching sex ($gender), without another cell, are shown.';
   }
 
   @override

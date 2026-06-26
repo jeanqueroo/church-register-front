@@ -23,6 +23,7 @@ class RegisterCellScreen extends StatefulWidget {
     this.cellService,
     this.leaderService,
     this.permissions,
+    this.ensureLeaderId,
   });
 
   final String registeredBy;
@@ -31,6 +32,8 @@ class RegisterCellScreen extends StatefulWidget {
   final CellService? cellService;
   final LeaderService? leaderService;
   final AppPermissions? permissions;
+  /// Líder que debe aparecer en el selector aunque esté filtrado (p. ej. titular actual).
+  final String? ensureLeaderId;
 
   bool get isEditing => cellToEdit != null;
 
@@ -135,23 +138,18 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
 
   Future<void> _loadLeaders() async {
     try {
-      final leaders = await _leaderService.fetchAssignableLeaders(
-        churchId: _effectiveChurchId,
-      );
       final busyLeaderIds = await _cellService.fetchLeaderIdsWithAssignedCell(
         churchId: _effectiveChurchId,
         excludeCellId: widget.cellToEdit?.id,
       );
+      final ensureLeaderId =
+          widget.cellToEdit?.leaderId?.trim() ?? widget.ensureLeaderId?.trim();
+      final activeLeaders = await _leaderService.fetchLeadersForCellLeaderPicker(
+        churchId: _effectiveChurchId,
+        busyLeaderIds: busyLeaderIds,
+        ensureLeaderId: ensureLeaderId,
+      );
       if (!mounted) return;
-      final activeLeaders = leaders
-          .where((leader) => !leader.isBlocked)
-          .where((leader) => leader.belongsToChurch(_effectiveChurchId))
-          .where((leader) {
-            final id = leader.id?.trim();
-            if (id == null || id.isEmpty) return false;
-            return !busyLeaderIds.contains(id);
-          })
-          .toList();
       ChurchLeader? selectedLeader;
       final leaderId = widget.cellToEdit?.leaderId;
       if (leaderId != null && leaderId.isNotEmpty) {

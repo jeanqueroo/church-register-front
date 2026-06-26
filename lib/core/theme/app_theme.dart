@@ -18,8 +18,8 @@ class AppColors {
   static const Color primary = Color(0xFF075E54);
   static const Color primaryDark = Color(0xFF054D45);
   static const Color primaryLight = Color(0xFF128C7E);
-  static const Color accent = Color(0xFF25D366);
-  static const Color accentDark = Color(0xFF1DA851);
+  static const Color accent = kPositiveActionColor;
+  static const Color accentDark = kPositiveActionColorDark;
   static const Color chatBackground = Color(0xFFECE5DD);
   static const Color surface = Colors.white;
   static const Color textSecondary = Color(0xFF667781);
