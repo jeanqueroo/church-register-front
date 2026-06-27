@@ -18,13 +18,26 @@ class CellOverCapacityService {
     if (churchId.isEmpty) return [];
 
     final cells = await _cellService.fetchCellsForChurch(churchId);
+    final countsByCellId =
+        await _memberService.fetchMemberCountsByCellForChurch(churchId);
     return buildOverCapacityEntries(
       cells: cells,
-      countsByCellId: await _resolveCountsByCellId(
-        churchId: churchId,
-        cells: cells,
-      ),
+      countsByCellId: countsByCellId,
     );
+  }
+
+  /// Conteo efectivo: prioriza integrantes reales (`assignedCellId`) y usa
+  /// `memberCount` del documento solo como respaldo.
+  static int effectiveMemberCount({
+    required ChurchCell cell,
+    required Map<String, int> countsByCellId,
+  }) {
+    final cellId = cell.id?.trim();
+    if (cellId != null && cellId.isNotEmpty) {
+      final fromMembers = countsByCellId[cellId];
+      if (fromMembers != null) return fromMembers;
+    }
+    return cell.memberCount ?? 0;
   }
 
   static List<CellOverCapacityEntry> buildOverCapacityEntries({
@@ -37,7 +50,10 @@ class CellOverCapacityService {
       final cellId = cell.id?.trim();
       if (cellId == null || cellId.isEmpty) continue;
 
-      final memberCount = cell.memberCount ?? countsByCellId[cellId] ?? 0;
+      final memberCount = effectiveMemberCount(
+        cell: cell,
+        countsByCellId: countsByCellId,
+      );
       if (memberCount > CellMemberCapacity.maxMembers) {
         entries.add(
           CellOverCapacityEntry(cell: cell, memberCount: memberCount),
@@ -52,15 +68,5 @@ class CellOverCapacityService {
     });
 
     return entries;
-  }
-
-  Future<Map<String, int>> _resolveCountsByCellId({
-    required String churchId,
-    required List<ChurchCell> cells,
-  }) async {
-    final needsBulkCounts = cells.any((cell) => cell.memberCount == null);
-    if (!needsBulkCounts) return const {};
-
-    return _memberService.fetchMemberCountsByCellForChurch(churchId);
   }
 }

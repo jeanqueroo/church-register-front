@@ -168,6 +168,31 @@ class BaptismDayPanelState extends State<BaptismDayPanel> {
     _notesController.text = entry?.notes ?? '';
   }
 
+  String _formatTime(TimeOfDay time) {
+    final h = time.hour.toString().padLeft(2, '0');
+    final m = time.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  Future<void> _pickTime() async {
+    TimeOfDay initial = TimeOfDay.now();
+    final parts = _timeController.text.split(':');
+    if (parts.length == 2) {
+      final hour = int.tryParse(parts[0]);
+      final minute = int.tryParse(parts[1]);
+      if (hour != null && minute != null) {
+        initial = TimeOfDay(hour: hour, minute: minute);
+      }
+    }
+
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initial,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _timeController.text = _formatTime(picked));
+  }
+
   String? get _memberAssignmentLeaderId {
     final permissions = widget.permissions;
     if (permissions.isAdmin || permissions.isSupervisor) return null;
@@ -641,13 +666,26 @@ class BaptismDayPanelState extends State<BaptismDayPanel> {
               const SizedBox(height: 16),
             ],
             if (canEditEntry) ...[
-              TextField(
-                controller: _timeController,
-                enabled: !widget.busy,
-                decoration: InputDecoration(
-                  labelText: l10n.baptismCalendarTime,
-                  hintText: l10n.baptismCalendarTimeHint,
-                  border: const OutlineInputBorder(),
+              InkWell(
+                onTap: widget.busy ? null : _pickTime,
+                borderRadius: BorderRadius.circular(4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: l10n.baptismCalendarTime,
+                    prefixIcon: const Icon(Icons.access_time_outlined),
+                    border: const OutlineInputBorder(),
+                    filled: true,
+                  ),
+                  child: Text(
+                    _timeController.text.isEmpty
+                        ? l10n.memberSelectTime
+                        : _timeController.text,
+                    style: TextStyle(
+                      color: _timeController.text.isEmpty
+                          ? Theme.of(context).colorScheme.onSurfaceVariant
+                          : Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
