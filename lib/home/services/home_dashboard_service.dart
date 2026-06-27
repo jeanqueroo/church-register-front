@@ -20,6 +20,8 @@ class HomeDashboardService {
   })  : _members = (firestore ?? FirebaseFirestore.instance)
             .collection('members'),
         _cells = (firestore ?? FirebaseFirestore.instance).collection('cells'),
+        _baptismCalendar = (firestore ?? FirebaseFirestore.instance)
+            .collection('baptismCalendar'),
         _cellService = cellService ?? CellService(),
         _leaderService = leaderService ?? LeaderService(),
         _supervisorAssignmentService =
@@ -30,6 +32,7 @@ class HomeDashboardService {
 
   final CollectionReference<Map<String, dynamic>> _members;
   final CollectionReference<Map<String, dynamic>> _cells;
+  final CollectionReference<Map<String, dynamic>> _baptismCalendar;
   final CellService _cellService;
   final LeaderService _leaderService;
   final SupervisorAssignmentService _supervisorAssignmentService;
@@ -66,12 +69,6 @@ class HomeDashboardService {
       churchId: churchId,
     );
 
-    final cellIds = cells
-        .map((cell) => cell.id)
-        .whereType<String>()
-        .where((id) => id.isNotEmpty)
-        .toList();
-
     final birthdayCells = _cellsLedBy(
       leaderId: session.profile.leaderId?.trim(),
       from: cells,
@@ -86,10 +83,6 @@ class HomeDashboardService {
         if (cell.id != null) cell.id!: cell.code,
     };
 
-    final memberResultsFuture = _loadMembersForCells(
-      cellIds: cellIds,
-      cells: cells,
-    );
     final leaderBirthdaysFuture = _loadLeaderBirthdaysForCells(cells: birthdayCells);
     final birthdayMembersFuture = _loadBirthdaysForCells(
       cellIds: birthdayCellIds.toList(),
@@ -100,14 +93,9 @@ class HomeDashboardService {
       cellCodeById: birthdayCellCodeById,
     );
 
-    final memberResult = await memberResultsFuture;
     final leaderBirthdays = await leaderBirthdaysFuture;
     final birthdayMembers = await birthdayMembersFuture;
     final discipleBirthdays = await discipleBirthdaysFuture;
-    final assignedNewBelieverCount = await _loadPastoralNewBelieversForLeaders(
-      leaderIds: leaderIds,
-      churchId: churchId,
-    );
 
     final seenBirthdays = <String>{};
     final birthdays = <CellBirthdayPerson>[];
@@ -123,11 +111,20 @@ class HomeDashboardService {
     }
     birthdays.sort((a, b) => a.name.compareTo(b.name));
 
+    final ownCounts = await _loadOwnLeadershipCounts(
+      session: session,
+      cells: cells,
+      churchId: churchId,
+    );
+
     final data = HomeDashboardData(
-      memberCount: memberResult.count,
-      newBelieverCount: assignedNewBelieverCount,
-      leaderCount: resolved.supervisedLeaderCount,
+      memberCount: ownCounts.memberCount,
+      newBelieverCount: ownCounts.newBelieverCount,
+      leaderCount: session.permissions.isSupervisor
+          ? resolved.supervisedLeaderCount
+          : null,
       birthdaysToday: birthdays,
+      hasOwnCell: ownCounts.hasOwnCell,
     );
 
     _cache.set(cacheKey, data);
@@ -152,6 +149,10 @@ class HomeDashboardService {
         await _leaderService.countLeadersAndSupervisorsInChurch(
       churchId: churchId,
     );
+    final cellsSnapshot =
+        await _cells.where('churchId', isEqualTo: churchId).get();
+    final baptismSnapshot =
+        await _baptismCalendar.where('churchId', isEqualTo: churchId).get();
 
     var memberCount = 0;
     var newBelieverCount = 0;
@@ -170,6 +171,8 @@ class HomeDashboardService {
       memberCount: memberCount,
       newBelieverCount: newBelieverCount,
       leaderCount: leaderCount,
+      cellCount: cellsSnapshot.docs.length,
+      baptismCount: baptismSnapshot.docs.length,
     );
 
     _cache.set(cacheKey, data);
@@ -346,9 +349,10 @@ class HomeDashboardService {
           .get();
 
       for (final doc in snapshot.docs) {
-        if (doc.data()['isNewBeliever'] == true) {
-          count++;
-        }
+        final member = ChurchMember.fromFirestore(doc);
+        if (!member.isNewBeliever) continue;
+        if (!member.isPastoralAssignmentFromRegisterMember) continue;
+        count++;
       }
     }
 
@@ -393,6 +397,42 @@ class HomeDashboardService {
     }
 
     return birthdays;
+  }
+
+  Future<({
+    int memberCount,
+    int newBelieverCount,
+    bool hasOwnCell,
+  })> _loadOwnLeadershipCounts({
+    required UserSession session,
+    required List<ChurchCell> cells,
+    required String? churchId,
+  }) async {
+    final ownLeaderId = session.profile.leaderId?.trim();
+    final ownCells = _cellsLedBy(leaderId: ownLeaderId, from: cells);
+    final ownCellIds = ownCells
+        .map((cell) => cell.id)
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toList();
+
+    final ownCellMemberResult = await _loadMembersForCells(
+      cellIds: ownCellIds,
+      cells: ownCells,
+    );
+    final ownNewBelieverCount =
+        ownLeaderId != null && ownLeaderId.isNotEmpty
+            ? await _loadPastoralNewBelieversForLeaders(
+                leaderIds: [ownLeaderId],
+                churchId: churchId,
+              )
+            : 0;
+
+    return (
+      memberCount: ownCellMemberResult.count,
+      newBelieverCount: ownNewBelieverCount,
+      hasOwnCell: ownCells.isNotEmpty,
+    );
   }
 
   Future<({List<String> leaderIds, int? supervisedLeaderCount})>

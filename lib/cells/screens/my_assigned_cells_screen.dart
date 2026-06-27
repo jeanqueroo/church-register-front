@@ -116,6 +116,7 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
           permissions: widget.session.permissions,
           cellService: widget.cellService,
           actingLeaderId: widget.session.profile.leaderId,
+          supervisedLeaderIds: widget.session.profile.supervisedLeaderIds,
         ),
       ),
     );
@@ -315,6 +316,7 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
         permissions: permissions,
         cellService: widget.cellService,
         actingLeaderId: widget.session.profile.leaderId,
+        supervisedLeaderIds: widget.session.profile.supervisedLeaderIds,
       );
     }
 

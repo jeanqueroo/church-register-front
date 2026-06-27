@@ -1,6 +1,7 @@
 import '../../cells/cell_member_capacity.dart';
 import '../../cells/models/church_cell.dart';
 import '../../l10n/app_localizations.dart';
+import '../../members/models/church_member.dart';
 import 'app_user_role.dart';
 
 /// Permisos efectivos según los roles del usuario (unión de varios roles).
@@ -42,6 +43,20 @@ class AppPermissions {
   bool get canViewLeaderDashboard => isAdmin;
   bool get canRegisterCell => isAdmin;
   bool get canEditCell => isAdmin;
+
+  /// Líder/supervisor: asignarse como titular si la célula aún no tiene líder.
+  bool canClaimOwnCellLeadership(
+    ChurchCell cell, {
+    String? actingLeaderId,
+  }) {
+    if (canEditCell) return false;
+    final actor = actingLeaderId?.trim();
+    if (actor == null || actor.isEmpty) return false;
+    if (!isLeader && !isSupervisor) return false;
+    final currentLeaderId = cell.leaderId?.trim();
+    return currentLeaderId == null || currentLeaderId.isEmpty;
+  }
+
   bool get canViewCells => isAdmin;
   bool get canViewCellDashboard => isAdmin;
   bool get canRegisterCellDisciple => isAdmin;
@@ -52,24 +67,28 @@ class AppPermissions {
     ChurchCell cell, {
     required int currentMemberCount,
     String? actingLeaderId,
+    Iterable<String> supervisedLeaderIds = const [],
   }) {
     if (!canRegisterMember) return false;
     return CellMemberCapacity.canRegisterNewMemberWhenAtCapacity(
       currentCount: currentMemberCount,
       cell: cell,
       actingLeaderId: actingLeaderId,
+      supervisedLeaderIds: supervisedLeaderIds,
     );
   }
 
-  /// Admin/registrador o líder de la célula: asignar integrantes existentes.
+  /// Admin/registrador, líder de la célula o supervisor de su líder.
   bool canAssignCellMembersFor(
     ChurchCell cell, {
     String? actingLeaderId,
+    Iterable<String> supervisedLeaderIds = const [],
   }) {
     if (canAssignCellMembers) return true;
-    return CellMemberCapacity.isCellLeader(
+    return CellMemberCapacity.canManageCellMembers(
       cell: cell,
       actingLeaderId: actingLeaderId,
+      supervisedLeaderIds: supervisedLeaderIds,
     );
   }
 
@@ -118,6 +137,8 @@ class AppPermissions {
   bool get canViewMembersList => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canViewMembersByLeader => isAdmin;
   bool get canViewLeadersList => isAdmin;
+  /// Descargar listados en Excel (solo administrador de iglesia).
+  bool get canExportExcel => isAdmin;
   /// Admin sin rol supervisor: asignar líderes a supervisores.
   bool get canAssignSupervisorLeaders =>
       (isAdmin) && !isSupervisor;
@@ -156,8 +177,15 @@ class AppPermissions {
   bool get canViewPastoralDashboard => canViewVisitsDashboard;
   bool get canManageAll => isAdmin || isSuperAdmin || isRegistrar;
 
-  /// Crear, editar o eliminar creyentes (no aplica al rol líder).
+  /// Crear, editar o eliminar creyentes (admin, superadmin, registrador).
   bool get canManageMembers => canManageAll;
+
+  /// Editar un creyente: gestión completa o nuevo creyente (líder/supervisor/registrador).
+  bool canEditMember(ChurchMember member) {
+    if (canManageMembers) return true;
+    if (!member.isNewBeliever) return false;
+    return isLeader || isSupervisor || isRegistrar;
+  }
 
   /// Ver datos de la iglesia en Mi cuenta (solo lectura).
   bool get canViewChurchData =>

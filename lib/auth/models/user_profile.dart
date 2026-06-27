@@ -11,6 +11,7 @@ class UserProfile {
     this.fullName,
     this.email,
     this.isBlocked = false,
+    this.supervisedLeaderIds = const [],
   });
 
   final List<String> roles;
@@ -20,6 +21,7 @@ class UserProfile {
   final String? fullName;
   final String? email;
   final bool isBlocked;
+  final List<String> supervisedLeaderIds;
 
   AppPermissions get permissions =>
       AppPermissions.fromRoles(roles, churchId: churchId);
@@ -37,7 +39,16 @@ class UserProfile {
       fullName: data['fullName'] as String?,
       email: data['email'] as String?,
       isBlocked: data['isBlocked'] as bool? ?? false,
+      supervisedLeaderIds: _parseSupervisedLeaderIds(data['supervisedLeaderIds']),
     );
+  }
+
+  static List<String> _parseSupervisedLeaderIds(dynamic raw) {
+    if (raw is! List) return const [];
+    return raw
+        .map((value) => value.toString().trim())
+        .where((id) => id.isNotEmpty)
+        .toList();
   }
 }
 

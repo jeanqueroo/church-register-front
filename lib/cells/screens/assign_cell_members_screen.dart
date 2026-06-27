@@ -20,6 +20,7 @@ class AssignCellMembersScreen extends StatefulWidget {
     this.memberService,
     this.permissions,
     this.actingLeaderId,
+    this.supervisedLeaderIds = const [],
   });
 
   final ChurchCell cell;
@@ -28,6 +29,7 @@ class AssignCellMembersScreen extends StatefulWidget {
   final AppPermissions? permissions;
   /// `users.leaderId` del usuario que asigna (líder de la célula puede superar 12).
   final String? actingLeaderId;
+  final List<String> supervisedLeaderIds;
 
   @override
   State<AssignCellMembersScreen> createState() =>
@@ -43,6 +45,7 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
   bool get _canAssign => _permissions.canAssignCellMembersFor(
         widget.cell,
         actingLeaderId: widget.actingLeaderId,
+        supervisedLeaderIds: widget.supervisedLeaderIds,
       );
 
   LeaderGender? _cellLeaderGender;
@@ -89,6 +92,7 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
       widget.cell,
       currentMemberCount: count,
       actingLeaderId: widget.actingLeaderId,
+      supervisedLeaderIds: widget.supervisedLeaderIds,
     )) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -110,6 +114,7 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
           memberService: widget.memberService,
           permissions: _permissions,
           actingLeaderId: widget.actingLeaderId,
+          supervisedLeaderIds: widget.supervisedLeaderIds,
         ),
       ),
     );
@@ -129,18 +134,47 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
       return;
     }
 
+    final leaderId = widget.cell.leaderId?.trim();
+    if (leaderId == null || leaderId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.cellMemberAssignCellLeaderRequired)),
+      );
+      return;
+    }
+
+    final count = await _memberService.countMembersInCell(cellId);
+    final remaining = CellMemberCapacity.remainingAssignableSlots(
+      currentCount: count,
+      cell: widget.cell,
+      actingLeaderId: widget.actingLeaderId,
+    );
+    if (remaining <= 0) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            MemberService.messageForCellAssignmentLimit(context.l10n),
+          ),
+        ),
+      );
+      return;
+    }
+
     final selected = await Navigator.of(context).push<List<ChurchMember>>(
       MaterialPageRoute<List<ChurchMember>>(
         builder: (_) => SelectMemberForCellScreen(
           churchId: widget.cell.churchId ?? _permissions.churchId,
+          cellLeaderId: leaderId,
           memberService: widget.memberService,
+          maxSelection: remaining,
           requiredGender: _cellLeaderGender,
         ),
       ),
     );
     if (selected == null || selected.isEmpty || !mounted) return;
 
-    await _assignMembers(selected);
+    await _assignMembers(selected.take(remaining).toList());
   }
 
   Future<void> _assignMembers(List<ChurchMember> members) async {
@@ -156,8 +190,12 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
           actingLeaderId: widget.actingLeaderId,
           requiredLeaderGender: _cellLeaderGender,
           performedBy: widget.registeredBy,
+          supervisedLeaderIds: widget.supervisedLeaderIds,
         );
         assigned++;
+      } on CellAssignmentLimitException {
+        errorMessage = MemberService.messageForCellAssignmentLimit(l10n);
+        break;
       } on CellAssignmentGenderException {
         errorMessage = MemberService.messageForCellAssignmentGender(l10n);
         break;
@@ -187,6 +225,18 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
     if (errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
+      );
+    } else if (assigned > 0 && assigned < members.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.cellMemberAssignLimitPartial(
+              assigned,
+              members.length,
+              CellMemberCapacity.maxAssignableMembers,
+            ),
+          ),
+        ),
       );
     }
   }
@@ -254,10 +304,16 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
               widget.cell,
               currentMemberCount: memberCount,
               actingLeaderId: widget.actingLeaderId,
+              supervisedLeaderIds: widget.supervisedLeaderIds,
             );
         final showAssignFab = cellId != null &&
             cellId.isNotEmpty &&
-            _canAssign;
+            _canAssign &&
+            CellMemberCapacity.canAssignAnother(
+              currentCount: memberCount,
+              cell: widget.cell,
+              actingLeaderId: widget.actingLeaderId,
+            );
 
         return Scaffold(
       appBar: AppBar(
@@ -455,12 +511,15 @@ class SelectMemberForCellScreen extends StatefulWidget {
   const SelectMemberForCellScreen({
     super.key,
     this.churchId,
+    this.cellLeaderId,
     this.memberService,
     this.maxSelection,
     this.requiredGender,
   });
 
   final String? churchId;
+  /// Líder de la célula: solo sus discípulos del registro pastoral.
+  final String? cellLeaderId;
   final MemberService? memberService;
   /// Máximo seleccionable según cupo restante de la célula.
   final int? maxSelection;
@@ -499,8 +558,9 @@ class _SelectMemberForCellScreenState extends State<SelectMemberForCellScreen> {
     });
     try {
       final service = widget.memberService ?? MemberService();
-      final members = await service.fetchMembersWithoutCell(
+      final members = await service.fetchMembersForCellAssignment(
         churchId: widget.churchId,
+        cellLeaderId: widget.cellLeaderId,
         matchingGender: widget.requiredGender,
       );
       if (!mounted) return;
@@ -672,7 +732,10 @@ class _SelectMemberForCellScreenState extends State<SelectMemberForCellScreen> {
                   Expanded(
                     child: Text(
                       widget.maxSelection != null
-                          ? l10n.cellMemberSelectLimitHint(widget.maxSelection!)
+                          ? l10n.cellMemberSelectLimitHint(
+                              widget.maxSelection!,
+                              CellMemberCapacity.maxAssignableMembers,
+                            )
                           : widget.requiredGender != null
                               ? l10n.cellMemberSelectGenderHint(
                                   widget.requiredGender!.localizedLabel(l10n),

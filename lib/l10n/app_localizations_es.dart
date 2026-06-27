@@ -467,6 +467,78 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeQuickActionsTitle => 'Acciones rápidas';
 
   @override
+  String get homeWelcomeSubtitle => 'Gracias por liderar con propósito.';
+
+  @override
+  String get homeSummarySeeDetail => 'Ver detalle';
+
+  @override
+  String get homeStatMembersTitle => 'Miembros';
+
+  @override
+  String get homeStatMembersSubtitle => 'Total de miembros activos';
+
+  @override
+  String get homeStatNewBelieversTitle => 'Nuevo creyentes';
+
+  @override
+  String get homeStatNewBelieversSubtitle => 'Nuevos creyentes registrados';
+
+  @override
+  String get homeStatLeadersTitle => 'Líderes';
+
+  @override
+  String get homeStatLeadersSubtitle => 'Líderes registrados y activos';
+
+  @override
+  String get homeStatCellsTitle => 'Células';
+
+  @override
+  String get homeStatCellsSubtitle => 'Células activas';
+
+  @override
+  String get homeStatBaptismsTitle => 'Bautismos';
+
+  @override
+  String get homeStatBaptismsSubtitle => 'Bautismos programados';
+
+  @override
+  String get homeStatDisciplesTitle => 'Discípulos';
+
+  @override
+  String get homeStatDisciplesSubtitle => 'Discípulos asignados';
+
+  @override
+  String get homeStatMyDisciplesTitle => 'Mis discípulos';
+
+  @override
+  String get homeStatMyDisciplesSubtitle => 'En tu célula asignada';
+
+  @override
+  String get homeStatMyNewBelieversTitle => 'Mis nuevos creyentes';
+
+  @override
+  String get homeStatMyNewBelieversSubtitle => 'Asignados a tu liderazgo';
+
+  @override
+  String get homeStatMyAssignedLeadersTitle => 'Mis líderes asignados';
+
+  @override
+  String get homeStatMyAssignedLeadersSubtitle => 'Líderes bajo tu supervisión';
+
+  @override
+  String get homeNavBelievers => 'Creyentes';
+
+  @override
+  String get homeNavLeaders => 'Líderes';
+
+  @override
+  String get homeNavCells => 'Células';
+
+  @override
+  String get homeNavMore => 'Más';
+
+  @override
   String get homeRegisterAttendanceTitle => 'Registrar asistencia';
 
   @override
@@ -1971,7 +2043,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Esta célula ya no supera 12 discípulos. No es necesario dividirla.';
 
   @override
-  String get splitCellTitle => 'Dividir célula';
+  String get splitCellTitle => 'Multiplicar célula';
 
   @override
   String get splitCellSourceCellLabel => 'Célula origen';
@@ -2053,7 +2125,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get memberLeadershipCreatedAsLeader => 'Creado como líder';
 
   @override
-  String get menuCellsOverCapacity => 'Células para dividir';
+  String get menuCellsOverCapacity => 'Células para multiplicar';
 
   @override
   String get cellsOverCapacityTitle => 'Células con más de 12 discípulos';
@@ -3213,6 +3285,28 @@ class AppLocalizationsEs extends AppLocalizations {
       'Esta célula no tiene líder asignado. Asigna un líder a la célula o desactiva la visita.';
 
   @override
+  String get cellClaimLeadershipTitle => 'Sin líder titular';
+
+  @override
+  String get cellClaimLeadershipSubtitle =>
+      'Esta célula no tiene líder asignado. Puedes asignarte para registrar visitas y discípulos.';
+
+  @override
+  String get cellClaimLeadershipAction => 'Asignarme como líder';
+
+  @override
+  String get cellClaimLeadershipSuccess =>
+      'Ya eres el líder titular de esta célula.';
+
+  @override
+  String get cellClaimLeadershipAlreadyAssigned =>
+      'Ya lideras otra célula. Un líder solo puede tener una célula titular.';
+
+  @override
+  String get cellClaimLeadershipDenied =>
+      'No tienes permiso para asignarte como líder de esta célula.';
+
+  @override
   String cellMemberRegisteredWithCellLeader(
     String name,
     String cell,
@@ -3266,7 +3360,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellMemberSelectHint =>
-      'Marca uno o más discípulos sin célula asignada y confirma al final';
+      'Solo aparecen discípulos asignados al líder de esta célula desde el registro pastoral y sin otra célula asignada';
 
   @override
   String cellMemberSelectConfirm(int count) {
@@ -3283,7 +3377,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellMemberSelectEmpty =>
-      'No hay discípulos sin célula asignada en tu iglesia';
+      'No hay discípulos del líder de esta célula disponibles para asignar';
 
   @override
   String cellMemberSelectMaxReached(int max) {
@@ -3291,17 +3385,18 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String cellMemberSelectLimitHint(int max) {
-    return 'Puedes seleccionar hasta $max discípulo(s). La célula admite 12 como máximo.';
+  String cellMemberSelectLimitHint(int max, int total) {
+    return 'Puedes seleccionar hasta $max discípulo(s). La célula admite $total como máximo.';
   }
 
   @override
-  String get cellMemberAssignLimitReached =>
-      'La célula ya tiene 12 discípulos. No se pueden asignar más.';
+  String cellMemberAssignLimitReached(int max) {
+    return 'La célula ya tiene el máximo de $max discípulos. No se pueden asignar más.';
+  }
 
   @override
-  String cellMemberAssignLimitPartial(int assigned, int requested) {
-    return 'Se asignaron $assigned de $requested: la célula tiene un máximo de 12 discípulos.';
+  String cellMemberAssignLimitPartial(int assigned, int requested, int max) {
+    return 'Se asignaron $assigned de $requested: la célula tiene un máximo de $max discípulos.';
   }
 
   @override
@@ -3339,6 +3434,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'El líder de la célula no tiene sexo registrado. Completa su perfil antes de asignar discípulos.';
 
   @override
+  String get cellMemberAssignCellLeaderRequired =>
+      'La célula debe tener un líder asignado para seleccionar discípulos.';
+
+  @override
   String get cellMemberAssignGenderMismatch =>
       'Solo puedes asignar discípulos del mismo sexo que el líder de la célula.';
 
@@ -3348,12 +3447,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cellMemberSelectEmptyGender(String gender) {
-    return 'No hay discípulos sin célula del mismo sexo que el líder ($gender).';
+    return 'No hay discípulos del líder de esta célula del mismo sexo ($gender) disponibles para asignar.';
   }
 
   @override
   String cellMemberSelectGenderHint(String gender) {
-    return 'Solo aparecen discípulos sin célula del mismo sexo que el líder ($gender).';
+    return 'Solo aparecen discípulos del líder de esta célula, del mismo sexo ($gender), registrados desde el registro pastoral y sin otra célula.';
   }
 
   @override

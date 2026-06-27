@@ -214,6 +214,17 @@ class ChurchMember {
   bool get isAssignedToCell =>
       assignedCellId != null && assignedCellId!.trim().isNotEmpty;
 
+  /// Integrante con líder asignado en [RegisterMemberScreen] (no célula ni bautismo).
+  bool get isPastoralAssignmentFromRegisterMember {
+    if (!isPastoralLeaderAssignment) return false;
+    final source = registrationSource;
+    if (source == null) {
+      // Datos anteriores a registrationSource.
+      return true;
+    }
+    return source == MemberRegistrationSource.registerMember;
+  }
+
   /// Integrante con líder pastoral asignado en el flujo de registro (no célula).
   bool get isPastoralLeaderAssignment {
     if (assignmentKind == MemberAssignmentKind.pastoral) return true;

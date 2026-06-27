@@ -29,6 +29,7 @@ class RegisterCellMemberScreen extends StatefulWidget {
     this.memberService,
     this.permissions,
     this.actingLeaderId,
+    this.supervisedLeaderIds = const [],
   });
 
   final ChurchCell cell;
@@ -37,6 +38,7 @@ class RegisterCellMemberScreen extends StatefulWidget {
   final MemberService? memberService;
   final AppPermissions? permissions;
   final String? actingLeaderId;
+  final List<String> supervisedLeaderIds;
 
   AppPermissions get _permissions =>
       permissions ?? AppPermissions.adminDefault();
@@ -203,6 +205,7 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
       cell,
       currentMemberCount: currentCount,
       actingLeaderId: widget.actingLeaderId,
+      supervisedLeaderIds: widget.supervisedLeaderIds,
     )) {
       _showMessage(MemberService.messageForCellAssignmentLeaderOnly(l10n));
       return;
@@ -285,6 +288,7 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
         requiredLeaderGender: _cellLeaderGender,
         allowExceedCapacityForNewRegistration: true,
         performedBy: widget.registeredBy,
+        supervisedLeaderIds: widget.supervisedLeaderIds,
       );
 
       if (!mounted) return;
@@ -310,6 +314,9 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
     } on CellAssignmentLeaderOnlyException {
       if (!mounted) return;
       _showMessage(MemberService.messageForCellAssignmentLeaderOnly(l10n));
+    } on CellAssignmentLimitException {
+      if (!mounted) return;
+      _showMessage(MemberService.messageForCellAssignmentLimit(l10n));
     } on FirebaseException catch (e) {
       if (!mounted) return;
       _showMessage(MemberService.messageFromFirestoreException(e, l10n));

@@ -854,6 +854,150 @@ abstract class AppLocalizations {
   /// **'Acciones rápidas'**
   String get homeQuickActionsTitle;
 
+  /// No description provided for @homeWelcomeSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Gracias por liderar con propósito.'**
+  String get homeWelcomeSubtitle;
+
+  /// No description provided for @homeSummarySeeDetail.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver detalle'**
+  String get homeSummarySeeDetail;
+
+  /// No description provided for @homeStatMembersTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Miembros'**
+  String get homeStatMembersTitle;
+
+  /// No description provided for @homeStatMembersSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Total de miembros activos'**
+  String get homeStatMembersSubtitle;
+
+  /// No description provided for @homeStatNewBelieversTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo creyentes'**
+  String get homeStatNewBelieversTitle;
+
+  /// No description provided for @homeStatNewBelieversSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevos creyentes registrados'**
+  String get homeStatNewBelieversSubtitle;
+
+  /// No description provided for @homeStatLeadersTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Líderes'**
+  String get homeStatLeadersTitle;
+
+  /// No description provided for @homeStatLeadersSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Líderes registrados y activos'**
+  String get homeStatLeadersSubtitle;
+
+  /// No description provided for @homeStatCellsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Células'**
+  String get homeStatCellsTitle;
+
+  /// No description provided for @homeStatCellsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Células activas'**
+  String get homeStatCellsSubtitle;
+
+  /// No description provided for @homeStatBaptismsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautismos'**
+  String get homeStatBaptismsTitle;
+
+  /// No description provided for @homeStatBaptismsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Bautismos programados'**
+  String get homeStatBaptismsSubtitle;
+
+  /// No description provided for @homeStatDisciplesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Discípulos'**
+  String get homeStatDisciplesTitle;
+
+  /// No description provided for @homeStatDisciplesSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Discípulos asignados'**
+  String get homeStatDisciplesSubtitle;
+
+  /// No description provided for @homeStatMyDisciplesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mis discípulos'**
+  String get homeStatMyDisciplesTitle;
+
+  /// No description provided for @homeStatMyDisciplesSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'En tu célula asignada'**
+  String get homeStatMyDisciplesSubtitle;
+
+  /// No description provided for @homeStatMyNewBelieversTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mis nuevos creyentes'**
+  String get homeStatMyNewBelieversTitle;
+
+  /// No description provided for @homeStatMyNewBelieversSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignados a tu liderazgo'**
+  String get homeStatMyNewBelieversSubtitle;
+
+  /// No description provided for @homeStatMyAssignedLeadersTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mis líderes asignados'**
+  String get homeStatMyAssignedLeadersTitle;
+
+  /// No description provided for @homeStatMyAssignedLeadersSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Líderes bajo tu supervisión'**
+  String get homeStatMyAssignedLeadersSubtitle;
+
+  /// No description provided for @homeNavBelievers.
+  ///
+  /// In es, this message translates to:
+  /// **'Creyentes'**
+  String get homeNavBelievers;
+
+  /// No description provided for @homeNavLeaders.
+  ///
+  /// In es, this message translates to:
+  /// **'Líderes'**
+  String get homeNavLeaders;
+
+  /// No description provided for @homeNavCells.
+  ///
+  /// In es, this message translates to:
+  /// **'Células'**
+  String get homeNavCells;
+
+  /// No description provided for @homeNavMore.
+  ///
+  /// In es, this message translates to:
+  /// **'Más'**
+  String get homeNavMore;
+
   /// No description provided for @homeRegisterAttendanceTitle.
   ///
   /// In es, this message translates to:
@@ -3483,7 +3627,7 @@ abstract class AppLocalizations {
   /// No description provided for @splitCellTitle.
   ///
   /// In es, this message translates to:
-  /// **'Dividir célula'**
+  /// **'Multiplicar célula'**
   String get splitCellTitle;
 
   /// No description provided for @splitCellSourceCellLabel.
@@ -3621,7 +3765,7 @@ abstract class AppLocalizations {
   /// No description provided for @menuCellsOverCapacity.
   ///
   /// In es, this message translates to:
-  /// **'Células para dividir'**
+  /// **'Células para multiplicar'**
   String get menuCellsOverCapacity;
 
   /// No description provided for @cellsOverCapacityTitle.
@@ -5590,6 +5734,42 @@ abstract class AppLocalizations {
   /// **'Esta célula no tiene líder asignado. Asigna un líder a la célula o desactiva la visita.'**
   String get cellMemberVisitNoLeader;
 
+  /// No description provided for @cellClaimLeadershipTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin líder titular'**
+  String get cellClaimLeadershipTitle;
+
+  /// No description provided for @cellClaimLeadershipSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta célula no tiene líder asignado. Puedes asignarte para registrar visitas y discípulos.'**
+  String get cellClaimLeadershipSubtitle;
+
+  /// No description provided for @cellClaimLeadershipAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignarme como líder'**
+  String get cellClaimLeadershipAction;
+
+  /// No description provided for @cellClaimLeadershipSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya eres el líder titular de esta célula.'**
+  String get cellClaimLeadershipSuccess;
+
+  /// No description provided for @cellClaimLeadershipAlreadyAssigned.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya lideras otra célula. Un líder solo puede tener una célula titular.'**
+  String get cellClaimLeadershipAlreadyAssigned;
+
+  /// No description provided for @cellClaimLeadershipDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'No tienes permiso para asignarte como líder de esta célula.'**
+  String get cellClaimLeadershipDenied;
+
   /// No description provided for @cellMemberRegisteredWithCellLeader.
   ///
   /// In es, this message translates to:
@@ -5669,7 +5849,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberSelectHint.
   ///
   /// In es, this message translates to:
-  /// **'Marca uno o más discípulos sin célula asignada y confirma al final'**
+  /// **'Solo aparecen discípulos asignados al líder de esta célula desde el registro pastoral y sin otra célula asignada'**
   String get cellMemberSelectHint;
 
   /// No description provided for @cellMemberSelectConfirm.
@@ -5693,7 +5873,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberSelectEmpty.
   ///
   /// In es, this message translates to:
-  /// **'No hay discípulos sin célula asignada en tu iglesia'**
+  /// **'No hay discípulos del líder de esta célula disponibles para asignar'**
   String get cellMemberSelectEmpty;
 
   /// No description provided for @cellMemberSelectMaxReached.
@@ -5705,20 +5885,20 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberSelectLimitHint.
   ///
   /// In es, this message translates to:
-  /// **'Puedes seleccionar hasta {max} discípulo(s). La célula admite 12 como máximo.'**
-  String cellMemberSelectLimitHint(int max);
+  /// **'Puedes seleccionar hasta {max} discípulo(s). La célula admite {total} como máximo.'**
+  String cellMemberSelectLimitHint(int max, int total);
 
   /// No description provided for @cellMemberAssignLimitReached.
   ///
   /// In es, this message translates to:
-  /// **'La célula ya tiene 12 discípulos. No se pueden asignar más.'**
-  String get cellMemberAssignLimitReached;
+  /// **'La célula ya tiene el máximo de {max} discípulos. No se pueden asignar más.'**
+  String cellMemberAssignLimitReached(int max);
 
   /// No description provided for @cellMemberAssignLimitPartial.
   ///
   /// In es, this message translates to:
-  /// **'Se asignaron {assigned} de {requested}: la célula tiene un máximo de 12 discípulos.'**
-  String cellMemberAssignLimitPartial(int assigned, int requested);
+  /// **'Se asignaron {assigned} de {requested}: la célula tiene un máximo de {max} discípulos.'**
+  String cellMemberAssignLimitPartial(int assigned, int requested, int max);
 
   /// No description provided for @cellMemberSelectLoadError.
   ///
@@ -5768,6 +5948,12 @@ abstract class AppLocalizations {
   /// **'El líder de la célula no tiene sexo registrado. Completa su perfil antes de asignar discípulos.'**
   String get cellMemberAssignLeaderGenderMissing;
 
+  /// No description provided for @cellMemberAssignCellLeaderRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'La célula debe tener un líder asignado para seleccionar discípulos.'**
+  String get cellMemberAssignCellLeaderRequired;
+
   /// No description provided for @cellMemberAssignGenderMismatch.
   ///
   /// In es, this message translates to:
@@ -5783,13 +5969,13 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberSelectEmptyGender.
   ///
   /// In es, this message translates to:
-  /// **'No hay discípulos sin célula del mismo sexo que el líder ({gender}).'**
+  /// **'No hay discípulos del líder de esta célula del mismo sexo ({gender}) disponibles para asignar.'**
   String cellMemberSelectEmptyGender(String gender);
 
   /// No description provided for @cellMemberSelectGenderHint.
   ///
   /// In es, this message translates to:
-  /// **'Solo aparecen discípulos sin célula del mismo sexo que el líder ({gender}).'**
+  /// **'Solo aparecen discípulos del líder de esta célula, del mismo sexo ({gender}), registrados desde el registro pastoral y sin otra célula.'**
   String cellMemberSelectGenderHint(String gender);
 
   /// No description provided for @cellMemberRegisterGenderLocked.

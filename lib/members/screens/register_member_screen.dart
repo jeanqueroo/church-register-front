@@ -32,6 +32,7 @@ class RegisterMemberScreen extends StatefulWidget {
     required this.registeredBy,
     this.churchId,
     this.memberService,
+    this.leaderService,
     this.memberToEdit,
     this.cellToAssign,
     this.permissions,
@@ -42,6 +43,7 @@ class RegisterMemberScreen extends StatefulWidget {
   /// Iglesia del usuario que registra (admin / registrador).
   final String? churchId;
   final MemberService? memberService;
+  final LeaderService? leaderService;
   final ChurchMember? memberToEdit;
   /// Si se indica, el creyente nuevo se asigna a esta célula al guardar.
   final ChurchCell? cellToAssign;
@@ -86,7 +88,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   final _volunteerController = TextEditingController();
 
   late final MemberService _memberService;
-  final _leaderService = LeaderService();
+  late final LeaderService _leaderService;
   final _geocodingService = GeocodingService();
   final _assignmentService = LeaderAssignmentService();
 
@@ -101,6 +103,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   GeoLocation? _memberLocation;
   bool _wantsVisit = true;
   bool _isBaptized = false;
+  bool _isNewBeliever = true;
   bool _includeAddress = true;
   bool _manualLeader = false;
   bool _isLoading = false;
@@ -134,12 +137,17 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
   void initState() {
     super.initState();
     _memberService = widget.memberService ?? MemberService();
+    _leaderService = widget.leaderService ?? LeaderService();
     if (widget.memberToEdit != null) {
       _loadMember(widget.memberToEdit!);
     } else {
       _applyCellDefaults(widget.cellToAssign);
       if (widget.cellToAssign != null) {
         _loadCellLeaderGender(widget.cellToAssign!);
+      }
+      final actingLeaderId = widget.actingLeaderId?.trim();
+      if (actingLeaderId != null && actingLeaderId.isNotEmpty) {
+        _pendingLeaderId = actingLeaderId;
       }
     }
     _loadLeaders();
@@ -169,8 +177,17 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
 
   Future<void> _loadLeaders() async {
     try {
-      final leaders =
+      var leaders =
           await _leaderService.fetchAssignableLeaders(churchId: _effectiveChurchId);
+      final ensureId =
+          _pendingLeaderId?.trim() ?? widget.actingLeaderId?.trim();
+      if (ensureId != null && ensureId.isNotEmpty) {
+        leaders = await _leaderService.ensureLeaderInList(
+          leaders: leaders,
+          leaderId: ensureId,
+          churchId: _effectiveChurchId,
+        );
+      }
       leaders.sort((a, b) => a.fullName.compareTo(b.fullName));
       if (!mounted) return;
 
@@ -189,9 +206,6 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         _leaders = leaders;
         _loadingLeaders = false;
         _selectedLeader = selected;
-        if (selected != null) {
-          _manualLeader = true;
-        }
       });
     } catch (_) {
       if (mounted) {
@@ -232,10 +246,10 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     _cellDay = member.cellDay;
     _wantsVisit = member.wantsVisit;
     _isBaptized = member.isBaptized;
+    _isNewBeliever = member.isNewBeliever;
     _includeAddress = member.street != null && member.street!.trim().isNotEmpty;
     if (member.assignedLeaderId != null) {
       _pendingLeaderId = member.assignedLeaderId;
-      _manualLeader = true;
     }
     if (member.latitude != null && member.longitude != null) {
       _memberLocation = GeoLocation(
@@ -554,9 +568,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         assignmentKind: assignmentKind,
         assignedDistanceKm: assignedDistanceKm,
         wantsVisit: _wantsVisit,
-        isNewBeliever: widget.isEditing
-            ? (widget.memberToEdit?.isNewBeliever ?? false)
-            : true,
+        isNewBeliever: _isNewBeliever,
         isBaptized: widget.isEditing ? _isBaptized : false,
         baptizedAt: widget.isEditing
             ? (_isBaptized
@@ -692,6 +704,10 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     } on CellAssignmentLeaderOnlyException {
       if (mounted) {
         _showMessage(MemberService.messageForCellAssignmentLeaderOnly(l10n));
+      }
+    } on CellAssignmentLimitException {
+      if (mounted) {
+        _showMessage(MemberService.messageForCellAssignmentLimit(l10n));
       }
     } on FirebaseException catch (e) {
       if (mounted) {
@@ -882,7 +898,8 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     return RoleGate(
       permissions: permissions,
       allowed: widget.isEditing
-          ? permissions.canManageMembers
+          ? widget.memberToEdit != null &&
+              permissions.canEditMember(widget.memberToEdit!)
           : permissions.canRegisterMember,
       deniedMessage: widget.isEditing
           ? l10n.memberNoPermissionEdit
@@ -1259,6 +1276,16 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   ),
                   const SizedBox(height: 8),
                 ],
+                SwitchListTile(
+                  value: _isNewBeliever,
+                  onChanged: _isLoading
+                      ? null
+                      : (value) => setState(() => _isNewBeliever = value),
+                  title: Text(l10n.spiritualNewBeliever),
+                  subtitle: Text(l10n.cellMemberIsNewBelieverSubtitle),
+                  secondary: const Icon(Icons.favorite_outline),
+                ),
+                const SizedBox(height: 8),
                 SwitchListTile(
                   value: _wantsVisit,
                   onChanged: _isLoading

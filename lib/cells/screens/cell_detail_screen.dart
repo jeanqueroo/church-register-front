@@ -14,6 +14,7 @@ import '../services/cell_attendance_service.dart';
 import '../services/cell_service.dart';
 import '../../members/models/church_member.dart';
 import '../../members/services/member_service.dart';
+import '../../leaders/services/leader_service.dart';
 import 'assign_cell_members_screen.dart';
 import 'register_cell_attendance_screen.dart';
 import 'register_cell_member_screen.dart';
@@ -27,6 +28,7 @@ class CellDetailScreen extends StatefulWidget {
     this.cellService,
     this.permissions,
     this.actingLeaderId,
+    this.supervisedLeaderIds = const [],
   });
 
   final ChurchCell cell;
@@ -34,6 +36,7 @@ class CellDetailScreen extends StatefulWidget {
   final CellService? cellService;
   final AppPermissions? permissions;
   final String? actingLeaderId;
+  final List<String> supervisedLeaderIds;
 
   @override
   State<CellDetailScreen> createState() => _CellDetailScreenState();
@@ -43,6 +46,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
   late ChurchCell _cell;
   StreamSubscription<ChurchCell?>? _cellSubscription;
   bool _savingHelpers = false;
+  bool _claimingLeadership = false;
 
   @override
   void initState() {
@@ -96,6 +100,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
           cellToEdit: _cell,
           cellService: widget.cellService,
           permissions: _permissions,
+          ensureLeaderId: widget.actingLeaderId,
         ),
       ),
     );
@@ -119,6 +124,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
       _cell,
       currentMemberCount: count,
       actingLeaderId: widget.actingLeaderId,
+      supervisedLeaderIds: widget.supervisedLeaderIds,
     )) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -139,6 +145,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
           churchId: _cell.churchId ?? _permissions.churchId,
           permissions: _permissions,
           actingLeaderId: widget.actingLeaderId,
+          supervisedLeaderIds: widget.supervisedLeaderIds,
         ),
       ),
     );
@@ -177,6 +184,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
           registeredBy: widget.registeredBy,
           permissions: _permissions,
           actingLeaderId: widget.actingLeaderId,
+          supervisedLeaderIds: widget.supervisedLeaderIds,
         ),
       ),
     );
@@ -347,6 +355,130 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
     } finally {
       if (mounted) setState(() => _savingHelpers = false);
     }
+  }
+
+  bool get _canClaimLeadership => _permissions.canClaimOwnCellLeadership(
+        _cell,
+        actingLeaderId: widget.actingLeaderId,
+      );
+
+  Future<void> _claimCellLeadership() async {
+    final l10n = context.l10n;
+    final cellId = _cell.id;
+    final actingLeaderId = widget.actingLeaderId?.trim();
+    if (cellId == null ||
+        cellId.isEmpty ||
+        actingLeaderId == null ||
+        actingLeaderId.isEmpty ||
+        !_canClaimLeadership) {
+      _showSnack(l10n.cellClaimLeadershipDenied);
+      return;
+    }
+
+    setState(() => _claimingLeadership = true);
+    try {
+      final busyLeaderIds = await _cellService.fetchLeaderIdsWithAssignedCell(
+        churchId: _cell.churchId,
+        excludeCellId: cellId,
+      );
+      if (busyLeaderIds.contains(actingLeaderId)) {
+        if (!mounted) return;
+        _showSnack(l10n.cellClaimLeadershipAlreadyAssigned);
+        return;
+      }
+
+      final leader = await LeaderService().fetchLeaderById(actingLeaderId);
+      if (leader == null) {
+        if (!mounted) return;
+        _showSnack(l10n.leaderRecordNotFound);
+        return;
+      }
+
+      await _cellService.updateCell(
+        cellId: cellId,
+        cell: ChurchCell(
+          id: _cell.id,
+          code: _cell.code,
+          name: _cell.name,
+          street: _cell.street,
+          streetNumber: _cell.streetNumber,
+          neighborhood: _cell.neighborhood,
+          locality: _cell.locality,
+          stateProvince: _cell.stateProvince,
+          postalCode: _cell.postalCode,
+          latitude: _cell.latitude,
+          longitude: _cell.longitude,
+          cellDay: _cell.cellDay,
+          leaderId: actingLeaderId,
+          leaderName: leader.fullName,
+          notes: _cell.notes,
+          helpers: _cell.helpers,
+          registeredAt: _cell.registeredAt,
+          registeredBy: _cell.registeredBy,
+          churchId: _cell.churchId,
+          memberCount: _cell.memberCount,
+        ),
+        previousCode: _cell.code,
+      );
+
+      if (!mounted) return;
+      _showSnack(l10n.cellClaimLeadershipSuccess);
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      _showSnack(CellService.messageFromFirestoreException(e, l10n));
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(l10n.memberSaveUnexpectedError);
+    } finally {
+      if (mounted) setState(() => _claimingLeadership = false);
+    }
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Widget _claimLeadershipBanner(AppLocalizations l10n) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      color: Theme.of(context).colorScheme.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.cellClaimLeadershipTitle,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.cellClaimLeadershipSubtitle,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: _claimingLeadership ? null : _claimCellLeadership,
+              icon: _claimingLeadership
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.person_pin_outlined),
+              label: Text(l10n.cellClaimLeadershipAction),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _attendanceHistorySection(AppLocalizations l10n, String cellId) {
@@ -604,12 +736,14 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
               _cell,
               currentMemberCount: memberCount,
               actingLeaderId: widget.actingLeaderId,
+              supervisedLeaderIds: widget.supervisedLeaderIds,
             );
         final showAssignFab = cellId != null &&
             cellId.isNotEmpty &&
             _permissions.canAssignCellMembersFor(
               _cell,
               actingLeaderId: widget.actingLeaderId,
+              supervisedLeaderIds: widget.supervisedLeaderIds,
             );
 
         return Scaffold(
@@ -654,6 +788,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
           : ListView(
               padding: const EdgeInsets.all(24),
               children: [
+                if (_canClaimLeadership) _claimLeadershipBanner(l10n),
                 _Section(title: l10n.cellRegSectionData, rows: _cellRows(l10n)),
                 const SizedBox(height: 16),
                 if (_permissions.canEditCell) ...[

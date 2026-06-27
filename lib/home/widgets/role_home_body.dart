@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../../auth/models/app_permissions.dart';
-import '../../auth/models/user_profile.dart';
 import '../../cells/screens/my_assigned_cells_screen.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/widgets/whatsapp_list_tile.dart';
 import '../../l10n/app_localizations.dart';
+import '../../auth/models/app_permissions.dart';
+import '../../auth/models/user_profile.dart';
 import '../../members/screens/register_member_screen.dart';
 import '../home_role_layout.dart';
 import '../models/home_dashboard_data.dart';
 import '../services/home_dashboard_service.dart';
+import 'home_design_widgets.dart';
 
 class RoleHomeBody extends StatefulWidget {
   const RoleHomeBody({
@@ -130,26 +130,83 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
         padding: const EdgeInsets.only(bottom: 24),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-        if (_showsDashboard) ...[
-          _buildDashboardSection(context, l10n),
-          const SizedBox(height: 8),
-        ],
-        if (quickActions.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              l10n.homeQuickActionsTitle,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF111B21),
-                  ),
-            ),
-          ),
-          ...quickActions,
-        ],
+          if (_showsDashboard) ...[
+            _buildDashboardSection(context, l10n),
+            const SizedBox(height: 8),
+          ],
+          if (quickActions.isNotEmpty) ...[
+            HomeSectionHeader(title: l10n.homeQuickActionsTitle),
+            ...quickActions,
+          ],
         ],
       ),
     );
+  }
+
+  List<HomeStatCardData> _buildLeaderStatCards(
+    AppLocalizations l10n,
+    HomeDashboardData data,
+  ) {
+    if (widget.layout == HomeRoleLayout.supervisor) {
+      return _buildSupervisorStatCards(l10n, data);
+    }
+
+    return _buildOwnPastoralStatCards(l10n, data);
+  }
+
+  List<HomeStatCardData> _buildOwnPastoralStatCards(
+    AppLocalizations l10n,
+    HomeDashboardData data,
+  ) {
+    final cards = <HomeStatCardData>[];
+
+    if (data.hasOwnCell) {
+      cards.add(
+        HomeStatCardData(
+          value: '${data.memberCount}',
+          title: l10n.homeStatMyDisciplesTitle,
+          subtitle: l10n.homeStatMyDisciplesSubtitle,
+          icon: HomeStatStyles.disciples.icon,
+          backgroundColor: HomeStatStyles.disciples.bg,
+          foregroundColor: HomeStatStyles.disciples.fg,
+        ),
+      );
+    }
+
+    cards.add(
+      HomeStatCardData(
+        value: '${data.newBelieverCount}',
+        title: l10n.homeStatMyNewBelieversTitle,
+        subtitle: l10n.homeStatMyNewBelieversSubtitle,
+        icon: HomeStatStyles.newBelievers.icon,
+        backgroundColor: HomeStatStyles.newBelievers.bg,
+        foregroundColor: HomeStatStyles.newBelievers.fg,
+      ),
+    );
+
+    return cards;
+  }
+
+  List<HomeStatCardData> _buildSupervisorStatCards(
+    AppLocalizations l10n,
+    HomeDashboardData data,
+  ) {
+    final cards = _buildOwnPastoralStatCards(l10n, data);
+
+    if (data.leaderCount != null) {
+      cards.add(
+        HomeStatCardData(
+          value: '${data.leaderCount}',
+          title: l10n.homeStatMyAssignedLeadersTitle,
+          subtitle: l10n.homeStatMyAssignedLeadersSubtitle,
+          icon: HomeStatStyles.leaders.icon,
+          backgroundColor: HomeStatStyles.leaders.bg,
+          foregroundColor: HomeStatStyles.leaders.fg,
+        ),
+      );
+    }
+
+    return cards;
   }
 
   Widget _buildDashboardSection(BuildContext context, AppLocalizations l10n) {
@@ -176,113 +233,69 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
     }
 
     final data = _dashboard ?? const HomeDashboardData(memberCount: 0);
-    final supervisorOnly =
-        widget.layout == HomeRoleLayout.supervisor && !_permissions.isLeader;
-
-    final summaryLines = <Widget>[
-      Text(
-        l10n.homeSummaryDisciplesCount(data.memberCount),
-        style: Theme.of(context).textTheme.bodyLarge,
-      ),
-      if (!supervisorOnly) ...[
-        const SizedBox(height: 8),
-        Text(
-          l10n.homeSummaryAssignedNewBelieversCount(data.newBelieverCount),
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-      ],
-      if (widget.layout == HomeRoleLayout.supervisor &&
-          data.leaderCount != null) ...[
-        const SizedBox(height: 8),
-        Text(
-          l10n.homeLeadersCount(data.leaderCount!),
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-      ],
-    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        HomeSectionHeader(title: l10n.homeSummaryTitle),
+        HomeStatCardsRow(cards: _buildLeaderStatCards(l10n, data)),
+        HomeSectionHeader(title: l10n.homeTodayTitle),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            l10n.homeSummaryTitle,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF111B21),
-                ),
-          ),
-        ),
-        Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: summaryLines,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-          child: Text(
-            l10n.homeTodayTitle,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF111B21),
-                ),
-          ),
-        ),
-        Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.homeCellBirthdaysTitle,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                if (data.birthdaysToday.isEmpty)
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Material(
+            color: context.churchPalette.surface,
+            borderRadius: BorderRadius.circular(14),
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    l10n.homeBirthdaysEmpty,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                    l10n.homeCellBirthdaysTitle,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: context.churchPalette.primary,
                         ),
-                  )
-                else
-                  ...data.birthdaysToday.map((person) {
-                    final suffix = person.age != null
-                        ? ' · ${l10n.memberAgeYears(person.age!)}'
-                        : '';
-                    final cell = person.cellCode?.trim().isNotEmpty == true
-                        ? ' · ${person.cellCode}'
-                        : '';
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('🎂 '),
-                          Expanded(
-                            child: Text(
-                              '${person.name}$suffix$cell',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (data.birthdaysToday.isEmpty)
+                    Text(
+                      l10n.homeBirthdaysEmpty,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary,
                           ),
-                        ],
-                      ),
-                    );
-                  }),
-              ],
+                    )
+                  else
+                    ...data.birthdaysToday.map((person) {
+                      final suffix = person.age != null
+                          ? ' · ${l10n.memberAgeYears(person.age!)}'
+                          : '';
+                      final cell = person.cellCode?.trim().isNotEmpty == true
+                          ? ' · ${person.cellCode}'
+                          : '';
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('🎂 '),
+                            Expanded(
+                              child: Text(
+                                '${person.name}$suffix$cell',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                ],
+              ),
             ),
           ),
         ),
+        const SizedBox(height: 8),
       ],
     );
   }
@@ -334,11 +347,12 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
 
     return [
       for (var i = 0; i < entries.length; i++)
-        WhatsappListTile(
+        HomeQuickActionTile(
           icon: entries[i].icon,
           title: entries[i].title,
           subtitle: entries[i].subtitle,
           onTap: entries[i].onTap,
+          accentColor: homeQuickActionAccent(i),
           showDivider: i < entries.length - 1,
         ),
     ];

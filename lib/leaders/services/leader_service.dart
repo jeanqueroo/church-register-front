@@ -232,11 +232,10 @@ class LeaderService {
   };
 
   static bool rolesAllowPastoralAssignment(List<String> roles) {
-    if (roles.contains(AppUserRole.registrar)) return false;
     return roles.any(_pastoralAssignmentRoles.contains);
   }
 
-  /// Cuenta en `users` con rol líder o supervisor (asignación pastoral).
+  /// Cuenta en `users` con rol líder o supervisor (asignación pastoral / titular de célula).
   Future<bool> hasPastoralAssignmentAppRole(ChurchLeader leader) async {
     final docRoles = leader.appRoles;
     if (docRoles != null && docRoles.isNotEmpty) {
@@ -244,21 +243,23 @@ class LeaderService {
     }
 
     final authUserId = leader.authUserId?.trim();
-    if (authUserId == null || authUserId.isEmpty) return false;
+    if (authUserId == null || authUserId.isEmpty) {
+      return isLeaderOrSupervisorInCollection(leader);
+    }
 
     try {
       final doc = await _userProfileService.fetchProfileDoc(authUserId);
-      if (doc == null) return false;
+      if (doc == null) return isLeaderOrSupervisorInCollection(leader);
 
       final data = doc.data() ?? {};
       final roles = AppUserRole.parseList(data['roles']);
       final rolesFinal =
           roles.isNotEmpty ? roles : AppUserRole.parseList(data['role']);
-      if (rolesFinal.contains(AppUserRole.registrar)) return false;
-      return rolesAllowPastoralAssignment(rolesFinal);
+      if (rolesAllowPastoralAssignment(rolesFinal)) return true;
+      return isLeaderOrSupervisorInCollection(leader);
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
-        return false;
+        return isLeaderOrSupervisorInCollection(leader);
       }
       rethrow;
     }
@@ -324,6 +325,55 @@ class LeaderService {
       }),
     );
     return results.whereType<ChurchLeader>().toList();
+  }
+
+  /// Asegura que [leaderId] esté en la lista (p. ej. líder actual de la célula al editar).
+  Future<List<ChurchLeader>> ensureLeaderInList({
+    required List<ChurchLeader> leaders,
+    required String leaderId,
+    String? churchId,
+  }) async {
+    final id = leaderId.trim();
+    if (id.isEmpty || leaders.any((leader) => leader.id == id)) {
+      return leaders;
+    }
+
+    final leader = await fetchLeaderById(id);
+    if (leader == null || leader.isBlocked) return leaders;
+    final normalizedChurchId = churchId?.trim();
+    if (normalizedChurchId != null &&
+        normalizedChurchId.isNotEmpty &&
+        !leader.belongsToChurch(normalizedChurchId)) {
+      return leaders;
+    }
+
+    final merged = [...leaders, leader]
+      ..sort((a, b) => a.fullName.compareTo(b.fullName));
+    return merged;
+  }
+
+  /// Líderes elegibles como titular de célula (excluye ocupados en otra célula).
+  Future<List<ChurchLeader>> fetchLeadersForCellLeaderPicker({
+    required String? churchId,
+    required Set<String> busyLeaderIds,
+    String? ensureLeaderId,
+  }) async {
+    final assignable = await fetchAssignableLeaders(churchId: churchId);
+    var list = assignable.where((leader) {
+      final id = leader.id?.trim();
+      if (id == null || id.isEmpty) return false;
+      return !busyLeaderIds.contains(id);
+    }).toList();
+
+    final ensureId = ensureLeaderId?.trim();
+    if (ensureId != null && ensureId.isNotEmpty) {
+      list = await ensureLeaderInList(
+        leaders: list,
+        leaderId: ensureId,
+        churchId: churchId,
+      );
+    }
+    return list;
   }
 
   static String messageFromFirestoreException(

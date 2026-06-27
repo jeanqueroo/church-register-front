@@ -307,7 +307,7 @@ class _LeadersListBodyState extends State<_LeadersListBody>
   }
 
   Future<void> _exportToExcel() async {
-    if (_exporting) return;
+    if (_exporting || !widget.permissions.canExportExcel) return;
 
     setState(() => _exporting = true);
     try {
@@ -743,7 +743,7 @@ class _LeadersListBodyState extends State<_LeadersListBody>
       appBar: AppBar(
         title: Text(l10n.leadersListTitle),
         actions: [
-          if (!_loading)
+          if (!_loading && widget.permissions.canExportExcel)
             IconButton(
               tooltip: l10n.membersListExportExcel,
               onPressed: _exporting ? null : _exportToExcel,

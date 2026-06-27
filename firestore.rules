@@ -416,6 +416,14 @@ service cloud.firestore {
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['helpers']) &&
         request.resource.data.get('helpers', []) is list &&
         request.resource.data.get('helpers', []).size() <= 3;
+      allow update: if isSignedIn() &&
+        isAssignedCellLeader(resource.data.get('leaderId', '')) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount']) &&
+        request.resource.data.get('memberCount', 0) is int;
+      allow update: if isSignedIn() &&
+        isSupervisedCellLeader(resource.data.get('leaderId', '')) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount']) &&
+        request.resource.data.get('memberCount', 0) is int;
       allow delete: if isSignedIn() && (
         isSuperAdmin() ||
         (
