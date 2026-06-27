@@ -122,16 +122,11 @@ class _CellsListBodyState extends State<_CellsListBody> {
         );
   }
 
-  bool get _cellsHaveStoredMemberCounts =>
-      _cells.isNotEmpty && _cells.every((cell) => cell.memberCount != null);
-
   bool get _needsBulkMemberCounts =>
-      _filterOverCapacity &&
-      !_cellsHaveStoredMemberCounts &&
-      !_memberCountsLoaded;
+      _filterOverCapacity && !_memberCountsLoaded;
 
   Future<void> _loadMemberCountsIfNeeded() async {
-    if (_cellsHaveStoredMemberCounts || _memberCountsLoaded || _loadingMemberCounts) {
+    if (_memberCountsLoaded || _loadingMemberCounts) {
       return;
     }
 
@@ -181,17 +176,16 @@ class _CellsListBodyState extends State<_CellsListBody> {
   }
 
   bool _isOverCapacity(ChurchCell cell) {
-    final cellId = cell.id?.trim();
-    if (cellId == null || cellId.isEmpty) return false;
-    final count = _memberCountByCellId[cellId] ?? 0;
-    return count > CellMemberCapacity.maxMembers;
+    return _memberCountFor(cell) > CellMemberCapacity.maxMembers;
   }
 
   int _memberCountFor(ChurchCell cell) {
-    if (cell.memberCount != null) return cell.memberCount!;
     final cellId = cell.id?.trim();
-    if (cellId == null || cellId.isEmpty) return 0;
-    return _memberCountByCellId[cellId] ?? 0;
+    if (cellId != null && cellId.isNotEmpty) {
+      final fromMembers = _memberCountByCellId[cellId];
+      if (fromMembers != null) return fromMembers;
+    }
+    return cell.memberCount ?? 0;
   }
 
   void _onCellTap(ChurchCell cell) {

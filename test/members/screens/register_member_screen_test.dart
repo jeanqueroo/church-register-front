@@ -59,7 +59,7 @@ ChurchLeader _sampleLeader({required String id}) {
 
 ChurchMember _sampleMember({
   required String leaderId,
-  bool isNewBeliever = true,
+  bool isBaptized = false,
 }) {
   return ChurchMember(
     id: 'member-1',
@@ -75,7 +75,8 @@ ChurchMember _sampleMember({
     registeredBy: 'admin@test.com',
     assignedLeaderId: leaderId,
     assignedLeaderName: 'Ana García',
-    isNewBeliever: isNewBeliever,
+    isNewBeliever: true,
+    isBaptized: isBaptized,
   );
 }
 
@@ -109,8 +110,8 @@ SwitchListTile _manualLeaderSwitch(WidgetTester tester) {
   return tester.widget<SwitchListTile>(finder);
 }
 
-SwitchListTile _newBelieverSwitch(WidgetTester tester) {
-  final finder = find.widgetWithText(SwitchListTile, 'Nuevo creyente');
+SwitchListTile _baptizedSwitch(WidgetTester tester) {
+  final finder = find.widgetWithText(SwitchListTile, 'Bautizado');
   expect(finder, findsOneWidget);
   return tester.widget<SwitchListTile>(finder);
 }
@@ -208,7 +209,7 @@ void main() {
       expect(_manualLeaderSwitch(tester).value, isTrue);
     });
 
-    testWidgets('inicia con el switch de nuevo creyente en true', (
+    testWidgets('muestra el switch de bautizado al registrar', (
       WidgetTester tester,
     ) async {
       await _pumpRegisterMemberScreen(
@@ -220,27 +221,26 @@ void main() {
         ),
       );
 
-      expect(_newBelieverSwitch(tester).value, isTrue);
+      expect(_baptizedSwitch(tester).value, isFalse);
     });
 
-    testWidgets(
-      'carga el valor de nuevo creyente al editar',
-      (WidgetTester tester) async {
-        await _pumpRegisterMemberScreen(
-          tester,
-          child: RegisterMemberScreen(
-            registeredBy: 'admin@test.com',
-            memberToEdit: _sampleMember(
-              leaderId: 'leader-1',
-              isNewBeliever: false,
-            ),
-            permissions: AppPermissions.fromRoles([AppUserRole.admin]),
-            leaderService: _FakeLeaderService(),
+    testWidgets('carga el estado de bautizado al editar', (
+      WidgetTester tester,
+    ) async {
+      await _pumpRegisterMemberScreen(
+        tester,
+        child: RegisterMemberScreen(
+          registeredBy: 'admin@test.com',
+          memberToEdit: _sampleMember(
+            leaderId: 'leader-1',
+            isBaptized: true,
           ),
-        );
+          permissions: AppPermissions.fromRoles([AppUserRole.admin]),
+          leaderService: _FakeLeaderService(),
+        ),
+      );
 
-        expect(_newBelieverSwitch(tester).value, isFalse);
-      },
-    );
+      expect(_baptizedSwitch(tester).value, isTrue);
+    });
   });
 }
