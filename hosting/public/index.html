@@ -3,26 +3,50 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Manantial de Bendiciones — aplicación de registro pastoral para la iglesia.">
   <title>Manantial de Bendiciones</title>
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      line-height: 1.6;
-      max-width: 720px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-      color: #222;
-    }
-    h1 { color: #1B3A5C; }
-    a { color: #2E5A87; }
-    ul { padding-left: 1.25rem; }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <h1>Manantial de Bendiciones</h1>
-  <p>Documentación legal de la aplicación móvil de registro pastoral.</p>
-  <ul>
-    <li><a href="/privacy-policy">Política de privacidad</a></li>
-  </ul>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <img class="site-header__logo" src="/assets/logo.png" alt="Logo Manantial de Bendiciones" width="72" height="72">
+      <div>
+        <h1 class="site-header__title">Manantial de Bendiciones</h1>
+        <p class="site-header__subtitle">Aplicación móvil de registro pastoral para líderes, supervisores y administradores de la iglesia.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <section class="card">
+      <h1>Información legal</h1>
+      <p>Documentación pública de la aplicación, requerida para las tiendas de aplicaciones y el contacto con usuarios autorizados.</p>
+      <ul class="link-list">
+        <li>
+          <a class="link-card" href="/privacy-policy">
+            <span class="link-card__icon" aria-hidden="true">🔒</span>
+            <span class="link-card__text">
+              <strong>Política de privacidad</strong>
+              <span>Cómo tratamos los datos personales en la gestión pastoral.</span>
+            </span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Contacto</h2>
+      <p>Para consultas sobre privacidad o el uso de la aplicación:</p>
+      <p><a href="mailto:contacto@manantialdebendiciones.org">contacto@manantialdebendiciones.org</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© Manantial de Bendiciones · Registro pastoral</p>
+  </footer>
 </body>
 </html>

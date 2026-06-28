@@ -6,9 +6,13 @@ const { getMessaging } = require('firebase-admin/messaging');
 initializeApp();
 
 const ANDROID_CHANNEL_ID = 'leader_assignments';
+const FUNCTIONS_REGION = 'southamerica-west1';
 
 exports.notifyLeaderOnMemberAssigned = onDocumentCreated(
-  'notifications/{notificationId}',
+  {
+    document: 'notifications/{notificationId}',
+    region: FUNCTIONS_REGION,
+  },
   async (event) => {
     const data = event.data?.data();
     if (!data || data.type !== 'member_assigned') {

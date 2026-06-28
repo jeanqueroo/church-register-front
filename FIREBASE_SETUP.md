@@ -15,7 +15,7 @@ Los mapas usan **OpenStreetMap** (Nominatim + flutter_map). **No** hace falta AP
 5. Ejecutar `flutterfire configure` (actualiza `lib/firebase_options.dart` y `google-services.json`).
 6. Actualizar `.firebaserc` con el nuevo `projectId`.
 7. Publicar reglas e índices: `firebase deploy --only firestore:rules,firestore:indexes,storage`.
-8. Activar plan **Blaze** y desplegar functions: `firebase deploy --only functions` (luego `firebase functions:artifacts:setpolicy --location us-central1` si aparece el aviso de cleanup).
+8. Activar plan **Blaze** y desplegar functions: `firebase deploy --only functions --force --force` (luego `firebase functions:artifacts:setpolicy --location southamerica-west1` si aparece el aviso de cleanup).
 9. Configurar **App Check** (token debug en desarrollo).
 10. Crear usuario en Authentication y probar login.
 11. Crear iglesia, administrador y flujo completo (creyente, líder, célula).
@@ -137,7 +137,7 @@ firebase use TU_PROJECT_ID
 cd functions
 npm install
 cd ..
-firebase deploy --only functions
+firebase deploy --only functions --force
 ```
 
 La función `notifyLeaderOnMemberAssigned` envía push al crear un documento en `notifications` (tipo `member_assigned`).
@@ -147,7 +147,7 @@ La función `notifyLeaderOnMemberAssigned` envía push al crear un documento en 
 En Firebase CLI 14+, al desplegar por primera vez puede aparecer:
 
 ```
-Functions successfully deployed but could not set up cleanup policy in location us-central1.
+Functions successfully deployed but could not set up cleanup policy in location southamerica-west1.
 Pass the --force option to automatically set up a cleanup policy or run
 'firebase functions:artifacts:setpolicy' to manually set up a cleanup policy.
 ```
@@ -157,13 +157,13 @@ Pass the --force option to automatically set up a cleanup policy or run
 Configúralo **una vez** en tu máquina (modo interactivo):
 
 ```powershell
-firebase functions:artifacts:setpolicy --location us-central1 --days 7
+firebase functions:artifacts:setpolicy --location southamerica-west1 --days 7
 ```
 
 - `--days 7` borra imágenes de más de 7 días (puedes usar `1` o `30`).
-- En el próximo deploy también puedes usar: `firebase deploy --only functions --force`.
+- En el próximo deploy también puedes usar: `firebase deploy --only functions --force --force`.
 - Si despliegas desde CI/CD, ejecuta `artifacts:setpolicy` en local primero o añade `--force` al pipeline.
-- Para no borrar imágenes automáticamente: `firebase functions:artifacts:setpolicy --location us-central1 --none` (no recomendado).
+- Para no borrar imágenes automáticamente: `firebase functions:artifacts:setpolicy --location southamerica-west1 --none` (no recomendado).
 
 ### Ejecutar la app
 
@@ -269,7 +269,7 @@ Al iniciar sesión, la app sincroniza avisos pendientes para creyentes ya asigna
 ### Push en el teléfono (FCM)
 
 1. **App:** al iniciar sesión como líder, pide permiso y guarda `fcmToken` en `users/{uid}`.
-2. **Cloud Function:** desplegada con `firebase deploy --only functions`.
+2. **Cloud Function:** desplegada con `firebase deploy --only functions --force`.
 3. **Probar:** teléfono físico, login como líder, registrar creyente asignado desde otra cuenta.
 
 Si el aviso aparece en la app pero no en la bandeja del sistema, revisa `fcmToken` en Firestore y que la función esté desplegada.
