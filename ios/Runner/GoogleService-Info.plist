@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyBC3NNfyb8xVTR1ayiCXHvkfDKgnPmTt-I</string>
+	<string>AIzaSyCWqcXrfuXQnvoaNKLa2uND0sbi1Azn30g</string>
 	<key>GCM_SENDER_ID</key>
-	<string>572729325735</string>
+	<string>374770573112</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.church.register.manantial</string>
 	<key>PROJECT_ID</key>
-	<string>church-register-stg</string>
+	<string>church-register-pro</string>
 	<key>STORAGE_BUCKET</key>
-	<string>church-register-stg.firebasestorage.app</string>
+	<string>church-register-pro.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:572729325735:ios:1e1ba0859930b06eb78382</string>
+	<string>1:374770573112:ios:853afd5681c31529ef2bcd</string>
 </dict>
 </plist>

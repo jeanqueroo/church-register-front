@@ -1094,6 +1094,30 @@ abstract class AppLocalizations {
   /// **'Mínimo 6 caracteres'**
   String get passwordMinLength;
 
+  /// No description provided for @passwordRegistrationMinLength.
+  ///
+  /// In es, this message translates to:
+  /// **'Mínimo 8 caracteres'**
+  String get passwordRegistrationMinLength;
+
+  /// No description provided for @passwordRegistrationNeedsLetter.
+  ///
+  /// In es, this message translates to:
+  /// **'Debe incluir al menos una letra'**
+  String get passwordRegistrationNeedsLetter;
+
+  /// No description provided for @passwordRegistrationNeedsNumber.
+  ///
+  /// In es, this message translates to:
+  /// **'Debe incluir al menos un número'**
+  String get passwordRegistrationNeedsNumber;
+
+  /// No description provided for @passwordRegistrationNeedsSpecial.
+  ///
+  /// In es, this message translates to:
+  /// **'Debe incluir al menos un carácter especial'**
+  String get passwordRegistrationNeedsSpecial;
+
   /// No description provided for @forgotPassword.
   ///
   /// In es, this message translates to:

@@ -591,6 +591,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get passwordMinLength => 'Mínimo 6 caracteres';
 
   @override
+  String get passwordRegistrationMinLength => 'Mínimo 8 caracteres';
+
+  @override
+  String get passwordRegistrationNeedsLetter =>
+      'Debe incluir al menos una letra';
+
+  @override
+  String get passwordRegistrationNeedsNumber =>
+      'Debe incluir al menos un número';
+
+  @override
+  String get passwordRegistrationNeedsSpecial =>
+      'Debe incluir al menos un carácter especial';
+
+  @override
   String get forgotPassword => '¿Olvidaste tu contraseña?';
 
   @override

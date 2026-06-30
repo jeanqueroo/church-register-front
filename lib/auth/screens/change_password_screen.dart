@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale/l10n_extensions.dart';
+import '../utils/password_validator.dart';
 import '../services/auth_service.dart';
 
 /// Formulario exclusivo para cambiar la contraseña de acceso.
@@ -136,10 +137,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 if (value == null || value.isEmpty) {
                   return l10n.changePasswordNewRequired;
                 }
-                if (value.length < 6) {
-                  return l10n.passwordMinLength;
-                }
-                return null;
+                return PasswordValidator.validateRegistration(l10n, value);
               },
             ),
             const SizedBox(height: 16),

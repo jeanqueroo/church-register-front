@@ -13,6 +13,7 @@ import '../../leaders/models/church_leader.dart';
 import '../../leaders/models/leader_registration_source.dart';
 import '../../leaders/services/leader_service.dart';
 import '../models/admin_user_record.dart';
+import '../utils/password_validator.dart';
 import '../models/app_permissions.dart';
 import '../services/auth_service.dart';
 import '../services/user_profile_service.dart';
@@ -484,10 +485,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
                       ),
                       validator: (v) {
                         if (v == null || v.isEmpty) return l10n.adminRegPasswordRequired;
-                        if (v.length < 6) {
-                          return l10n.passwordMinLength;
-                        }
-                        return null;
+                        return PasswordValidator.validateRegistration(l10n, v);
                       },
                     ),
                     const SizedBox(height: 16),

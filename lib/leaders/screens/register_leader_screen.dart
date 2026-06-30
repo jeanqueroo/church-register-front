@@ -5,6 +5,7 @@ import '../../address/services/geocoding_service.dart';
 import '../../auth/models/app_permissions.dart';
 import '../../auth/models/app_user_role.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../auth/utils/password_validator.dart';
 import '../../auth/services/auth_service.dart';
 import '../../auth/services/user_profile_service.dart';
 import '../../auth/widgets/assignable_roles_section.dart';
@@ -775,10 +776,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                       if (v == null || v.isEmpty) {
                         return l10n.leaderRegPasswordRequired;
                       }
-                      if (v.length < 6) {
-                        return l10n.passwordMinLength;
-                      }
-                      return null;
+                      return PasswordValidator.validateRegistration(l10n, v);
                     },
                   ),
                   const SizedBox(height: 16),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../address/widgets/address_fields_section.dart';
 import '../../auth/models/app_permissions.dart';
+import '../../auth/utils/password_validator.dart';
 import '../../auth/services/auth_service.dart';
 import '../../auth/widgets/role_gate.dart';
 import '../../core/locale/l10n_extensions.dart';
@@ -570,8 +571,7 @@ class _SplitCellFromCapacityScreenState
                     if (value == null || value.isEmpty) {
                       return l10n.leaderRegPasswordRequired;
                     }
-                    if (value.length < 6) return l10n.passwordMinLength;
-                    return null;
+                    return PasswordValidator.validateRegistration(l10n, value);
                   },
                 ),
                 const SizedBox(height: 16),
