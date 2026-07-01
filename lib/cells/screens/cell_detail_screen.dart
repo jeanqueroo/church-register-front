@@ -718,6 +718,39 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
     );
   }
 
+  Widget _discipleActionsSection(
+    AppLocalizations l10n, {
+    required bool showAssignFab,
+    required bool showRegisterFab,
+  }) {
+    if (!showAssignFab && !showRegisterFab) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (showAssignFab) ...[
+            OutlinedButton.icon(
+              onPressed: _openAssignMembers,
+              icon: const Icon(Icons.group_add_outlined),
+              label: Text(l10n.cellDetailAssignDisciplesAction),
+            ),
+            if (showRegisterFab) const SizedBox(height: 12),
+          ],
+          if (showRegisterFab)
+            FilledButton.icon(
+              onPressed: _openRegisterMember,
+              icon: const Icon(Icons.person_add_alt_1_outlined),
+              label: Text(l10n.cellMemberRegisterNew),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -758,31 +791,6 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
             ),
         ],
       ),
-      floatingActionButton: showRegisterFab || showAssignFab
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (showAssignFab)
-                  Padding(
-                    padding: EdgeInsets.only(bottom: showRegisterFab ? 12 : 0),
-                    child: FloatingActionButton.extended(
-                      heroTag: 'cell_assign_members',
-                      onPressed: _openAssignMembers,
-                      icon: const Icon(Icons.group_add_outlined),
-                      label: Text(l10n.cellDetailAssignDisciplesAction),
-                    ),
-                  ),
-                if (showRegisterFab)
-                  FloatingActionButton.extended(
-                    heroTag: 'cell_register_member',
-                    onPressed: _openRegisterMember,
-                    icon: const Icon(Icons.person_add_alt_1_outlined),
-                    label: Text(l10n.cellMemberRegisterNew),
-                  ),
-              ],
-            )
-          : null,
       body: cellId == null || cellId.isEmpty
           ? Center(child: Text(l10n.cellDiscipleCellMissing))
           : ListView(
@@ -823,6 +831,11 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                         ],
                         _helpersSection(l10n, members),
                         _disciplesSection(l10n, members, helperIds),
+                        _discipleActionsSection(
+                          l10n,
+                          showAssignFab: showAssignFab,
+                          showRegisterFab: showRegisterFab,
+                        ),
                       ],
                     );
                   },

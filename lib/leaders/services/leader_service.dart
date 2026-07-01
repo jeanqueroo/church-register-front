@@ -27,7 +27,10 @@ class LeaderService {
         ? _leaders.where('churchId', isEqualTo: churchId)
         : _leaders.orderBy('registeredAt', descending: true);
     return query.snapshots().map((snapshot) {
-      final list = snapshot.docs.map(ChurchLeader.fromFirestore).toList();
+      final list = snapshot.docs
+          .map(ChurchLeader.fromFirestore)
+          .where((leader) => !leaderDocIndicatesAdmin(leader))
+          .toList();
       list.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
       return list;
     });
@@ -72,7 +75,9 @@ class LeaderService {
     final pageDocs = hasMore ? docs.sublist(0, limit) : docs;
 
     return LeadersPage(
-      leaders: pageDocs.map(ChurchLeader.fromFirestore).toList(),
+      leaders: await _excludeAdminAccounts(
+        pageDocs.map(ChurchLeader.fromFirestore),
+      ),
       hasMore: hasMore,
       lastDocument: pageDocs.isEmpty ? startAfter : pageDocs.last,
     );
@@ -117,7 +122,7 @@ class LeaderService {
     matches.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
 
     return LeadersPage(
-      leaders: matches,
+      leaders: await _excludeAdminAccounts(matches),
       hasMore: false,
       lastDocument: null,
     );
@@ -233,6 +238,61 @@ class LeaderService {
 
   static bool rolesAllowPastoralAssignment(List<String> roles) {
     return roles.any(_pastoralAssignmentRoles.contains);
+  }
+
+  static bool leaderDocIndicatesAdmin(ChurchLeader leader) {
+    final docRoles = leader.appRoles;
+    if (docRoles == null || docRoles.isEmpty) return false;
+    return AppUserRole.hasAdminAccess(docRoles);
+  }
+
+  Future<List<ChurchLeader>> _excludeAdminAccounts(
+    Iterable<ChurchLeader> leaders,
+  ) async {
+    final list = leaders.toList();
+    final result = <ChurchLeader>[];
+    final needsLookup = <ChurchLeader>[];
+
+    for (final leader in list) {
+      final docRoles = leader.appRoles;
+      if (docRoles != null && docRoles.isNotEmpty) {
+        if (!AppUserRole.hasAdminAccess(docRoles)) {
+          result.add(leader);
+        }
+        continue;
+      }
+
+      final uid = leader.authUserId?.trim();
+      if (uid == null || uid.isEmpty) {
+        result.add(leader);
+        continue;
+      }
+      needsLookup.add(leader);
+    }
+
+    if (needsLookup.isEmpty) return result;
+
+    final profiles = await Future.wait(
+      needsLookup.map((leader) {
+        final uid = leader.authUserId!.trim();
+        return _userProfileService.fetchProfileDoc(uid);
+      }),
+    );
+
+    for (var i = 0; i < needsLookup.length; i++) {
+      final leader = needsLookup[i];
+      final doc = profiles[i];
+      if (doc == null) {
+        result.add(leader);
+        continue;
+      }
+      final roles = AppUserRole.parseList(doc.data()?['roles']);
+      if (!AppUserRole.hasAdminAccess(roles)) {
+        result.add(leader);
+      }
+    }
+
+    return result;
   }
 
   /// Cuenta en `users` con rol líder o supervisor (asignación pastoral / titular de célula).

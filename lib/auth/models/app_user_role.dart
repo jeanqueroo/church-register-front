@@ -83,4 +83,10 @@ class AppUserRole {
     }
     return set.toList()..sort();
   }
+
+  static const adminAccessRoles = {superAdmin, admin};
+
+  static bool hasAdminAccess(Iterable<String> roles) {
+    return roles.any(adminAccessRoles.contains);
+  }
 }
