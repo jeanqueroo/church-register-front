@@ -733,7 +733,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (showAssignFab) ...[
-            OutlinedButton.icon(
+            FilledButton.icon(
               onPressed: _openAssignMembers,
               icon: const Icon(Icons.group_add_outlined),
               label: Text(l10n.cellDetailAssignDisciplesAction),
@@ -800,7 +800,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                 _Section(title: l10n.cellRegSectionData, rows: _cellRows(l10n)),
                 const SizedBox(height: 16),
                 if (_permissions.canEditCell) ...[
-                  OutlinedButton.icon(
+                  FilledButton.icon(
                     onPressed: _openEdit,
                     icon: const Icon(Icons.edit_outlined),
                     label: Text(l10n.cellEditTitle),
