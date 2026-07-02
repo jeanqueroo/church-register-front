@@ -12,7 +12,6 @@ import UIKit
        !apiKey.isEmpty {
       GMSServices.provideAPIKey(apiKey)
     }
-    GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
