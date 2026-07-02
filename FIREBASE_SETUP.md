@@ -2,7 +2,7 @@
 
 Guía para configurar un **proyecto Firebase nuevo** con esta app. El login usa **Firebase Authentication** (correo y contraseña).
 
-Los mapas usan **OpenStreetMap** (Nominatim + flutter_map). **No** hace falta API key de Google Maps.
+Los mapas usan **Google Maps** (`google_maps_flutter`). Necesitas una API key con **Maps SDK for iOS** y **Maps SDK for Android** habilitadas en Google Cloud.
 
 ---
 
@@ -190,7 +190,27 @@ Al crear el proyecto Firebase se crea un proyecto en Google Cloud. Revisa:
 | **APIs** | Firestore, Storage, FCM y Functions se activan al usarlas |
 | **Play Integrity** | App Check en producción Android (vía Play Console) |
 
-**No** necesitas configurar Google Maps API: la app usa OpenStreetMap.
+**Sí** necesitas configurar Google Maps Platform:
+
+1. En [Google Cloud Console](https://console.cloud.google.com/) → **APIs y servicios** → habilita:
+   - Maps SDK for Android
+   - Maps SDK for iOS
+   - Places API (autocompletado de direcciones)
+   - Geocoding API
+2. Crea o reutiliza una API key y configúrala en:
+   - `lib/core/config/maps_api_key.dart`
+   - `android/app/src/main/AndroidManifest.xml` (`com.google.android.geo.API_KEY`)
+   - `ios/Runner/Info.plist` (`GMSApiKey`)
+3. **iOS:** `ios/Runner/AppDelegate.swift` debe llamar a `GMSServices.provideAPIKey` al iniciar (ya incluido en el proyecto).
+4. Restringe la key por app:
+   - Android: `com.church.register.manantial`
+   - iOS: bundle ID de Xcode (`com.church.register.churchRegister` o el que uses en producción)
+5. Tras cambios en iOS, en Mac ejecuta:
+
+```bash
+cd ios && pod install && cd ..
+flutter clean && flutter pub get
+```
 
 ---
 
