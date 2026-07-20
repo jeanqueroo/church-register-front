@@ -75,10 +75,12 @@ class _LeadersListBodyState extends State<_LeadersListBody>
   bool _hideBlocked = false;
   bool _actionInProgress = false;
   bool _loading = true;
+  bool _searching = false;
   bool _loadingMore = false;
   bool _loadingMap = false;
   bool _hasMore = true;
   int _blockedCount = 0;
+  int _listRequestId = 0;
   Object? _loadError;
   List<ChurchLeader> _leaders = [];
   List<ChurchLeader>? _mapLeaders;
@@ -151,11 +153,24 @@ class _LeadersListBodyState extends State<_LeadersListBody>
     _mapCacheKey = null;
   }
 
-  Future<void> _loadFirstPage({bool forceRefresh = false}) async {
+  Future<void> _loadFirstPage({
+    bool forceRefresh = false,
+    bool fromSearch = false,
+  }) async {
+    final requestId = ++_listRequestId;
+    final keepPreviousResults = fromSearch && _leaders.isNotEmpty;
+
     setState(() {
-      _loading = true;
+      if (fromSearch) {
+        _searching = true;
+        if (!keepPreviousResults) {
+          _loading = true;
+        }
+      } else {
+        _loading = true;
+        _leaders = [];
+      }
       _loadError = null;
-      _leaders = [];
       _lastDocument = null;
       _hasMore = true;
       if (forceRefresh) {
@@ -169,22 +184,26 @@ class _LeadersListBodyState extends State<_LeadersListBody>
         searchQuery: _activeSearchQuery,
         hideBlocked: _hideBlocked,
       );
-      if (!mounted) return;
+      if (!mounted || requestId != _listRequestId) return;
       setState(() {
         _leaders = page.leaders;
         _lastDocument = page.lastDocument;
         _hasMore = page.hasMore;
         _loading = false;
+        _searching = false;
       });
       if (_tabController.index == 1) {
         _loadAllForMap(forceRefresh: true);
       }
     } on FirebaseException catch (error) {
-      if (!mounted) return;
+      if (!mounted || requestId != _listRequestId) return;
       setState(() {
         _loadError = error;
         _loading = false;
-        _leaders = [];
+        _searching = false;
+        if (!keepPreviousResults) {
+          _leaders = [];
+        }
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -194,11 +213,14 @@ class _LeadersListBodyState extends State<_LeadersListBody>
         ),
       );
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || requestId != _listRequestId) return;
       setState(() {
         _loadError = error;
         _loading = false;
-        _leaders = [];
+        _searching = false;
+        if (!keepPreviousResults) {
+          _leaders = [];
+        }
       });
     }
   }
@@ -259,14 +281,14 @@ class _LeadersListBodyState extends State<_LeadersListBody>
 
   void _onSearchChanged(String value) {
     _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+    _searchDebounce = Timer(const Duration(milliseconds: 450), () {
       final query = value.trim();
       if (query == _activeSearchQuery) return;
       _activeSearchQuery = query;
       _lastDocument = null;
       _hasMore = true;
       _invalidateMapCache();
-      _loadFirstPage();
+      _loadFirstPage(fromSearch: true);
     });
   }
 
@@ -628,14 +650,18 @@ class _LeadersListBodyState extends State<_LeadersListBody>
   }
 
   bool get _showTabs =>
-      !_loading && _loadError == null && (_leaders.isNotEmpty || _blockedCount > 0);
+      _loadError == null &&
+      (_leaders.isNotEmpty ||
+          _blockedCount > 0 ||
+          _activeSearchQuery.isNotEmpty ||
+          _searching);
 
   Widget _buildBody(BuildContext context, AppLocalizations l10n) {
-    if (_loading && _leaders.isEmpty) {
+    if (_loading && _leaders.isEmpty && !_searching) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_loadError != null && _leaders.isEmpty) {
+    if (_loadError != null && _leaders.isEmpty && !_searching) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -660,7 +686,10 @@ class _LeadersListBodyState extends State<_LeadersListBody>
       );
     }
 
-    if (_leaders.isEmpty && _blockedCount == 0 && _activeSearchQuery.isEmpty) {
+    if (_leaders.isEmpty &&
+        _blockedCount == 0 &&
+        _activeSearchQuery.isEmpty &&
+        !_searching) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -691,6 +720,11 @@ class _LeadersListBodyState extends State<_LeadersListBody>
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: _buildSearchField(l10n),
         ),
+        if (_searching)
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: LinearProgressIndicator(minHeight: 2),
+          ),
         if (_blockedCount > 0)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),

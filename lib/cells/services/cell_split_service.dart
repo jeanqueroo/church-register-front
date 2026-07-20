@@ -330,6 +330,7 @@ class CellSplitService {
       leaderId: leaderId,
       leaderName: leader.fullName,
       notes: newCell.notes,
+      alias: newCell.alias,
       registeredAt: DateTime.now(),
       registeredBy: registeredBy,
       churchId: churchId,

@@ -87,6 +87,14 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "churchId", "order": "ASCENDING" },
+        { "fieldPath": "newBelieverAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "churchId", "order": "ASCENDING" },
         { "fieldPath": "isNewBeliever", "order": "ASCENDING" },
         { "fieldPath": "searchName", "order": "ASCENDING" }
       ]

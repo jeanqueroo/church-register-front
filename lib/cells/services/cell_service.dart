@@ -97,6 +97,16 @@ class CellService {
     });
   }
 
+  Future<void> updateCellAlias({
+    required String cellId,
+    required String? alias,
+  }) async {
+    final trimmed = alias?.trim() ?? '';
+    await _cells.doc(cellId).update({
+      'alias': trimmed.isEmpty ? FieldValue.delete() : trimmed,
+    });
+  }
+
   /// Leader IDs that already lead a cell (optionally scoped to [churchId]).
   /// Pass [excludeCellId] when editing so the current cell's leader stays selectable.
   Future<Set<String>> fetchLeaderIdsWithAssignedCell({

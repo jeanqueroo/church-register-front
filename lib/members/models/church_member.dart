@@ -49,6 +49,7 @@ class ChurchMember {
     this.assignedDistanceKm,
     this.wantsVisit = true,
     this.isNewBeliever = false,
+    this.newBelieverAt,
     this.isBaptized = false,
     this.baptizedAt,
     this.entrySource,
@@ -100,11 +101,17 @@ class ChurchMember {
   final SpiritualState? spiritualState;
   final double? assignedDistanceKm;
   final bool wantsVisit;
-  /// `true` al registrar por primera vez; se conserva en ediciones posteriores.
+  /// `true` mientras sigue figurando como nuevo creyente; puede pasar a `false`.
   final bool isNewBeliever;
+  /// Fecha en que se registró como nuevo creyente. No se borra al cambiar de estado.
+  final DateTime? newBelieverAt;
   /// `true` si el integrante ya fue bautizado.
   final bool isBaptized;
   final DateTime? baptizedAt;
+
+  /// Fecha efectiva de registro como nuevo creyente (campo o, si aún lo es, `registeredAt`).
+  DateTime? get effectiveNewBelieverAt =>
+      newBelieverAt ?? (isNewBeliever ? registeredAt : null);
   final MemberEntrySource? entrySource;
   final String? entrySourceStored;
   final DateTime formDate;
@@ -333,6 +340,8 @@ class ChurchMember {
       'assignedDistanceKm': assignedDistanceKm,
       'wantsVisit': wantsVisit,
       'isNewBeliever': isNewBeliever,
+      if (newBelieverAt != null)
+        'newBelieverAt': Timestamp.fromDate(newBelieverAt!),
       'isBaptized': isBaptized,
       if (baptizedAt != null) 'baptizedAt': Timestamp.fromDate(baptizedAt!),
       'entrySource': entrySource?.name,
@@ -423,6 +432,7 @@ class ChurchMember {
       assignedDistanceKm: (data['assignedDistanceKm'] as num?)?.toDouble(),
       wantsVisit: data['wantsVisit'] as bool? ?? true,
       isNewBeliever: data['isNewBeliever'] as bool? ?? false,
+      newBelieverAt: (data['newBelieverAt'] as Timestamp?)?.toDate(),
       isBaptized: data['isBaptized'] as bool? ?? false,
       baptizedAt: (data['baptizedAt'] as Timestamp?)?.toDate(),
       entrySource:

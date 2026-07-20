@@ -60,30 +60,66 @@ class PastoralDashboardService {
         churchId: filter.churchId,
       );
     } else {
-      Query<Map<String, dynamic>> query = _members;
-      final churchId = filter.churchId?.trim();
-      if (churchId != null && churchId.isNotEmpty) {
-        query = query.where('churchId', isEqualTo: churchId);
-      }
-      query = query
-          .where(
-            'registeredAt',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(rangeStart),
-          )
-          .where(
-            'registeredAt',
-            isLessThanOrEqualTo: Timestamp.fromDate(rangeEnd),
-          );
-      final snapshot = await query.get();
-      members = snapshot.docs.map(ChurchMember.fromFirestore).toList();
-      return members;
+      members = await _fetchMembersMarkedAsNewBelievers(
+        churchId: filter.churchId,
+        rangeStart: rangeStart,
+        rangeEnd: rangeEnd,
+      );
     }
 
     return members.where((member) {
-      final registeredAt = member.registeredAt;
-      return !registeredAt.isBefore(rangeStart) &&
-          !registeredAt.isAfter(rangeEnd);
+      final at = member.effectiveNewBelieverAt;
+      if (at == null) return false;
+      return !at.isBefore(rangeStart) && !at.isAfter(rangeEnd);
     }).toList();
+  }
+
+  /// Incluye quienes tienen `newBelieverAt` en el rango y legacy con
+  /// `isNewBeliever` + `registeredAt` (sin `newBelieverAt` aún).
+  Future<List<ChurchMember>> _fetchMembersMarkedAsNewBelievers({
+    String? churchId,
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+  }) async {
+    Query<Map<String, dynamic>> base = _members;
+    final normalizedChurchId = churchId?.trim();
+    if (normalizedChurchId != null && normalizedChurchId.isNotEmpty) {
+      base = base.where('churchId', isEqualTo: normalizedChurchId);
+    }
+
+    final byMarkedAt = await base
+        .where(
+          'newBelieverAt',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(rangeStart),
+        )
+        .where(
+          'newBelieverAt',
+          isLessThanOrEqualTo: Timestamp.fromDate(rangeEnd),
+        )
+        .get();
+
+    final byLegacyFlag = await base
+        .where('isNewBeliever', isEqualTo: true)
+        .where(
+          'registeredAt',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(rangeStart),
+        )
+        .where(
+          'registeredAt',
+          isLessThanOrEqualTo: Timestamp.fromDate(rangeEnd),
+        )
+        .get();
+
+    final byId = <String, ChurchMember>{};
+    for (final doc in byMarkedAt.docs) {
+      byId[doc.id] = ChurchMember.fromFirestore(doc);
+    }
+    for (final doc in byLegacyFlag.docs) {
+      final member = ChurchMember.fromFirestore(doc);
+      if (member.newBelieverAt != null) continue;
+      byId.putIfAbsent(doc.id, () => member);
+    }
+    return byId.values.toList();
   }
 
   Future<List<ChurchMember>> _fetchMembersByLeaders({
@@ -126,7 +162,10 @@ class PastoralDashboardService {
     required DateTime rangeEnd,
   }) {
     return _visitDashboardService.buildChartPointsFromDates(
-      dates: members.map((member) => member.registeredAt).toList(),
+      dates: members
+          .map((member) => member.effectiveNewBelieverAt)
+          .whereType<DateTime>()
+          .toList(),
       period: period,
       rangeStart: rangeStart,
       rangeEnd: rangeEnd,

@@ -312,6 +312,12 @@ class MemberDetailScreen extends StatelessWidget {
             : null,
       ),
       _Row(
+        l10n.memberDetailNewBelieverAt,
+        member.effectiveNewBelieverAt != null
+            ? _formatDate(member.effectiveNewBelieverAt)
+            : null,
+      ),
+      _Row(
         l10n.memberDetailCellAssignedAt,
         member.cellAssignedAt != null ? _formatDate(member.cellAssignedAt) : null,
       ),

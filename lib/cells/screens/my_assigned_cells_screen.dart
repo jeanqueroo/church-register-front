@@ -364,6 +364,8 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
             final parts = <String>[
               if (cell.leaderName != null && cell.leaderName!.trim().isNotEmpty)
                 l10n.myAssignedCellLeaderLabel(cell.leaderName!),
+              if (cell.alias != null && cell.alias!.trim().isNotEmpty)
+                '${l10n.cellRegAlias}: ${cell.alias!.trim()}',
               if (cell.cellDay != null && cell.cellDay!.trim().isNotEmpty)
                 '${l10n.cellRegMeetingDay}: ${localizedWeekday(l10n, cell.cellDay)}',
               if (cell.formattedAddress.isNotEmpty) cell.formattedAddress,

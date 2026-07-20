@@ -121,6 +121,11 @@ class AppPermissions {
         actorId != null &&
         actorId == leaderId;
   }
+
+  /// Alias bancario de la célula: admin o líder titular de esa célula.
+  bool canEditCellAlias(String? cellLeaderId, {String? actingLeaderId}) {
+    return canManageCellHelpers(cellLeaderId, actingLeaderId: actingLeaderId);
+  }
   bool get canViewBaptismCalendar =>
       isAdmin || isSupervisor || isLeader;
   /// Solo el administrador de iglesia puede crear o eliminar fechas de bautismo.

@@ -54,6 +54,7 @@ Archivo: `lib/members/models/member_registration_source.dart`.
 
 | Campo | Cuándo se guarda |
 |-------|------------------|
+| `newBelieverAt` | Cuando se registra como nuevo creyente (`isNewBeliever: true`). **No se borra** al pasar `isNewBeliever` a `false` |
 | `pastoralAssignedAt` | Al registrar con líder asignado (`RegisterMemberScreen` o bautismo con líder) |
 | `cellAssignedAt` | **Primera vez** que se asigna a una célula (`assignMemberToCell`) |
 | `baptizedAt` | Al confirmar bautismo (calendario) o al marcar manualmente como bautizado |
@@ -83,7 +84,8 @@ Archivo: `lib/members/models/member_registration_source.dart`.
 #### `isNewBeliever` (nuevo creyente)
 
 - `true` por defecto al registrar en la mayoría de flujos.
-- `false` cuando ocurre cualquiera de estos eventos:
+- Al marcarse como nuevo creyente se guarda también **`newBelieverAt`** (fecha del registro como nuevo creyente).
+- `false` cuando ocurre cualquiera de estos eventos ( **`newBelieverAt` se conserva** ):
   - Confirmación de bautismo en calendario (`updateMembersBaptismConfirmation`)
   - Promoción a líder / voluntario (`markMemberLeadershipStatus`)
   - Asignación como ayudante de célula (`clearNewBelieverForCellHelpers`)
@@ -91,6 +93,8 @@ Archivo: `lib/members/models/member_registration_source.dart`.
   - Edición manual (se conserva el valor previo al editar)
 
 Constante: `MemberService.cellPresentAttendancesToGraduateNewBeliever = 3`.
+
+> Para reportes históricos (p. ej. dashboard pastoral) usa `newBelieverAt` / `effectiveNewBelieverAt`, no solo el booleano actual.
 
 #### `isBaptized` y `baptizedAt`
 

@@ -9,6 +9,7 @@ import '../../core/widgets/form_section_title.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/models/leader_registration_source.dart';
 import '../../leaders/services/leader_service.dart';
+import '../../members/models/id_document_type.dart';
 import '../models/user_profile.dart';
 import '../services/user_profile_service.dart';
 import '../utils/person_name.dart';
@@ -41,6 +42,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
   late final TextEditingController _localityController;
   late final TextEditingController _stateProvinceController;
   late final TextEditingController _postalCodeController;
+  late final TextEditingController _idDocumentNumberController;
   late final TextEditingController _mobilePhoneController;
   late final TextEditingController _emailController;
   late final UserProfileService _profileService;
@@ -51,6 +53,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
   bool _loadingLeader = false;
   ChurchLeader? _leader;
   GeoLocation? _leaderLocation;
+  IdDocumentType? _idDocumentType;
 
   bool get _isLeaderAccount => widget.session.isLeaderAccount;
 
@@ -65,11 +68,12 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
       widget.session.profile.permissions.isAdmin ||
       _hasLinkedLeaderId;
 
-  /// Nombre, dirección y teléfono (no solo nombre como el admin de iglesia).
+  /// Nombre, dirección, documento y teléfono.
   bool get _editsFullLeaderFields =>
       _isLeaderAccount ||
       widget.session.profile.permissions.isRegistrar ||
-      widget.session.profile.permissions.isSupervisor;
+      widget.session.profile.permissions.isSupervisor ||
+      (widget.session.profile.permissions.isAdmin && _hasLinkedLeaderId);
 
   @override
   void initState() {
@@ -88,6 +92,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _localityController = TextEditingController();
     _stateProvinceController = TextEditingController(text: 'Buenos Aires');
     _postalCodeController = TextEditingController();
+    _idDocumentNumberController = TextEditingController();
     _mobilePhoneController = TextEditingController();
     _emailController = TextEditingController(
       text: profile.email ?? widget.session.email,
@@ -136,6 +141,8 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _localityController.text = leader.locality ?? '';
     _stateProvinceController.text = leader.stateProvince ?? 'Buenos Aires';
     _postalCodeController.text = leader.postalCode ?? '';
+    _idDocumentType = leader.idDocumentType;
+    _idDocumentNumberController.text = leader.idDocumentNumber ?? '';
     _mobilePhoneController.text = leader.mobilePhone;
     _leaderLocation = leader.geoLocation;
   }
@@ -162,6 +169,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _localityController.dispose();
     _stateProvinceController.dispose();
     _postalCodeController.dispose();
+    _idDocumentNumberController.dispose();
     _mobilePhoneController.dispose();
     _emailController.dispose();
     super.dispose();
@@ -216,8 +224,10 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                   : _streetNumberController.text.trim(),
               cellCode: leader.cellCode,
               gender: leader.gender,
-              idDocumentType: leader.idDocumentType,
-              idDocumentNumber: leader.idDocumentNumber,
+              idDocumentType: _idDocumentType,
+              idDocumentNumber: _idDocumentNumberController.text.trim().isEmpty
+                  ? null
+                  : _idDocumentNumberController.text.trim(),
               birthDate: leader.birthDate,
               neighborhood: _neighborhoodController.text.trim().isEmpty
                   ? null
@@ -439,6 +449,8 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 24),
+              FormSectionTitle(l10n.memberDetailSectionAddress),
               AddressFieldsSection(
                 streetController: _streetController,
                 streetNumberController: _streetNumberController,
@@ -447,6 +459,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                 stateProvinceController: _stateProvinceController,
                 postalCodeController: _postalCodeController,
                 enabled: !_isLoading,
+                showSectionTitle: false,
                 initialSearchText: _leader?.formattedAddress,
                 onStreetCoordinatesSelected: (location) {
                   setState(() => _leaderLocation = location);
@@ -455,6 +468,33 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                   setState(() => _leaderLocation = null);
                 },
               ),
+              const SizedBox(height: 8),
+              FormSectionTitle(l10n.memberIdDocumentType),
+              Wrap(
+                spacing: 8,
+                children: IdDocumentType.values.map((type) {
+                  return FilterChip(
+                    label: Text(type.localizedLabel(l10n)),
+                    selected: _idDocumentType == type,
+                    onSelected: _isLoading
+                        ? null
+                        : (selected) => setState(() {
+                              _idDocumentType = selected ? type : null;
+                            }),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _idDocumentNumberController,
+                enabled: !_isLoading,
+                decoration: InputDecoration(
+                  labelText: l10n.memberIdDocumentNumber,
+                  prefixIcon: const Icon(Icons.badge_outlined),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 24),
               FormSectionTitle(l10n.editPersonalDataSectionContact),
               TextFormField(
                 controller: _mobilePhoneController,

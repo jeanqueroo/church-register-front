@@ -636,7 +636,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get personalData => 'Datos personales';
 
   @override
-  String get personalDataSubtitleFull => 'Nombre, dirección y teléfono';
+  String get personalDataSubtitleFull =>
+      'Nombre, dirección, documento y teléfono';
 
   @override
   String get personalDataSubtitleName => 'Nombre de tu perfil';
@@ -824,6 +825,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get memberDetailPastoralAssignedAt => 'Asignado a líder';
+
+  @override
+  String get memberDetailNewBelieverAt => 'Registrado como nuevo creyente';
 
   @override
   String get memberDetailCellAssignedAt => 'Asignado a célula';
@@ -2719,6 +2723,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cellRegName => 'Nombre (opcional)';
 
   @override
+  String get cellRegAlias => 'Alias';
+
+  @override
+  String get cellRegAliasHint => 'Ej: celula.norte.mb';
+
+  @override
+  String get cellRegAliasHelper => 'Alias bancario para transferencias';
+
+  @override
+  String get cellRegAliasEmpty => 'Sin alias';
+
+  @override
+  String get cellRegAliasEditAction => 'Editar alias';
+
+  @override
+  String get cellRegAliasSaveSuccess => 'Alias actualizado';
+
+  @override
   String get cellRegNotes => 'Notas (opcional)';
 
   @override
@@ -3042,6 +3064,18 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get cellAttendanceOfferingCollectedHint =>
       'Monto o detalle (opcional)';
+
+  @override
+  String get cellAttendanceOfferingAliasTitle => 'Alias para la ofrenda';
+
+  @override
+  String cellAttendanceOfferingAliasInfo(String alias) {
+    return 'Transferir a: $alias';
+  }
+
+  @override
+  String get cellAttendanceOfferingAliasMissing =>
+      'Esta célula aún no tiene alias de transferencias';
 
   @override
   String get cellAttendanceObservations => 'Observaciones';

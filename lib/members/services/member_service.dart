@@ -417,6 +417,8 @@ class MemberService {
       idDocumentNumber: leader.idDocumentNumber,
       birthDate: leader.birthDate,
       isNewBeliever: false,
+      isBaptized: true,
+      baptizedAt: now,
       wantsVisit: false,
       formDate: now,
       registeredAt: leader.registeredAt,

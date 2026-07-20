@@ -569,6 +569,9 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         isNewBeliever: widget.isEditing
             ? (widget.memberToEdit?.isNewBeliever ?? false)
             : true,
+        newBelieverAt: widget.isEditing
+            ? widget.memberToEdit?.newBelieverAt
+            : registrationTimestamp,
         isBaptized: _isBaptized,
         baptizedAt: _isBaptized
             ? (widget.memberToEdit?.baptizedAt ?? DateTime.now())

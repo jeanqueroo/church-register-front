@@ -1175,7 +1175,7 @@ abstract class AppLocalizations {
   /// No description provided for @personalDataSubtitleFull.
   ///
   /// In es, this message translates to:
-  /// **'Nombre, dirección y teléfono'**
+  /// **'Nombre, dirección, documento y teléfono'**
   String get personalDataSubtitleFull;
 
   /// No description provided for @personalDataSubtitleName.
@@ -1537,6 +1537,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Asignado a líder'**
   String get memberDetailPastoralAssignedAt;
+
+  /// No description provided for @memberDetailNewBelieverAt.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrado como nuevo creyente'**
+  String get memberDetailNewBelieverAt;
 
   /// No description provided for @memberDetailCellAssignedAt.
   ///
@@ -4800,6 +4806,42 @@ abstract class AppLocalizations {
   /// **'Nombre (opcional)'**
   String get cellRegName;
 
+  /// No description provided for @cellRegAlias.
+  ///
+  /// In es, this message translates to:
+  /// **'Alias'**
+  String get cellRegAlias;
+
+  /// No description provided for @cellRegAliasHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: celula.norte.mb'**
+  String get cellRegAliasHint;
+
+  /// No description provided for @cellRegAliasHelper.
+  ///
+  /// In es, this message translates to:
+  /// **'Alias bancario para transferencias'**
+  String get cellRegAliasHelper;
+
+  /// No description provided for @cellRegAliasEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin alias'**
+  String get cellRegAliasEmpty;
+
+  /// No description provided for @cellRegAliasEditAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar alias'**
+  String get cellRegAliasEditAction;
+
+  /// No description provided for @cellRegAliasSaveSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Alias actualizado'**
+  String get cellRegAliasSaveSuccess;
+
   /// No description provided for @cellRegNotes.
   ///
   /// In es, this message translates to:
@@ -5345,6 +5387,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Monto o detalle (opcional)'**
   String get cellAttendanceOfferingCollectedHint;
+
+  /// No description provided for @cellAttendanceOfferingAliasTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Alias para la ofrenda'**
+  String get cellAttendanceOfferingAliasTitle;
+
+  /// No description provided for @cellAttendanceOfferingAliasInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Transferir a: {alias}'**
+  String cellAttendanceOfferingAliasInfo(String alias);
+
+  /// No description provided for @cellAttendanceOfferingAliasMissing.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta célula aún no tiene alias de transferencias'**
+  String get cellAttendanceOfferingAliasMissing;
 
   /// No description provided for @cellAttendanceObservations.
   ///

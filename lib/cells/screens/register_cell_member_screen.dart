@@ -258,6 +258,7 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
         assignmentKind: MemberAssignmentKind.cell,
         wantsVisit: _wantsVisit,
         isNewBeliever: _isNewBeliever,
+        newBelieverAt: _isNewBeliever ? now : null,
         entrySource: MemberEntrySource.celula,
         formDate: now,
         registeredAt: now,

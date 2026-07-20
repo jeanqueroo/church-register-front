@@ -268,6 +268,7 @@ class _RegisterBaptismBelieverScreenState
             : null,
         wantsVisit: false,
         isNewBeliever: true,
+        newBelieverAt: DateTime.now(),
         isBaptized: false,
         entrySource: MemberEntrySource.iglesiaMadre,
         formDate: _formDate,

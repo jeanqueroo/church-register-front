@@ -47,6 +47,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
   StreamSubscription<ChurchCell?>? _cellSubscription;
   bool _savingHelpers = false;
   bool _claimingLeadership = false;
+  bool _savingAlias = false;
 
   @override
   void initState() {
@@ -76,6 +77,11 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
       );
 
   bool get _canManageHelpers => _permissions.canManageCellHelpers(
+        _cell.leaderId,
+        actingLeaderId: widget.actingLeaderId,
+      );
+
+  bool get _canEditAlias => _permissions.canEditCellAlias(
         _cell.leaderId,
         actingLeaderId: widget.actingLeaderId,
       );
@@ -412,6 +418,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
           leaderId: actingLeaderId,
           leaderName: leader.fullName,
           notes: _cell.notes,
+          alias: _cell.alias,
           helpers: _cell.helpers,
           registeredAt: _cell.registeredAt,
           registeredBy: _cell.registeredBy,
@@ -562,9 +569,12 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
   }
 
   List<_Row> _cellRows(AppLocalizations l10n) {
+    final showAliasInRows =
+        !_canEditAlias || _permissions.canEditCell;
     return [
       _Row(l10n.cellRegCode, _cell.code),
       _Row(l10n.cellRegName, _cell.name),
+      if (showAliasInRows) _Row(l10n.cellRegAlias, _cell.alias),
       _Row(
         l10n.cellRegMeetingDay,
         localizedWeekday(l10n, _cell.cellDay),
@@ -573,6 +583,128 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
       _Row(l10n.cellRegSectionLeader, _cell.leaderName),
       _Row(l10n.cellRegNotes, _cell.notes),
     ];
+  }
+
+  Future<void> _openEditAlias() async {
+    final l10n = context.l10n;
+    final cellId = _cell.id;
+    if (cellId == null || cellId.isEmpty) return;
+
+    final controller = TextEditingController(text: _cell.alias ?? '');
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.cellRegAliasEditAction),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textCapitalization: TextCapitalization.none,
+            decoration: InputDecoration(
+              labelText: l10n.cellRegAlias,
+              hintText: l10n.cellRegAliasHint,
+              helperText: l10n.cellRegAliasHelper,
+              prefixIcon: const Icon(Icons.account_balance_outlined),
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(l10n.commonCancel),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(controller.text),
+              child: Text(l10n.commonSave),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    if (result == null || !mounted) return;
+
+    setState(() => _savingAlias = true);
+    try {
+      await _cellService.updateCellAlias(cellId: cellId, alias: result);
+      if (!mounted) return;
+      _showSnack(l10n.cellRegAliasSaveSuccess);
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      _showSnack(CellService.messageFromFirestoreException(e, l10n));
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(l10n.memberSaveUnexpectedError);
+    } finally {
+      if (mounted) setState(() => _savingAlias = false);
+    }
+  }
+
+  Widget _aliasSection(AppLocalizations l10n) {
+    final alias = _cell.alias?.trim();
+    final hasAlias = alias != null && alias.isNotEmpty;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.account_balance_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.cellRegAlias,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              hasAlias ? alias : l10n.cellRegAliasEmpty,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: hasAlias
+                        ? null
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            if (!hasAlias) ...[
+              const SizedBox(height: 4),
+              Text(
+                l10n.cellRegAliasHelper,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+            if (_canEditAlias) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _savingAlias ? null : _openEditAlias,
+                icon: _savingAlias
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.edit_outlined),
+                label: Text(l10n.cellRegAliasEditAction),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _helpersSection(
@@ -799,6 +931,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                 if (_canClaimLeadership) _claimLeadershipBanner(l10n),
                 _Section(title: l10n.cellRegSectionData, rows: _cellRows(l10n)),
                 const SizedBox(height: 16),
+                if (_canEditAlias && !_permissions.canEditCell) _aliasSection(l10n),
                 if (_permissions.canEditCell) ...[
                   FilledButton.icon(
                     onPressed: _openEdit,

@@ -406,6 +406,60 @@ class _RegisterCellAttendanceScreenState
     );
   }
 
+  Widget _offeringAliasInfo(AppLocalizations l10n) {
+    final alias = widget.cell.alias?.trim();
+    final hasAlias = alias != null && alias.isNotEmpty;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Card(
+      color: hasAlias
+          ? scheme.secondaryContainer
+          : scheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.account_balance_outlined,
+              color: hasAlias
+                  ? scheme.onSecondaryContainer
+                  : scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.cellAttendanceOfferingAliasTitle,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: hasAlias
+                              ? scheme.onSecondaryContainer
+                              : scheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    hasAlias
+                        ? l10n.cellAttendanceOfferingAliasInfo(alias)
+                        : l10n.cellAttendanceOfferingAliasMissing,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: hasAlias
+                              ? scheme.onSecondaryContainer
+                              : scheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _locationDifferenceSection(AppLocalizations l10n) {
     if (!_locationDiffers) return const SizedBox.shrink();
 
@@ -664,6 +718,8 @@ class _RegisterCellAttendanceScreenState
                   _locationDifferenceSection(l10n),
                   const SizedBox(height: 24),
                   FormSectionTitle(l10n.cellAttendanceSectionNotes),
+                  _offeringAliasInfo(l10n),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: _offeringCollectedController,
                     enabled: !_isSaving,

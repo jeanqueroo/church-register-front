@@ -9,7 +9,7 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return androidProd;
+        return androidQA;
       case TargetPlatform.iOS:
         return ios;
       default:
@@ -19,7 +19,7 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions android = FirebaseOptions(
+  static const FirebaseOptions androidQA = FirebaseOptions(
     apiKey: 'AIzaSyC-V8o1o9WKBVZTxx0vaeaUYkrv4UJKfLg',
     appId: '1:401692251430:android:50d2c2b6d227cb6ee31de7',
     messagingSenderId: '401692251430',
