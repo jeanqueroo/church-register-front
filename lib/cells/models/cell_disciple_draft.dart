@@ -21,6 +21,8 @@ class CellDiscipleDraft {
     required this.latitude,
     required this.longitude,
     required this.mobilePhone,
+    this.isBaptized = false,
+    this.baptizedAt,
   });
 
   final String lastName;
@@ -39,6 +41,8 @@ class CellDiscipleDraft {
   final double latitude;
   final double longitude;
   final String mobilePhone;
+  final bool isBaptized;
+  final DateTime? baptizedAt;
 
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
@@ -61,6 +65,8 @@ class CellDiscipleDraft {
       latitude: disciple.latitude ?? 0,
       longitude: disciple.longitude ?? 0,
       mobilePhone: disciple.mobilePhone,
+      isBaptized: disciple.isBaptized,
+      baptizedAt: disciple.baptizedAt,
     );
   }
 
@@ -92,6 +98,8 @@ class CellDiscipleDraft {
       registeredAt: DateTime.now(),
       registeredBy: registeredBy,
       churchId: churchId,
+      isBaptized: isBaptized,
+      baptizedAt: baptizedAt,
     );
   }
 }

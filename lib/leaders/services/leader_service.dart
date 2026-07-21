@@ -192,6 +192,22 @@ class LeaderService {
     return _leaders.doc(id).set(leader.toMap(), SetOptions(merge: true));
   }
 
+  Future<void> updateLeaderPhotoUrl({
+    required String leaderId,
+    required String? photoUrl,
+  }) {
+    final trimmed = photoUrl?.trim() ?? '';
+    return _leaders.doc(leaderId).set(
+      {
+        if (trimmed.isNotEmpty)
+          'photoUrl': trimmed
+        else
+          'photoUrl': FieldValue.delete(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
   Future<ChurchLeader?> fetchLeaderByAuthUserId(String authUserId) async {
     final snapshot = await _leaders
         .where('authUserId', isEqualTo: authUserId)

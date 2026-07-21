@@ -11,6 +11,7 @@ import '../../core/models/leader_gender.dart';
 import '../../core/widgets/form_section_title.dart';
 import '../../l10n/app_localizations.dart';
 import '../../members/models/church_member.dart';
+import '../../members/models/id_document_type.dart';
 import '../../members/models/marital_status.dart';
 import '../../members/models/member_assignment_kind.dart';
 import '../../members/models/member_entry_source.dart';
@@ -63,17 +64,20 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
   final _localityController = TextEditingController();
   final _stateProvinceController = TextEditingController(text: 'Buenos Aires');
   final _postalCodeController = TextEditingController();
+  final _idDocumentNumberController = TextEditingController();
 
   late final MemberService _memberService;
 
   LeaderGender? _gender;
   LeaderGender? _cellLeaderGender;
+  IdDocumentType? _idDocumentType;
   bool _loadingLeaderGender = true;
   DateTime? _birthDate;
   MaritalStatus? _maritalStatus;
   GeoLocation? _memberLocation;
   bool _wantsVisit = false;
   bool _isNewBeliever = false;
+  bool _isBaptized = false;
   bool _isSaving = false;
 
   String? get _effectiveChurchId {
@@ -124,6 +128,7 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
     _localityController.dispose();
     _stateProvinceController.dispose();
     _postalCodeController.dispose();
+    _idDocumentNumberController.dispose();
     super.dispose();
   }
 
@@ -223,6 +228,10 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         gender: _gender,
+        idDocumentType: _idDocumentType,
+        idDocumentNumber: _idDocumentNumberController.text.trim().isEmpty
+            ? null
+            : _idDocumentNumberController.text.trim(),
         street: _streetController.text.trim().isEmpty
             ? null
             : _streetController.text.trim(),
@@ -259,6 +268,8 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
         wantsVisit: _wantsVisit,
         isNewBeliever: _isNewBeliever,
         newBelieverAt: _isNewBeliever ? now : null,
+        isBaptized: _isBaptized,
+        baptizedAt: _isBaptized ? now : null,
         entrySource: MemberEntrySource.celula,
         formDate: now,
         registeredAt: now,
@@ -383,6 +394,35 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _idDocumentTypeSelector(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.memberIdDocumentType,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: IdDocumentType.values.map((type) {
+            return FilterChip(
+              label: Text(type.localizedLabel(l10n)),
+              selected: _idDocumentType == type,
+              onSelected: _isSaving
+                  ? null
+                  : (selected) => setState(() {
+                        _idDocumentType = selected ? type : null;
+                      }),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
@@ -670,6 +710,19 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
                   const SizedBox(height: 16),
                   _birthDateField(l10n),
                   const SizedBox(height: 16),
+                  _idDocumentTypeSelector(l10n),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _idDocumentNumberController,
+                    enabled: !_isSaving,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: InputDecoration(
+                      labelText: l10n.memberIdDocumentNumber,
+                      prefixIcon: const Icon(Icons.badge_outlined),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _occupationController,
                     enabled: !_isSaving,
@@ -712,6 +765,16 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
                     title: Text(l10n.spiritualNewBeliever),
                     subtitle: Text(l10n.cellMemberIsNewBelieverSubtitle),
                     secondary: const Icon(Icons.favorite_outline),
+                  ),
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    value: _isBaptized,
+                    onChanged: _isSaving
+                        ? null
+                        : (value) => setState(() => _isBaptized = value),
+                    title: Text(l10n.memberIsBaptized),
+                    subtitle: Text(l10n.memberIsBaptizedSubtitle),
+                    secondary: const Icon(Icons.water_outlined),
                   ),
                   const SizedBox(height: 24),
                   _visitSection(l10n),

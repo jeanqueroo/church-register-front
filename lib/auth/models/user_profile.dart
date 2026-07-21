@@ -10,6 +10,7 @@ class UserProfile {
     this.churchId,
     this.fullName,
     this.email,
+    this.photoUrl,
     this.isBlocked = false,
     this.supervisedLeaderIds = const [],
   });
@@ -20,6 +21,7 @@ class UserProfile {
   final String? churchId;
   final String? fullName;
   final String? email;
+  final String? photoUrl;
   final bool isBlocked;
   final List<String> supervisedLeaderIds;
 
@@ -38,6 +40,7 @@ class UserProfile {
       churchId: data['churchId'] as String?,
       fullName: data['fullName'] as String?,
       email: data['email'] as String?,
+      photoUrl: data['photoUrl'] as String?,
       isBlocked: data['isBlocked'] as bool? ?? false,
       supervisedLeaderIds: _parseSupervisedLeaderIds(data['supervisedLeaderIds']),
     );

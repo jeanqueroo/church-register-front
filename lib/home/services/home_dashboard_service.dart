@@ -156,15 +156,18 @@ class HomeDashboardService {
 
     var memberCount = 0;
     var newBelieverCount = 0;
+   
     for (final doc in membersSnapshot.docs) {
       final member = ChurchMember.fromFirestore(doc);
       if (member.hasPromotedLeadershipStatus) {
         continue;
       }
-      memberCount++;
       if (member.isNewBeliever) {
         newBelieverCount++;
+        continue;
       }
+       print(member.firstName);
+      memberCount++;
     }
 
     final data = HomeDashboardData(
@@ -276,6 +279,9 @@ class HomeDashboardService {
 
       for (final doc in snapshot.docs) {
         if (!countedMemberIds.add(doc.id)) continue;
+
+        final member = ChurchMember.fromFirestore(doc);
+        if (member.isNewBeliever) continue;
         count++;
       }
     }
@@ -291,7 +297,9 @@ class HomeDashboardService {
         final doc = await _members.doc(helperId).get();
         if (!doc.exists) continue;
 
+        final member = ChurchMember.fromFirestore(doc);
         countedMemberIds.add(helperId);
+        if (member.isNewBeliever) continue;
         count++;
       }
     }

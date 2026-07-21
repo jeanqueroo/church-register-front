@@ -2600,6 +2600,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editPersonalDataRoles => 'System roles';
 
   @override
+  String get editPersonalDataPhoto => 'Profile photo';
+
+  @override
+  String get editPersonalDataPhotoHint => 'Optional. Shown on your account.';
+
+  @override
+  String get editPersonalDataUploadPhoto => 'Upload photo';
+
+  @override
+  String get editPersonalDataChangePhoto => 'Change photo';
+
+  @override
+  String get editPersonalDataRemovePhoto => 'Remove';
+
+  @override
+  String editPersonalDataImageError(String error) {
+    return 'Could not select the image: $error';
+  }
+
+  @override
   String get pushChannelName => 'Member assignments';
 
   @override

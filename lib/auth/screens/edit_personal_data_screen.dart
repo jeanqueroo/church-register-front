@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/locale/l10n_extensions.dart';
 import '../../address/services/geocoding_service.dart';
@@ -48,12 +51,16 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
   late final UserProfileService _profileService;
   late final LeaderService _leaderService;
   final _geocodingService = GeocodingService();
+  final _picker = ImagePicker();
 
   bool _isLoading = false;
   bool _loadingLeader = false;
   ChurchLeader? _leader;
   GeoLocation? _leaderLocation;
   IdDocumentType? _idDocumentType;
+  String? _existingPhotoUrl;
+  Uint8List? _pickedPhotoBytes;
+  bool _removePhoto = false;
 
   bool get _isLeaderAccount => widget.session.isLeaderAccount;
 
@@ -97,6 +104,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _emailController = TextEditingController(
       text: profile.email ?? widget.session.email,
     );
+    _existingPhotoUrl = profile.photoUrl;
     if (_usesLeaderRecord) {
       _loadLeader();
     }
@@ -145,6 +153,61 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _idDocumentNumberController.text = leader.idDocumentNumber ?? '';
     _mobilePhoneController.text = leader.mobilePhone;
     _leaderLocation = leader.geoLocation;
+    final leaderPhoto = leader.photoUrl?.trim();
+    if (leaderPhoto != null && leaderPhoto.isNotEmpty) {
+      _existingPhotoUrl ??= leaderPhoto;
+    }
+  }
+
+  Future<void> _pickPhoto() async {
+    if (_isLoading) return;
+    try {
+      final file = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _pickedPhotoBytes = bytes;
+        _removePhoto = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage(context.l10n.editPersonalDataImageError('$e'));
+    }
+  }
+
+  void _clearPickedPhoto() {
+    setState(() {
+      if (_pickedPhotoBytes != null) {
+        _pickedPhotoBytes = null;
+        return;
+      }
+      _removePhoto = true;
+      _existingPhotoUrl = null;
+    });
+  }
+
+  String? get _effectivePhotoUrl {
+    if (_removePhoto) return null;
+    return _existingPhotoUrl;
+  }
+
+  Future<String?> _resolvePhotoUrlForSave() async {
+    if (_pickedPhotoBytes != null) {
+      return _profileService.uploadProfilePhoto(
+        _pickedPhotoBytes!,
+        uid: widget.session.uid,
+      );
+    }
+    if (_removePhoto) return null;
+    final existing = _existingPhotoUrl?.trim();
+    if (existing != null && existing.isNotEmpty) return existing;
+    return null;
   }
 
   String _buildFormattedAddress() {
@@ -187,12 +250,19 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final photoUrl = await _resolvePhotoUrlForSave();
+      await _profileService.updatePhotoUrl(
+        uid: widget.session.uid,
+        photoUrl: photoUrl,
+      );
+
       if (_usesLeaderRecord) {
         final leader = _leader;
         var leaderId = leader?.id ?? widget.session.profile.leaderId;
 
         if (_editsFullLeaderFields) {
           if (leader == null || leaderId == null || leaderId.isEmpty) {
+            if (!mounted) return;
             _showMessage(context.l10n.leaderRecordNotFound);
             return;
           }
@@ -251,8 +321,13 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
               churchId: leader.churchId,
               registrationSource: leader.registrationSource,
               churchOffice: leader.churchOffice,
+              photoUrl: photoUrl,
               isBlocked: leader.isBlocked,
             ),
+          );
+          await _leaderService.updateLeaderPhotoUrl(
+            leaderId: leaderId,
+            photoUrl: photoUrl,
           );
         } else {
           if (leaderId == null || leaderId.isEmpty) {
@@ -267,6 +342,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                 registeredBy: widget.session.email,
                 churchId: widget.session.profile.churchId,
                 registrationSource: LeaderRegistrationSource.registerLeader,
+                photoUrl: photoUrl,
               ),
               registeredBy: widget.session.email,
             );
@@ -289,13 +365,16 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                 churchId: leader?.churchId ?? widget.session.profile.churchId,
                 registrationSource: leader?.registrationSource ??
                     LeaderRegistrationSource.registerLeader,
+                photoUrl: photoUrl ?? leader?.photoUrl,
+                isBlocked: leader?.isBlocked ?? false,
               ),
+            );
+            await _leaderService.updateLeaderPhotoUrl(
+              leaderId: leaderId,
+              photoUrl: photoUrl,
             );
           }
         }
-      } else {
-        _showMessage(context.l10n.leaderRecordNotFound);
-        return;
       }
       if (!mounted) return;
       _showMessage(context.l10n.editPersonalDataSaved);
@@ -318,6 +397,48 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
       default:
         return LeaderService.messageFromFirestoreException(e, context.l10n);
     }
+  }
+
+  Widget _buildPhotoPreview() {
+    final existing = _effectivePhotoUrl;
+    final Widget child;
+    if (_pickedPhotoBytes != null) {
+      child = Image.memory(
+        _pickedPhotoBytes!,
+        width: 120,
+        height: 120,
+        fit: BoxFit.cover,
+      );
+    } else if (existing != null && existing.isNotEmpty) {
+      child = Image.network(
+        existing,
+        width: 120,
+        height: 120,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _photoPlaceholder(),
+      );
+    } else {
+      child = _photoPlaceholder();
+    }
+
+    return ClipOval(
+      child: SizedBox(
+        width: 120,
+        height: 120,
+        child: child,
+      ),
+    );
+  }
+
+  Widget _photoPlaceholder() {
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Icon(
+        Icons.person_outline,
+        size: 56,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    );
   }
 
   @override
@@ -373,6 +494,43 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
+            ),
+            const SizedBox(height: 24),
+            FormSectionTitle(l10n.editPersonalDataPhoto),
+            Center(child: _buildPhotoPreview()),
+            const SizedBox(height: 8),
+            Text(
+              l10n.editPersonalDataPhotoHint,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FilledButton.tonalIcon(
+                  onPressed: _isLoading ? null : _pickPhoto,
+                  icon: const Icon(Icons.upload_outlined),
+                  label: Text(
+                    _pickedPhotoBytes != null ||
+                            (_effectivePhotoUrl != null &&
+                                _effectivePhotoUrl!.isNotEmpty)
+                        ? l10n.editPersonalDataChangePhoto
+                        : l10n.editPersonalDataUploadPhoto,
+                  ),
+                ),
+                if (_pickedPhotoBytes != null ||
+                    (_effectivePhotoUrl != null &&
+                        _effectivePhotoUrl!.isNotEmpty)) ...[
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: _isLoading ? null : _clearPickedPhoto,
+                    child: Text(l10n.editPersonalDataRemovePhoto),
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 24),
             if (_usesLeaderRecord) ...[

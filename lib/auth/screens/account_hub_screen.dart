@@ -6,11 +6,12 @@ import '../../core/locale/l10n_extensions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/whatsapp_list_tile.dart';
 import '../models/user_profile.dart';
+import '../services/user_profile_service.dart';
 import 'change_password_screen.dart';
 import 'edit_personal_data_screen.dart';
 
 /// Punto de entrada para gestionar la cuenta (formularios separados).
-class AccountHubScreen extends StatelessWidget {
+class AccountHubScreen extends StatefulWidget {
   const AccountHubScreen({
     super.key,
     required this.session,
@@ -19,7 +20,36 @@ class AccountHubScreen extends StatelessWidget {
   final UserSession session;
 
   @override
+  State<AccountHubScreen> createState() => _AccountHubScreenState();
+}
+
+class _AccountHubScreenState extends State<AccountHubScreen> {
+  late String? _photoUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _photoUrl = widget.session.profile.photoUrl;
+  }
+
+  Future<void> _openPersonalData() async {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => EditPersonalDataScreen(session: widget.session),
+      ),
+    );
+    if (updated != true || !mounted) return;
+    final doc =
+        await UserProfileService().fetchProfileDoc(widget.session.uid);
+    if (!mounted || doc == null) return;
+    setState(() {
+      _photoUrl = UserProfile.fromFirestore(doc).photoUrl;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final session = widget.session;
     final l10n = context.l10n;
     final palette = context.churchPalette;
     final name = session.resolvedDisplayName.isNotEmpty
@@ -32,6 +62,7 @@ class AccountHubScreen extends StatelessWidget {
     final editsFullPersonalData = session.isLeaderAccount ||
         permissions.isRegistrar ||
         permissions.isSupervisor;
+    final hasPhoto = _photoUrl != null && _photoUrl!.trim().isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.myAccount)),
@@ -48,14 +79,17 @@ class AccountHubScreen extends StatelessWidget {
                 CircleAvatar(
                   radius: 40,
                   backgroundColor: Colors.white.withValues(alpha: 0.2),
-                  child: Text(
-                    name.isNotEmpty ? name[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  backgroundImage: hasPhoto ? NetworkImage(_photoUrl!) : null,
+                  child: hasPhoto
+                      ? null
+                      : Text(
+                          name.isNotEmpty ? name[0].toUpperCase() : '?',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 14),
                 Text(
@@ -141,14 +175,7 @@ class AccountHubScreen extends StatelessWidget {
                     subtitle: editsFullPersonalData
                         ? l10n.personalDataSubtitleFull
                         : l10n.personalDataSubtitleName,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) =>
-                              EditPersonalDataScreen(session: session),
-                        ),
-                      );
-                    },
+                    onTap: _openPersonalData,
                   ),
                   if (showChurchData)
                     WhatsappListTile(

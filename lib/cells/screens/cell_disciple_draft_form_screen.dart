@@ -55,6 +55,7 @@ class _CellDiscipleDraftFormScreenState
   DateTime? _birthDate;
   GeoLocation? _location;
   bool _isSaving = false;
+  bool _isBaptized = false;
 
   @override
   void initState() {
@@ -79,6 +80,7 @@ class _CellDiscipleDraftFormScreenState
         latitude: initial.latitude,
         longitude: initial.longitude,
       );
+      _isBaptized = initial.isBaptized;
     }
     final code = widget.cellCode?.trim();
     if (code != null && code.isNotEmpty) {
@@ -231,6 +233,7 @@ class _CellDiscipleDraftFormScreenState
       }
 
       final email = _emailController.text.trim();
+      final now = DateTime.now();
       final draft = CellDiscipleDraft(
         lastName: _lastNameController.text.trim(),
         firstName: _firstNameController.text.trim(),
@@ -262,6 +265,8 @@ class _CellDiscipleDraftFormScreenState
         latitude: location.latitude,
         longitude: location.longitude,
         mobilePhone: _mobilePhoneController.text.trim(),
+        isBaptized: _isBaptized,
+        baptizedAt: _isBaptized ? now : null,
       );
 
       if (!mounted) return;
@@ -389,6 +394,16 @@ class _CellDiscipleDraftFormScreenState
                         ? l10n.memberAgeYears(_ageFromBirthDate(_birthDate)!)
                         : '—',
                   ),
+                ),
+                const SizedBox(height: 16),
+                SwitchListTile(
+                  value: _isBaptized,
+                  onChanged: _isSaving
+                      ? null
+                      : (value) => setState(() => _isBaptized = value),
+                  title: Text(l10n.memberIsBaptized),
+                  subtitle: Text(l10n.memberIsBaptizedSubtitle),
+                  secondary: const Icon(Icons.water_outlined),
                 ),
                 const SizedBox(height: 16),
                 AddressFieldsSection(

@@ -1330,6 +1330,17 @@
   "editPersonalDataTitle": "Datos personales",
   "editPersonalDataSaved": "Datos guardados",
   "editPersonalDataRoles": "Roles en el sistema",
+  "editPersonalDataPhoto": "Foto de perfil",
+  "editPersonalDataPhotoHint": "Opcional. Se muestra en tu cuenta.",
+  "editPersonalDataUploadPhoto": "Subir foto",
+  "editPersonalDataChangePhoto": "Cambiar foto",
+  "editPersonalDataRemovePhoto": "Quitar",
+  "editPersonalDataImageError": "No se pudo seleccionar la imagen: {error}",
+  "@editPersonalDataImageError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
   "pushChannelName": "Asignación de integrantes",
   "pushChannelDescription": "Avisos cuando te asignan un integrante",
   "authCreateUserFailed": "No se pudo crear el usuario",

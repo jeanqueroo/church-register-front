@@ -1330,6 +1330,17 @@
   "editPersonalDataTitle": "Personal data",
   "editPersonalDataSaved": "Data saved",
   "editPersonalDataRoles": "System roles",
+  "editPersonalDataPhoto": "Profile photo",
+  "editPersonalDataPhotoHint": "Optional. Shown on your account.",
+  "editPersonalDataUploadPhoto": "Upload photo",
+  "editPersonalDataChangePhoto": "Change photo",
+  "editPersonalDataRemovePhoto": "Remove",
+  "editPersonalDataImageError": "Could not select the image: {error}",
+  "@editPersonalDataImageError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
   "pushChannelName": "Member assignments",
   "pushChannelDescription": "Alerts when a member is assigned to you",
   "authCreateUserFailed": "Could not create the user account",

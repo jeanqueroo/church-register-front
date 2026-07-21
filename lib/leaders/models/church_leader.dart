@@ -35,6 +35,7 @@ class ChurchLeader {
     this.registrationSource,
     this.churchOffice,
     this.appRoles,
+    this.photoUrl,
     this.isBlocked = false,
   });
 
@@ -64,6 +65,7 @@ class ChurchLeader {
   final ChurchOffice? churchOffice;
   /// Roles de app en `users` (p. ej. leader, supervisor, registrador).
   final List<String>? appRoles;
+  final String? photoUrl;
   final bool isBlocked;
 
   String get fullName =>
@@ -184,6 +186,8 @@ class ChurchLeader {
         'registrationSource': registrationSource!.storageKey,
       if (churchOffice != null) 'churchOffice': churchOffice!.code,
       if (appRoles != null && appRoles!.isNotEmpty) 'appRoles': appRoles,
+      if (photoUrl != null && photoUrl!.trim().isNotEmpty)
+        'photoUrl': photoUrl!.trim(),
       'isBlocked': isBlocked,
     };
   }
@@ -223,6 +227,7 @@ class ChurchLeader {
       appRoles: (data['appRoles'] as List<dynamic>?)
           ?.map((e) => e.toString())
           .toList(),
+      photoUrl: data['photoUrl'] as String?,
       isBlocked: data['isBlocked'] as bool? ?? false,
     );
   }

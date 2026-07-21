@@ -1,17 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/admin_user_record.dart';
 import '../models/app_user_role.dart';
 import '../models/user_profile.dart';
+import '../../core/firebase/app_check_bootstrap.dart';
 import '../../l10n/app_localizations.dart';
 
 class UserProfileService {
-  UserProfileService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance,
-        _users = (firestore ?? FirebaseFirestore.instance).collection('users');
+  UserProfileService({
+    FirebaseFirestore? firestore,
+    FirebaseStorage? storage,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _users = (firestore ?? FirebaseFirestore.instance).collection('users'),
+        _storage = storage ?? FirebaseStorage.instance;
 
   final FirebaseFirestore _firestore;
   final CollectionReference<Map<String, dynamic>> _users;
+  final FirebaseStorage _storage;
 
   Future<void> setLeaderProfile({
     required String uid,
@@ -175,6 +182,44 @@ class UserProfileService {
     return _users.doc(uid).set(
       {
         'email': email.trim().toLowerCase(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<String> uploadProfilePhoto(
+    Uint8List bytes, {
+    required String uid,
+    String? contentType,
+  }) async {
+    await ensureAppCheckTokenForUpload();
+
+    final ref = _storage.ref().child('user_profiles/$uid/photo.jpg');
+    if (kDebugMode) {
+      debugPrint('Storage upload → gs://${_storage.bucket}/user_profiles/$uid/photo.jpg');
+    }
+    await ref.putData(
+      bytes,
+      SettableMetadata(
+        contentType: contentType ?? 'image/jpeg',
+        cacheControl: 'public,max-age=86400',
+      ),
+    );
+    return ref.getDownloadURL();
+  }
+
+  Future<void> updatePhotoUrl({
+    required String uid,
+    required String? photoUrl,
+  }) {
+    final trimmed = photoUrl?.trim() ?? '';
+    return _users.doc(uid).set(
+      {
+        if (trimmed.isNotEmpty)
+          'photoUrl': trimmed
+        else
+          'photoUrl': FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),

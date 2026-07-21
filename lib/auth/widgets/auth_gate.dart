@@ -40,12 +40,19 @@ class _AuthGateState extends State<AuthGate> {
   bool _loadingProfile = false;
   String? _profileError;
   String? _scheduledLoadUid;
+  StreamSubscription<UserProfile?>? _profileWatchSub;
 
   @override
   void initState() {
     super.initState();
     _auth = widget.authService ?? AuthService();
     _profileService = widget.userProfileService ?? UserProfileService();
+  }
+
+  @override
+  void dispose() {
+    _profileWatchSub?.cancel();
+    super.dispose();
   }
 
   void _scheduleProfileLoad(User user) {
@@ -67,12 +74,41 @@ class _AuthGateState extends State<AuthGate> {
     if (_session == null && !_loadingProfile && _profileError == null) {
       return;
     }
+    _profileWatchSub?.cancel();
+    _profileWatchSub = null;
     setState(() {
       _session = null;
       _loadingProfile = false;
       _profileError = null;
       _scheduledLoadUid = null;
       _pushRegisteredUid = null;
+    });
+  }
+
+  void _watchProfileUpdates(String uid) {
+    _profileWatchSub?.cancel();
+    _profileWatchSub = _profileService.watchProfile(uid).listen((profile) {
+      if (!mounted || profile == null) return;
+      final session = _session;
+      if (session == null || session.uid != uid) return;
+      if (profile.photoUrl == session.profile.photoUrl) return;
+      setState(() {
+        _session = UserSession(
+          uid: session.uid,
+          email: session.email,
+          displayName: session.displayName,
+          profile: UserProfile(
+            roles: session.profile.roles,
+            leaderId: session.profile.leaderId,
+            churchId: session.profile.churchId,
+            fullName: session.profile.fullName,
+            email: session.profile.email,
+            photoUrl: profile.photoUrl,
+            isBlocked: session.profile.isBlocked,
+            supervisedLeaderIds: session.profile.supervisedLeaderIds,
+          ),
+        );
+      });
     });
   }
 
@@ -135,6 +171,9 @@ class _AuthGateState extends State<AuthGate> {
             churchId: profile.churchId,
             fullName: profile.fullName,
             email: profile.email ?? user.email,
+            photoUrl: profile.photoUrl,
+            isBlocked: profile.isBlocked,
+            supervisedLeaderIds: profile.supervisedLeaderIds,
           );
         }
       }
@@ -157,6 +196,22 @@ class _AuthGateState extends State<AuthGate> {
             leaderChurchId.isNotEmpty) {
           churchId = leaderChurchId;
         }
+        final leaderPhoto = leader?.photoUrl?.trim();
+        final profilePhoto = profile.photoUrl?.trim();
+        if ((profilePhoto == null || profilePhoto.isEmpty) &&
+            leaderPhoto != null &&
+            leaderPhoto.isNotEmpty) {
+          profile = UserProfile(
+            roles: profile.roles,
+            leaderId: profile.leaderId,
+            churchId: profile.churchId,
+            fullName: profile.fullName,
+            email: profile.email,
+            photoUrl: leaderPhoto,
+            isBlocked: profile.isBlocked,
+            supervisedLeaderIds: profile.supervisedLeaderIds,
+          );
+        }
       }
       if (churchId != profile.churchId) {
         profile = UserProfile(
@@ -165,7 +220,9 @@ class _AuthGateState extends State<AuthGate> {
           churchId: churchId,
           fullName: profile.fullName,
           email: profile.email,
+          photoUrl: profile.photoUrl,
           isBlocked: profile.isBlocked,
+          supervisedLeaderIds: profile.supervisedLeaderIds,
         );
       }
       displayName ??= profile.fullName?.trim();
@@ -183,6 +240,7 @@ class _AuthGateState extends State<AuthGate> {
         _session = session;
         _loadingProfile = false;
       });
+      _watchProfileUpdates(user.uid);
       _configurePushForSession(session);
       _syncAdminChurchListing(session);
     } catch (_) {

@@ -31,6 +31,8 @@ class CellDisciple {
     required this.registeredBy,
     this.churchId,
     this.churchOffice,
+    this.isBaptized = false,
+    this.baptizedAt,
   });
 
   final String? id;
@@ -56,6 +58,8 @@ class CellDisciple {
   final String registeredBy;
   final String? churchId;
   final ChurchOffice? churchOffice;
+  final bool isBaptized;
+  final DateTime? baptizedAt;
 
   String get fullName =>
       [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
@@ -113,6 +117,8 @@ class CellDisciple {
       'registeredBy': registeredBy,
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
       if (churchOffice != null) 'churchOffice': churchOffice!.code,
+      'isBaptized': isBaptized,
+      if (baptizedAt != null) 'baptizedAt': Timestamp.fromDate(baptizedAt!),
     };
   }
 
@@ -155,6 +161,8 @@ class CellDisciple {
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,
       churchOffice: ChurchOffice.fromCode(data['churchOffice'] as String?),
+      isBaptized: data['isBaptized'] as bool? ?? false,
+      baptizedAt: (data['baptizedAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -188,6 +196,8 @@ class CellDisciple {
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,
       churchOffice: ChurchOffice.fromCode(data['churchOffice'] as String?),
+      isBaptized: data['isBaptized'] as bool? ?? false,
+      baptizedAt: (data['baptizedAt'] as Timestamp?)?.toDate(),
     );
   }
 }

@@ -4602,6 +4602,42 @@ abstract class AppLocalizations {
   /// **'Roles en el sistema'**
   String get editPersonalDataRoles;
 
+  /// No description provided for @editPersonalDataPhoto.
+  ///
+  /// In es, this message translates to:
+  /// **'Foto de perfil'**
+  String get editPersonalDataPhoto;
+
+  /// No description provided for @editPersonalDataPhotoHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional. Se muestra en tu cuenta.'**
+  String get editPersonalDataPhotoHint;
+
+  /// No description provided for @editPersonalDataUploadPhoto.
+  ///
+  /// In es, this message translates to:
+  /// **'Subir foto'**
+  String get editPersonalDataUploadPhoto;
+
+  /// No description provided for @editPersonalDataChangePhoto.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar foto'**
+  String get editPersonalDataChangePhoto;
+
+  /// No description provided for @editPersonalDataRemovePhoto.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar'**
+  String get editPersonalDataRemovePhoto;
+
+  /// No description provided for @editPersonalDataImageError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo seleccionar la imagen: {error}'**
+  String editPersonalDataImageError(String error);
+
   /// No description provided for @pushChannelName.
   ///
   /// In es, this message translates to:

@@ -1222,7 +1222,14 @@ class _HomeScreenState extends State<HomeScreen> {
           child: CircleAvatar(
             radius: 16,
             backgroundColor: palette.surface,
-            child: Icon(Icons.person_rounded, color: palette.primary, size: 20),
+            backgroundImage: widget.session.profile.photoUrl != null &&
+                    widget.session.profile.photoUrl!.trim().isNotEmpty
+                ? NetworkImage(widget.session.profile.photoUrl!)
+                : null,
+            child: widget.session.profile.photoUrl != null &&
+                    widget.session.profile.photoUrl!.trim().isNotEmpty
+                ? null
+                : Icon(Icons.person_rounded, color: palette.primary, size: 20),
           ),
         ),
       ),
