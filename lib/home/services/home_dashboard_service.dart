@@ -166,7 +166,7 @@ class HomeDashboardService {
         newBelieverCount++;
         continue;
       }
-       print(member.firstName);
+       
       memberCount++;
     }
 

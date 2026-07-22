@@ -1,6 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -381,21 +380,20 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
       Navigator.of(context).pop(true);
     } on FirebaseException catch (e) {
       if (!mounted) return;
-      _showMessage(_messageFromFirestore(e));
-    } catch (_) {
+      if (kDebugMode) {
+        debugPrint(
+          'EditPersonalData save error: [${e.plugin}] ${e.code} — ${e.message}',
+        );
+      }
+      _showMessage(UserProfileService.messageFromException(e, context.l10n));
+    } catch (e) {
       if (!mounted) return;
-      _showMessage(context.l10n.serviceGenericError);
+      if (kDebugMode) {
+        debugPrint('EditPersonalData save error: $e');
+      }
+      _showMessage(UserProfileService.messageFromException(e, context.l10n));
     } finally {
       if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  String _messageFromFirestore(FirebaseException e) {
-    switch (e.code) {
-      case 'permission-denied':
-        return context.l10n.servicePermissionDenied;
-      default:
-        return LeaderService.messageFromFirestoreException(e, context.l10n);
     }
   }
 

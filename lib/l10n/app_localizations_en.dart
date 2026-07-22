@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuMembers => 'View new believers';
 
   @override
+  String get menuChurchMembers => 'View members';
+
+  @override
   String get menuByLeader => 'View new believers by leader';
 
   @override
@@ -1515,6 +1518,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get membersListTitle => 'New believers';
+
+  @override
+  String get churchMembersListTitle => 'Members';
+
+  @override
+  String get churchMembersListEmptyTitle => 'No members registered yet';
+
+  @override
+  String get churchMembersListEmptySubtitle =>
+      'New believers and those promoted to leadership do not appear here.';
 
   @override
   String get membersListExportExcel => 'Download Excel';
@@ -3836,7 +3849,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get churchServiceUploadUnauthorized =>
-      'Not authorized to upload the logo. Check Storage rules.';
+      'Not authorized to upload the file. In debug this is usually App Check: register the debug token in Firebase Console (correct project), or wait 15 min if throttled.';
 
   @override
   String get churchServiceAppCheckError =>

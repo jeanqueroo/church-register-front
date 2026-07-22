@@ -17,6 +17,7 @@ import '../models/church_member.dart';
 import '../models/member_assignment_kind.dart';
 import '../models/member_history_event.dart';
 import '../models/member_leadership_status.dart';
+import '../models/members_list_filter.dart';
 import '../models/members_page.dart';
 import '../../cells/models/cell_attendance_record.dart';
 import '../../cells/models/cell_helper.dart';
@@ -69,26 +70,34 @@ class MemberService {
     String? churchId,
     String? searchQuery,
     DocumentSnapshot<Map<String, dynamic>>? startAfter,
+    MembersListFilter? filter,
     bool newBelieversOnly = false,
     int limit = membersPageSize,
   }) async {
+    final resolvedFilter = filter ??
+        (newBelieversOnly ? MembersListFilter.newBelievers : null);
     final trimmedSearch = normalizeSearchText(searchQuery ?? '');
-    final hasSearch = trimmedSearch.isNotEmpty;
 
-    if (hasSearch) {
+    if (trimmedSearch.isNotEmpty) {
       return _fetchMembersClientSearchPage(
         churchId: churchId,
         trimmedSearch: trimmedSearch,
-        newBelieversOnly: newBelieversOnly,
+        filter: resolvedFilter,
+      );
+    }
+
+    if (resolvedFilter != null) {
+      return _fetchFilteredMembersPage(
+        churchId: churchId,
+        startAfter: startAfter,
+        filter: resolvedFilter,
+        limit: limit,
       );
     }
 
     Query<Map<String, dynamic>> query = _members;
     if (churchId != null && churchId.isNotEmpty) {
       query = query.where('churchId', isEqualTo: churchId);
-    }
-    if (newBelieversOnly) {
-      query = query.where('isNewBeliever', isEqualTo: true);
     }
 
     query = query.orderBy('registeredAt', descending: true);
@@ -109,11 +118,63 @@ class MemberService {
     );
   }
 
+  /// Paginación con filtro de negocio (excluye liderazgo promovido, etc.).
+  Future<MembersPage> _fetchFilteredMembersPage({
+    required String? churchId,
+    required DocumentSnapshot<Map<String, dynamic>>? startAfter,
+    required MembersListFilter filter,
+    required int limit,
+  }) async {
+    final members = <ChurchMember>[];
+    DocumentSnapshot<Map<String, dynamic>>? cursor = startAfter;
+    var sourceExhausted = false;
+
+    while (members.length < limit && !sourceExhausted) {
+      Query<Map<String, dynamic>> query = _members;
+      if (churchId != null && churchId.isNotEmpty) {
+        query = query.where('churchId', isEqualTo: churchId);
+      }
+      final isNewBelieverEquals = filter.firestoreIsNewBelieverEquals;
+      if (isNewBelieverEquals != null) {
+        query = query.where('isNewBeliever', isEqualTo: isNewBelieverEquals);
+      }
+      query = query.orderBy('registeredAt', descending: true);
+      if (cursor != null) {
+        query = query.startAfterDocument(cursor);
+      }
+
+      final remaining = limit - members.length;
+      final snapshot = await query.limit(remaining + 15).get();
+      if (snapshot.docs.isEmpty) {
+        sourceExhausted = true;
+        break;
+      }
+
+      for (final doc in snapshot.docs) {
+        cursor = doc;
+        final member = ChurchMember.fromFirestore(doc);
+        if (!filter.matches(member)) continue;
+        members.add(member);
+        if (members.length >= limit) break;
+      }
+
+      if (snapshot.docs.length < remaining + 15) {
+        sourceExhausted = true;
+      }
+    }
+
+    return MembersPage(
+      members: members,
+      hasMore: !sourceExhausted && members.length >= limit,
+      lastDocument: cursor ?? startAfter,
+    );
+  }
+
   /// Búsqueda en memoria: recorre creyentes y filtra por nombre, apellido, teléfono, etc.
   Future<MembersPage> _fetchMembersClientSearchPage({
     String? churchId,
     required String trimmedSearch,
-    required bool newBelieversOnly,
+    MembersListFilter? filter,
   }) async {
     final matches = <ChurchMember>[];
     DocumentSnapshot<Map<String, dynamic>>? cursor;
@@ -123,8 +184,9 @@ class MemberService {
       if (churchId != null && churchId.isNotEmpty) {
         query = query.where('churchId', isEqualTo: churchId);
       }
-      if (newBelieversOnly) {
-        query = query.where('isNewBeliever', isEqualTo: true);
+      final isNewBelieverEquals = filter?.firestoreIsNewBelieverEquals;
+      if (isNewBelieverEquals != null) {
+        query = query.where('isNewBeliever', isEqualTo: isNewBelieverEquals);
       }
       query = query.orderBy('registeredAt', descending: true);
       if (cursor != null) {
@@ -136,6 +198,7 @@ class MemberService {
 
       for (final doc in snapshot.docs) {
         final member = ChurchMember.fromFirestore(doc);
+        if (filter != null && !filter.matches(member)) continue;
         if (member.matchesSearchQuery(trimmedSearch)) {
           matches.add(member);
         }
@@ -158,6 +221,7 @@ class MemberService {
   Future<List<ChurchMember>> fetchAllMembersForExport({
     String? churchId,
     String? searchQuery,
+    MembersListFilter? filter,
     bool newBelieversOnly = false,
   }) async {
     final all = <ChurchMember>[];
@@ -168,6 +232,7 @@ class MemberService {
         churchId: churchId,
         searchQuery: searchQuery,
         startAfter: cursor,
+        filter: filter,
         newBelieversOnly: newBelieversOnly,
         limit: membersPageSize,
       );

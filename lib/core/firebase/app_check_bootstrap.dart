@@ -28,7 +28,8 @@ Future<void> activateFirebaseAppCheck() async {
 }
 
 /// Obtiene token App Check antes de subir archivos a Storage.
-/// Lanza [FirebaseException] con código `app-check` si no hay token válido.
+///
+/// No intenta subir con token placeholder: Storage rechaza con 403.
 Future<void> ensureAppCheckTokenForUpload() async {
   try {
     // Usar caché primero; forzar refresh solo si hace falta (evita throttling).
@@ -54,20 +55,30 @@ Future<void> ensureAppCheckTokenForUpload() async {
         message: e.message,
       );
     }
-    rethrow;
+    if (e.code == 'app-check-token-missing' || e.code == 'app-check-throttled') {
+      rethrow;
+    }
+    // Errores genéricos (p. ej. code=unknown) al pedir token: tratar como App Check.
+    throw FirebaseException(
+      plugin: 'firebase_app_check',
+      code: 'app-check-token-missing',
+      message: e.message ?? e.code,
+    );
   }
 }
 
 bool _isThrottled(FirebaseException e) {
   final message = (e.message ?? '').toLowerCase();
-  return message.contains('too many attempts');
+  return e.code == 'app-check-throttled' ||
+      message.contains('too many attempts');
 }
 
 void _logDebugTokenHint() {
   if (appCheckDebugToken.isNotEmpty) {
     debugPrint(
       'App Check DEBUG: usando token fijo (APP_CHECK_DEBUG_TOKEN). '
-      'Debe estar registrado en Firebase Console → App Check → Android.',
+      'Debe estar registrado en Firebase Console → App Check → Android '
+      '(proyecto church-register-pro si usas google-services de pro).',
     );
     return;
   }

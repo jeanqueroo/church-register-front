@@ -30,14 +30,14 @@ class DefaultFirebaseOptions {
    static const FirebaseOptions androidProd = FirebaseOptions(
     apiKey: 'AIzaSyAd-9I9WKDu3HL3a86MLr0Jt6v7tjuHcNU',
     appId: '1:374770573112:android:29d96a8b8868cd39ef2bcd',
-    messagingSenderId: '572729325735',
+    messagingSenderId: '374770573112',
     projectId: 'church-register-pro',
     storageBucket: 'church-register-pro.firebasestorage.app',
   );
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCWqcXrfuXQnvoaNKLa2uND0sbi1Azn30g',
     appId: '1:374770573112:ios:853afd5681c31529ef2bcd',
-    messagingSenderId: '572729325735',
+    messagingSenderId: '374770573112',
     projectId: 'church-register-pro',
     storageBucket: 'church-register-pro.firebasestorage.app',
     iosBundleId: 'com.church.register.manantial',

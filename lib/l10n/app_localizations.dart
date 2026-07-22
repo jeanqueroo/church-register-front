@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'Ver nuevos creyentes'**
   String get menuMembers;
 
+  /// No description provided for @menuChurchMembers.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver miembros'**
+  String get menuChurchMembers;
+
   /// No description provided for @menuByLeader.
   ///
   /// In es, this message translates to:
@@ -2807,6 +2813,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Nuevos creyentes'**
   String get membersListTitle;
+
+  /// No description provided for @churchMembersListTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Miembros'**
+  String get churchMembersListTitle;
+
+  /// No description provided for @churchMembersListEmptyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay miembros registrados'**
+  String get churchMembersListEmptyTitle;
+
+  /// No description provided for @churchMembersListEmptySubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Los nuevos creyentes y quienes pasaron a liderazgo no aparecen aquí.'**
+  String get churchMembersListEmptySubtitle;
 
   /// No description provided for @membersListExportExcel.
   ///
@@ -6665,7 +6689,7 @@ abstract class AppLocalizations {
   /// No description provided for @churchServiceUploadUnauthorized.
   ///
   /// In es, this message translates to:
-  /// **'No autorizado para subir el logo. Revisa las reglas de Storage.'**
+  /// **'No autorizado para subir el archivo. En debug suele ser App Check: registra el debug token en Firebase Console (proyecto correcto) o espera 15 min si hay demasiados intentos.'**
   String get churchServiceUploadUnauthorized;
 
   /// No description provided for @churchServiceAppCheckError.

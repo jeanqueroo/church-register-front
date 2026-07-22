@@ -16,6 +16,7 @@ import '../../leaders/screens/leader_assigned_members_screen.dart';
 import '../../leaders/screens/leaders_list_screen.dart';
 import '../../leaders/screens/register_leader_screen.dart';
 import '../../leaders/services/leader_service.dart';
+import '../../members/models/members_list_filter.dart';
 import '../../members/screens/members_by_leader_screen.dart';
 import '../../members/screens/members_list_screen.dart';
 import '../../members/screens/register_member_screen.dart';
@@ -188,6 +189,21 @@ class _HomeScreenState extends State<HomeScreen> {
     if (p.canViewMembersList) {
       items.add(
         SlideMenuItem(
+          id: 'churchMembers',
+          icon: Icons.groups_outlined,
+          label: l10n.menuChurchMembers,
+          onTap: () => _navigate(
+            MembersListScreen(
+              registeredBy: _email,
+              permissions: p,
+              filter: MembersListFilter.activeChurchMembers,
+            ),
+            'churchMembers',
+          ),
+        ),
+      );
+      items.add(
+        SlideMenuItem(
           id: 'members',
           icon: Icons.people_outlined,
           label: l10n.menuMembers,
@@ -195,6 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
             MembersListScreen(
               registeredBy: _email,
               permissions: p,
+              filter: MembersListFilter.newBelievers,
             ),
             'members',
           ),
@@ -698,8 +715,12 @@ class _HomeScreenState extends State<HomeScreen> {
         foregroundColor: HomeStatStyles.members.fg,
         onTap: _permissions.canViewMembersList
             ? () => _navigate(
-                  MembersListScreen(registeredBy: _email, permissions: _permissions),
-                  'members',
+                  MembersListScreen(
+                    registeredBy: _email,
+                    permissions: _permissions,
+                    filter: MembersListFilter.activeChurchMembers,
+                  ),
+                  'churchMembers',
                 )
             : null,
       ),
@@ -712,7 +733,11 @@ class _HomeScreenState extends State<HomeScreen> {
         foregroundColor: HomeStatStyles.newBelievers.fg,
         onTap: _permissions.canViewMembersList
             ? () => _navigate(
-                  MembersListScreen(registeredBy: _email, permissions: _permissions),
+                  MembersListScreen(
+                    registeredBy: _email,
+                    permissions: _permissions,
+                    filter: MembersListFilter.newBelievers,
+                  ),
                   'members',
                 )
             : null,

@@ -8,6 +8,7 @@ import '../../auth/models/app_permissions.dart';
 import '../../l10n/app_localizations.dart';
 import '../../auth/widgets/role_gate.dart';
 import '../models/church_member.dart';
+import '../models/members_list_filter.dart';
 import '../services/member_service.dart';
 import '../services/members_excel_export_service.dart';
 import 'member_detail_screen.dart';
@@ -19,11 +20,13 @@ class MembersListScreen extends StatelessWidget {
     required this.registeredBy,
     this.memberService,
     this.permissions,
+    this.filter = MembersListFilter.newBelievers,
   });
 
   final String registeredBy;
   final MemberService? memberService;
   final AppPermissions? permissions;
+  final MembersListFilter filter;
 
   AppPermissions get _permissions =>
       permissions ?? AppPermissions.adminDefault();
@@ -37,6 +40,7 @@ class MembersListScreen extends StatelessWidget {
         registeredBy: registeredBy,
         memberService: memberService,
         permissions: _permissions,
+        filter: filter,
       ),
     );
   }
@@ -47,11 +51,13 @@ class _MembersListBody extends StatefulWidget {
     required this.registeredBy,
     this.memberService,
     required this.permissions,
+    required this.filter,
   });
 
   final String registeredBy;
   final MemberService? memberService;
   final AppPermissions permissions;
+  final MembersListFilter filter;
 
   @override
   State<_MembersListBody> createState() => _MembersListBodyState();
@@ -119,7 +125,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
       final page = await _service.fetchMembersPage(
         churchId: _churchId,
         searchQuery: _activeSearchQuery,
-        newBelieversOnly: true,
+        filter: widget.filter,
       );
       if (!mounted) return;
       setState(() {
@@ -162,7 +168,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
         churchId: _churchId,
         searchQuery: _activeSearchQuery,
         startAfter: _lastDocument,
-        newBelieversOnly: true,
+        filter: widget.filter,
       );
       if (!mounted) return;
       setState(() {
@@ -222,7 +228,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
       final members = await _service.fetchAllMembersForExport(
         churchId: _churchId,
         searchQuery: _activeSearchQuery,
-        newBelieversOnly: true,
+        filter: widget.filter,
       );
       if (!mounted) return;
       if (members.isEmpty) {
@@ -419,13 +425,30 @@ class _MembersListBodyState extends State<_MembersListBody> {
     return const SizedBox(height: 88);
   }
 
+  String _listTitle(AppLocalizations l10n) => switch (widget.filter) {
+        MembersListFilter.newBelievers => l10n.membersListTitle,
+        MembersListFilter.activeChurchMembers => l10n.churchMembersListTitle,
+      };
+
+  String _emptyTitle(AppLocalizations l10n) => switch (widget.filter) {
+        MembersListFilter.newBelievers => l10n.membersListEmptyTitle,
+        MembersListFilter.activeChurchMembers =>
+          l10n.churchMembersListEmptyTitle,
+      };
+
+  String _emptySubtitle(AppLocalizations l10n) => switch (widget.filter) {
+        MembersListFilter.newBelievers => l10n.membersListEmptySubtitle,
+        MembersListFilter.activeChurchMembers =>
+          l10n.churchMembersListEmptySubtitle,
+      };
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.membersListTitle),
+        title: Text(_listTitle(l10n)),
         actions: [
           if (!_loading && widget.permissions.canExportExcel)
             IconButton(
@@ -441,7 +464,8 @@ class _MembersListBodyState extends State<_MembersListBody> {
             ),
         ],
       ),
-      floatingActionButton: widget.permissions.canRegisterMember
+      floatingActionButton: widget.permissions.canRegisterMember &&
+              widget.filter == MembersListFilter.newBelievers
           ? FloatingActionButton.extended(
               onPressed: () async {
                 final created = await Navigator.of(context).push<bool>(
@@ -516,7 +540,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
                     const SizedBox(height: 16),
                     Text(
                       _activeSearchQuery.isEmpty
-                          ? l10n.membersListEmptyTitle
+                          ? _emptyTitle(l10n)
                           : l10n.commonNoMatches,
                       style: Theme.of(context).textTheme.titleMedium,
                       textAlign: TextAlign.center,
@@ -524,7 +548,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
                     if (_activeSearchQuery.isEmpty) ...[
                       const SizedBox(height: 8),
                       Text(
-                        l10n.membersListEmptySubtitle,
+                        _emptySubtitle(l10n),
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context)

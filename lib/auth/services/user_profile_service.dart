@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../models/admin_user_record.dart';
 import '../models/app_user_role.dart';
 import '../models/user_profile.dart';
+import '../../church/services/church_service.dart';
 import '../../core/firebase/app_check_bootstrap.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -152,11 +153,12 @@ class UserProfileService {
     if (e is FirebaseException) {
       switch (e.code) {
         case 'permission-denied':
-          return l10n.userProfileAdminPermissionDenied;
+          return l10n.servicePermissionDenied;
         case 'unavailable':
           return l10n.serviceUnavailable;
         default:
-          return l10n.userProfileError(e.message ?? e.code);
+          // App Check / Storage / etc. (misma lógica que subida de logo).
+          return ChurchService.messageFromException(e, l10n);
       }
     }
     return l10n.serviceGenericError;
@@ -196,17 +198,30 @@ class UserProfileService {
     await ensureAppCheckTokenForUpload();
 
     final ref = _storage.ref().child('user_profiles/$uid/photo.jpg');
+    final mime = (contentType != null && contentType.startsWith('image/'))
+        ? contentType
+        : 'image/jpeg';
     if (kDebugMode) {
-      debugPrint('Storage upload → gs://${_storage.bucket}/user_profiles/$uid/photo.jpg');
+      debugPrint(
+        'Storage upload → gs://${_storage.bucket}/user_profiles/$uid/photo.jpg '
+        '($mime, ${bytes.length} bytes)',
+      );
     }
-    await ref.putData(
-      bytes,
-      SettableMetadata(
-        contentType: contentType ?? 'image/jpeg',
-        cacheControl: 'public,max-age=86400',
-      ),
-    );
-    return ref.getDownloadURL();
+    try {
+      await ref.putData(
+        bytes,
+        SettableMetadata(
+          contentType: mime,
+          cacheControl: 'public,max-age=86400',
+        ),
+      );
+      return ref.getDownloadURL();
+    } on FirebaseException catch (e) {
+      if (kDebugMode) {
+        debugPrint('uploadProfilePhoto failed: [${e.plugin}] ${e.code} — ${e.message}');
+      }
+      rethrow;
+    }
   }
 
   Future<void> updatePhotoUrl({

@@ -160,7 +160,8 @@ class ChurchService {
         case 'not-found':
           return l10n.churchServiceNotFound;
         case 'unauthorized':
-          return l10n.churchServiceUploadUnauthorized;
+          // Con App Check enforced, un token placeholder suele acabar en 403 unauthorized.
+          return l10n.churchServiceAppCheckThrottled;
         case 'unavailable':
           return l10n.serviceUnavailable;
         default:
