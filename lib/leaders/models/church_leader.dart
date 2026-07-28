@@ -5,6 +5,7 @@ import '../../core/models/leader_gender.dart';
 import '../../core/search/firestore_search_text.dart';
 import '../../l10n/app_localizations.dart';
 import '../../members/models/id_document_type.dart';
+import '../../members/models/marital_status.dart';
 import 'church_office.dart';
 import 'leader_registration_source.dart';
 
@@ -20,6 +21,7 @@ class ChurchLeader {
     this.idDocumentType,
     this.idDocumentNumber,
     this.birthDate,
+    this.maritalStatus,
     this.neighborhood,
     this.locality,
     this.stateProvince,
@@ -49,6 +51,7 @@ class ChurchLeader {
   final IdDocumentType? idDocumentType;
   final String? idDocumentNumber;
   final DateTime? birthDate;
+  final MaritalStatus? maritalStatus;
   final String? neighborhood;
   final String? locality;
   final String? stateProvince;
@@ -168,6 +171,7 @@ class ChurchLeader {
       'idDocumentType': idDocumentType?.name,
       'idDocumentNumber': idDocumentNumber,
       'birthDate': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
+      'maritalStatus': maritalStatus?.name,
       'neighborhood': neighborhood,
       'locality': locality,
       'stateProvince': stateProvince,
@@ -208,6 +212,7 @@ class ChurchLeader {
           IdDocumentType.fromString(data['idDocumentType'] as String?),
       idDocumentNumber: data['idDocumentNumber'] as String?,
       birthDate: (data['birthDate'] as Timestamp?)?.toDate(),
+      maritalStatus: MaritalStatus.fromString(data['maritalStatus'] as String?),
       neighborhood: data['neighborhood'] as String?,
       locality: data['locality'] as String?,
       stateProvince: data['stateProvince'] as String?,

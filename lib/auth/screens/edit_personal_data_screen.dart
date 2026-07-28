@@ -12,6 +12,7 @@ import '../../leaders/models/church_leader.dart';
 import '../../leaders/models/leader_registration_source.dart';
 import '../../leaders/services/leader_service.dart';
 import '../../members/models/id_document_type.dart';
+import '../../members/models/marital_status.dart';
 import '../models/user_profile.dart';
 import '../services/user_profile_service.dart';
 import '../utils/person_name.dart';
@@ -57,6 +58,8 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
   ChurchLeader? _leader;
   GeoLocation? _leaderLocation;
   IdDocumentType? _idDocumentType;
+  DateTime? _birthDate;
+  MaritalStatus? _maritalStatus;
   String? _existingPhotoUrl;
   Uint8List? _pickedPhotoBytes;
   bool _removePhoto = false;
@@ -150,6 +153,8 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _postalCodeController.text = leader.postalCode ?? '';
     _idDocumentType = leader.idDocumentType;
     _idDocumentNumberController.text = leader.idDocumentNumber ?? '';
+    _birthDate = leader.birthDate;
+    _maritalStatus = leader.maritalStatus;
     _mobilePhoneController.text = leader.mobilePhone;
     _leaderLocation = leader.geoLocation;
     final leaderPhoto = leader.photoUrl?.trim();
@@ -218,6 +223,35 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
       _stateProvinceController.text.trim(),
       _postalCodeController.text.trim(),
     ].where((s) => s.isNotEmpty).join(', ');
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
+  }
+
+  int? _ageFromBirthDate(DateTime? date) {
+    if (date == null) return null;
+    final now = DateTime.now();
+    var years = now.year - date.year;
+    if (now.month < date.month ||
+        (now.month == date.month && now.day < date.day)) {
+      years--;
+    }
+    return years;
+  }
+
+  Future<void> _pickBirthDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _birthDate ?? DateTime(now.year - 25),
+      firstDate: DateTime(1920),
+      lastDate: now,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _birthDate = picked);
   }
 
   @override
@@ -297,7 +331,8 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
               idDocumentNumber: _idDocumentNumberController.text.trim().isEmpty
                   ? null
                   : _idDocumentNumberController.text.trim(),
-              birthDate: leader.birthDate,
+              birthDate: _birthDate,
+              maritalStatus: _maritalStatus,
               neighborhood: _neighborhoodController.text.trim().isEmpty
                   ? null
                   : _neighborhoodController.text.trim(),
@@ -649,6 +684,81 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                   prefixIcon: const Icon(Icons.badge_outlined),
                   border: const OutlineInputBorder(),
                 ),
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: _isLoading ? null : _pickBirthDate,
+                borderRadius: BorderRadius.circular(4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: l10n.leaderRegBirthDate,
+                    prefixIcon: const Icon(Icons.calendar_today_outlined),
+                    border: const OutlineInputBorder(),
+                    filled: true,
+                  ),
+                  child: Text(
+                    _birthDate != null
+                        ? _formatDate(_birthDate!)
+                        : l10n.memberSelectDate,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ),
+              if (_birthDate != null) ...[
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () => setState(() => _birthDate = null),
+                    child: Text(l10n.memberClearDate),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              InputDecorator(
+                decoration: InputDecoration(
+                  labelText: l10n.leaderRegAge,
+                  prefixIcon: const Icon(Icons.cake_outlined),
+                  border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                ),
+                child: Text(
+                  _ageFromBirthDate(_birthDate) != null
+                      ? l10n.memberAgeYears(_ageFromBirthDate(_birthDate)!)
+                      : '—',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.memberDetailMaritalStatus,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: MaritalStatus.values.map((status) {
+                  return FilterChip(
+                    label: Text(status.localizedLabel(l10n)),
+                    selected: _maritalStatus == status,
+                    onSelected: _isLoading
+                        ? null
+                        : (selected) => setState(() {
+                              _maritalStatus = selected ? status : null;
+                            }),
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 24),
               FormSectionTitle(l10n.editPersonalDataSectionContact),
