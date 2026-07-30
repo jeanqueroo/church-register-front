@@ -6476,6 +6476,12 @@ abstract class AppLocalizations {
   /// **'La cuenta ya fue creada; el correo no se puede cambiar aquí'**
   String get leaderRegEmailLockedHelper;
 
+  /// No description provided for @leaderRegEmailAdminEditHelper.
+  ///
+  /// In es, this message translates to:
+  /// **'También actualizará el correo de inicio de sesión'**
+  String get leaderRegEmailAdminEditHelper;
+
   /// No description provided for @leaderRegEmailLoginHelper.
   ///
   /// In es, this message translates to:
@@ -6487,6 +6493,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ingresa el correo del líder'**
   String get leaderRegEmailRequired;
+
+  /// No description provided for @leaderRegEmailUpdateFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo actualizar el correo de acceso: {message}'**
+  String leaderRegEmailUpdateFailed(String message);
 
   /// No description provided for @leaderRegPasswordRequired.
   ///

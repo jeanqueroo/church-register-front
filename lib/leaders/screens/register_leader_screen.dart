@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -443,6 +444,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
             ? null
             : _idDocumentNumberController.text.trim(),
         birthDate: _birthDate,
+        maritalStatus: widget.leaderToEdit?.maritalStatus,
         neighborhood: _neighborhoodController.text.trim().isEmpty
             ? null
             : _neighborhoodController.text.trim(),
@@ -468,6 +470,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
             LeaderRegistrationSource.registerLeader,
         churchOffice: _churchOffice,
         appRoles: roles,
+        photoUrl: widget.leaderToEdit?.photoUrl,
         isBlocked: widget.leaderToEdit?.isBlocked ?? false,
       );
 
@@ -479,6 +482,14 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           uid: authUserId,
           roles: roles,
         );
+        final previousEmail =
+            (widget.leaderToEdit?.email ?? '').trim().toLowerCase();
+        if (email.isNotEmpty && email != previousEmail) {
+          await _userProfileService.updateAuthEmailByAdmin(
+            uid: authUserId,
+            email: email,
+          );
+        }
       }
 
       if (!mounted) return;
@@ -487,6 +498,12 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         _showMessage(AuthService.messageFromFirebaseAuthException(e, context.l10n));
+      }
+    } on FirebaseFunctionsException catch (e) {
+      if (mounted) {
+        _showMessage(
+          context.l10n.leaderRegEmailUpdateFailed(e.message ?? e.code),
+        );
       }
     } on FirebaseException catch (e) {
       if (mounted) {
@@ -721,27 +738,20 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
-                  enabled: !_isLoading && widget.isEditing
-                      ? widget.leaderToEdit?.authUserId == null
-                      : true,
-                  readOnly: widget.isEditing &&
-                      widget.leaderToEdit?.authUserId != null,
+                  enabled: !_isLoading,
                   decoration: InputDecoration(
                     labelText: widget.isEditing
                         ? l10n.leaderRegEmailLabel
                         : l10n.leaderRegEmailLabelRequired,
                     prefixIcon: const Icon(Icons.email_outlined),
                     border: const OutlineInputBorder(),
-                    helperText: widget.isEditing &&
-                            widget.leaderToEdit?.authUserId != null
-                        ? l10n.leaderRegEmailLockedHelper
+                    helperText: widget.isEditing
+                        ? (widget.leaderToEdit?.authUserId != null
+                            ? l10n.leaderRegEmailAdminEditHelper
+                            : l10n.leaderRegEmailLoginHelper)
                         : l10n.leaderRegEmailLoginHelper,
                   ),
                   validator: (v) {
-                    if (widget.isEditing &&
-                        widget.leaderToEdit?.authUserId != null) {
-                      return null;
-                    }
                     if (v == null || v.trim().isEmpty) {
                       return l10n.leaderRegEmailRequired;
                     }

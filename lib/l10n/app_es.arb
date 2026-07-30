@@ -1940,8 +1940,17 @@
   "leaderRegEmailLabel": "Correo (usuario de acceso)",
   "leaderRegEmailLabelRequired": "Correo (usuario de acceso) *",
   "leaderRegEmailLockedHelper": "La cuenta ya fue creada; el correo no se puede cambiar aquí",
+  "leaderRegEmailAdminEditHelper": "También actualizará el correo de inicio de sesión",
   "leaderRegEmailLoginHelper": "Será el usuario para iniciar sesión",
   "leaderRegEmailRequired": "Ingresa el correo del líder",
+  "leaderRegEmailUpdateFailed": "No se pudo actualizar el correo de acceso: {message}",
+  "@leaderRegEmailUpdateFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
   "leaderRegPasswordRequired": "Ingresa una contraseña",
   "leaderRegSubmitButton": "Registrar líder",
   "leaderRegLastName": "Apellido *",

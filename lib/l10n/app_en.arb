@@ -1940,8 +1940,17 @@
   "leaderRegEmailLabel": "Email (login username)",
   "leaderRegEmailLabelRequired": "Email (login username) *",
   "leaderRegEmailLockedHelper": "The account was already created; the email cannot be changed here",
+  "leaderRegEmailAdminEditHelper": "This will also update the sign-in email",
   "leaderRegEmailLoginHelper": "This will be the username to sign in",
   "leaderRegEmailRequired": "Enter the leader's email",
+  "leaderRegEmailUpdateFailed": "Could not update the sign-in email: {message}",
+  "@leaderRegEmailUpdateFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
   "leaderRegPasswordRequired": "Enter a password",
   "leaderRegSubmitButton": "Register leader",
   "leaderRegLastName": "Last name *",

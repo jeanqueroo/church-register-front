@@ -3756,10 +3756,19 @@ class AppLocalizationsEs extends AppLocalizations {
       'La cuenta ya fue creada; el correo no se puede cambiar aquí';
 
   @override
+  String get leaderRegEmailAdminEditHelper =>
+      'También actualizará el correo de inicio de sesión';
+
+  @override
   String get leaderRegEmailLoginHelper => 'Será el usuario para iniciar sesión';
 
   @override
   String get leaderRegEmailRequired => 'Ingresa el correo del líder';
+
+  @override
+  String leaderRegEmailUpdateFailed(String message) {
+    return 'No se pudo actualizar el correo de acceso: $message';
+  }
 
   @override
   String get leaderRegPasswordRequired => 'Ingresa una contraseña';

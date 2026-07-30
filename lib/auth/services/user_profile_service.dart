@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 
@@ -188,6 +189,19 @@ class UserProfileService {
       },
       SetOptions(merge: true),
     );
+  }
+
+  /// Actualiza el correo de Auth (y `users`) vía Cloud Function (solo admin).
+  Future<void> updateAuthEmailByAdmin({
+    required String uid,
+    required String email,
+  }) async {
+    final callable = FirebaseFunctions.instanceFor(region: 'southamerica-west1')
+        .httpsCallable('updateUserEmailByAdmin');
+    await callable.call(<String, dynamic>{
+      'uid': uid,
+      'email': email.trim().toLowerCase(),
+    });
   }
 
   Future<String> uploadProfilePhoto(

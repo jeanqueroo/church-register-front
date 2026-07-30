@@ -3731,11 +3731,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'The account was already created; the email cannot be changed here';
 
   @override
+  String get leaderRegEmailAdminEditHelper =>
+      'This will also update the sign-in email';
+
+  @override
   String get leaderRegEmailLoginHelper =>
       'This will be the username to sign in';
 
   @override
   String get leaderRegEmailRequired => 'Enter the leader\'s email';
+
+  @override
+  String leaderRegEmailUpdateFailed(String message) {
+    return 'Could not update the sign-in email: $message';
+  }
 
   @override
   String get leaderRegPasswordRequired => 'Enter a password';

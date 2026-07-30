@@ -1,12 +1,78 @@
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
+const { getAuth } = require('firebase-admin/auth');
 const { getMessaging } = require('firebase-admin/messaging');
 
 initializeApp();
 
 const ANDROID_CHANNEL_ID = 'leader_assignments';
 const FUNCTIONS_REGION = 'southamerica-west1';
+const ADMIN_ROLES = new Set(['admin', 'superadmin']);
+
+function isAdminCaller(roles) {
+  if (!Array.isArray(roles)) return false;
+  return roles.some((role) => ADMIN_ROLES.has(String(role)));
+}
+
+/**
+ * Admin actualiza el correo de login (Auth + users) de un líder/usuario.
+ */
+exports.updateUserEmailByAdmin = onCall(
+  { region: FUNCTIONS_REGION },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+    }
+
+    const db = getFirestore();
+    const callerSnap = await db.collection('users').doc(request.auth.uid).get();
+    if (!callerSnap.exists || !isAdminCaller(callerSnap.data()?.roles)) {
+      throw new HttpsError(
+        'permission-denied',
+        'Solo un administrador puede cambiar el correo.',
+      );
+    }
+
+    const uid = String(request.data?.uid || '').trim();
+    const email = String(request.data?.email || '').trim().toLowerCase();
+    if (!uid || !email || !email.includes('@')) {
+      throw new HttpsError(
+        'invalid-argument',
+        'uid y email válidos son requeridos.',
+      );
+    }
+
+    try {
+      await getAuth().updateUser(uid, { email });
+    } catch (error) {
+      const code = error?.code || '';
+      if (code === 'auth/email-already-exists') {
+        throw new HttpsError('already-exists', 'Ese correo ya está en uso.');
+      }
+      if (code === 'auth/invalid-email') {
+        throw new HttpsError('invalid-argument', 'Correo inválido.');
+      }
+      if (code === 'auth/user-not-found') {
+        throw new HttpsError('not-found', 'Usuario Auth no encontrado.');
+      }
+      console.error('updateUserEmailByAdmin Auth error', error);
+      throw new HttpsError('internal', 'No se pudo actualizar el correo de Auth.');
+    }
+
+    await db.collection('users').doc(uid).set(
+      {
+        email,
+        updatedAt: new Date(),
+        updatedBy: request.auth.uid,
+      },
+      { merge: true },
+    );
+
+    return { ok: true, email };
+  },
+);
 
 exports.notifyLeaderOnMemberAssigned = onDocumentCreated(
   {
