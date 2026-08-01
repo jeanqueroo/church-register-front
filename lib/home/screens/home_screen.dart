@@ -186,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (p.canViewMembersList) {
+    if (p.canViewOldMembersList) {
       items.add(
         SlideMenuItem(
           id: 'churchMembers',
@@ -821,21 +821,7 @@ class _HomeScreenState extends State<HomeScreen> {
       entries.add((icon: icon, title: title, subtitle: subtitle, onTap: onTap));
     }
 
-    if (p.canRegisterMember) {
-      addEntry(
-        icon: Icons.person_add_outlined,
-        title: l10n.quickNewMemberTitle,
-        subtitle: l10n.quickNewMemberSubtitle,
-        onTap: () => _navigate(
-          RegisterMemberScreen(
-            registeredBy: _email,
-            churchId: _churchId,
-            permissions: p,
-          ),
-          'newMember',
-        ),
-      );
-    }
+   
     if (p.canViewMembersList) {
       addEntry(
         icon: Icons.people_outlined,

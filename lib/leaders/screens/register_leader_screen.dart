@@ -63,6 +63,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
   final _confirmPasswordController = TextEditingController();
   final _mobilePhoneController = TextEditingController();
   final _idDocumentNumberController = TextEditingController();
+  final _occupationController = TextEditingController();
 
   late final LeaderService _leaderService;
   final _authService = AuthService();
@@ -144,6 +145,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _idDocumentType = leader.idDocumentType;
     _idDocumentNumberController.text = leader.idDocumentNumber ?? '';
     _birthDate = leader.birthDate;
+    _occupationController.text = leader.occupation ?? '';
     _churchOffice = leader.churchOffice;
     _leaderLocation = leader.geoLocation;
     if (_churchOffice == ChurchOffice.voluntario) {
@@ -178,6 +180,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _confirmPasswordController.dispose();
     _mobilePhoneController.dispose();
     _idDocumentNumberController.dispose();
+    _occupationController.dispose();
     super.dispose();
   }
 
@@ -380,6 +383,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
               ? null
               : _idDocumentNumberController.text.trim(),
           birthDate: _birthDate,
+          occupation: _occupationController.text.trim().isEmpty
+              ? null
+              : _occupationController.text.trim(),
           neighborhood: _neighborhoodController.text.trim().isEmpty
               ? null
               : _neighborhoodController.text.trim(),
@@ -445,6 +451,9 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
             : _idDocumentNumberController.text.trim(),
         birthDate: _birthDate,
         maritalStatus: widget.leaderToEdit?.maritalStatus,
+        occupation: _occupationController.text.trim().isEmpty
+            ? null
+            : _occupationController.text.trim(),
         neighborhood: _neighborhoodController.text.trim().isEmpty
             ? null
             : _neighborhoodController.text.trim(),
@@ -633,6 +642,20 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _occupationController,
+                  textCapitalization: TextCapitalization.words,
+                  enabled: !_isLoading,
+                  decoration: InputDecoration(
+                    labelText: l10n.memberOccupation,
+                    prefixIcon: const Icon(Icons.work_outline),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? l10n.memberOccupationRequired
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 AddressFieldsSection(

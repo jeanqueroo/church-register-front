@@ -22,6 +22,7 @@ class ChurchLeader {
     this.idDocumentNumber,
     this.birthDate,
     this.maritalStatus,
+    this.occupation,
     this.neighborhood,
     this.locality,
     this.stateProvince,
@@ -52,6 +53,7 @@ class ChurchLeader {
   final String? idDocumentNumber;
   final DateTime? birthDate;
   final MaritalStatus? maritalStatus;
+  final String? occupation;
   final String? neighborhood;
   final String? locality;
   final String? stateProvince;
@@ -91,6 +93,7 @@ class ChurchLeader {
       locality,
       neighborhood,
       idDocumentNumber,
+      occupation,
     ]);
   }
 
@@ -108,6 +111,7 @@ class ChurchLeader {
       locality,
       neighborhood,
       idDocumentNumber,
+      occupation,
     ]);
   }
 
@@ -172,6 +176,7 @@ class ChurchLeader {
       'idDocumentNumber': idDocumentNumber,
       'birthDate': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
       'maritalStatus': maritalStatus?.name,
+      'occupation': occupation,
       'neighborhood': neighborhood,
       'locality': locality,
       'stateProvince': stateProvince,
@@ -213,6 +218,7 @@ class ChurchLeader {
       idDocumentNumber: data['idDocumentNumber'] as String?,
       birthDate: (data['birthDate'] as Timestamp?)?.toDate(),
       maritalStatus: MaritalStatus.fromString(data['maritalStatus'] as String?),
+      occupation: data['occupation'] as String?,
       neighborhood: data['neighborhood'] as String?,
       locality: data['locality'] as String?,
       stateProvince: data['stateProvince'] as String?,

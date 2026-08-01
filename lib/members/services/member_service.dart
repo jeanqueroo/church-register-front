@@ -481,6 +481,8 @@ class MemberService {
       idDocumentType: leader.idDocumentType,
       idDocumentNumber: leader.idDocumentNumber,
       birthDate: leader.birthDate,
+      occupation: leader.occupation,
+      maritalStatus: leader.maritalStatus,
       isNewBeliever: false,
       isBaptized: true,
       baptizedAt: now,

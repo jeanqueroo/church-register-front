@@ -48,6 +48,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
   late final TextEditingController _idDocumentNumberController;
   late final TextEditingController _mobilePhoneController;
   late final TextEditingController _emailController;
+  late final TextEditingController _occupationController;
   late final UserProfileService _profileService;
   late final LeaderService _leaderService;
   final _geocodingService = GeocodingService();
@@ -103,6 +104,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _postalCodeController = TextEditingController();
     _idDocumentNumberController = TextEditingController();
     _mobilePhoneController = TextEditingController();
+    _occupationController = TextEditingController();
     _emailController = TextEditingController(
       text: profile.email ?? widget.session.email,
     );
@@ -155,6 +157,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _idDocumentNumberController.text = leader.idDocumentNumber ?? '';
     _birthDate = leader.birthDate;
     _maritalStatus = leader.maritalStatus;
+    _occupationController.text = leader.occupation ?? '';
     _mobilePhoneController.text = leader.mobilePhone;
     _leaderLocation = leader.geoLocation;
     final leaderPhoto = leader.photoUrl?.trim();
@@ -267,6 +270,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _postalCodeController.dispose();
     _idDocumentNumberController.dispose();
     _mobilePhoneController.dispose();
+    _occupationController.dispose();
     _emailController.dispose();
     super.dispose();
   }
@@ -333,6 +337,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                   : _idDocumentNumberController.text.trim(),
               birthDate: _birthDate,
               maritalStatus: _maritalStatus,
+              occupation: _occupationController.text.trim().isEmpty
+                  ? null
+                  : _occupationController.text.trim(),
               neighborhood: _neighborhoodController.text.trim().isEmpty
                   ? null
                   : _neighborhoodController.text.trim(),
@@ -735,6 +742,17 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _occupationController,
+                textCapitalization: TextCapitalization.words,
+                enabled: !_isLoading,
+                decoration: InputDecoration(
+                  labelText: l10n.memberDetailOccupation,
+                  prefixIcon: const Icon(Icons.work_outline),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),

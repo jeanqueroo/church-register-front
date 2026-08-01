@@ -140,6 +140,7 @@ class AppPermissions {
   /// Asignar integrantes a una fecha de bautismo (admin, supervisor o líder).
   bool get canAssignBaptismCalendarMembers => canViewBaptismCalendar;
   bool get canViewMembersList => isAdmin || isRegistrar || isSupervisor || isLeader;
+  bool get canViewOldMembersList => isAdmin;
   bool get canViewMembersByLeader => isAdmin;
   bool get canViewLeadersList => isAdmin;
   /// Descargar listados en Excel (solo administrador de iglesia).
