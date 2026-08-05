@@ -168,7 +168,8 @@ class AppPermissions {
   bool get canViewCellAbsenceByLeader => isAdmin;
   bool get canViewChurchNotifications =>
       isAdmin && churchId != null && churchId!.trim().isNotEmpty;
-  bool get canViewLeaderNotifications => isLeader;
+  /// Campana de asignaciones pastorales (líder y supervisor con ficha de líder).
+  bool get canViewLeaderNotifications => isLeader || isSupervisor;
 
   /// Registrar visitas a integrantes (todos los roles con acceso a creyentes).
   bool get canRegisterMemberVisits => canViewMembersList || isSuperAdmin;
