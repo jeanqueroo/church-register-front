@@ -288,6 +288,9 @@ class _RegisterBaptismBelieverScreenState
       if (!mounted) return;
       _showMessage(l10n.memberRegisteredSuccess);
       Navigator.of(context).pop(memberId);
+    } on DuplicateMemberDocumentException {
+      if (!mounted) return;
+      _showMessage(MemberService.messageForDuplicateDocument(l10n));
     } on FirebaseException catch (e) {
       if (!mounted) return;
       _showMessage(MemberService.messageFromFirestoreException(e, l10n));

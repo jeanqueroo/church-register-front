@@ -702,6 +702,10 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         _showMessage(l10n.memberRegisteredSuccess);
       }
       Navigator.of(context).pop(true);
+    } on DuplicateMemberDocumentException {
+      if (mounted) {
+        _showMessage(MemberService.messageForDuplicateDocument(l10n));
+      }
     } on CellAssignmentLeaderOnlyException {
       if (mounted) {
         _showMessage(MemberService.messageForCellAssignmentLeaderOnly(l10n));

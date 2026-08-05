@@ -422,6 +422,8 @@
   "memberLastNameRequired": "Enter the last name",
   "memberIdDocumentType": "ID document",
   "memberIdDocumentNumber": "Document number",
+  "memberIdDocumentNumberAlreadyExists":
+      "A believer with this document number is already registered",
   "idDocumentDni": "National ID (DNI)",
   "idDocumentPassport": "Passport",
   "idDocumentOther": "Other",

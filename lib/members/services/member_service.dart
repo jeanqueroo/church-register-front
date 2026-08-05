@@ -297,10 +297,54 @@ class MemberService {
     });
   }
 
+  /// Busca un integrante con el mismo número de documento en la iglesia.
+  /// Si [churchId] está vacío, busca en toda la colección.
+  /// [excludeMemberId] permite ignorar el propio registro al editar.
+  Future<String?> findMemberIdByDocumentNumber({
+    required String idDocumentNumber,
+    String? churchId,
+    String? excludeMemberId,
+  }) async {
+    final normalized = idDocumentNumber.trim();
+    if (normalized.isEmpty) return null;
+
+    Query<Map<String, dynamic>> query =
+        _members.where('idDocumentNumber', isEqualTo: normalized);
+    final church = churchId?.trim();
+    if (church != null && church.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: church);
+    }
+
+    final snapshot = await query.limit(5).get();
+    for (final doc in snapshot.docs) {
+      if (excludeMemberId != null &&
+          excludeMemberId.isNotEmpty &&
+          doc.id == excludeMemberId) {
+        continue;
+      }
+      return doc.id;
+    }
+    return null;
+  }
+
+  Future<void> _ensureDocumentNumberAvailable(ChurchMember member) async {
+    final number = member.idDocumentNumber?.trim();
+    if (number == null || number.isEmpty) return;
+    final existingId = await findMemberIdByDocumentNumber(
+      idDocumentNumber: number,
+      churchId: member.churchId,
+      excludeMemberId: member.id,
+    );
+    if (existingId != null) {
+      throw DuplicateMemberDocumentException(number);
+    }
+  }
+
   Future<String> addMember(
     ChurchMember member, {
     bool notifyLeader = true,
   }) async {
+    await _ensureDocumentNumberAvailable(member);
     final ref = await _members.add(member.toMap());
     await _appendMemberHistory(
       memberId: ref.id,
@@ -349,6 +393,7 @@ class MemberService {
     if (id == null || id.isEmpty) {
       throw ArgumentError('El integrante debe tener id para actualizar');
     }
+    await _ensureDocumentNumberAvailable(member);
     final data = member.toMap();
     if (!member.isBaptized) {
       data['baptizedAt'] = FieldValue.delete();
@@ -974,6 +1019,10 @@ class MemberService {
     return _members.doc(id).delete();
   }
 
+  static String messageForDuplicateDocument(AppLocalizations l10n) {
+    return l10n.memberIdDocumentNumberAlreadyExists;
+  }
+
   static String messageForCellAssignmentLimit(AppLocalizations l10n) {
     return l10n.cellMemberAssignLimitReached(
       CellMemberCapacity.maxAssignableMembers,
@@ -1009,4 +1058,10 @@ class MemberService {
         return l10n.firestoreGenericError;
     }
   }
+}
+
+class DuplicateMemberDocumentException implements Exception {
+  DuplicateMemberDocumentException(this.documentNumber);
+
+  final String documentNumber;
 }

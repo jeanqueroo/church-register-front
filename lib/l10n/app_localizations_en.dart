@@ -909,6 +909,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memberIdDocumentNumber => 'Document number';
 
   @override
+  String get memberIdDocumentNumberAlreadyExists =>
+      'A believer with this document number is already registered';
+
+  @override
   String get idDocumentDni => 'National ID (DNI)';
 
   @override

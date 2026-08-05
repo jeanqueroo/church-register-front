@@ -1712,6 +1712,12 @@ abstract class AppLocalizations {
   /// **'Número de documento'**
   String get memberIdDocumentNumber;
 
+  /// No description provided for @memberIdDocumentNumberAlreadyExists.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya existe un creyente registrado con ese número de documento'**
+  String get memberIdDocumentNumberAlreadyExists;
+
   /// No description provided for @idDocumentDni.
   ///
   /// In es, this message translates to:

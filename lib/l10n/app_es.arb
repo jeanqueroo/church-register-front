@@ -422,6 +422,8 @@
   "memberLastNameRequired": "Ingresa los apellidos",
   "memberIdDocumentType": "Documento",
   "memberIdDocumentNumber": "Número de documento",
+  "memberIdDocumentNumberAlreadyExists":
+      "Ya existe un creyente registrado con ese número de documento",
   "idDocumentDni": "DNI",
   "idDocumentPassport": "Pasaporte",
   "idDocumentOther": "Otro",
