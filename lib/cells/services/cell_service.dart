@@ -38,7 +38,10 @@ class CellService {
     required ChurchCell cell,
     String? previousCode,
   }) async {
-    await _cells.doc(cellId).set(cell.toMap(), SetOptions(merge: true));
+    await _cells.doc(cellId).set(
+      cell.toMap(clearLegacyAlias: true),
+      SetOptions(merge: true),
+    );
 
     final newCode = cell.code.trim();
     final oldCode = previousCode?.trim() ?? '';
@@ -59,6 +62,7 @@ class CellService {
       batch.update(doc.reference, {
         'cellCode': cellCode,
         'cellId': cellId,
+        'updatedAt': FieldValue.serverTimestamp(),
       });
     }
     await batch.commit();
@@ -73,7 +77,10 @@ class CellService {
   Future<void> adjustMemberCount(String cellId, int delta) async {
     if (cellId.trim().isEmpty || delta == 0) return;
     await _cells.doc(cellId).set(
-      {'memberCount': FieldValue.increment(delta)},
+      {
+        'memberCount': FieldValue.increment(delta),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
       SetOptions(merge: true),
     );
   }
@@ -94,16 +101,17 @@ class CellService {
     }
     await _cells.doc(cellId).update({
       'helpers': helpers.map((helper) => helper.toMap()).toList(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
-  Future<void> updateCellAlias({
+  Future<void> setCellBlocked({
     required String cellId,
-    required String? alias,
+    required bool blocked,
   }) async {
-    final trimmed = alias?.trim() ?? '';
     await _cells.doc(cellId).update({
-      'alias': trimmed.isEmpty ? FieldValue.delete() : trimmed,
+      'isBlocked': blocked,
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
@@ -159,6 +167,7 @@ class CellService {
       for (final doc in snapshot.docs) {
         if (seenIds.contains(doc.id)) continue;
         final cell = ChurchCell.fromFirestore(doc);
+        if (cell.isBlocked) continue;
         if (churchId != null &&
             churchId.isNotEmpty &&
             cell.churchId != null &&
@@ -312,6 +321,7 @@ class CellService {
       data['churchId'] = churchId;
     }
     data.remove('assigned');
+    data['updatedAt'] = FieldValue.serverTimestamp();
 
     final batch = _firestore.batch();
     final cellRef = _cells.doc(cellId).collection('disciples').doc();

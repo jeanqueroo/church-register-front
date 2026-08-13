@@ -57,6 +57,7 @@ class CellCapacityNotificationService {
         'memberName': memberName,
         'read': false,
         'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
       });
     }
     await batch.commit();

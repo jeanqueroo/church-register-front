@@ -21,12 +21,12 @@ class ChurchCell {
     this.leaderId,
     this.leaderName,
     this.notes,
-    this.alias,
     this.helpers = const [],
     required this.registeredAt,
     required this.registeredBy,
     this.churchId,
     this.memberCount,
+    this.isBlocked = false,
   });
 
   static const maxHelpers = 3;
@@ -46,13 +46,12 @@ class ChurchCell {
   final String? leaderId;
   final String? leaderName;
   final String? notes;
-  /// Alias bancario para transferencias.
-  final String? alias;
   final List<CellHelper> helpers;
   final DateTime registeredAt;
   final String registeredBy;
   final String? churchId;
   final int? memberCount;
+  final bool isBlocked;
 
   String get displayLabel {
     final trimmedName = name?.trim();
@@ -78,7 +77,7 @@ class ChurchCell {
     ].whereType<String>().where((s) => s.trim().isNotEmpty).join(', ');
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap({bool clearLegacyAlias = false}) {
     return {
       'code': code.trim(),
       if (name != null && name!.trim().isNotEmpty) 'name': name!.trim(),
@@ -100,12 +99,15 @@ class ChurchCell {
       if (leaderName != null && leaderName!.trim().isNotEmpty)
         'leaderName': leaderName!.trim(),
       if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
-      if (alias != null && alias!.trim().isNotEmpty) 'alias': alias!.trim(),
+      // Solo en update/set(merge): FieldValue.delete no es válido en create/add.
+      if (clearLegacyAlias) 'alias': FieldValue.delete(),
       'helpers': helpers.map((helper) => helper.toMap()).toList(),
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
       if (memberCount != null) 'memberCount': memberCount,
+      'isBlocked': isBlocked,
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 
@@ -129,12 +131,12 @@ class ChurchCell {
       leaderId: data['leaderId'] as String?,
       leaderName: data['leaderName'] as String?,
       notes: data['notes'] as String?,
-      alias: data['alias'] as String?,
       helpers: CellHelper.listFromFirestore(data['helpers']),
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,
       memberCount: (data['memberCount'] as num?)?.toInt(),
+      isBlocked: data['isBlocked'] as bool? ?? false,
     );
   }
 }

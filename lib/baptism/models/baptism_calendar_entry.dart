@@ -40,6 +40,7 @@ class BaptismCalendarEntry {
       'registeredBy': registeredBy,
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
       'assignedMembers': BaptismAssignedMember.toFirestoreList(assignedMembers),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 

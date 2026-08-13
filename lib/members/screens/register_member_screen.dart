@@ -479,6 +479,7 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
           gender: _gender!,
           memberLocation: location,
           churchId: _effectiveChurchId,
+          memberAge: _ageFromBirthDate(_birthDate),
         );
         if (assignment != null) {
           assignedLeader = assignment.leader;

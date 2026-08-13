@@ -48,6 +48,7 @@ class RegisterChurchScreen extends StatefulWidget {
 class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _aliasController = TextEditingController();
   final _addressController = TextEditingController();
   final _picker = ImagePicker();
 
@@ -84,6 +85,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
   void dispose() {
     _addressController.removeListener(_onAddressTextChanged);
     _nameController.dispose();
+    _aliasController.dispose();
     _addressController.dispose();
     super.dispose();
   }
@@ -107,6 +109,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
       if (!mounted) return;
       if (church != null) {
         _nameController.text = church.name;
+        _aliasController.text = church.alias ?? '';
         _addressController.text = church.address;
         _existingLogoUrl = church.logoUrl;
         _isBlocked = church.isBlocked;
@@ -184,6 +187,9 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
       name: _nameController.text.trim(),
       address: _addressController.text.trim(),
       logoUrl: logoUrl,
+      alias: _aliasController.text.trim().isEmpty
+          ? null
+          : _aliasController.text.trim(),
       latitude: location?.latitude,
       longitude: location?.longitude,
       isBlocked: _isBlocked,
@@ -446,6 +452,26 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
                                   return null;
                                 }
                               : null,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _aliasController,
+                          readOnly: widget.readOnly,
+                          enabled: editable && !_saving,
+                          textCapitalization: TextCapitalization.none,
+                          decoration: InputDecoration(
+                            labelText: l10n.churchRegAlias,
+                            hintText: widget.readOnly
+                                ? null
+                                : l10n.churchRegAliasHint,
+                            helperText: widget.readOnly
+                                ? null
+                                : l10n.churchRegAliasHelper,
+                            prefixIcon:
+                                const Icon(Icons.account_balance_outlined),
+                            border: const OutlineInputBorder(),
+                            filled: widget.readOnly,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         if (widget.readOnly)

@@ -74,6 +74,7 @@ class UserProfileService {
       await _firestore.collection('churches').doc(churchId).set(
         {
           'adminUserIds': FieldValue.arrayUnion([uid]),
+          'updatedAt': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
       );
@@ -102,6 +103,7 @@ class UserProfileService {
     await _firestore.collection('churches').doc(churchId).set(
       {
         'adminUserIds': FieldValue.arrayUnion([uid]),
+        'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
     );
@@ -124,6 +126,7 @@ class UserProfileService {
       await _firestore.collection('churches').doc(churchId).set(
         {
           'adminUserIds': FieldValue.arrayUnion([uid]),
+          'updatedAt': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
       );
@@ -263,6 +266,7 @@ class UserProfileService {
       {
         'fcmToken': token,
         'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
     );

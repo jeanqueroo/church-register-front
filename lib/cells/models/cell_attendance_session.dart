@@ -90,6 +90,7 @@ class CellAttendanceSession {
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 

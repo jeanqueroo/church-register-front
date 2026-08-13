@@ -363,6 +363,7 @@ class ChurchMember {
         'pastoralAssignedAt': Timestamp.fromDate(pastoralAssignedAt!),
       if (cellAssignedAt != null)
         'cellAssignedAt': Timestamp.fromDate(cellAssignedAt!),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 

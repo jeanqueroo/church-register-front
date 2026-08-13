@@ -2555,6 +2555,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get churchRegNameValidation => 'Enter the name';
 
   @override
+  String get churchRegAlias => 'Bank alias';
+
+  @override
+  String get churchRegAliasHint => 'E.g. church.central.mb';
+
+  @override
+  String get churchRegAliasHelper => 'Bank alias for transfers';
+
+  @override
   String get churchRegAddressSection => 'Address';
 
   @override
@@ -2887,6 +2896,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cellsListLoadError => 'Could not load cell groups';
 
   @override
+  String get cellsBlockTitle => 'Block cell group';
+
+  @override
+  String get cellsUnblockTitle => 'Unblock cell group';
+
+  @override
+  String cellsBlockConfirm(String name) {
+    return 'Block \"$name\"? Attendance and member assignment will be disabled until you unblock it.';
+  }
+
+  @override
+  String cellsUnblockConfirm(String name) {
+    return 'Unblock \"$name\" and allow its use again?';
+  }
+
+  @override
+  String get cellsBlocked => 'Cell group blocked';
+
+  @override
+  String get cellsUnblocked => 'Cell group unblocked';
+
+  @override
+  String get cellsBlockedBanner =>
+      'This cell group is blocked. Attendance and member assignment are disabled.';
+
+  @override
+  String cellsShowBlocked(int count) {
+    return 'Show blocked ($count)';
+  }
+
+  @override
+  String cellsHideBlocked(int count) {
+    return 'Hide blocked ($count)';
+  }
+
+  @override
   String cellsListFilterOverCapacity(int max) {
     return 'More than $max disciples';
   }
@@ -3095,7 +3140,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cellAttendanceOfferingAliasMissing =>
-      'This cell does not have a transfer alias yet';
+      'This church does not have a transfer alias yet';
 
   @override
   String get cellAttendanceObservations => 'Observations';
@@ -3773,6 +3818,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaderRegAge => 'Age';
+
+  @override
+  String get leaderWorkAgeRange => 'Age range they work with';
+
+  @override
+  String get leaderWorkAgeRangeHelper =>
+      'Ages of the people they can accompany';
+
+  @override
+  String get leaderWorkAgeFrom => 'From (years)';
+
+  @override
+  String get leaderWorkAgeTo => 'To (years)';
+
+  @override
+  String get leaderWorkAgeFromRequired => 'Enter the minimum age';
+
+  @override
+  String get leaderWorkAgeToRequired => 'Enter the maximum age';
+
+  @override
+  String get leaderWorkAgeInvalid => 'Enter a valid age (0–120)';
+
+  @override
+  String get leaderWorkAgeOrderInvalid =>
+      'Minimum age cannot be greater than maximum';
 
   @override
   String get adminRegNewTitle => 'New administrator';

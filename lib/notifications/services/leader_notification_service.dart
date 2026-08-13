@@ -84,7 +84,10 @@ class LeaderNotificationService {
   }
 
   Future<void> markAsRead(String notificationId) {
-    return _notifications.doc(notificationId).update({'read': true});
+    return _notifications.doc(notificationId).update({
+      'read': true,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<void> markAllAsReadForLeader(String leaderId) async {
@@ -98,7 +101,10 @@ class LeaderNotificationService {
 
     final batch = _firestore.batch();
     for (final doc in unread) {
-      batch.update(doc.reference, {'read': true});
+      batch.update(doc.reference, {
+        'read': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     }
     await batch.commit();
   }
@@ -126,6 +132,7 @@ class LeaderNotificationService {
       'type': 'member_assigned',
       'read': false,
       'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
     final uid = recipientUserId?.trim();
     if (uid != null && uid.isNotEmpty) {

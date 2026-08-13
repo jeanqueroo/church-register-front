@@ -56,6 +56,7 @@ class BaptismCalendarService {
         'notes': notes
       else
         'notes': FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
@@ -65,6 +66,7 @@ class BaptismCalendarService {
   }) {
     return _entries.doc(entryId).update({
       'assignedMembers': BaptismAssignedMember.toFirestoreList(members),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 

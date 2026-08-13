@@ -47,6 +47,7 @@ class MemberHistoryEvent {
       if (performedBy != null && performedBy!.trim().isNotEmpty)
         'performedBy': performedBy!.trim(),
       if (details.isNotEmpty) 'details': details,
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 

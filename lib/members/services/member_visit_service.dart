@@ -41,7 +41,10 @@ class MemberVisitService {
     if (visit.spiritualState != null) {
       batch.update(
         _firestore.collection('members').doc(memberId),
-        {'spiritualState': visit.spiritualState!.name},
+        {
+          'spiritualState': visit.spiritualState!.name,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
       );
     }
     await batch.commit();

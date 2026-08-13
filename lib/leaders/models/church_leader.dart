@@ -39,6 +39,8 @@ class ChurchLeader {
     this.churchOffice,
     this.appRoles,
     this.photoUrl,
+    this.workAgeFrom,
+    this.workAgeTo,
     this.isBlocked = false,
   });
 
@@ -71,6 +73,10 @@ class ChurchLeader {
   /// Roles de app en `users` (p. ej. leader, supervisor, registrador).
   final List<String>? appRoles;
   final String? photoUrl;
+  /// Edad mínima del rango pastoral con el que trabaja (años).
+  final int? workAgeFrom;
+  /// Edad máxima del rango pastoral con el que trabaja (años).
+  final int? workAgeTo;
   final bool isBlocked;
 
   String get fullName =>
@@ -153,6 +159,26 @@ class ChurchLeader {
     return years;
   }
 
+  bool get hasWorkAgeRange => workAgeFrom != null || workAgeTo != null;
+
+  /// Si el líder no definió rango, acepta cualquier edad.
+  bool acceptsWorkAge(int? age) {
+    if (!hasWorkAgeRange) return true;
+    if (age == null) return false;
+    if (workAgeFrom != null && age < workAgeFrom!) return false;
+    if (workAgeTo != null && age > workAgeTo!) return false;
+    return true;
+  }
+
+  String? get workAgeRangeLabel {
+    if (workAgeFrom == null && workAgeTo == null) return null;
+    if (workAgeFrom != null && workAgeTo != null) {
+      return '$workAgeFrom – $workAgeTo';
+    }
+    if (workAgeFrom != null) return '≥ $workAgeFrom';
+    return '≤ $workAgeTo';
+  }
+
   String get formattedAddress {
     return [
       street,
@@ -197,7 +223,10 @@ class ChurchLeader {
       if (appRoles != null && appRoles!.isNotEmpty) 'appRoles': appRoles,
       if (photoUrl != null && photoUrl!.trim().isNotEmpty)
         'photoUrl': photoUrl!.trim(),
+      'workAgeFrom': workAgeFrom ?? FieldValue.delete(),
+      'workAgeTo': workAgeTo ?? FieldValue.delete(),
       'isBlocked': isBlocked,
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 
@@ -239,6 +268,8 @@ class ChurchLeader {
           ?.map((e) => e.toString())
           .toList(),
       photoUrl: data['photoUrl'] as String?,
+      workAgeFrom: (data['workAgeFrom'] as num?)?.toInt(),
+      workAgeTo: (data['workAgeTo'] as num?)?.toInt(),
       isBlocked: data['isBlocked'] as bool? ?? false,
     );
   }

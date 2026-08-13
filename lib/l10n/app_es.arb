@@ -1309,6 +1309,9 @@
   "churchRegName": "Nombre de la iglesia",
   "churchRegNameRequired": "Nombre de la iglesia *",
   "churchRegNameValidation": "Ingresa el nombre",
+  "churchRegAlias": "Alias bancario",
+  "churchRegAliasHint": "Ej: iglesia.central.mb",
+  "churchRegAliasHelper": "Alias bancario para transferencias",
   "churchRegAddressSection": "Dirección",
   "churchSearchLabel": "Iglesia *",
   "churchSearchClear": "Quitar selección",
@@ -1448,6 +1451,35 @@
   "cellsListSearchHint": "Buscar por código, nombre, líder o dirección",
   "cellsListEmpty": "No hay células registradas",
   "cellsListLoadError": "No se pudieron cargar las células",
+  "cellsBlockTitle": "Bloquear célula",
+  "cellsUnblockTitle": "Desbloquear célula",
+  "cellsBlockConfirm": "¿Bloquear \"{name}\"? No se podrá registrar asistencia ni asignar integrantes hasta que la desbloquees.",
+  "@cellsBlockConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellsUnblockConfirm": "¿Desbloquear \"{name}\" y volver a permitir su uso?",
+  "@cellsUnblockConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellsBlocked": "Célula bloqueada",
+  "cellsUnblocked": "Célula desbloqueada",
+  "cellsBlockedBanner": "Esta célula está bloqueada. No se pueden registrar asistencias ni asignar integrantes.",
+  "cellsShowBlocked": "Mostrar bloqueadas ({count})",
+  "@cellsShowBlocked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellsHideBlocked": "Ocultar bloqueadas ({count})",
+  "@cellsHideBlocked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "cellsListFilterOverCapacity": "Más de {max} discípulos",
   "@cellsListFilterOverCapacity": {
     "placeholders": {
@@ -1554,7 +1586,7 @@
       "alias": { "type": "String" }
     }
   },
-  "cellAttendanceOfferingAliasMissing": "Esta célula aún no tiene alias de transferencias",
+  "cellAttendanceOfferingAliasMissing": "La iglesia aún no tiene alias de transferencias",
   "cellAttendanceObservations": "Observaciones",
   "cellAttendanceObservationsHint": "Notas sobre la reunión (opcional)",
   "cellAttendanceOfferingSummary": "Ofrenda: {amount}",
@@ -1961,6 +1993,14 @@
   "leaderRegFirstNamesRequired": "Ingresa los nombres",
   "leaderRegBirthDate": "Fecha de nacimiento",
   "leaderRegAge": "Edad",
+  "leaderWorkAgeRange": "Rango de edad con el que trabaja",
+  "leaderWorkAgeRangeHelper": "Edades de las personas a las que puede acompañar",
+  "leaderWorkAgeFrom": "Desde (años)",
+  "leaderWorkAgeTo": "Hasta (años)",
+  "leaderWorkAgeFromRequired": "Ingresa la edad mínima",
+  "leaderWorkAgeToRequired": "Ingresa la edad máxima",
+  "leaderWorkAgeInvalid": "Ingresa una edad válida (0–120)",
+  "leaderWorkAgeOrderInvalid": "La edad mínima no puede ser mayor que la máxima",
   "adminRegNewTitle": "Nuevo administrador",
   "adminRegEditTitle": "Editar administrador",
   "adminRegNoChurches": "No hay iglesias activas. Crea una o desbloquea una existente.",

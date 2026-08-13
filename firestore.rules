@@ -156,6 +156,16 @@ service cloud.firestore {
           .hasOnly(['roles', 'updatedAt']);
     }
 
+    // Admin/registrador de iglesia: bloquear o desbloquear cuenta de líder/supervisor.
+    function canChurchAdminBlockLeaderAccount() {
+      return (isChurchAdmin() || isRegistrar()) &&
+        currentUserChurchId() != '' &&
+        resource.data.get('churchId', '') == currentUserChurchId() &&
+        !resource.data.get('roles', []).hasAny(['superadmin', 'admin']) &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['isBlocked', 'updatedAt', 'updatedBy']);
+    }
+
     function memberBelongsToUserChurch(memberId) {
       return currentUserChurchId() != '' &&
         memberData(memberId).get('churchId', '') == currentUserChurchId();
@@ -413,26 +423,19 @@ service cloud.firestore {
       ) && cellLeaderBelongsToChurch();
       allow update: if isSignedIn() &&
         isAssignedCellLeader(resource.data.get('leaderId', '')) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['helpers']) &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['helpers', 'updatedAt']) &&
         request.resource.data.get('helpers', []) is list &&
         request.resource.data.get('helpers', []).size() <= 3;
       allow update: if isSignedIn() &&
         isAssignedCellLeader(resource.data.get('leaderId', '')) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['alias']) &&
-        (
-          !('alias' in request.resource.data) ||
-          (
-            request.resource.data.get('alias', '') is string &&
-            request.resource.data.get('alias', '').size() <= 120
-          )
-        );
-      allow update: if isSignedIn() &&
-        isAssignedCellLeader(resource.data.get('leaderId', '')) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount']) &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['memberCount', 'updatedAt']) &&
         request.resource.data.get('memberCount', 0) is int;
       allow update: if isSignedIn() &&
         isSupervisedCellLeader(resource.data.get('leaderId', '')) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount']) &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['memberCount', 'updatedAt']) &&
         request.resource.data.get('memberCount', 0) is int;
       allow delete: if isSignedIn() && (
         isSuperAdmin() ||
@@ -530,7 +533,8 @@ service cloud.firestore {
         request.auth.uid == userId ||
         canManageOtherUsers() ||
         canChurchAdminAssignSupervisorLeaders() ||
-        canChurchAdminUpdateLeaderRoles()
+        canChurchAdminUpdateLeaderRoles() ||
+        canChurchAdminBlockLeaderAccount()
       );
 
       // Buzón del líder: solo él lee; cualquier usuario autenticado puede crear (registro).

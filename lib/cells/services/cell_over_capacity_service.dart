@@ -47,6 +47,7 @@ class CellOverCapacityService {
     final entries = <CellOverCapacityEntry>[];
 
     for (final cell in cells) {
+      if (cell.isBlocked) continue;
       final cellId = cell.id?.trim();
       if (cellId == null || cellId.isEmpty) continue;
 
