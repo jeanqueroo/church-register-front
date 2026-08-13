@@ -203,6 +203,7 @@ class LeaderService {
           'photoUrl': trimmed
         else
           'photoUrl': FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
     );
@@ -223,7 +224,10 @@ class LeaderService {
     String? authUserId,
     required String updatedBy,
   }) async {
-    await _leaders.doc(id).update({'isBlocked': blocked});
+    await _leaders.doc(id).update({
+      'isBlocked': blocked,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
     final uid = authUserId?.trim();
     if (uid != null && uid.isNotEmpty) {
       await _userProfileService.setUserBlocked(

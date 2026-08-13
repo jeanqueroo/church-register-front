@@ -55,7 +55,6 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
   final _stateProvinceController = TextEditingController(text: 'Buenos Aires');
   final _postalCodeController = TextEditingController();
   final _notesController = TextEditingController();
-  final _aliasController = TextEditingController();
 
   late final CellService _cellService;
   late final LeaderService _leaderService;
@@ -108,7 +107,6 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
     _stateProvinceController.text = cell.stateProvince ?? 'Buenos Aires';
     _postalCodeController.text = cell.postalCode ?? '';
     _notesController.text = cell.notes ?? '';
-    _aliasController.text = cell.alias ?? '';
     _cellDay = cell.cellDay;
     _cellLocation = cell.geoLocation;
   }
@@ -124,7 +122,6 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
     _stateProvinceController.dispose();
     _postalCodeController.dispose();
     _notesController.dispose();
-    _aliasController.dispose();
     super.dispose();
   }
 
@@ -239,9 +236,6 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
-        alias: _aliasController.text.trim().isEmpty
-            ? null
-            : _aliasController.text.trim(),
         helpers: existing?.helpers ?? const [],
         registeredAt: existing?.registeredAt ?? DateTime.now(),
         registeredBy: existing?.registeredBy ?? widget.registeredBy,
@@ -330,19 +324,6 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
                     decoration: InputDecoration(
                       labelText: l10n.cellRegName,
                       prefixIcon: const Icon(Icons.badge_outlined),
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _aliasController,
-                    enabled: !_isSaving,
-                    textCapitalization: TextCapitalization.none,
-                    decoration: InputDecoration(
-                      labelText: l10n.cellRegAlias,
-                      hintText: l10n.cellRegAliasHint,
-                      helperText: l10n.cellRegAliasHelper,
-                      prefixIcon: const Icon(Icons.account_balance_outlined),
                       border: const OutlineInputBorder(),
                     ),
                   ),

@@ -2568,6 +2568,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get churchRegNameValidation => 'Ingresa el nombre';
 
   @override
+  String get churchRegAlias => 'Alias bancario';
+
+  @override
+  String get churchRegAliasHint => 'Ej: iglesia.central.mb';
+
+  @override
+  String get churchRegAliasHelper => 'Alias bancario para transferencias';
+
+  @override
   String get churchRegAddressSection => 'Dirección';
 
   @override
@@ -3112,7 +3121,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellAttendanceOfferingAliasMissing =>
-      'Esta célula aún no tiene alias de transferencias';
+      'La iglesia aún no tiene alias de transferencias';
 
   @override
   String get cellAttendanceObservations => 'Observaciones';
@@ -3797,6 +3806,32 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get leaderRegAge => 'Edad';
+
+  @override
+  String get leaderWorkAgeRange => 'Rango de edad con el que trabaja';
+
+  @override
+  String get leaderWorkAgeRangeHelper =>
+      'Edades de las personas a las que puede acompañar';
+
+  @override
+  String get leaderWorkAgeFrom => 'Desde (años)';
+
+  @override
+  String get leaderWorkAgeTo => 'Hasta (años)';
+
+  @override
+  String get leaderWorkAgeFromRequired => 'Ingresa la edad mínima';
+
+  @override
+  String get leaderWorkAgeToRequired => 'Ingresa la edad máxima';
+
+  @override
+  String get leaderWorkAgeInvalid => 'Ingresa una edad válida (0–120)';
+
+  @override
+  String get leaderWorkAgeOrderInvalid =>
+      'La edad mínima no puede ser mayor que la máxima';
 
   @override
   String get adminRegNewTitle => 'Nuevo administrador';

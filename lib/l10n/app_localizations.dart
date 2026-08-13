@@ -4512,6 +4512,24 @@ abstract class AppLocalizations {
   /// **'Ingresa el nombre'**
   String get churchRegNameValidation;
 
+  /// No description provided for @churchRegAlias.
+  ///
+  /// In es, this message translates to:
+  /// **'Alias bancario'**
+  String get churchRegAlias;
+
+  /// No description provided for @churchRegAliasHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: iglesia.central.mb'**
+  String get churchRegAliasHint;
+
+  /// No description provided for @churchRegAliasHelper.
+  ///
+  /// In es, this message translates to:
+  /// **'Alias bancario para transferencias'**
+  String get churchRegAliasHelper;
+
   /// No description provided for @churchRegAddressSection.
   ///
   /// In es, this message translates to:
@@ -5469,7 +5487,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellAttendanceOfferingAliasMissing.
   ///
   /// In es, this message translates to:
-  /// **'Esta célula aún no tiene alias de transferencias'**
+  /// **'La iglesia aún no tiene alias de transferencias'**
   String get cellAttendanceOfferingAliasMissing;
 
   /// No description provided for @cellAttendanceObservations.
@@ -6553,6 +6571,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Edad'**
   String get leaderRegAge;
+
+  /// No description provided for @leaderWorkAgeRange.
+  ///
+  /// In es, this message translates to:
+  /// **'Rango de edad con el que trabaja'**
+  String get leaderWorkAgeRange;
+
+  /// No description provided for @leaderWorkAgeRangeHelper.
+  ///
+  /// In es, this message translates to:
+  /// **'Edades de las personas a las que puede acompañar'**
+  String get leaderWorkAgeRangeHelper;
+
+  /// No description provided for @leaderWorkAgeFrom.
+  ///
+  /// In es, this message translates to:
+  /// **'Desde (años)'**
+  String get leaderWorkAgeFrom;
+
+  /// No description provided for @leaderWorkAgeTo.
+  ///
+  /// In es, this message translates to:
+  /// **'Hasta (años)'**
+  String get leaderWorkAgeTo;
+
+  /// No description provided for @leaderWorkAgeFromRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa la edad mínima'**
+  String get leaderWorkAgeFromRequired;
+
+  /// No description provided for @leaderWorkAgeToRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa la edad máxima'**
+  String get leaderWorkAgeToRequired;
+
+  /// No description provided for @leaderWorkAgeInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa una edad válida (0–120)'**
+  String get leaderWorkAgeInvalid;
+
+  /// No description provided for @leaderWorkAgeOrderInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'La edad mínima no puede ser mayor que la máxima'**
+  String get leaderWorkAgeOrderInvalid;
 
   /// No description provided for @adminRegNewTitle.
   ///

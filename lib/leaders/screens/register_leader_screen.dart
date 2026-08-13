@@ -21,6 +21,7 @@ import '../models/church_leader.dart';
 import '../models/leader_registration_source.dart';
 import '../models/church_office.dart';
 import '../services/leader_service.dart';
+import '../widgets/leader_work_age_range_fields.dart';
 
 class RegisterLeaderScreen extends StatefulWidget {
   const RegisterLeaderScreen({
@@ -64,6 +65,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
   final _mobilePhoneController = TextEditingController();
   final _idDocumentNumberController = TextEditingController();
   final _occupationController = TextEditingController();
+  final _workAgeFromController = TextEditingController();
+  final _workAgeToController = TextEditingController();
 
   late final LeaderService _leaderService;
   final _authService = AuthService();
@@ -95,6 +98,19 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
   bool get _hasValidVolunteerRegistrarRoles =>
       _selectedRoles.contains(AppUserRole.registrar) &&
       _selectedRoles.every((role) => role == AppUserRole.registrar);
+
+  bool get _showsWorkAgeRange =>
+      !_isVolunteerRegistrar &&
+      (_selectedRoles.contains(AppUserRole.leader) ||
+          _selectedRoles.contains(AppUserRole.supervisor));
+
+  (int?, int?) get _parsedWorkAgeRange {
+    if (!_showsWorkAgeRange) return (null, null);
+    return (
+      LeaderWorkAgeRangeFields.parseAge(_workAgeFromController.text),
+      LeaderWorkAgeRangeFields.parseAge(_workAgeToController.text),
+    );
+  }
 
   @override
   void initState() {
@@ -146,6 +162,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _idDocumentNumberController.text = leader.idDocumentNumber ?? '';
     _birthDate = leader.birthDate;
     _occupationController.text = leader.occupation ?? '';
+    _workAgeFromController.text = leader.workAgeFrom?.toString() ?? '';
+    _workAgeToController.text = leader.workAgeTo?.toString() ?? '';
     _churchOffice = leader.churchOffice;
     _leaderLocation = leader.geoLocation;
     if (_churchOffice == ChurchOffice.voluntario) {
@@ -181,6 +199,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     _mobilePhoneController.dispose();
     _idDocumentNumberController.dispose();
     _occupationController.dispose();
+    _workAgeFromController.dispose();
+    _workAgeToController.dispose();
     super.dispose();
   }
 
@@ -367,6 +387,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
 
         final roles =
             AppUserRole.sanitizeForLeaderRegistration(_selectedRoles.toList());
+        final workAges = _parsedWorkAgeRange;
 
         final leader = ChurchLeader(
           lastName: _lastNameController.text.trim(),
@@ -409,6 +430,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           registrationSource: LeaderRegistrationSource.registerLeader,
           churchOffice: _churchOffice,
           appRoles: roles,
+          workAgeFrom: workAges.$1,
+          workAgeTo: workAges.$2,
         );
 
         final leaderId = await _leaderService.addLeaderWithMember(
@@ -432,6 +455,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
 
       final roles =
           AppUserRole.sanitizeForLeaderRegistration(_selectedRoles.toList());
+      final workAges = _parsedWorkAgeRange;
 
       final leader = ChurchLeader(
         id: widget.leaderToEdit?.id,
@@ -480,6 +504,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         churchOffice: _churchOffice,
         appRoles: roles,
         photoUrl: widget.leaderToEdit?.photoUrl,
+        workAgeFrom: workAges.$1,
+        workAgeTo: workAges.$2,
         isBlocked: widget.leaderToEdit?.isBlocked ?? false,
       );
 
@@ -657,6 +683,14 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
                       ? l10n.memberOccupationRequired
                       : null,
                 ),
+                if (_showsWorkAgeRange) ...[
+                  const SizedBox(height: 16),
+                  LeaderWorkAgeRangeFields(
+                    fromController: _workAgeFromController,
+                    toController: _workAgeToController,
+                    enabled: !_isLoading,
+                  ),
+                ],
                 const SizedBox(height: 16),
                 AddressFieldsSection(
                   streetController: _streetController,

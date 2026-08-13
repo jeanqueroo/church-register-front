@@ -36,6 +36,7 @@ class LeaderNotification {
       'type': 'member_assigned',
       'read': read,
       'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 

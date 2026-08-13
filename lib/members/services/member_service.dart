@@ -44,7 +44,10 @@ class MemberService {
   Future<void> _adjustCellMemberCount(String cellId, int delta) async {
     if (cellId.trim().isEmpty || delta == 0) return;
     await _cells.doc(cellId).set(
-      {'memberCount': FieldValue.increment(delta)},
+      {
+        'memberCount': FieldValue.increment(delta),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
       SetOptions(merge: true),
     );
   }
@@ -424,6 +427,7 @@ class MemberService {
         'isBaptized': true,
         'isNewBeliever': false,
         'baptizedAt': at,
+        'updatedAt': FieldValue.serverTimestamp(),
       });
     }
 
@@ -432,6 +436,7 @@ class MemberService {
       batch.update(_members.doc(id), {
         'isBaptized': false,
         'baptizedAt': FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
       });
     }
 
@@ -478,6 +483,7 @@ class MemberService {
       'linkedLeaderId': leaderId,
       'promotedToLeaderAt': FieldValue.serverTimestamp(),
       'isNewBeliever': false,
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
@@ -800,6 +806,7 @@ class MemberService {
       'assignmentKind': MemberAssignmentKind.cell.storageKey,
       'assignedLeaderFromRegistration': false,
       if (!hasCellAssignedAt) 'cellAssignedAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
 
     await _members.doc(memberId).update(updates);
@@ -876,6 +883,7 @@ class MemberService {
     batch.update(memberRef, {
       'assignedCellId': FieldValue.delete(),
       'assignedCellCode': FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
 
     if (cellId.isNotEmpty) {
@@ -890,6 +898,7 @@ class MemberService {
                 .where((helper) => helper.memberId != memberId)
                 .map((helper) => helper.toMap())
                 .toList(),
+            'updatedAt': FieldValue.serverTimestamp(),
           });
         }
       }
@@ -944,7 +953,10 @@ class MemberService {
 
     final batch = _members.firestore.batch();
     for (final memberId in ids) {
-      batch.update(_members.doc(memberId), {'isNewBeliever': false});
+      batch.update(_members.doc(memberId), {
+        'isNewBeliever': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     }
     await batch.commit();
   }
@@ -986,7 +998,10 @@ class MemberService {
 
     final batch = _members.firestore.batch();
     for (final memberId in toGraduate) {
-      batch.update(_members.doc(memberId), {'isNewBeliever': false});
+      batch.update(_members.doc(memberId), {
+        'isNewBeliever': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     }
     await batch.commit();
   }

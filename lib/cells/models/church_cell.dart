@@ -21,7 +21,6 @@ class ChurchCell {
     this.leaderId,
     this.leaderName,
     this.notes,
-    this.alias,
     this.helpers = const [],
     required this.registeredAt,
     required this.registeredBy,
@@ -46,8 +45,6 @@ class ChurchCell {
   final String? leaderId;
   final String? leaderName;
   final String? notes;
-  /// Alias bancario para transferencias.
-  final String? alias;
   final List<CellHelper> helpers;
   final DateTime registeredAt;
   final String registeredBy;
@@ -100,12 +97,14 @@ class ChurchCell {
       if (leaderName != null && leaderName!.trim().isNotEmpty)
         'leaderName': leaderName!.trim(),
       if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
-      if (alias != null && alias!.trim().isNotEmpty) 'alias': alias!.trim(),
+      // El alias bancario vive en la iglesia; limpia legado en células.
+      'alias': FieldValue.delete(),
       'helpers': helpers.map((helper) => helper.toMap()).toList(),
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
       if (memberCount != null) 'memberCount': memberCount,
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 
@@ -129,7 +128,6 @@ class ChurchCell {
       leaderId: data['leaderId'] as String?,
       leaderName: data['leaderName'] as String?,
       notes: data['notes'] as String?,
-      alias: data['alias'] as String?,
       helpers: CellHelper.listFromFirestore(data['helpers']),
       registeredAt: (data['registeredAt'] as Timestamp).toDate(),
       registeredBy: data['registeredBy'] as String? ?? '',

@@ -2555,6 +2555,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get churchRegNameValidation => 'Enter the name';
 
   @override
+  String get churchRegAlias => 'Bank alias';
+
+  @override
+  String get churchRegAliasHint => 'E.g. church.central.mb';
+
+  @override
+  String get churchRegAliasHelper => 'Bank alias for transfers';
+
+  @override
   String get churchRegAddressSection => 'Address';
 
   @override
@@ -3095,7 +3104,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cellAttendanceOfferingAliasMissing =>
-      'This cell does not have a transfer alias yet';
+      'This church does not have a transfer alias yet';
 
   @override
   String get cellAttendanceObservations => 'Observations';
@@ -3773,6 +3782,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaderRegAge => 'Age';
+
+  @override
+  String get leaderWorkAgeRange => 'Age range they work with';
+
+  @override
+  String get leaderWorkAgeRangeHelper =>
+      'Ages of the people they can accompany';
+
+  @override
+  String get leaderWorkAgeFrom => 'From (years)';
+
+  @override
+  String get leaderWorkAgeTo => 'To (years)';
+
+  @override
+  String get leaderWorkAgeFromRequired => 'Enter the minimum age';
+
+  @override
+  String get leaderWorkAgeToRequired => 'Enter the maximum age';
+
+  @override
+  String get leaderWorkAgeInvalid => 'Enter a valid age (0–120)';
+
+  @override
+  String get leaderWorkAgeOrderInvalid =>
+      'Minimum age cannot be greater than maximum';
 
   @override
   String get adminRegNewTitle => 'New administrator';
