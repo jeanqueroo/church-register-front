@@ -5136,6 +5136,60 @@ abstract class AppLocalizations {
   /// **'No se pudieron cargar las células'**
   String get cellsListLoadError;
 
+  /// No description provided for @cellsBlockTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Bloquear célula'**
+  String get cellsBlockTitle;
+
+  /// No description provided for @cellsUnblockTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Desbloquear célula'**
+  String get cellsUnblockTitle;
+
+  /// No description provided for @cellsBlockConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Bloquear \"{name}\"? No se podrá registrar asistencia ni asignar integrantes hasta que la desbloquees.'**
+  String cellsBlockConfirm(String name);
+
+  /// No description provided for @cellsUnblockConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Desbloquear \"{name}\" y volver a permitir su uso?'**
+  String cellsUnblockConfirm(String name);
+
+  /// No description provided for @cellsBlocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Célula bloqueada'**
+  String get cellsBlocked;
+
+  /// No description provided for @cellsUnblocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Célula desbloqueada'**
+  String get cellsUnblocked;
+
+  /// No description provided for @cellsBlockedBanner.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta célula está bloqueada. No se pueden registrar asistencias ni asignar integrantes.'**
+  String get cellsBlockedBanner;
+
+  /// No description provided for @cellsShowBlocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar bloqueadas ({count})'**
+  String cellsShowBlocked(int count);
+
+  /// No description provided for @cellsHideBlocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar bloqueadas ({count})'**
+  String cellsHideBlocked(int count);
+
   /// No description provided for @cellsListFilterOverCapacity.
   ///
   /// In es, this message translates to:

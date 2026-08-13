@@ -240,6 +240,8 @@ class _RegisterCellScreenState extends State<RegisterCellScreen> {
         registeredAt: existing?.registeredAt ?? DateTime.now(),
         registeredBy: existing?.registeredBy ?? widget.registeredBy,
         churchId: churchId,
+        memberCount: existing?.memberCount,
+        isBlocked: existing?.isBlocked ?? false,
       );
 
       if (widget.isEditing) {

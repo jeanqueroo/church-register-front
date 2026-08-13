@@ -43,12 +43,15 @@ class AppPermissions {
   bool get canViewLeaderDashboard => isAdmin;
   bool get canRegisterCell => isAdmin;
   bool get canEditCell => isAdmin;
+  /// Bloquear / desbloquear célula (administrador de iglesia).
+  bool get canBlockCell => isAdmin;
 
   /// Líder/supervisor: asignarse como titular si la célula aún no tiene líder.
   bool canClaimOwnCellLeadership(
     ChurchCell cell, {
     String? actingLeaderId,
   }) {
+    if (cell.isBlocked) return false;
     if (canEditCell) return false;
     final actor = actingLeaderId?.trim();
     if (actor == null || actor.isEmpty) return false;
@@ -69,6 +72,7 @@ class AppPermissions {
     String? actingLeaderId,
     Iterable<String> supervisedLeaderIds = const [],
   }) {
+    if (cell.isBlocked) return false;
     if (!canRegisterMember) return false;
     return CellMemberCapacity.canRegisterNewMemberWhenAtCapacity(
       currentCount: currentMemberCount,
@@ -84,6 +88,7 @@ class AppPermissions {
     String? actingLeaderId,
     Iterable<String> supervisedLeaderIds = const [],
   }) {
+    if (cell.isBlocked) return false;
     if (canAssignCellMembers) return true;
     return CellMemberCapacity.canManageCellMembers(
       cell: cell,
@@ -97,6 +102,7 @@ class AppPermissions {
     ChurchCell cell, {
     String? actingLeaderId,
   }) {
+    if (cell.isBlocked) return false;
     return CellMemberCapacity.isCellLeader(
       cell: cell,
       actingLeaderId: actingLeaderId,
@@ -120,6 +126,14 @@ class AppPermissions {
         leaderId.isNotEmpty &&
         actorId != null &&
         actorId == leaderId;
+  }
+
+  bool canManageHelpersForCell(ChurchCell cell, {String? actingLeaderId}) {
+    if (cell.isBlocked) return false;
+    return canManageCellHelpers(
+      cell.leaderId,
+      actingLeaderId: actingLeaderId,
+    );
   }
 
   bool get canViewBaptismCalendar =>

@@ -91,6 +91,7 @@ class _CellsListBodyState extends State<_CellsListBody> {
   bool _memberCountsLoaded = false;
   bool _loadingMemberCounts = false;
   bool _filterOverCapacity = false;
+  bool _showBlocked = false;
   Object? _loadError;
   StreamSubscription<List<ChurchCell>>? _cellsSubscription;
   final _memberService = MemberService();
@@ -254,6 +255,12 @@ class _CellsListBodyState extends State<_CellsListBody> {
         .where((cell) => _matchesSearch(cell, _searchController.text, l10n))
         .toList();
 
+    final blockedCount = filtered.where((cell) => cell.isBlocked).length;
+    final hideBlockedForPick = widget.mode != CellsListMode.browse;
+    if (!_showBlocked || hideBlockedForPick) {
+      filtered = filtered.where((cell) => !cell.isBlocked).toList();
+    }
+
     if (_filterOverCapacity) {
       filtered = filtered.where(_isOverCapacity).toList();
     }
@@ -297,7 +304,7 @@ class _CellsListBodyState extends State<_CellsListBody> {
               label: Text(l10n.menuNewCell),
             )
           : null,
-      body: _buildBody(context, l10n, filtered),
+      body: _buildBody(context, l10n, filtered, blockedCount),
     );
   }
 
@@ -305,6 +312,7 @@ class _CellsListBodyState extends State<_CellsListBody> {
     BuildContext context,
     AppLocalizations l10n,
     List<ChurchCell> filtered,
+    int blockedCount,
   ) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
@@ -450,17 +458,33 @@ class _CellsListBodyState extends State<_CellsListBody> {
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: FilterChip(
-                label: Text(
-                  l10n.cellsListFilterOverCapacity(CellMemberCapacity.maxMembers),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilterChip(
+                  label: Text(
+                    l10n.cellsListFilterOverCapacity(
+                      CellMemberCapacity.maxMembers,
+                    ),
+                  ),
+                  selected: _filterOverCapacity,
+                  onSelected: _loadingMemberCounts
+                      ? null
+                      : _onOverCapacityFilterChanged,
                 ),
-                selected: _filterOverCapacity,
-                onSelected: _loadingMemberCounts
-                    ? null
-                    : _onOverCapacityFilterChanged,
-              ),
+                if (widget.permissions.canBlockCell && blockedCount > 0)
+                  FilterChip(
+                    label: Text(
+                      _showBlocked
+                          ? l10n.cellsHideBlocked(blockedCount)
+                          : l10n.cellsShowBlocked(blockedCount),
+                    ),
+                    selected: _showBlocked,
+                    onSelected: (value) =>
+                        setState(() => _showBlocked = value),
+                  ),
+              ],
             ),
           ),
         ],
@@ -478,6 +502,7 @@ class _CellsListBodyState extends State<_CellsListBody> {
                     final cell = filtered[index];
                     final memberCount = _memberCountFor(cell);
                     final parts = <String>[
+                      if (cell.isBlocked) l10n.commonBlockedFem,
                       if (_filterOverCapacity)
                         l10n.cellsListMemberCount(memberCount),
                       if (cell.cellDay != null)
@@ -490,6 +515,9 @@ class _CellsListBodyState extends State<_CellsListBody> {
                     return Card(
                       child: ListTile(
                         leading: CircleAvatar(
+                          backgroundColor: cell.isBlocked
+                              ? Theme.of(context).colorScheme.errorContainer
+                              : null,
                           child: Text(
                             cell.code.isNotEmpty
                                 ? cell.code[0].toUpperCase()

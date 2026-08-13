@@ -2896,6 +2896,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cellsListLoadError => 'Could not load cell groups';
 
   @override
+  String get cellsBlockTitle => 'Block cell group';
+
+  @override
+  String get cellsUnblockTitle => 'Unblock cell group';
+
+  @override
+  String cellsBlockConfirm(String name) {
+    return 'Block \"$name\"? Attendance and member assignment will be disabled until you unblock it.';
+  }
+
+  @override
+  String cellsUnblockConfirm(String name) {
+    return 'Unblock \"$name\" and allow its use again?';
+  }
+
+  @override
+  String get cellsBlocked => 'Cell group blocked';
+
+  @override
+  String get cellsUnblocked => 'Cell group unblocked';
+
+  @override
+  String get cellsBlockedBanner =>
+      'This cell group is blocked. Attendance and member assignment are disabled.';
+
+  @override
+  String cellsShowBlocked(int count) {
+    return 'Show blocked ($count)';
+  }
+
+  @override
+  String cellsHideBlocked(int count) {
+    return 'Hide blocked ($count)';
+  }
+
+  @override
   String cellsListFilterOverCapacity(int max) {
     return 'More than $max disciples';
   }

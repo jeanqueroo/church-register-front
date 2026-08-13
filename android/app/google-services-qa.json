@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "374770573112",
-    "project_id": "church-register-pro",
-    "storage_bucket": "church-register-pro.firebasestorage.app"
+    "project_number": "401692251430",
+    "project_id": "church-register-qa",
+    "storage_bucket": "church-register-qa.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:374770573112:android:29d96a8b8868cd39ef2bcd",
+        "mobilesdk_app_id": "1:401692251430:android:50d2c2b6d227cb6ee31de7",
         "android_client_info": {
           "package_name": "com.church.register.manantial"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAd-9I9WKDu3HL3a86MLr0Jt6v7tjuHcNU"
+          "current_key": "AIzaSyC-V8o1o9WKBVZTxx0vaeaUYkrv4UJKfLg"
         }
       ],
       "services": {

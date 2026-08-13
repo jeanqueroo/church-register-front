@@ -161,6 +161,15 @@ class ChurchLeader {
 
   bool get hasWorkAgeRange => workAgeFrom != null || workAgeTo != null;
 
+  /// Si el líder no definió rango, acepta cualquier edad.
+  bool acceptsWorkAge(int? age) {
+    if (!hasWorkAgeRange) return true;
+    if (age == null) return false;
+    if (workAgeFrom != null && age < workAgeFrom!) return false;
+    if (workAgeTo != null && age > workAgeTo!) return false;
+    return true;
+  }
+
   String? get workAgeRangeLabel {
     if (workAgeFrom == null && workAgeTo == null) return null;
     if (workAgeFrom != null && workAgeTo != null) {

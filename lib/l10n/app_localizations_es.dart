@@ -2911,6 +2911,42 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cellsListLoadError => 'No se pudieron cargar las células';
 
   @override
+  String get cellsBlockTitle => 'Bloquear célula';
+
+  @override
+  String get cellsUnblockTitle => 'Desbloquear célula';
+
+  @override
+  String cellsBlockConfirm(String name) {
+    return '¿Bloquear \"$name\"? No se podrá registrar asistencia ni asignar integrantes hasta que la desbloquees.';
+  }
+
+  @override
+  String cellsUnblockConfirm(String name) {
+    return '¿Desbloquear \"$name\" y volver a permitir su uso?';
+  }
+
+  @override
+  String get cellsBlocked => 'Célula bloqueada';
+
+  @override
+  String get cellsUnblocked => 'Célula desbloqueada';
+
+  @override
+  String get cellsBlockedBanner =>
+      'Esta célula está bloqueada. No se pueden registrar asistencias ni asignar integrantes.';
+
+  @override
+  String cellsShowBlocked(int count) {
+    return 'Mostrar bloqueadas ($count)';
+  }
+
+  @override
+  String cellsHideBlocked(int count) {
+    return 'Ocultar bloqueadas ($count)';
+  }
+
+  @override
   String cellsListFilterOverCapacity(int max) {
     return 'Más de $max discípulos';
   }

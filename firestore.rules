@@ -156,6 +156,16 @@ service cloud.firestore {
           .hasOnly(['roles', 'updatedAt']);
     }
 
+    // Admin/registrador de iglesia: bloquear o desbloquear cuenta de líder/supervisor.
+    function canChurchAdminBlockLeaderAccount() {
+      return (isChurchAdmin() || isRegistrar()) &&
+        currentUserChurchId() != '' &&
+        resource.data.get('churchId', '') == currentUserChurchId() &&
+        !resource.data.get('roles', []).hasAny(['superadmin', 'admin']) &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['isBlocked', 'updatedAt', 'updatedBy']);
+    }
+
     function memberBelongsToUserChurch(memberId) {
       return currentUserChurchId() != '' &&
         memberData(memberId).get('churchId', '') == currentUserChurchId();
@@ -523,7 +533,8 @@ service cloud.firestore {
         request.auth.uid == userId ||
         canManageOtherUsers() ||
         canChurchAdminAssignSupervisorLeaders() ||
-        canChurchAdminUpdateLeaderRoles()
+        canChurchAdminUpdateLeaderRoles() ||
+        canChurchAdminBlockLeaderAccount()
       );
 
       // Buzón del líder: solo él lee; cualquier usuario autenticado puede crear (registro).

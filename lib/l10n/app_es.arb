@@ -1451,6 +1451,35 @@
   "cellsListSearchHint": "Buscar por código, nombre, líder o dirección",
   "cellsListEmpty": "No hay células registradas",
   "cellsListLoadError": "No se pudieron cargar las células",
+  "cellsBlockTitle": "Bloquear célula",
+  "cellsUnblockTitle": "Desbloquear célula",
+  "cellsBlockConfirm": "¿Bloquear \"{name}\"? No se podrá registrar asistencia ni asignar integrantes hasta que la desbloquees.",
+  "@cellsBlockConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellsUnblockConfirm": "¿Desbloquear \"{name}\" y volver a permitir su uso?",
+  "@cellsUnblockConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellsBlocked": "Célula bloqueada",
+  "cellsUnblocked": "Célula desbloqueada",
+  "cellsBlockedBanner": "Esta célula está bloqueada. No se pueden registrar asistencias ni asignar integrantes.",
+  "cellsShowBlocked": "Mostrar bloqueadas ({count})",
+  "@cellsShowBlocked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellsHideBlocked": "Ocultar bloqueadas ({count})",
+  "@cellsHideBlocked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "cellsListFilterOverCapacity": "Más de {max} discípulos",
   "@cellsListFilterOverCapacity": {
     "placeholders": {

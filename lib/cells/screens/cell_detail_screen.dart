@@ -78,8 +78,8 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
         actingLeaderId: widget.actingLeaderId,
       );
 
-  bool get _canManageHelpers => _permissions.canManageCellHelpers(
-        _cell.leaderId,
+  bool get _canManageHelpers => _permissions.canManageHelpersForCell(
+        _cell,
         actingLeaderId: widget.actingLeaderId,
       );
 
@@ -376,6 +376,81 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
         actingLeaderId: widget.actingLeaderId,
       );
 
+  bool _blockingInProgress = false;
+
+  Future<void> _toggleBlock({required bool block}) async {
+    if (!_permissions.canBlockCell || _blockingInProgress) return;
+    final l10n = context.l10n;
+    final cellId = _cell.id;
+    if (cellId == null || cellId.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(block ? l10n.cellsBlockTitle : l10n.cellsUnblockTitle),
+        content: Text(
+          block
+              ? l10n.cellsBlockConfirm(_cell.displayLabel)
+              : l10n.cellsUnblockConfirm(_cell.displayLabel),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(block ? l10n.commonBlock : l10n.commonUnblock),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _blockingInProgress = true);
+    try {
+      await _cellService.setCellBlocked(cellId: cellId, blocked: block);
+      if (!mounted) return;
+      _showSnack(block ? l10n.cellsBlocked : l10n.cellsUnblocked);
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      _showSnack(CellService.messageFromFirestoreException(e, l10n));
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(l10n.memberSaveUnexpectedError);
+    } finally {
+      if (mounted) setState(() => _blockingInProgress = false);
+    }
+  }
+
+  Widget _blockedBanner(AppLocalizations l10n) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      color: Theme.of(context).colorScheme.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.block_outlined,
+              color: Theme.of(context).colorScheme.onErrorContainer,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l10n.cellsBlockedBanner,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _claimCellLeadership() async {
     final l10n = context.l10n;
     final cellId = _cell.id;
@@ -431,6 +506,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
           registeredBy: _cell.registeredBy,
           churchId: _cell.churchId,
           memberCount: _cell.memberCount,
+          isBlocked: _cell.isBlocked,
         ),
         previousCode: _cell.code,
       );
@@ -803,7 +879,22 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
       appBar: AppBar(
         title: Text(_cell.displayLabel),
         actions: [
-          if (_permissions.canEditCell && cellId != null && cellId.isNotEmpty)
+          if (_permissions.canBlockCell && cellId != null && cellId.isNotEmpty)
+            IconButton(
+              icon: Icon(
+                _cell.isBlocked ? Icons.lock_open_outlined : Icons.block_outlined,
+              ),
+              tooltip: _cell.isBlocked
+                  ? l10n.cellsUnblockTitle
+                  : l10n.cellsBlockTitle,
+              onPressed: _blockingInProgress
+                  ? null
+                  : () => _toggleBlock(block: !_cell.isBlocked),
+            ),
+          if (_permissions.canEditCell &&
+              !_cell.isBlocked &&
+              cellId != null &&
+              cellId.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               tooltip: l10n.commonEdit,
@@ -816,14 +907,33 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
           : ListView(
               padding: const EdgeInsets.all(24),
               children: [
+                if (_cell.isBlocked) _blockedBanner(l10n),
                 if (_canClaimLeadership) _claimLeadershipBanner(l10n),
                 _Section(title: l10n.cellRegSectionData, rows: _cellRows(l10n)),
                 const SizedBox(height: 16),
-                if (_permissions.canEditCell) ...[
+                if (_permissions.canEditCell && !_cell.isBlocked) ...[
                   FilledButton.icon(
                     onPressed: _openEdit,
                     icon: const Icon(Icons.edit_outlined),
                     label: Text(l10n.cellEditTitle),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (_permissions.canBlockCell) ...[
+                  OutlinedButton.icon(
+                    onPressed: _blockingInProgress
+                        ? null
+                        : () => _toggleBlock(block: !_cell.isBlocked),
+                    icon: Icon(
+                      _cell.isBlocked
+                          ? Icons.lock_open_outlined
+                          : Icons.block_outlined,
+                    ),
+                    label: Text(
+                      _cell.isBlocked
+                          ? l10n.cellsUnblockTitle
+                          : l10n.cellsBlockTitle,
+                    ),
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -851,11 +961,12 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                         ],
                         _helpersSection(l10n, members),
                         _disciplesSection(l10n, members, helperIds),
-                        _discipleActionsSection(
-                          l10n,
-                          showAssignFab: showAssignFab,
-                          showRegisterFab: showRegisterFab,
-                        ),
+                        if (!_cell.isBlocked)
+                          _discipleActionsSection(
+                            l10n,
+                            showAssignFab: showAssignFab,
+                            showRegisterFab: showRegisterFab,
+                          ),
                       ],
                     );
                   },

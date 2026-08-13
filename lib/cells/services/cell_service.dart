@@ -38,7 +38,10 @@ class CellService {
     required ChurchCell cell,
     String? previousCode,
   }) async {
-    await _cells.doc(cellId).set(cell.toMap(), SetOptions(merge: true));
+    await _cells.doc(cellId).set(
+      cell.toMap(clearLegacyAlias: true),
+      SetOptions(merge: true),
+    );
 
     final newCode = cell.code.trim();
     final oldCode = previousCode?.trim() ?? '';
@@ -102,6 +105,16 @@ class CellService {
     });
   }
 
+  Future<void> setCellBlocked({
+    required String cellId,
+    required bool blocked,
+  }) async {
+    await _cells.doc(cellId).update({
+      'isBlocked': blocked,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   /// Leader IDs that already lead a cell (optionally scoped to [churchId]).
   /// Pass [excludeCellId] when editing so the current cell's leader stays selectable.
   Future<Set<String>> fetchLeaderIdsWithAssignedCell({
@@ -154,6 +167,7 @@ class CellService {
       for (final doc in snapshot.docs) {
         if (seenIds.contains(doc.id)) continue;
         final cell = ChurchCell.fromFirestore(doc);
+        if (cell.isBlocked) continue;
         if (churchId != null &&
             churchId.isNotEmpty &&
             cell.churchId != null &&

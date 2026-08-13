@@ -26,6 +26,7 @@ class ChurchCell {
     required this.registeredBy,
     this.churchId,
     this.memberCount,
+    this.isBlocked = false,
   });
 
   static const maxHelpers = 3;
@@ -50,6 +51,7 @@ class ChurchCell {
   final String registeredBy;
   final String? churchId;
   final int? memberCount;
+  final bool isBlocked;
 
   String get displayLabel {
     final trimmedName = name?.trim();
@@ -75,7 +77,7 @@ class ChurchCell {
     ].whereType<String>().where((s) => s.trim().isNotEmpty).join(', ');
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap({bool clearLegacyAlias = false}) {
     return {
       'code': code.trim(),
       if (name != null && name!.trim().isNotEmpty) 'name': name!.trim(),
@@ -97,13 +99,14 @@ class ChurchCell {
       if (leaderName != null && leaderName!.trim().isNotEmpty)
         'leaderName': leaderName!.trim(),
       if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
-      // El alias bancario vive en la iglesia; limpia legado en células.
-      'alias': FieldValue.delete(),
+      // Solo en update/set(merge): FieldValue.delete no es válido en create/add.
+      if (clearLegacyAlias) 'alias': FieldValue.delete(),
       'helpers': helpers.map((helper) => helper.toMap()).toList(),
       'registeredAt': Timestamp.fromDate(registeredAt),
       'registeredBy': registeredBy,
       if (churchId != null && churchId!.isNotEmpty) 'churchId': churchId,
       if (memberCount != null) 'memberCount': memberCount,
+      'isBlocked': isBlocked,
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }
@@ -133,6 +136,7 @@ class ChurchCell {
       registeredBy: data['registeredBy'] as String? ?? '',
       churchId: data['churchId'] as String?,
       memberCount: (data['memberCount'] as num?)?.toInt(),
+      isBlocked: data['isBlocked'] as bool? ?? false,
     );
   }
 }

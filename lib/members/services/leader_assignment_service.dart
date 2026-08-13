@@ -30,6 +30,7 @@ class LeaderAssignmentService {
     required LeaderGender gender,
     required GeoLocation memberLocation,
     String? churchId,
+    int? memberAge,
   }) async {
     final leaders =
         await _leaderService.fetchAssignableLeaders(churchId: churchId);
@@ -37,6 +38,7 @@ class LeaderAssignmentService {
 
     for (final leader in leaders) {
       if (leader.gender != gender) continue;
+      if (!leader.acceptsWorkAge(memberAge)) continue;
 
       var location = leader.geoLocation;
       if (location == null) {

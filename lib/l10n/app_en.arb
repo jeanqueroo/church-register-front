@@ -1451,6 +1451,35 @@
   "cellsListSearchHint": "Search by code, name, leader, or address",
   "cellsListEmpty": "No cell groups registered",
   "cellsListLoadError": "Could not load cell groups",
+  "cellsBlockTitle": "Block cell group",
+  "cellsUnblockTitle": "Unblock cell group",
+  "cellsBlockConfirm": "Block \"{name}\"? Attendance and member assignment will be disabled until you unblock it.",
+  "@cellsBlockConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellsUnblockConfirm": "Unblock \"{name}\" and allow its use again?",
+  "@cellsUnblockConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellsBlocked": "Cell group blocked",
+  "cellsUnblocked": "Cell group unblocked",
+  "cellsBlockedBanner": "This cell group is blocked. Attendance and member assignment are disabled.",
+  "cellsShowBlocked": "Show blocked ({count})",
+  "@cellsShowBlocked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellsHideBlocked": "Hide blocked ({count})",
+  "@cellsHideBlocked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "cellsListFilterOverCapacity": "More than {max} disciples",
   "@cellsListFilterOverCapacity": {
     "placeholders": {
