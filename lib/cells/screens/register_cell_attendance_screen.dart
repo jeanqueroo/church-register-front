@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../auth/models/app_permissions.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../church/services/church_service.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/locale/weekday_labels.dart';
 import '../../core/widgets/form_section_title.dart';
@@ -63,6 +64,7 @@ class _RegisterCellAttendanceScreenState
   bool _loadingMembers = true;
   bool _isSaving = false;
   String? _loadError;
+  String? _churchAlias;
   List<ChurchMember> _members = [];
   final Map<String, bool> _presentByMemberId = {};
 
@@ -89,6 +91,19 @@ class _RegisterCellAttendanceScreenState
     });
     _applySessionToEdit(widget.sessionToEdit);
     _loadMembers();
+    _loadChurchAlias();
+  }
+
+  Future<void> _loadChurchAlias() async {
+    final churchId = (widget.cell.churchId ??
+            widget._permissions.churchId)
+        ?.trim();
+    if (churchId == null || churchId.isEmpty) return;
+    try {
+      final church = await ChurchService().fetchChurch(churchId);
+      if (!mounted) return;
+      setState(() => _churchAlias = church?.alias?.trim());
+    } catch (_) {}
   }
 
   void _applySessionToEdit(CellAttendanceSession? session) {
@@ -407,7 +422,7 @@ class _RegisterCellAttendanceScreenState
   }
 
   Widget _offeringAliasInfo(AppLocalizations l10n) {
-    final alias = widget.cell.alias?.trim();
+    final alias = _churchAlias?.trim();
     final hasAlias = alias != null && alias.isNotEmpty;
     final scheme = Theme.of(context).colorScheme;
 

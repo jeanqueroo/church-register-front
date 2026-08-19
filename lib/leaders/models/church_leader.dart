@@ -22,6 +22,7 @@ class ChurchLeader {
     this.idDocumentNumber,
     this.birthDate,
     this.maritalStatus,
+    this.occupation,
     this.neighborhood,
     this.locality,
     this.stateProvince,
@@ -38,6 +39,8 @@ class ChurchLeader {
     this.churchOffice,
     this.appRoles,
     this.photoUrl,
+    this.workAgeFrom,
+    this.workAgeTo,
     this.isBlocked = false,
   });
 
@@ -52,6 +55,7 @@ class ChurchLeader {
   final String? idDocumentNumber;
   final DateTime? birthDate;
   final MaritalStatus? maritalStatus;
+  final String? occupation;
   final String? neighborhood;
   final String? locality;
   final String? stateProvince;
@@ -69,6 +73,10 @@ class ChurchLeader {
   /// Roles de app en `users` (p. ej. leader, supervisor, registrador).
   final List<String>? appRoles;
   final String? photoUrl;
+  /// Edad mínima del rango pastoral con el que trabaja (años).
+  final int? workAgeFrom;
+  /// Edad máxima del rango pastoral con el que trabaja (años).
+  final int? workAgeTo;
   final bool isBlocked;
 
   String get fullName =>
@@ -91,6 +99,7 @@ class ChurchLeader {
       locality,
       neighborhood,
       idDocumentNumber,
+      occupation,
     ]);
   }
 
@@ -108,6 +117,7 @@ class ChurchLeader {
       locality,
       neighborhood,
       idDocumentNumber,
+      occupation,
     ]);
   }
 
@@ -149,6 +159,26 @@ class ChurchLeader {
     return years;
   }
 
+  bool get hasWorkAgeRange => workAgeFrom != null || workAgeTo != null;
+
+  /// Si el líder no definió rango, acepta cualquier edad.
+  bool acceptsWorkAge(int? age) {
+    if (!hasWorkAgeRange) return true;
+    if (age == null) return false;
+    if (workAgeFrom != null && age < workAgeFrom!) return false;
+    if (workAgeTo != null && age > workAgeTo!) return false;
+    return true;
+  }
+
+  String? get workAgeRangeLabel {
+    if (workAgeFrom == null && workAgeTo == null) return null;
+    if (workAgeFrom != null && workAgeTo != null) {
+      return '$workAgeFrom – $workAgeTo';
+    }
+    if (workAgeFrom != null) return '≥ $workAgeFrom';
+    return '≤ $workAgeTo';
+  }
+
   String get formattedAddress {
     return [
       street,
@@ -172,6 +202,7 @@ class ChurchLeader {
       'idDocumentNumber': idDocumentNumber,
       'birthDate': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
       'maritalStatus': maritalStatus?.name,
+      'occupation': occupation,
       'neighborhood': neighborhood,
       'locality': locality,
       'stateProvince': stateProvince,
@@ -192,7 +223,10 @@ class ChurchLeader {
       if (appRoles != null && appRoles!.isNotEmpty) 'appRoles': appRoles,
       if (photoUrl != null && photoUrl!.trim().isNotEmpty)
         'photoUrl': photoUrl!.trim(),
+      'workAgeFrom': workAgeFrom ?? FieldValue.delete(),
+      'workAgeTo': workAgeTo ?? FieldValue.delete(),
       'isBlocked': isBlocked,
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 
@@ -213,6 +247,7 @@ class ChurchLeader {
       idDocumentNumber: data['idDocumentNumber'] as String?,
       birthDate: (data['birthDate'] as Timestamp?)?.toDate(),
       maritalStatus: MaritalStatus.fromString(data['maritalStatus'] as String?),
+      occupation: data['occupation'] as String?,
       neighborhood: data['neighborhood'] as String?,
       locality: data['locality'] as String?,
       stateProvince: data['stateProvince'] as String?,
@@ -233,6 +268,8 @@ class ChurchLeader {
           ?.map((e) => e.toString())
           .toList(),
       photoUrl: data['photoUrl'] as String?,
+      workAgeFrom: (data['workAgeFrom'] as num?)?.toInt(),
+      workAgeTo: (data['workAgeTo'] as num?)?.toInt(),
       isBlocked: data['isBlocked'] as bool? ?? false,
     );
   }

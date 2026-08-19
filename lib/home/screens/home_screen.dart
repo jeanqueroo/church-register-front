@@ -186,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (p.canViewMembersList) {
+    if (p.canViewOldMembersList) {
       items.add(
         SlideMenuItem(
           id: 'churchMembers',
@@ -705,7 +705,22 @@ class _HomeScreenState extends State<HomeScreen> {
     AppLocalizations l10n,
     HomeDashboardData data,
   ) {
-    final cards = <HomeStatCardData>[
+    final cards = <HomeStatCardData>[];
+
+    if (data.hasOwnCell) {
+      cards.add(
+        HomeStatCardData(
+          value: '${data.ownCellDisciplesForSummary}',
+          title: l10n.homeStatMyDisciplesTitle,
+          subtitle: l10n.homeStatMyDisciplesSubtitle,
+          icon: HomeStatStyles.disciples.icon,
+          backgroundColor: HomeStatStyles.disciples.bg,
+          foregroundColor: HomeStatStyles.disciples.fg,
+        ),
+      );
+    }
+
+    cards.addAll([
       HomeStatCardData(
         value: '${data.memberCount}',
         title: l10n.homeStatMembersTitle,
@@ -742,7 +757,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
             : null,
       ),
-    ];
+    ]);
 
     if (data.leaderCount != null) {
       cards.add(
@@ -821,21 +836,7 @@ class _HomeScreenState extends State<HomeScreen> {
       entries.add((icon: icon, title: title, subtitle: subtitle, onTap: onTap));
     }
 
-    if (p.canRegisterMember) {
-      addEntry(
-        icon: Icons.person_add_outlined,
-        title: l10n.quickNewMemberTitle,
-        subtitle: l10n.quickNewMemberSubtitle,
-        onTap: () => _navigate(
-          RegisterMemberScreen(
-            registeredBy: _email,
-            churchId: _churchId,
-            permissions: p,
-          ),
-          'newMember',
-        ),
-      );
-    }
+   
     if (p.canViewMembersList) {
       addEntry(
         icon: Icons.people_outlined,

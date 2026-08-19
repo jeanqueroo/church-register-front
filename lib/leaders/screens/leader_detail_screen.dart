@@ -129,6 +129,8 @@ class _LeaderDetailScreenState extends State<LeaderDetailScreen> {
         l10n.memberDetailAge,
         leader.age != null ? l10n.memberAgeYears(leader.age!) : null,
       ),
+      _Row(l10n.memberDetailOccupation, leader.occupation),
+      _Row(l10n.leaderWorkAgeRange, leader.workAgeRangeLabel),
       _Row(
         l10n.memberDetailGender,
         leader.gender?.localizedLabel(l10n),

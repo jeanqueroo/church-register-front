@@ -113,7 +113,7 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   void _configurePushForSession(UserSession session) {
-    if (!session.permissions.isLeader) return;
+    if (!session.permissions.canViewLeaderNotifications) return;
     if (_pushRegisteredUid == session.uid) return;
     _pushRegisteredUid = session.uid;
 
@@ -121,7 +121,7 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _registerPushIfNeeded(UserSession session) async {
-    if (!session.permissions.isLeader) return;
+    if (!session.permissions.canViewLeaderNotifications) return;
     await _pushService.registerForUser(session.uid);
     await _pushService.handleInitialMessage();
   }

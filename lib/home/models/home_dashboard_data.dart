@@ -20,6 +20,7 @@ class HomeDashboardData {
     this.churchName,
     this.birthdaysToday = const [],
     this.hasOwnCell = false,
+    this.ownCellDiscipleCount,
   });
 
   final int memberCount;
@@ -32,4 +33,9 @@ class HomeDashboardData {
 
   /// True when the user leads at least one cell (supervisor home disciples card).
   final bool hasOwnCell;
+
+  /// Discípulos en la célula del propio líder (admin con rol líder/supervisor).
+  final int? ownCellDiscipleCount;
+
+  int get ownCellDisciplesForSummary => ownCellDiscipleCount ?? memberCount;
 }

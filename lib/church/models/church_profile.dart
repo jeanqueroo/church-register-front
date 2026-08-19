@@ -6,6 +6,7 @@ class ChurchProfile {
     required this.name,
     required this.address,
     this.logoUrl,
+    this.alias,
     this.latitude,
     this.longitude,
     this.isBlocked = false,
@@ -16,6 +17,8 @@ class ChurchProfile {
   final String name;
   final String address;
   final String? logoUrl;
+  /// Alias bancario para transferencias.
+  final String? alias;
   final double? latitude;
   final double? longitude;
   final bool isBlocked;
@@ -27,10 +30,12 @@ class ChurchProfile {
   bool get hasLogo => logoUrl != null && logoUrl!.trim().isNotEmpty;
 
   Map<String, dynamic> toMap({required String updatedBy}) {
+    final trimmedAlias = alias?.trim() ?? '';
     return {
       'name': name.trim(),
       'address': address.trim(),
       if (logoUrl != null && logoUrl!.trim().isNotEmpty) 'logoUrl': logoUrl!.trim(),
+      'alias': trimmedAlias.isEmpty ? FieldValue.delete() : trimmedAlias,
       if (hasCoordinates) ...{
         'latitude': latitude,
         'longitude': longitude,
@@ -49,6 +54,7 @@ class ChurchProfile {
       name: data['name'] as String? ?? '',
       address: data['address'] as String? ?? '',
       logoUrl: data['logoUrl'] as String?,
+      alias: data['alias'] as String?,
       latitude: _readDouble(data['latitude']),
       longitude: _readDouble(data['longitude']),
       isBlocked: data['isBlocked'] as bool? ?? false,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../auth/models/app_permissions.dart';
 import '../../auth/models/user_profile.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../church/services/church_service.dart';
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/locale/weekday_labels.dart';
 import '../../l10n/app_localizations.dart';
@@ -43,6 +44,7 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
   bool _loading = true;
   String? _loadError;
   bool _missingLeaderProfile = false;
+  String? _churchAlias;
 
   @override
   void initState() {
@@ -50,6 +52,17 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
     _cellService = widget.cellService ?? CellService();
     _memberService = MemberService();
     _loadCells();
+    _loadChurchAlias();
+  }
+
+  Future<void> _loadChurchAlias() async {
+    final churchId = widget.session.profile.churchId?.trim();
+    if (churchId == null || churchId.isEmpty) return;
+    try {
+      final church = await ChurchService().fetchChurch(churchId);
+      if (!mounted) return;
+      setState(() => _churchAlias = church?.alias?.trim());
+    } catch (_) {}
   }
 
   Future<void> _loadCells() async {
@@ -364,8 +377,8 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
             final parts = <String>[
               if (cell.leaderName != null && cell.leaderName!.trim().isNotEmpty)
                 l10n.myAssignedCellLeaderLabel(cell.leaderName!),
-              if (cell.alias != null && cell.alias!.trim().isNotEmpty)
-                '${l10n.cellRegAlias}: ${cell.alias!.trim()}',
+              if (_churchAlias != null && _churchAlias!.isNotEmpty)
+                '${l10n.churchRegAlias}: ${_churchAlias!}',
               if (cell.cellDay != null && cell.cellDay!.trim().isNotEmpty)
                 '${l10n.cellRegMeetingDay}: ${localizedWeekday(l10n, cell.cellDay)}',
               if (cell.formattedAddress.isNotEmpty) cell.formattedAddress,

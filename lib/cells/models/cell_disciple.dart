@@ -119,6 +119,7 @@ class CellDisciple {
       if (churchOffice != null) 'churchOffice': churchOffice!.code,
       'isBaptized': isBaptized,
       if (baptizedAt != null) 'baptizedAt': Timestamp.fromDate(baptizedAt!),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 

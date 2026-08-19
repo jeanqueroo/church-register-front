@@ -323,6 +323,9 @@ class _RegisterCellMemberScreenState extends State<RegisterCellMemberScreen> {
         );
       }
       Navigator.of(context).pop(true);
+    } on DuplicateMemberDocumentException {
+      if (!mounted) return;
+      _showMessage(MemberService.messageForDuplicateDocument(l10n));
     } on CellAssignmentLeaderOnlyException {
       if (!mounted) return;
       _showMessage(MemberService.messageForCellAssignmentLeaderOnly(l10n));

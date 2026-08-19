@@ -1,7 +1,7 @@
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getAuth } = require('firebase-admin/auth');
 const { getMessaging } = require('firebase-admin/messaging');
 
@@ -64,7 +64,7 @@ exports.updateUserEmailByAdmin = onCall(
     await db.collection('users').doc(uid).set(
       {
         email,
-        updatedAt: new Date(),
+        updatedAt: FieldValue.serverTimestamp(),
         updatedBy: request.auth.uid,
       },
       { merge: true },

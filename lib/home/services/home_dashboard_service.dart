@@ -170,13 +170,26 @@ class HomeDashboardService {
       memberCount++;
     }
 
-    final data = HomeDashboardData(
+    var data = HomeDashboardData(
       memberCount: memberCount,
       newBelieverCount: newBelieverCount,
       leaderCount: leaderCount,
       cellCount: cellsSnapshot.docs.length,
       baptismCount: baptismSnapshot.docs.length,
     );
+
+    if (session.permissions.isLeader || session.permissions.isSupervisor) {
+      final own = await _loadPastoralOwnCountsForSession(session);
+      data = HomeDashboardData(
+        memberCount: data.memberCount,
+        newBelieverCount: data.newBelieverCount,
+        leaderCount: data.leaderCount,
+        cellCount: data.cellCount,
+        baptismCount: data.baptismCount,
+        hasOwnCell: own.hasOwnCell,
+        ownCellDiscipleCount: own.hasOwnCell ? own.memberCount : null,
+      );
+    }
 
     _cache.set(cacheKey, data);
     return data;
@@ -280,8 +293,6 @@ class HomeDashboardService {
       for (final doc in snapshot.docs) {
         if (!countedMemberIds.add(doc.id)) continue;
 
-        final member = ChurchMember.fromFirestore(doc);
-        if (member.isNewBeliever) continue;
         count++;
       }
     }
@@ -411,6 +422,28 @@ class HomeDashboardService {
     int memberCount,
     int newBelieverCount,
     bool hasOwnCell,
+  })> _loadPastoralOwnCountsForSession(UserSession session) async {
+    final churchId = session.profile.churchId?.trim();
+    final ownLeaderId = session.profile.leaderId?.trim();
+    if (ownLeaderId == null || ownLeaderId.isEmpty) {
+      return (memberCount: 0, newBelieverCount: 0, hasOwnCell: false);
+    }
+
+    final cells = await _cellService.fetchCellsForLeaderIds(
+      leaderIds: [ownLeaderId],
+      churchId: churchId,
+    );
+    return _loadOwnLeadershipCounts(
+      session: session,
+      cells: cells,
+      churchId: churchId,
+    );
+  }
+
+  Future<({
+    int memberCount,
+    int newBelieverCount,
+    bool hasOwnCell,
   })> _loadOwnLeadershipCounts({
     required UserSession session,
     required List<ChurchCell> cells,
@@ -449,7 +482,7 @@ class HomeDashboardService {
     final permissions = session.permissions;
     List<String>? supervisedIds;
 
-    if (permissions.isLeader) {
+    if (permissions.isLeader || permissions.isSupervisor) {
       final ownLeaderId = session.profile.leaderId?.trim();
       if (ownLeaderId != null && ownLeaderId.isNotEmpty) {
         leaderIds.add(ownLeaderId);

@@ -43,12 +43,15 @@ class AppPermissions {
   bool get canViewLeaderDashboard => isAdmin;
   bool get canRegisterCell => isAdmin;
   bool get canEditCell => isAdmin;
+  /// Bloquear / desbloquear célula (administrador de iglesia).
+  bool get canBlockCell => isAdmin;
 
   /// Líder/supervisor: asignarse como titular si la célula aún no tiene líder.
   bool canClaimOwnCellLeadership(
     ChurchCell cell, {
     String? actingLeaderId,
   }) {
+    if (cell.isBlocked) return false;
     if (canEditCell) return false;
     final actor = actingLeaderId?.trim();
     if (actor == null || actor.isEmpty) return false;
@@ -69,6 +72,7 @@ class AppPermissions {
     String? actingLeaderId,
     Iterable<String> supervisedLeaderIds = const [],
   }) {
+    if (cell.isBlocked) return false;
     if (!canRegisterMember) return false;
     return CellMemberCapacity.canRegisterNewMemberWhenAtCapacity(
       currentCount: currentMemberCount,
@@ -84,6 +88,7 @@ class AppPermissions {
     String? actingLeaderId,
     Iterable<String> supervisedLeaderIds = const [],
   }) {
+    if (cell.isBlocked) return false;
     if (canAssignCellMembers) return true;
     return CellMemberCapacity.canManageCellMembers(
       cell: cell,
@@ -97,6 +102,7 @@ class AppPermissions {
     ChurchCell cell, {
     String? actingLeaderId,
   }) {
+    if (cell.isBlocked) return false;
     return CellMemberCapacity.isCellLeader(
       cell: cell,
       actingLeaderId: actingLeaderId,
@@ -122,10 +128,14 @@ class AppPermissions {
         actorId == leaderId;
   }
 
-  /// Alias bancario de la célula: admin o líder titular de esa célula.
-  bool canEditCellAlias(String? cellLeaderId, {String? actingLeaderId}) {
-    return canManageCellHelpers(cellLeaderId, actingLeaderId: actingLeaderId);
+  bool canManageHelpersForCell(ChurchCell cell, {String? actingLeaderId}) {
+    if (cell.isBlocked) return false;
+    return canManageCellHelpers(
+      cell.leaderId,
+      actingLeaderId: actingLeaderId,
+    );
   }
+
   bool get canViewBaptismCalendar =>
       isAdmin || isSupervisor || isLeader;
   /// Solo el administrador de iglesia puede crear o eliminar fechas de bautismo.
@@ -140,6 +150,7 @@ class AppPermissions {
   /// Asignar integrantes a una fecha de bautismo (admin, supervisor o líder).
   bool get canAssignBaptismCalendarMembers => canViewBaptismCalendar;
   bool get canViewMembersList => isAdmin || isRegistrar || isSupervisor || isLeader;
+  bool get canViewOldMembersList => isAdmin;
   bool get canViewMembersByLeader => isAdmin;
   bool get canViewLeadersList => isAdmin;
   /// Descargar listados en Excel (solo administrador de iglesia).
@@ -167,7 +178,8 @@ class AppPermissions {
   bool get canViewCellAbsenceByLeader => isAdmin;
   bool get canViewChurchNotifications =>
       isAdmin && churchId != null && churchId!.trim().isNotEmpty;
-  bool get canViewLeaderNotifications => isLeader;
+  /// Campana de asignaciones pastorales (líder y supervisor con ficha de líder).
+  bool get canViewLeaderNotifications => isLeader || isSupervisor;
 
   /// Registrar visitas a integrantes (todos los roles con acceso a creyentes).
   bool get canRegisterMemberVisits => canViewMembersList || isSuperAdmin;

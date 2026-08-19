@@ -30,13 +30,17 @@ class AdminNotificationService {
   }
 
   Future<void> markAsRead(String notificationId) {
-    return _notifications.doc(notificationId).update({'read': true});
+    return _notifications.doc(notificationId).update({
+      'read': true,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<void> dismiss(String notificationId) {
     return _notifications.doc(notificationId).update({
       'dismissed': true,
       'read': true,
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
@@ -51,7 +55,11 @@ class AdminNotificationService {
 
     final batch = FirebaseFirestore.instance.batch();
     for (final doc in active) {
-      batch.update(doc.reference, {'dismissed': true, 'read': true});
+      batch.update(doc.reference, {
+        'dismissed': true,
+        'read': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     }
     await batch.commit();
   }
@@ -67,7 +75,10 @@ class AdminNotificationService {
 
     final batch = FirebaseFirestore.instance.batch();
     for (final doc in unread) {
-      batch.update(doc.reference, {'read': true});
+      batch.update(doc.reference, {
+        'read': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     }
     await batch.commit();
   }

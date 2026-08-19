@@ -11,6 +11,7 @@ import '../../core/widgets/form_section_title.dart';
 import '../../leaders/models/church_leader.dart';
 import '../../leaders/models/leader_registration_source.dart';
 import '../../leaders/services/leader_service.dart';
+import '../../leaders/widgets/leader_work_age_range_fields.dart';
 import '../../members/models/id_document_type.dart';
 import '../../members/models/marital_status.dart';
 import '../models/user_profile.dart';
@@ -48,6 +49,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
   late final TextEditingController _idDocumentNumberController;
   late final TextEditingController _mobilePhoneController;
   late final TextEditingController _emailController;
+  late final TextEditingController _occupationController;
+  late final TextEditingController _workAgeFromController;
+  late final TextEditingController _workAgeToController;
   late final UserProfileService _profileService;
   late final LeaderService _leaderService;
   final _geocodingService = GeocodingService();
@@ -84,6 +88,10 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
       widget.session.profile.permissions.isSupervisor ||
       (widget.session.profile.permissions.isAdmin && _hasLinkedLeaderId);
 
+  bool get _showsWorkAgeRange =>
+      widget.session.profile.permissions.isLeader ||
+      widget.session.profile.permissions.isSupervisor;
+
   @override
   void initState() {
     super.initState();
@@ -103,6 +111,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _postalCodeController = TextEditingController();
     _idDocumentNumberController = TextEditingController();
     _mobilePhoneController = TextEditingController();
+    _occupationController = TextEditingController();
+    _workAgeFromController = TextEditingController();
+    _workAgeToController = TextEditingController();
     _emailController = TextEditingController(
       text: profile.email ?? widget.session.email,
     );
@@ -155,6 +166,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _idDocumentNumberController.text = leader.idDocumentNumber ?? '';
     _birthDate = leader.birthDate;
     _maritalStatus = leader.maritalStatus;
+    _occupationController.text = leader.occupation ?? '';
+    _workAgeFromController.text = leader.workAgeFrom?.toString() ?? '';
+    _workAgeToController.text = leader.workAgeTo?.toString() ?? '';
     _mobilePhoneController.text = leader.mobilePhone;
     _leaderLocation = leader.geoLocation;
     final leaderPhoto = leader.photoUrl?.trim();
@@ -267,6 +281,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
     _postalCodeController.dispose();
     _idDocumentNumberController.dispose();
     _mobilePhoneController.dispose();
+    _occupationController.dispose();
+    _workAgeFromController.dispose();
+    _workAgeToController.dispose();
     _emailController.dispose();
     super.dispose();
   }
@@ -333,6 +350,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                   : _idDocumentNumberController.text.trim(),
               birthDate: _birthDate,
               maritalStatus: _maritalStatus,
+              occupation: _occupationController.text.trim().isEmpty
+                  ? null
+                  : _occupationController.text.trim(),
               neighborhood: _neighborhoodController.text.trim().isEmpty
                   ? null
                   : _neighborhoodController.text.trim(),
@@ -355,7 +375,18 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
               churchId: leader.churchId,
               registrationSource: leader.registrationSource,
               churchOffice: leader.churchOffice,
+              appRoles: leader.appRoles,
               photoUrl: photoUrl,
+              workAgeFrom: _showsWorkAgeRange
+                  ? LeaderWorkAgeRangeFields.parseAge(
+                      _workAgeFromController.text,
+                    )
+                  : leader.workAgeFrom,
+              workAgeTo: _showsWorkAgeRange
+                  ? LeaderWorkAgeRangeFields.parseAge(
+                      _workAgeToController.text,
+                    )
+                  : leader.workAgeTo,
               isBlocked: leader.isBlocked,
             ),
           );
@@ -737,6 +768,25 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _occupationController,
+                textCapitalization: TextCapitalization.words,
+                enabled: !_isLoading,
+                decoration: InputDecoration(
+                  labelText: l10n.memberDetailOccupation,
+                  prefixIcon: const Icon(Icons.work_outline),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              if (_showsWorkAgeRange) ...[
+                const SizedBox(height: 16),
+                LeaderWorkAgeRangeFields(
+                  fromController: _workAgeFromController,
+                  toController: _workAgeToController,
+                  enabled: !_isLoading,
+                ),
+              ],
               const SizedBox(height: 16),
               Text(
                 l10n.memberDetailMaritalStatus,

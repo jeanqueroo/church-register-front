@@ -163,7 +163,7 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
     if (data.hasOwnCell) {
       cards.add(
         HomeStatCardData(
-          value: '${data.memberCount}',
+          value: '${data.ownCellDisciplesForSummary}',
           title: l10n.homeStatMyDisciplesTitle,
           subtitle: l10n.homeStatMyDisciplesSubtitle,
           icon: HomeStatStyles.disciples.icon,
