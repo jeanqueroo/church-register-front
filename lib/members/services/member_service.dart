@@ -293,7 +293,7 @@ class MemberService {
         }).toList();
       }
       list = list
-          .where((member) => member.isPastoralAssignmentFromRegisterMember)
+          .where((member) => member.isPastoralLeaderAssignment)
           .toList();
       list.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
       return list;
@@ -703,7 +703,7 @@ class MemberService {
         .map(ChurchMember.fromFirestore)
         .where((member) => !member.isAssignedToCell)
         .where((member) => member.canBeAssignedAsCellDisciple)
-        .where((member) => member.isPastoralAssignmentFromRegisterMember)
+        .where((member) => member.isPastoralLeaderAssignment)
         .toList();
     if (matchingGender != null) {
       list = list.where((member) => member.gender == matchingGender).toList();

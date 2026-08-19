@@ -705,7 +705,22 @@ class _HomeScreenState extends State<HomeScreen> {
     AppLocalizations l10n,
     HomeDashboardData data,
   ) {
-    final cards = <HomeStatCardData>[
+    final cards = <HomeStatCardData>[];
+
+    if (data.hasOwnCell) {
+      cards.add(
+        HomeStatCardData(
+          value: '${data.ownCellDisciplesForSummary}',
+          title: l10n.homeStatMyDisciplesTitle,
+          subtitle: l10n.homeStatMyDisciplesSubtitle,
+          icon: HomeStatStyles.disciples.icon,
+          backgroundColor: HomeStatStyles.disciples.bg,
+          foregroundColor: HomeStatStyles.disciples.fg,
+        ),
+      );
+    }
+
+    cards.addAll([
       HomeStatCardData(
         value: '${data.memberCount}',
         title: l10n.homeStatMembersTitle,
@@ -742,7 +757,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
             : null,
       ),
-    ];
+    ]);
 
     if (data.leaderCount != null) {
       cards.add(
