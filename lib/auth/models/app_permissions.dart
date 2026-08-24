@@ -204,6 +204,36 @@ class AppPermissions {
     return isLeader || isSupervisor || isRegistrar;
   }
 
+  /// Pasar un nuevo creyente a miembro (deja de figurar en nuevos creyentes).
+  bool canPromoteNewBelieverToMember(ChurchMember member) {
+    if (!member.isNewBeliever) return false;
+    return canManageMembers || canEditMember(member);
+  }
+
+  /// Editar discípulo de una célula: quien puede gestionar miembros de esa célula.
+  bool canEditCellDisciple(
+    ChurchMember member,
+    ChurchCell cell, {
+    String? actingLeaderId,
+    Iterable<String> supervisedLeaderIds = const [],
+  }) {
+    if (canEditMember(member)) return true;
+    final cellId = cell.id?.trim();
+    final memberCellId = member.assignedCellId?.trim();
+    if (cellId == null ||
+        cellId.isEmpty ||
+        memberCellId == null ||
+        memberCellId.isEmpty ||
+        memberCellId != cellId) {
+      return false;
+    }
+    return canAssignCellMembersFor(
+      cell,
+      actingLeaderId: actingLeaderId,
+      supervisedLeaderIds: supervisedLeaderIds,
+    );
+  }
+
   /// Ver datos de la iglesia en Mi cuenta (solo lectura).
   bool get canViewChurchData =>
       churchId != null && churchId!.trim().isNotEmpty;

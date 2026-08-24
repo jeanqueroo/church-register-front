@@ -2880,6 +2880,30 @@ abstract class AppLocalizations {
   /// **'Buscar por nombre, teléfono, líder o localidad…'**
   String get membersListSearchHint;
 
+  /// No description provided for @membersListPromoteToMember.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasar a miembro'**
+  String get membersListPromoteToMember;
+
+  /// No description provided for @membersListPromoteToMemberTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasar a miembro'**
+  String get membersListPromoteToMemberTitle;
+
+  /// No description provided for @membersListPromoteToMemberConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Pasar a \"{name}\" de nuevo creyente a miembro? Dejará de aparecer en esta lista.'**
+  String membersListPromoteToMemberConfirm(String name);
+
+  /// No description provided for @membersListPromoteToMemberSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'{name} ahora es miembro'**
+  String membersListPromoteToMemberSuccess(String name);
+
   /// No description provided for @membersListEndOfList.
   ///
   /// In es, this message translates to:
@@ -6071,7 +6095,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberSelectHint.
   ///
   /// In es, this message translates to:
-  /// **'Solo aparecen discípulos asignados al líder de esta célula desde el registro pastoral y sin otra célula asignada'**
+  /// **'Solo aparecen creyentes que tú registraste, sin célula asignada'**
   String get cellMemberSelectHint;
 
   /// No description provided for @cellMemberSelectConfirm.
@@ -6095,7 +6119,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberSelectEmpty.
   ///
   /// In es, this message translates to:
-  /// **'No hay discípulos del líder de esta célula disponibles para asignar'**
+  /// **'No hay creyentes registrados por ti disponibles para asignar'**
   String get cellMemberSelectEmpty;
 
   /// No description provided for @cellMemberSelectMaxReached.
@@ -6191,13 +6215,13 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberSelectEmptyGender.
   ///
   /// In es, this message translates to:
-  /// **'No hay discípulos del líder de esta célula del mismo sexo ({gender}) disponibles para asignar.'**
+  /// **'No hay creyentes registrados por ti del mismo sexo ({gender}) disponibles para asignar.'**
   String cellMemberSelectEmptyGender(String gender);
 
   /// No description provided for @cellMemberSelectGenderHint.
   ///
   /// In es, this message translates to:
-  /// **'Solo aparecen discípulos del líder de esta célula, del mismo sexo ({gender}), registrados desde el registro pastoral y sin otra célula.'**
+  /// **'Solo aparecen creyentes que tú registraste, del mismo sexo ({gender}) y sin otra célula.'**
   String cellMemberSelectGenderHint(String gender);
 
   /// No description provided for @cellMemberRegisterGenderLocked.

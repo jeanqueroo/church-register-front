@@ -20,6 +20,7 @@ import 'assign_cell_members_screen.dart';
 import 'register_cell_attendance_screen.dart';
 import 'register_cell_member_screen.dart';
 import 'register_cell_screen.dart';
+import '../../members/screens/register_member_screen.dart';
 
 class CellDetailScreen extends StatefulWidget {
   const CellDetailScreen({
@@ -202,6 +203,88 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
         ),
       ),
     );
+  }
+
+  bool _canManageDisciple(ChurchMember member) {
+    if (_cell.isBlocked) return false;
+    return _permissions.canAssignCellMembersFor(
+      _cell,
+      actingLeaderId: widget.actingLeaderId,
+      supervisedLeaderIds: widget.supervisedLeaderIds,
+    );
+  }
+
+  bool _canEditDisciple(ChurchMember member) {
+    if (_cell.isBlocked) return false;
+    return _permissions.canEditCellDisciple(
+      member,
+      _cell,
+      actingLeaderId: widget.actingLeaderId,
+      supervisedLeaderIds: widget.supervisedLeaderIds,
+    );
+  }
+
+  Future<void> _openEditDisciple(ChurchMember member) async {
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => RegisterMemberScreen(
+          registeredBy: widget.registeredBy,
+          churchId: _cell.churchId ?? _permissions.churchId,
+          memberToEdit: member,
+          managedCell: _cell,
+          permissions: _permissions,
+          actingLeaderId: widget.actingLeaderId,
+          supervisedLeaderIds: widget.supervisedLeaderIds,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmUnassignDisciple(ChurchMember member) async {
+    final l10n = context.l10n;
+    final memberId = member.id;
+    if (memberId == null || memberId.isEmpty) return;
+    if (!_canManageDisciple(member)) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.cellMemberUnassignTitle),
+        content: Text(l10n.cellMemberUnassignConfirm(member.fullName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.cellMemberUnassignAction),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await _memberService.unassignMemberFromCell(
+        memberId,
+        performedBy: widget.registeredBy,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.cellMemberUnassigned(member.fullName))),
+      );
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            MemberService.messageFromFirestoreException(e, l10n),
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _openSelectHelpers(List<ChurchMember> members) async {
@@ -791,6 +874,8 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                 final memberId = member.id;
                 final isHelper =
                     memberId != null && helperIds.contains(memberId);
+                final canEdit = _canEditDisciple(member);
+                final canUnassign = _canManageDisciple(member);
                 return ListTile(
                   leading: CircleAvatar(
                     child: Text(
@@ -806,6 +891,26 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                       if (isHelper) l10n.cellHelpersBadge,
                     ].join(' · '),
                   ),
+                  trailing: canEdit || canUnassign
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (canEdit)
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined),
+                                tooltip: l10n.commonEdit,
+                                onPressed: () => _openEditDisciple(member),
+                              ),
+                            if (canUnassign)
+                              IconButton(
+                                icon: const Icon(Icons.link_off_outlined),
+                                tooltip: l10n.cellMemberUnassignAction,
+                                onPressed: () =>
+                                    _confirmUnassignDisciple(member),
+                              ),
+                          ],
+                        )
+                      : null,
                 );
               }),
           ],

@@ -1557,6 +1557,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get membersListSearchHint => 'Search by name, phone, leader or city…';
 
   @override
+  String get membersListPromoteToMember => 'Make church member';
+
+  @override
+  String get membersListPromoteToMemberTitle => 'Make church member';
+
+  @override
+  String membersListPromoteToMemberConfirm(String name) {
+    return 'Move \"$name\" from new believer to church member? They will leave this list.';
+  }
+
+  @override
+  String membersListPromoteToMemberSuccess(String name) {
+    return '$name is now a church member';
+  }
+
+  @override
   String get membersListEndOfList => 'End of list';
 
   @override
@@ -3472,7 +3488,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cellMemberSelectHint =>
-      'Only disciples assigned to this cell group\'s leader through pastoral registration, without another cell, are shown';
+      'Only believers you registered, without a cell group assignment, are shown';
 
   @override
   String cellMemberSelectConfirm(int count) {
@@ -3488,7 +3504,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cellMemberSelectEmpty =>
-      'No disciples from this cell group\'s leader are available to assign';
+      'No believers you registered are available to assign';
 
   @override
   String cellMemberSelectMaxReached(int max) {
@@ -3557,12 +3573,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cellMemberSelectEmptyGender(String gender) {
-    return 'No disciples from this cell group\'s leader match the leader\'s sex ($gender).';
+    return 'No believers you registered of the same sex ($gender) are available to assign.';
   }
 
   @override
   String cellMemberSelectGenderHint(String gender) {
-    return 'Only pastoral-registration disciples of this cell group\'s leader, matching sex ($gender), without another cell, are shown.';
+    return 'Only believers you registered, of the same sex ($gender), without another cell group, are shown.';
   }
 
   @override

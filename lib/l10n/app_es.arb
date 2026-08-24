@@ -735,6 +735,20 @@
   "membersListEmptyTitle": "Aún no hay nuevos creyentes registrados",
   "membersListEmptySubtitle": "Pulsa \"Nuevo\" para registrar al primero.",
   "membersListSearchHint": "Buscar por nombre, teléfono, líder o localidad…",
+  "membersListPromoteToMember": "Pasar a miembro",
+  "membersListPromoteToMemberTitle": "Pasar a miembro",
+  "membersListPromoteToMemberConfirm": "¿Pasar a \"{name}\" de nuevo creyente a miembro? Dejará de aparecer en esta lista.",
+  "@membersListPromoteToMemberConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "membersListPromoteToMemberSuccess": "{name} ahora es miembro",
+  "@membersListPromoteToMemberSuccess": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
   "membersListEndOfList": "Fin de la lista",
   "membersListLeaderPrefix": "Líder: {name}",
   "@membersListLeaderPrefix": {
@@ -1771,7 +1785,7 @@
   "cellMemberListTitle": "Discípulos",
   "cellMemberListEmpty": "Aún no hay discípulos asignados a esta célula",
   "cellMemberSelectTitle": "Seleccionar discípulos",
-  "cellMemberSelectHint": "Solo aparecen discípulos asignados al líder de esta célula desde el registro pastoral y sin otra célula asignada",
+  "cellMemberSelectHint": "Solo aparecen creyentes que tú registraste, sin célula asignada",
   "cellMemberSelectConfirm": "Asignar {count}",
   "@cellMemberSelectConfirm": {
     "placeholders": {
@@ -1780,7 +1794,7 @@
   },
   "cellMemberSelectRequiresChurch": "No se pueden asignar discípulos sin una iglesia asignada a tu cuenta",
   "cellMemberSelectSearchHint": "Buscar por nombre, teléfono o líder",
-  "cellMemberSelectEmpty": "No hay discípulos del líder de esta célula disponibles para asignar",
+  "cellMemberSelectEmpty": "No hay creyentes registrados por ti disponibles para asignar",
   "cellMemberSelectMaxReached": "Máximo {max} discípulo(s) por célula",
   "@cellMemberSelectMaxReached": {
     "placeholders": {
@@ -1839,13 +1853,13 @@
   "cellMemberAssignCellLeaderRequired": "La célula debe tener un líder asignado para seleccionar discípulos.",
   "cellMemberAssignGenderMismatch": "Solo puedes asignar discípulos del mismo sexo que el líder de la célula.",
   "cellMemberAssignLeaderExcluded": "No se pueden asignar líderes como discípulos de la célula.",
-  "cellMemberSelectEmptyGender": "No hay discípulos del líder de esta célula del mismo sexo ({gender}) disponibles para asignar.",
+  "cellMemberSelectEmptyGender": "No hay creyentes registrados por ti del mismo sexo ({gender}) disponibles para asignar.",
   "@cellMemberSelectEmptyGender": {
     "placeholders": {
       "gender": { "type": "String" }
     }
   },
-  "cellMemberSelectGenderHint": "Solo aparecen discípulos del líder de esta célula, del mismo sexo ({gender}), registrados desde el registro pastoral y sin otra célula.",
+  "cellMemberSelectGenderHint": "Solo aparecen creyentes que tú registraste, del mismo sexo ({gender}) y sin otra célula.",
   "@cellMemberSelectGenderHint": {
     "placeholders": {
       "gender": { "type": "String" }

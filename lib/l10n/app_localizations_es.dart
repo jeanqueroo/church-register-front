@@ -1569,6 +1569,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'Buscar por nombre, teléfono, líder o localidad…';
 
   @override
+  String get membersListPromoteToMember => 'Pasar a miembro';
+
+  @override
+  String get membersListPromoteToMemberTitle => 'Pasar a miembro';
+
+  @override
+  String membersListPromoteToMemberConfirm(String name) {
+    return '¿Pasar a \"$name\" de nuevo creyente a miembro? Dejará de aparecer en esta lista.';
+  }
+
+  @override
+  String membersListPromoteToMemberSuccess(String name) {
+    return '$name ahora es miembro';
+  }
+
+  @override
   String get membersListEndOfList => 'Fin de la lista';
 
   @override
@@ -3491,7 +3507,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellMemberSelectHint =>
-      'Solo aparecen discípulos asignados al líder de esta célula desde el registro pastoral y sin otra célula asignada';
+      'Solo aparecen creyentes que tú registraste, sin célula asignada';
 
   @override
   String cellMemberSelectConfirm(int count) {
@@ -3508,7 +3524,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellMemberSelectEmpty =>
-      'No hay discípulos del líder de esta célula disponibles para asignar';
+      'No hay creyentes registrados por ti disponibles para asignar';
 
   @override
   String cellMemberSelectMaxReached(int max) {
@@ -3578,12 +3594,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cellMemberSelectEmptyGender(String gender) {
-    return 'No hay discípulos del líder de esta célula del mismo sexo ($gender) disponibles para asignar.';
+    return 'No hay creyentes registrados por ti del mismo sexo ($gender) disponibles para asignar.';
   }
 
   @override
   String cellMemberSelectGenderHint(String gender) {
-    return 'Solo aparecen discípulos del líder de esta célula, del mismo sexo ($gender), registrados desde el registro pastoral y sin otra célula.';
+    return 'Solo aparecen creyentes que tú registraste, del mismo sexo ($gender) y sin otra célula.';
   }
 
   @override

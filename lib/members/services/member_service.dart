@@ -683,27 +683,41 @@ class MemberService {
     return list;
   }
 
-  /// Discípulos del líder de la célula (registro pastoral) aún sin célula asignada.
+  /// Creyentes sin célula aptos para asignar.
+  /// Si [filterByRegistrar] es true, solo los de [registeredBy] (email o id)
+  /// o con ese valor en `assignedLeaderId`. Admin suele pasar `false`.
   Future<List<ChurchMember>> fetchMembersForCellAssignment({
     required String? churchId,
-    required String? cellLeaderId,
+    String? registeredBy,
     LeaderGender? matchingGender,
+    bool filterByRegistrar = true,
   }) async {
     if (churchId == null || churchId.isEmpty) return [];
 
-    final leaderId = cellLeaderId?.trim();
-    if (leaderId == null || leaderId.isEmpty) return [];
+    final base = _members.where('churchId', isEqualTo: churchId);
+    final List<QuerySnapshot<Map<String, dynamic>>> snapshots;
 
-    final snapshot = await _members
-        .where('churchId', isEqualTo: churchId)
-        .where('assignedLeaderId', isEqualTo: leaderId)
-        .get();
+    if (!filterByRegistrar) {
+      snapshots = [await base.get()];
+    } else {
+      final registrar = registeredBy?.trim();
+      if (registrar == null || registrar.isEmpty) return [];
+      snapshots = await Future.wait([
+        base.where('registeredBy', isEqualTo: registrar).get(),
+        base.where('assignedLeaderId', isEqualTo: registrar).get(),
+      ]);
+    }
 
-    var list = snapshot.docs
-        .map(ChurchMember.fromFirestore)
+    final byId = <String, ChurchMember>{};
+    for (final snapshot in snapshots) {
+      for (final doc in snapshot.docs) {
+        byId.putIfAbsent(doc.id, () => ChurchMember.fromFirestore(doc));
+      }
+    }
+
+    var list = byId.values
         .where((member) => !member.isAssignedToCell)
         .where((member) => member.canBeAssignedAsCellDisciple)
-        .where((member) => member.isPastoralLeaderAssignment)
         .toList();
     if (matchingGender != null) {
       list = list.where((member) => member.gender == matchingGender).toList();
@@ -959,6 +973,18 @@ class MemberService {
       });
     }
     await batch.commit();
+  }
+
+  /// Pasa un nuevo creyente a miembro de iglesia (`isNewBeliever: false`).
+  Future<void> markAsChurchMember(String memberId) async {
+    final id = memberId.trim();
+    if (id.isEmpty) {
+      throw ArgumentError('El integrante debe tener id');
+    }
+    await _members.doc(id).update({
+      'isNewBeliever': false,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   /// Tras registrar asistencia: quita `isNewBeliever` a quienes acumulan más de
