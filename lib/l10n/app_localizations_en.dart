@@ -36,6 +36,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuBaptismDashboard => 'Baptism statistics';
 
   @override
+  String get menuOfferingDashboard => 'Offerings';
+
+  @override
   String get menuNewMember => 'New member';
 
   @override
@@ -155,11 +158,56 @@ class AppLocalizationsEn extends AppLocalizations {
       'Baptized from believer registration';
 
   @override
+  String get quickOfferingDashboardTitle => 'Offerings';
+
+  @override
+  String get quickOfferingDashboardSubtitle => 'Cash and transfer totals';
+
+  @override
   String get baptismDashboardTitle => 'Baptism statistics';
 
   @override
   String get baptismDashboardDenied =>
       'You do not have permission to view baptism statistics.';
+
+  @override
+  String get offeringDashboardTitle => 'Offerings';
+
+  @override
+  String get offeringDashboardDenied =>
+      'Only administrators can view the offerings dashboard.';
+
+  @override
+  String get offeringDashboardCashTotal => 'Cash';
+
+  @override
+  String get offeringDashboardTransferTotal => 'Transfer';
+
+  @override
+  String get offeringDashboardGrandTotal => 'Total';
+
+  @override
+  String get offeringDashboardSessionCount => 'Meetings';
+
+  @override
+  String get offeringDashboardChartTitle => 'Offering trend';
+
+  @override
+  String get offeringDashboardByCell => 'By cell group';
+
+  @override
+  String offeringDashboardCashSummary(String amount) {
+    return 'Cash: $amount';
+  }
+
+  @override
+  String offeringDashboardTransferSummary(String amount) {
+    return 'Transfer: $amount';
+  }
+
+  @override
+  String get offeringDashboardIndexHint =>
+      'A Firestore index is required to query attendance sessions. Contact your administrator.';
 
   @override
   String get baptismDashboardLoadError => 'Could not load baptism statistics.';
@@ -2006,6 +2054,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chartPeriodDay => 'By day';
 
   @override
+  String get chartPeriodWeek => 'By week';
+
+  @override
   String get chartPeriodMonth => 'By month';
 
   @override
@@ -2580,6 +2631,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get churchRegAliasHelper => 'Bank alias for transfers';
 
   @override
+  String get churchRegOfferingQr => 'OFFERING QR CODE';
+
+  @override
+  String get churchRegOfferingQrOptional => 'OFFERING QR CODE (optional)';
+
+  @override
+  String get churchRegOfferingQrHint =>
+      'Upload the bank account QR code so members can scan it when giving offerings.';
+
+  @override
+  String get churchRegUploadOfferingQr => 'Upload QR';
+
+  @override
   String get churchRegAddressSection => 'Address';
 
   @override
@@ -3140,11 +3204,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cellAttendanceSectionNotes => 'Additional information';
 
   @override
+  String get cellAttendanceSectionOffering => 'Offering';
+
+  @override
   String get cellAttendanceOfferingCollected => 'Offering collected';
 
   @override
   String get cellAttendanceOfferingCollectedHint =>
       'Amount or detail (optional)';
+
+  @override
+  String get cellAttendanceOfferingCash => 'Cash offering';
+
+  @override
+  String get cellAttendanceOfferingCashHint => 'Amount (optional)';
+
+  @override
+  String get cellAttendanceOfferingTransfer => 'Transfer offering';
+
+  @override
+  String get cellAttendanceOfferingTransferHint => 'Amount (optional)';
+
+  @override
+  String cellAttendanceOfferingCashSummary(String amount) {
+    return 'Cash: $amount';
+  }
+
+  @override
+  String cellAttendanceOfferingTransferSummary(String amount) {
+    return 'Transfer: $amount';
+  }
 
   @override
   String get cellAttendanceOfferingAliasTitle => 'Offering transfer alias';
@@ -3157,6 +3246,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cellAttendanceOfferingAliasMissing =>
       'This church does not have a transfer alias yet';
+
+  @override
+  String get cellAttendanceOfferingQrHint =>
+      'Scan the QR code to transfer your offering';
 
   @override
   String get cellAttendanceObservations => 'Observations';
@@ -3923,6 +4016,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get adminRegChurchHint =>
       'This administrator will only manage the selected church.';
+
+  @override
+  String get adminRegSpecialStatistics => 'Special statistics';
+
+  @override
+  String get adminRegSpecialStatisticsHint =>
+      'Allows viewing the offerings dashboard and other sensitive reports.';
 
   @override
   String get adminRegPasswordRequired => 'Enter the password';

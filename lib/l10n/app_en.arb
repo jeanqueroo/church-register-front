@@ -9,6 +9,7 @@
   "menuBaptismGroup": "Baptism",
   "menuBaptismCalendar": "Baptism calendar",
   "menuBaptismDashboard": "Baptism statistics",
+  "menuOfferingDashboard": "Offerings",
   "menuNewMember": "New member",
   "menuMembers": "View new believers",
   "menuChurchMembers": "View members",
@@ -48,8 +49,31 @@
   "quickBaptismCalendarSubtitle": "View scheduled baptism dates",
   "quickBaptismDashboardTitle": "Baptism statistics",
   "quickBaptismDashboardSubtitle": "Baptized from believer registration",
+  "quickOfferingDashboardTitle": "Offerings",
+  "quickOfferingDashboardSubtitle": "Cash and transfer totals",
   "baptismDashboardTitle": "Baptism statistics",
   "baptismDashboardDenied": "You do not have permission to view baptism statistics.",
+  "offeringDashboardTitle": "Offerings",
+  "offeringDashboardDenied": "Only administrators can view the offerings dashboard.",
+  "offeringDashboardCashTotal": "Cash",
+  "offeringDashboardTransferTotal": "Transfer",
+  "offeringDashboardGrandTotal": "Total",
+  "offeringDashboardSessionCount": "Meetings",
+  "offeringDashboardChartTitle": "Offering trend",
+  "offeringDashboardByCell": "By cell group",
+  "offeringDashboardCashSummary": "Cash: {amount}",
+  "@offeringDashboardCashSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "offeringDashboardTransferSummary": "Transfer: {amount}",
+  "@offeringDashboardTransferSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "offeringDashboardIndexHint": "A Firestore index is required to query attendance sessions. Contact your administrator.",
   "baptismDashboardLoadError": "Could not load baptism statistics.",
   "baptismDashboardBaptizedInPeriod": "Baptized in period",
   "baptismDashboardBaptizedInYear": "Baptized in year",
@@ -1023,6 +1047,7 @@
   },
   "dashboardNoData": "No data to display",
   "chartPeriodDay": "By day",
+  "chartPeriodWeek": "By week",
   "chartPeriodMonth": "By month",
   "chartPeriodYear": "By year",
   "notificationsTitle": "Notifications",
@@ -1326,6 +1351,10 @@
   "churchRegAlias": "Bank alias",
   "churchRegAliasHint": "E.g. church.central.mb",
   "churchRegAliasHelper": "Bank alias for transfers",
+  "churchRegOfferingQr": "OFFERING QR CODE",
+  "churchRegOfferingQrOptional": "OFFERING QR CODE (optional)",
+  "churchRegOfferingQrHint": "Upload the bank account QR code so members can scan it when giving offerings.",
+  "churchRegUploadOfferingQr": "Upload QR",
   "churchRegAddressSection": "Address",
   "churchSearchLabel": "Church *",
   "churchSearchClear": "Clear selection",
@@ -1591,8 +1620,25 @@
   "cellAttendanceLocationChangeReason": "Reason for location change",
   "cellAttendanceLocationReasonRequired": "Explain why it was held in another place",
   "cellAttendanceSectionNotes": "Additional information",
+  "cellAttendanceSectionOffering": "Offering",
   "cellAttendanceOfferingCollected": "Offering collected",
   "cellAttendanceOfferingCollectedHint": "Amount or detail (optional)",
+  "cellAttendanceOfferingCash": "Cash offering",
+  "cellAttendanceOfferingCashHint": "Amount (optional)",
+  "cellAttendanceOfferingTransfer": "Transfer offering",
+  "cellAttendanceOfferingTransferHint": "Amount (optional)",
+  "cellAttendanceOfferingCashSummary": "Cash: {amount}",
+  "@cellAttendanceOfferingCashSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "cellAttendanceOfferingTransferSummary": "Transfer: {amount}",
+  "@cellAttendanceOfferingTransferSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
   "cellAttendanceOfferingAliasTitle": "Offering transfer alias",
   "cellAttendanceOfferingAliasInfo": "Transfer to: {alias}",
   "@cellAttendanceOfferingAliasInfo": {
@@ -1601,6 +1647,7 @@
     }
   },
   "cellAttendanceOfferingAliasMissing": "This church does not have a transfer alias yet",
+  "cellAttendanceOfferingQrHint": "Scan the QR code to transfer your offering",
   "cellAttendanceObservations": "Observations",
   "cellAttendanceObservationsHint": "Notes about the meeting (optional)",
   "cellAttendanceOfferingSummary": "Offering: {amount}",
@@ -2040,6 +2087,8 @@
   "adminRegEmailLockedHelper": "The sign-in email cannot be changed from here.",
   "adminRegSectionChurch": "ASSIGNED CHURCH",
   "adminRegChurchHint": "This administrator will only manage the selected church.",
+  "adminRegSpecialStatistics": "Special statistics",
+  "adminRegSpecialStatisticsHint": "Allows viewing the offerings dashboard and other sensitive reports.",
   "adminRegPasswordRequired": "Enter the password",
   "adminRegRegisterButton": "Register administrator",
   "editPersonalDataSectionName": "NAME",

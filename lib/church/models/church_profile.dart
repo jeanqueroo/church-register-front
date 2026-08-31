@@ -6,6 +6,7 @@ class ChurchProfile {
     required this.name,
     required this.address,
     this.logoUrl,
+    this.offeringQrUrl,
     this.alias,
     this.latitude,
     this.longitude,
@@ -17,6 +18,8 @@ class ChurchProfile {
   final String name;
   final String address;
   final String? logoUrl;
+  /// Imagen QR para transferencias bancarias (ofrendas).
+  final String? offeringQrUrl;
   /// Alias bancario para transferencias.
   final String? alias;
   final double? latitude;
@@ -29,12 +32,17 @@ class ChurchProfile {
 
   bool get hasLogo => logoUrl != null && logoUrl!.trim().isNotEmpty;
 
+  bool get hasOfferingQr =>
+      offeringQrUrl != null && offeringQrUrl!.trim().isNotEmpty;
+
   Map<String, dynamic> toMap({required String updatedBy}) {
     final trimmedAlias = alias?.trim() ?? '';
     return {
       'name': name.trim(),
       'address': address.trim(),
       if (logoUrl != null && logoUrl!.trim().isNotEmpty) 'logoUrl': logoUrl!.trim(),
+      if (offeringQrUrl != null && offeringQrUrl!.trim().isNotEmpty)
+        'offeringQrUrl': offeringQrUrl!.trim(),
       'alias': trimmedAlias.isEmpty ? FieldValue.delete() : trimmedAlias,
       if (hasCoordinates) ...{
         'latitude': latitude,
@@ -54,6 +62,7 @@ class ChurchProfile {
       name: data['name'] as String? ?? '',
       address: data['address'] as String? ?? '',
       logoUrl: data['logoUrl'] as String?,
+      offeringQrUrl: data['offeringQrUrl'] as String?,
       alias: data['alias'] as String?,
       latitude: _readDouble(data['latitude']),
       longitude: _readDouble(data['longitude']),

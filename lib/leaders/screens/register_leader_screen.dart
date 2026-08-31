@@ -20,6 +20,7 @@ import '../../members/models/id_document_type.dart';
 import '../models/church_leader.dart';
 import '../models/leader_registration_source.dart';
 import '../models/church_office.dart';
+import '../../members/services/member_service.dart';
 import '../services/leader_service.dart';
 import '../widgets/leader_work_age_range_fields.dart';
 
@@ -355,6 +356,41 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final email = _emailController.text.trim().toLowerCase();
+      final idDocumentNumber = _idDocumentNumberController.text.trim();
+
+      if (!widget.isEditing) {
+        await _leaderService.ensureLeaderRegistrationAvailable(
+          email: email,
+          idDocumentNumber: idDocumentNumber,
+          churchId: widget.churchId,
+        );
+      } else {
+        final previousEmail =
+            (widget.leaderToEdit?.email ?? '').trim().toLowerCase();
+        final previousDoc =
+            (widget.leaderToEdit?.idDocumentNumber ?? '').trim();
+        final emailChanged = email.isNotEmpty && email != previousEmail;
+        final docChanged =
+            idDocumentNumber.isNotEmpty && idDocumentNumber != previousDoc;
+        if (emailChanged || docChanged) {
+          String? excludeMemberId;
+          final leaderId = widget.leaderToEdit?.id;
+          if (leaderId != null && leaderId.isNotEmpty) {
+            excludeMemberId =
+                await _leaderService.findMemberIdByLinkedLeaderId(leaderId);
+          }
+          await _leaderService.ensureLeaderRegistrationAvailable(
+            email: email,
+            idDocumentNumber: idDocumentNumber,
+            churchId: widget.leaderToEdit?.churchId ?? widget.churchId,
+            excludeLeaderId: leaderId,
+            excludeAuthUserId: widget.leaderToEdit?.authUserId,
+            excludeMemberId: excludeMemberId,
+          );
+        }
+      }
+
       var location = _leaderLocation;
       if (location == null) {
         final address = _buildFormattedAddress();
@@ -369,8 +405,6 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
         }
         return;
       }
-
-      final email = _emailController.text.trim().toLowerCase();
 
       if (!widget.isEditing) {
         final credential = await _authService.createLeaderAccount(
@@ -540,12 +574,23 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           context.l10n.leaderRegEmailUpdateFailed(e.message ?? e.code),
         );
       }
+    } on LeaderRegistrationConflictException catch (e) {
+      if (mounted) {
+        _showMessage(
+          LeaderService.messageForRegistrationConflict(e.kind, context.l10n),
+        );
+      }
+    } on DuplicateMemberDocumentException catch (_) {
+      if (mounted) {
+        _showMessage(MemberService.messageForDuplicateDocument(context.l10n));
+      }
     } on FirebaseException catch (e) {
       if (mounted) {
         _showMessage(LeaderService.messageFromFirestoreException(e, context.l10n));
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
+        debugPrint('register_leader save failed: $e');
         _showMessage(context.l10n.memberSaveUnexpectedError);
       }
     } finally {

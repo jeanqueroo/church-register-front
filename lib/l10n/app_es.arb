@@ -9,6 +9,7 @@
   "menuBaptismGroup": "Bautismo",
   "menuBaptismCalendar": "Calendario de bautismo",
   "menuBaptismDashboard": "Estadísticas de bautismo",
+  "menuOfferingDashboard": "Ofrendas",
   "menuNewMember": "Nuevo creyente",
   "menuMembers": "Ver nuevos creyentes",
   "menuChurchMembers": "Ver miembros",
@@ -48,8 +49,31 @@
   "quickBaptismCalendarSubtitle": "Ver fechas de bautismo programadas",
   "quickBaptismDashboardTitle": "Estadísticas de bautismo",
   "quickBaptismDashboardSubtitle": "Bautizados desde registro de creyente",
+  "quickOfferingDashboardTitle": "Ofrendas",
+  "quickOfferingDashboardSubtitle": "Totales por efectivo y transferencia",
   "baptismDashboardTitle": "Estadísticas de bautismo",
   "baptismDashboardDenied": "No tienes permiso para ver las estadísticas de bautismo.",
+  "offeringDashboardTitle": "Ofrendas",
+  "offeringDashboardDenied": "Solo los administradores pueden ver el dashboard de ofrendas.",
+  "offeringDashboardCashTotal": "Efectivo",
+  "offeringDashboardTransferTotal": "Transferencia",
+  "offeringDashboardGrandTotal": "Total",
+  "offeringDashboardSessionCount": "Reuniones",
+  "offeringDashboardChartTitle": "Evolución de ofrendas",
+  "offeringDashboardByCell": "Por célula",
+  "offeringDashboardCashSummary": "Efectivo: {amount}",
+  "@offeringDashboardCashSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "offeringDashboardTransferSummary": "Transferencia: {amount}",
+  "@offeringDashboardTransferSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "offeringDashboardIndexHint": "Falta un índice de Firestore para consultar asistencias. Contacta al administrador.",
   "baptismDashboardLoadError": "No se pudieron cargar las estadísticas de bautismo.",
   "baptismDashboardBaptizedInPeriod": "Bautizados en el periodo",
   "baptismDashboardBaptizedInYear": "Bautizados en el año",
@@ -1023,6 +1047,7 @@
   },
   "dashboardNoData": "Sin datos para mostrar",
   "chartPeriodDay": "Por día",
+  "chartPeriodWeek": "Por semana",
   "chartPeriodMonth": "Por mes",
   "chartPeriodYear": "Por año",
   "notificationsTitle": "Notificaciones",
@@ -1326,6 +1351,10 @@
   "churchRegAlias": "Alias bancario",
   "churchRegAliasHint": "Ej: iglesia.central.mb",
   "churchRegAliasHelper": "Alias bancario para transferencias",
+  "churchRegOfferingQr": "QR PARA OFRENDAS",
+  "churchRegOfferingQrOptional": "QR PARA OFRENDAS (opcional)",
+  "churchRegOfferingQrHint": "Sube el código QR de la cuenta bancaria para que los miembros puedan escanearlo al dar la ofrenda.",
+  "churchRegUploadOfferingQr": "Subir QR",
   "churchRegAddressSection": "Dirección",
   "churchSearchLabel": "Iglesia *",
   "churchSearchClear": "Quitar selección",
@@ -1591,8 +1620,25 @@
   "cellAttendanceLocationChangeReason": "Motivo del cambio de lugar",
   "cellAttendanceLocationReasonRequired": "Indica por qué se realizó en otro lugar",
   "cellAttendanceSectionNotes": "Información adicional",
+  "cellAttendanceSectionOffering": "Ofrenda",
   "cellAttendanceOfferingCollected": "Ofrenda recogida",
   "cellAttendanceOfferingCollectedHint": "Monto o detalle (opcional)",
+  "cellAttendanceOfferingCash": "Ofrenda en efectivo",
+  "cellAttendanceOfferingCashHint": "Monto (opcional)",
+  "cellAttendanceOfferingTransfer": "Ofrenda en transferencia",
+  "cellAttendanceOfferingTransferHint": "Monto (opcional)",
+  "cellAttendanceOfferingCashSummary": "Efectivo: {amount}",
+  "@cellAttendanceOfferingCashSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "cellAttendanceOfferingTransferSummary": "Transferencia: {amount}",
+  "@cellAttendanceOfferingTransferSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
   "cellAttendanceOfferingAliasTitle": "Alias para la ofrenda",
   "cellAttendanceOfferingAliasInfo": "Transferir a: {alias}",
   "@cellAttendanceOfferingAliasInfo": {
@@ -1601,6 +1647,7 @@
     }
   },
   "cellAttendanceOfferingAliasMissing": "La iglesia aún no tiene alias de transferencias",
+  "cellAttendanceOfferingQrHint": "Escanea el QR para transferir la ofrenda",
   "cellAttendanceObservations": "Observaciones",
   "cellAttendanceObservationsHint": "Notas sobre la reunión (opcional)",
   "cellAttendanceOfferingSummary": "Ofrenda: {amount}",
@@ -2040,6 +2087,8 @@
   "adminRegEmailLockedHelper": "El correo de inicio de sesión no se puede cambiar desde aquí.",
   "adminRegSectionChurch": "IGLESIA ASIGNADA",
   "adminRegChurchHint": "Este administrador solo gestionará la iglesia seleccionada.",
+  "adminRegSpecialStatistics": "Estadísticas especiales",
+  "adminRegSpecialStatisticsHint": "Permite ver el dashboard de ofrendas y otros reportes sensibles.",
   "adminRegPasswordRequired": "Ingresa la contraseña",
   "adminRegRegisterButton": "Registrar administrador",
   "editPersonalDataSectionName": "NOMBRE",

@@ -223,8 +223,8 @@ class ChurchLeader {
       if (appRoles != null && appRoles!.isNotEmpty) 'appRoles': appRoles,
       if (photoUrl != null && photoUrl!.trim().isNotEmpty)
         'photoUrl': photoUrl!.trim(),
-      'workAgeFrom': workAgeFrom ?? FieldValue.delete(),
-      'workAgeTo': workAgeTo ?? FieldValue.delete(),
+      if (workAgeFrom != null) 'workAgeFrom': workAgeFrom,
+      if (workAgeTo != null) 'workAgeTo': workAgeTo,
       'isBlocked': isBlocked,
       'updatedAt': FieldValue.serverTimestamp(),
     };

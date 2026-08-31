@@ -14,6 +14,7 @@ import '../../leaders/services/leader_service.dart';
 import '../../leaders/widgets/leader_work_age_range_fields.dart';
 import '../../members/models/id_document_type.dart';
 import '../../members/models/marital_status.dart';
+import '../../members/services/member_service.dart';
 import '../models/user_profile.dart';
 import '../services/user_profile_service.dart';
 import '../utils/person_name.dart';
@@ -331,8 +332,7 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
             return;
           }
 
-          await _leaderService.updateLeader(
-            ChurchLeader(
+          final updatedLeader = ChurchLeader(
               id: leaderId,
               firstName: _firstNameController.text.trim(),
               lastName: _lastNameController.text.trim(),
@@ -388,11 +388,14 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                     )
                   : leader.workAgeTo,
               isBlocked: leader.isBlocked,
-            ),
-          );
+            );
+          await _leaderService.updateLeader(updatedLeader);
           await _leaderService.updateLeaderPhotoUrl(
             leaderId: leaderId,
             photoUrl: photoUrl,
+          );
+          await _leaderService.syncLinkedMemberPersonalDataFromLeader(
+            updatedLeader,
           );
         } else {
           if (leaderId == null || leaderId.isEmpty) {
@@ -415,10 +418,11 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
               uid: widget.session.uid,
               churchId: widget.session.profile.churchId ?? '',
               leaderId: leaderId,
+              canViewSpecialStatistics:
+                  widget.session.profile.canViewSpecialStatistics,
             );
           } else {
-            await _leaderService.updateLeader(
-              ChurchLeader(
+            final updatedLeader = ChurchLeader(
                 id: leaderId,
                 firstName: _firstNameController.text.trim(),
                 lastName: _lastNameController.text.trim(),
@@ -432,11 +436,15 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
                     LeaderRegistrationSource.registerLeader,
                 photoUrl: photoUrl ?? leader?.photoUrl,
                 isBlocked: leader?.isBlocked ?? false,
-              ),
-            );
+              );
+            await _leaderService.updateLeader(updatedLeader);
             await _leaderService.updateLeaderPhotoUrl(
               leaderId: leaderId,
               photoUrl: photoUrl,
+            );
+            await _leaderService.syncLinkedMemberPersonalDataFromLeader(
+              updatedLeader,
+              nameOnly: true,
             );
           }
         }
@@ -444,6 +452,9 @@ class _EditPersonalDataScreenState extends State<EditPersonalDataScreen> {
       if (!mounted) return;
       _showMessage(context.l10n.editPersonalDataSaved);
       Navigator.of(context).pop(true);
+    } on DuplicateMemberDocumentException catch (_) {
+      if (!mounted) return;
+      _showMessage(MemberService.messageForDuplicateDocument(context.l10n));
     } on FirebaseException catch (e) {
       if (!mounted) return;
       if (kDebugMode) {

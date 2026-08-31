@@ -65,6 +65,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
   List<ChurchRecord> _churches = [];
   bool _churchesLoading = true;
   StreamSubscription<List<ChurchRecord>>? _churchesSubscription;
+  bool _canViewSpecialStatistics = false;
 
   bool get _isEdit => widget.adminToEdit != null;
 
@@ -113,6 +114,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
         }
       }
       _emailController.text = admin.email;
+      _canViewSpecialStatistics = admin.canViewSpecialStatistics;
     }
   }
 
@@ -338,6 +340,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
           uid: admin.uid,
           churchId: _selectedChurch!.id,
           leaderId: resolvedLeaderId,
+          canViewSpecialStatistics: _canViewSpecialStatistics,
         );
         if (!mounted) return;
         _showMessage(l10n.adminRegUpdated);
@@ -370,6 +373,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
           email: email,
           churchId: _selectedChurch!.id,
           leaderId: leaderId,
+          canViewSpecialStatistics: _canViewSpecialStatistics,
         );
         if (!mounted) return;
         _showMessage(l10n.adminRegSuccess);
@@ -527,6 +531,17 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
                   ),
                   const SizedBox(height: 12),
                   _buildChurchPicker(),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    value: _canViewSpecialStatistics,
+                    onChanged: _saving
+                        ? null
+                        : (value) =>
+                            setState(() => _canViewSpecialStatistics = value),
+                    title: Text(l10n.adminRegSpecialStatistics),
+                    subtitle: Text(l10n.adminRegSpecialStatisticsHint),
+                    contentPadding: EdgeInsets.zero,
+                  ),
                   const SizedBox(height: 32),
                   FilledButton.icon(
                     onPressed: _saving ? null : _onSave,

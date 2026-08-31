@@ -13,6 +13,7 @@ class AdminUserRecord {
     this.churchId,
     this.isBlocked = false,
     this.legacyFullName = '',
+    this.canViewSpecialStatistics = false,
   });
 
   final String uid;
@@ -22,6 +23,7 @@ class AdminUserRecord {
   final String lastName;
   final String? churchId;
   final bool isBlocked;
+  final bool canViewSpecialStatistics;
 
   /// Nombre legado en `users` (solo lectura de datos antiguos).
   final String legacyFullName;
@@ -49,6 +51,8 @@ class AdminUserRecord {
       churchId: data['churchId'] as String?,
       isBlocked: data['isBlocked'] as bool? ?? false,
       legacyFullName: data['fullName'] as String? ?? '',
+      canViewSpecialStatistics:
+          data['canViewSpecialStatistics'] as bool? ?? false,
     );
   }
 
@@ -65,6 +69,7 @@ class AdminUserRecord {
       churchId: churchId,
       isBlocked: isBlocked,
       legacyFullName: legacyFullName,
+      canViewSpecialStatistics: canViewSpecialStatistics,
     );
   }
 }

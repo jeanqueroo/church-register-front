@@ -697,14 +697,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
                     session.noteLocationChangeForSession) {
                   subtitleParts.add(l10n.cellAttendanceLocationChangedBadge);
                 }
-                if (session.offeringCollected != null &&
-                    session.offeringCollected!.trim().isNotEmpty) {
-                  subtitleParts.add(
-                    l10n.cellAttendanceOfferingSummary(
-                      session.offeringCollected!.trim(),
-                    ),
-                  );
-                }
+                subtitleParts.addAll(_offeringSummaryLines(l10n, session));
                 if (session.observations != null &&
                     session.observations!.trim().isNotEmpty) {
                   subtitleParts.add(session.observations!.trim());
@@ -732,6 +725,28 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
     return '$day/$month/${date.year}';
+  }
+
+  List<String> _offeringSummaryLines(
+    AppLocalizations l10n,
+    CellAttendanceSession session,
+  ) {
+    final lines = <String>[];
+    final cash = session.offeringCash?.trim();
+    final transfer = session.offeringTransfer?.trim();
+    if (cash != null && cash.isNotEmpty) {
+      lines.add(l10n.cellAttendanceOfferingCashSummary(cash));
+    }
+    if (transfer != null && transfer.isNotEmpty) {
+      lines.add(l10n.cellAttendanceOfferingTransferSummary(transfer));
+    }
+    if (lines.isEmpty) {
+      final legacy = session.offeringCollected?.trim();
+      if (legacy != null && legacy.isNotEmpty) {
+        lines.add(l10n.cellAttendanceOfferingSummary(legacy));
+      }
+    }
+    return lines;
   }
 
   List<_Row> _cellRows(AppLocalizations l10n) {

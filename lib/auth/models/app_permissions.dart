@@ -6,16 +6,26 @@ import 'app_user_role.dart';
 
 /// Permisos efectivos según los roles del usuario (unión de varios roles).
 class AppPermissions {
-  AppPermissions(this.roles, {this.churchId});
+  AppPermissions(
+    this.roles, {
+    this.churchId,
+    this.canViewSpecialStatistics = false,
+  });
 
   final Set<String> roles;
   final String? churchId;
+  final bool canViewSpecialStatistics;
 
   factory AppPermissions.fromRoles(
     List<String> roles, {
     String? churchId,
+    bool canViewSpecialStatistics = false,
   }) {
-    return AppPermissions(roles.toSet(), churchId: churchId);
+    return AppPermissions(
+      roles.toSet(),
+      churchId: churchId,
+      canViewSpecialStatistics: canViewSpecialStatistics,
+    );
   }
 
   /// Sin perfil en Firestore: super administrador (cuenta de Firebase Console).
@@ -146,6 +156,10 @@ class AppPermissions {
 
   /// Estadísticas de bautismos (administrador / super administrador).
   bool get canViewBaptismDashboard => isAdmin;
+
+  /// Dashboard de ofrendas: super admin o admin con estadísticas especiales.
+  bool get canViewOfferingDashboard =>
+      isSuperAdmin || (isAdmin && canViewSpecialStatistics);
 
   /// Asignar integrantes a una fecha de bautismo (admin, supervisor o líder).
   bool get canAssignBaptismCalendarMembers => canViewBaptismCalendar;

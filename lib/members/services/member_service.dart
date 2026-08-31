@@ -7,6 +7,7 @@ import '../../cells/cell_member_capacity.dart';
 import '../../cells/models/church_cell.dart';
 import '../../core/models/leader_gender.dart';
 import '../../core/search/firestore_search_text.dart';
+import '../../core/utils/birthday_date.dart';
 import '../../auth/models/app_user_role.dart';
 import '../../l10n/app_localizations.dart';
 import '../../leaders/models/church_leader.dart';
@@ -29,14 +30,18 @@ class MemberService {
     CellCapacityNotificationService? capacityNotificationService,
   })  : _members = (firestore ?? FirebaseFirestore.instance)
             .collection('members'),
-        _notificationService =
-            notificationService ?? LeaderNotificationService(),
+        _notificationServiceOverride = notificationService,
         _capacityNotificationService =
             capacityNotificationService ?? CellCapacityNotificationService();
 
   final CollectionReference<Map<String, dynamic>> _members;
-  final LeaderNotificationService _notificationService;
+  final LeaderNotificationService? _notificationServiceOverride;
+  LeaderNotificationService? _notificationServiceLazy;
   final CellCapacityNotificationService _capacityNotificationService;
+
+  LeaderNotificationService get _notificationService =>
+      _notificationServiceOverride ??
+      (_notificationServiceLazy ??= LeaderNotificationService());
 
   CollectionReference<Map<String, dynamic>> get _cells =>
       _members.firestore.collection('cells');
@@ -328,6 +333,141 @@ class MemberService {
       return doc.id;
     }
     return null;
+  }
+
+  /// Integrante vinculado a un líder (p. ej. al editar su propio documento).
+  Future<String?> findMemberIdByLinkedLeaderId(String leaderId) async {
+    final normalized = leaderId.trim();
+    if (normalized.isEmpty) return null;
+
+    final snapshot = await _members
+        .where('linkedLeaderId', isEqualTo: normalized)
+        .limit(1)
+        .get();
+    if (snapshot.docs.isEmpty) return null;
+    return snapshot.docs.first.id;
+  }
+
+  /// Refleja en `members/{id}` los datos personales del líder vinculado.
+  Future<void> syncMemberPersonalDataFromLeader(
+    ChurchLeader leader, {
+    bool nameOnly = false,
+  }) async {
+    final leaderId = leader.id?.trim();
+    if (leaderId == null || leaderId.isEmpty) return;
+
+    final memberId = await findMemberIdByLinkedLeaderId(leaderId);
+    if (memberId == null) return;
+
+    final member = await fetchMemberById(memberId);
+    if (member == null) return;
+
+    final firstName = leader.firstName.trim();
+    final lastName = leader.lastName.trim();
+    if (firstName.isEmpty || lastName.isEmpty) return;
+
+    final data = <String, dynamic>{
+      'firstName': firstName,
+      'lastName': lastName,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+
+    if (!nameOnly) {
+      final documentNumber = leader.idDocumentNumber?.trim();
+      if (documentNumber != null && documentNumber.isNotEmpty) {
+        await _ensureDocumentNumberAvailable(
+          ChurchMember(
+            id: memberId,
+            firstName: firstName,
+            lastName: lastName,
+            phone: leader.mobilePhone,
+            idDocumentNumber: documentNumber,
+            churchId: member.churchId,
+            formDate: member.formDate,
+            registeredAt: member.registeredAt,
+            registeredBy: member.registeredBy,
+          ),
+        );
+      }
+
+      data.addAll({
+        'gender': leader.gender?.code,
+        'street': leader.street,
+        'streetNumber': leader.streetNumber,
+        'neighborhood': leader.neighborhood,
+        'locality': leader.locality,
+        'stateProvince': leader.stateProvince,
+        'postalCode': leader.postalCode,
+        'latitude': leader.latitude,
+        'longitude': leader.longitude,
+        'phone': leader.mobilePhone,
+        'idDocumentType': leader.idDocumentType?.name,
+        'idDocumentNumber': leader.idDocumentNumber,
+        'birthDate': leader.birthDate != null
+            ? Timestamp.fromDate(BirthdayDate.normalize(leader.birthDate)!)
+            : FieldValue.delete(),
+        'occupation': leader.occupation,
+        'maritalStatus': leader.maritalStatus?.name,
+      });
+    }
+
+    final searchMember = ChurchMember(
+      id: memberId,
+      firstName: firstName,
+      lastName: lastName,
+      gender: nameOnly ? member.gender : (leader.gender ?? member.gender),
+      street: nameOnly ? member.street : leader.street,
+      streetNumber: nameOnly ? member.streetNumber : leader.streetNumber,
+      neighborhood: nameOnly ? member.neighborhood : leader.neighborhood,
+      locality: nameOnly ? member.locality : leader.locality,
+      stateProvince: nameOnly ? member.stateProvince : leader.stateProvince,
+      postalCode: nameOnly ? member.postalCode : leader.postalCode,
+      latitude: nameOnly ? member.latitude : leader.latitude,
+      longitude: nameOnly ? member.longitude : leader.longitude,
+      phone: nameOnly ? member.phone : leader.mobilePhone,
+      idDocumentType:
+          nameOnly ? member.idDocumentType : leader.idDocumentType,
+      idDocumentNumber:
+          nameOnly ? member.idDocumentNumber : leader.idDocumentNumber,
+      birthDate: nameOnly ? member.birthDate : leader.birthDate,
+      occupation: nameOnly ? member.occupation : leader.occupation,
+      maritalStatus: nameOnly ? member.maritalStatus : leader.maritalStatus,
+      cellDay: member.cellDay,
+      cellTime: member.cellTime,
+      cellZone: member.cellZone,
+      observations: member.observations,
+      volunteer: member.volunteer,
+      assignedLeaderId: member.assignedLeaderId,
+      assignedLeaderName: member.assignedLeaderName,
+      assignedLeaderCellCode: member.assignedLeaderCellCode,
+      assignedLeaderFromRegistration: member.assignedLeaderFromRegistration,
+      assignmentKind: member.assignmentKind,
+      assignedCellId: member.assignedCellId,
+      assignedCellCode: member.assignedCellCode,
+      spiritualState: member.spiritualState,
+      assignedDistanceKm: member.assignedDistanceKm,
+      wantsVisit: member.wantsVisit,
+      isNewBeliever: member.isNewBeliever,
+      newBelieverAt: member.newBelieverAt,
+      isBaptized: member.isBaptized,
+      baptizedAt: member.baptizedAt,
+      entrySource: member.entrySource,
+      entrySourceStored: member.entrySourceStored,
+      formDate: member.formDate,
+      registeredAt: member.registeredAt,
+      registeredBy: member.registeredBy,
+      churchId: member.churchId,
+      leadershipStatus: member.leadershipStatus,
+      linkedLeaderId: member.linkedLeaderId,
+      promotedToLeaderAt: member.promotedToLeaderAt,
+      registrationSource: member.registrationSource,
+      pastoralAssignedAt: member.pastoralAssignedAt,
+      cellAssignedAt: member.cellAssignedAt,
+    );
+    data['searchName'] = searchMember.buildSearchIndex();
+    data['searchLastFirst'] = searchMember.buildSearchLastFirstIndex();
+
+    await _members.doc(memberId).update(data);
   }
 
   Future<void> _ensureDocumentNumberAvailable(ChurchMember member) async {
