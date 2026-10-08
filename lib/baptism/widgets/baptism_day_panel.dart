@@ -193,13 +193,6 @@ class BaptismDayPanelState extends State<BaptismDayPanel> {
     setState(() => _timeController.text = _formatTime(picked));
   }
 
-  String? get _memberAssignmentLeaderId {
-    final permissions = widget.permissions;
-    if (permissions.isAdmin || permissions.isSupervisor) return null;
-    if (permissions.isLeader) return widget.actingLeaderId?.trim();
-    return null;
-  }
-
   String _formatDate(DateTime date) {
     return DateFormat.yMMMd(
       Localizations.localeOf(context).toString(),
@@ -296,7 +289,7 @@ class BaptismDayPanelState extends State<BaptismDayPanel> {
         builder: (_) => SelectBaptismMembersScreen(
           churchId: widget.churchId,
           memberService: widget.memberService,
-          assignedLeaderId: _memberAssignmentLeaderId,
+          // Admin, supervisor y líder: todos los creyentes sin bautizar de la iglesia.
           initialSelectedIds: initialIds,
         ),
       ),

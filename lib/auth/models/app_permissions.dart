@@ -162,7 +162,9 @@ class AppPermissions {
       isSuperAdmin || (isAdmin && canViewSpecialStatistics);
 
   /// Asignar integrantes a una fecha de bautismo (admin, supervisor o líder).
-  bool get canAssignBaptismCalendarMembers => canViewBaptismCalendar;
+  /// La lista muestra creyentes sin bautizar de toda la iglesia.
+  bool get canAssignBaptismCalendarMembers =>
+      isAdmin || isSupervisor || isLeader;
   bool get canViewMembersList => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canViewOldMembersList => isAdmin;
   bool get canViewMembersByLeader => isAdmin;

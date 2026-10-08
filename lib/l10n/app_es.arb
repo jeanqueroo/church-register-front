@@ -330,6 +330,8 @@
   "homeNavMore": "Más",
   "homeRegisterAttendanceTitle": "Registrar asistencia",
   "homeRegisterAttendanceSubtitle": "Selecciona tu célula para registrar asistencia",
+  "homeRegisterDiscipleTitle": "Registrar discípulo nuevo",
+  "homeRegisterDiscipleSubtitle": "Agregar un discípulo a tu célula",
   "homeDashboardLoadError": "No se pudo cargar el resumen del inicio.",
   "user": "Usuario",
   "noAccessForRole": "No hay accesos disponibles para tu rol. Contacta al administrador.",

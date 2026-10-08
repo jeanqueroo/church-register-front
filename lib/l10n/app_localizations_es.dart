@@ -598,6 +598,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Selecciona tu célula para registrar asistencia';
 
   @override
+  String get homeRegisterDiscipleTitle => 'Registrar discípulo nuevo';
+
+  @override
+  String get homeRegisterDiscipleSubtitle => 'Agregar un discípulo a tu célula';
+
+  @override
   String get homeDashboardLoadError =>
       'No se pudo cargar el resumen del inicio.';
 

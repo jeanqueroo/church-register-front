@@ -1100,6 +1100,18 @@ abstract class AppLocalizations {
   /// **'Selecciona tu célula para registrar asistencia'**
   String get homeRegisterAttendanceSubtitle;
 
+  /// No description provided for @homeRegisterDiscipleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar discípulo nuevo'**
+  String get homeRegisterDiscipleTitle;
+
+  /// No description provided for @homeRegisterDiscipleSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar un discípulo a tu célula'**
+  String get homeRegisterDiscipleSubtitle;
+
   /// No description provided for @homeDashboardLoadError.
   ///
   /// In es, this message translates to:

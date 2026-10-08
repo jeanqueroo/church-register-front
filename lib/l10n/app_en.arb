@@ -330,6 +330,8 @@
   "homeNavMore": "More",
   "homeRegisterAttendanceTitle": "Register attendance",
   "homeRegisterAttendanceSubtitle": "Select your cell to register attendance",
+  "homeRegisterDiscipleTitle": "Register new disciple",
+  "homeRegisterDiscipleSubtitle": "Add a disciple to your cell group",
   "homeDashboardLoadError": "Could not load the home summary.",
   "user": "User",
   "noAccessForRole": "No shortcuts available for your role. Contact the administrator.",

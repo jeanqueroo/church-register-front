@@ -593,6 +593,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Select your cell to register attendance';
 
   @override
+  String get homeRegisterDiscipleTitle => 'Register new disciple';
+
+  @override
+  String get homeRegisterDiscipleSubtitle =>
+      'Add a disciple to your cell group';
+
+  @override
   String get homeDashboardLoadError => 'Could not load the home summary.';
 
   @override
