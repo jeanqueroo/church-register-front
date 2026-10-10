@@ -9,6 +9,7 @@
   "menuBaptismGroup": "Baptism",
   "menuBaptismCalendar": "Baptism calendar",
   "menuBaptismDashboard": "Baptism statistics",
+  "menuOfferingDashboard": "Offerings",
   "menuNewMember": "New member",
   "menuMembers": "View new believers",
   "menuChurchMembers": "View members",
@@ -48,8 +49,31 @@
   "quickBaptismCalendarSubtitle": "View scheduled baptism dates",
   "quickBaptismDashboardTitle": "Baptism statistics",
   "quickBaptismDashboardSubtitle": "Baptized from believer registration",
+  "quickOfferingDashboardTitle": "Offerings",
+  "quickOfferingDashboardSubtitle": "Cash and transfer totals",
   "baptismDashboardTitle": "Baptism statistics",
   "baptismDashboardDenied": "You do not have permission to view baptism statistics.",
+  "offeringDashboardTitle": "Offerings",
+  "offeringDashboardDenied": "Only administrators can view the offerings dashboard.",
+  "offeringDashboardCashTotal": "Cash",
+  "offeringDashboardTransferTotal": "Transfer",
+  "offeringDashboardGrandTotal": "Total",
+  "offeringDashboardSessionCount": "Meetings",
+  "offeringDashboardChartTitle": "Offering trend",
+  "offeringDashboardByCell": "By cell group",
+  "offeringDashboardCashSummary": "Cash: {amount}",
+  "@offeringDashboardCashSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "offeringDashboardTransferSummary": "Transfer: {amount}",
+  "@offeringDashboardTransferSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "offeringDashboardIndexHint": "A Firestore index is required to query attendance sessions. Contact your administrator.",
   "baptismDashboardLoadError": "Could not load baptism statistics.",
   "baptismDashboardBaptizedInPeriod": "Baptized in period",
   "baptismDashboardBaptizedInYear": "Baptized in year",
@@ -306,6 +330,8 @@
   "homeNavMore": "More",
   "homeRegisterAttendanceTitle": "Register attendance",
   "homeRegisterAttendanceSubtitle": "Select your cell to register attendance",
+  "homeRegisterDiscipleTitle": "Register new disciple",
+  "homeRegisterDiscipleSubtitle": "Add a disciple to your cell group",
   "homeDashboardLoadError": "Could not load the home summary.",
   "user": "User",
   "noAccessForRole": "No shortcuts available for your role. Contact the administrator.",
@@ -735,6 +761,20 @@
   "membersListEmptyTitle": "No new believers registered yet",
   "membersListEmptySubtitle": "Tap \"New\" to register the first one.",
   "membersListSearchHint": "Search by name, phone, leader or city…",
+  "membersListPromoteToMember": "Make church member",
+  "membersListPromoteToMemberTitle": "Make church member",
+  "membersListPromoteToMemberConfirm": "Move \"{name}\" from new believer to church member? They will leave this list.",
+  "@membersListPromoteToMemberConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "membersListPromoteToMemberSuccess": "{name} is now a church member",
+  "@membersListPromoteToMemberSuccess": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
   "membersListEndOfList": "End of list",
   "membersListLeaderPrefix": "Leader: {name}",
   "@membersListLeaderPrefix": {
@@ -1009,6 +1049,7 @@
   },
   "dashboardNoData": "No data to display",
   "chartPeriodDay": "By day",
+  "chartPeriodWeek": "By week",
   "chartPeriodMonth": "By month",
   "chartPeriodYear": "By year",
   "notificationsTitle": "Notifications",
@@ -1312,6 +1353,10 @@
   "churchRegAlias": "Bank alias",
   "churchRegAliasHint": "E.g. church.central.mb",
   "churchRegAliasHelper": "Bank alias for transfers",
+  "churchRegOfferingQr": "OFFERING QR CODE",
+  "churchRegOfferingQrOptional": "OFFERING QR CODE (optional)",
+  "churchRegOfferingQrHint": "Upload the bank account QR code so members can scan it when giving offerings.",
+  "churchRegUploadOfferingQr": "Upload QR",
   "churchRegAddressSection": "Address",
   "churchSearchLabel": "Church *",
   "churchSearchClear": "Clear selection",
@@ -1577,8 +1622,25 @@
   "cellAttendanceLocationChangeReason": "Reason for location change",
   "cellAttendanceLocationReasonRequired": "Explain why it was held in another place",
   "cellAttendanceSectionNotes": "Additional information",
+  "cellAttendanceSectionOffering": "Offering",
   "cellAttendanceOfferingCollected": "Offering collected",
   "cellAttendanceOfferingCollectedHint": "Amount or detail (optional)",
+  "cellAttendanceOfferingCash": "Cash offering",
+  "cellAttendanceOfferingCashHint": "Amount (optional)",
+  "cellAttendanceOfferingTransfer": "Transfer offering",
+  "cellAttendanceOfferingTransferHint": "Amount (optional)",
+  "cellAttendanceOfferingCashSummary": "Cash: {amount}",
+  "@cellAttendanceOfferingCashSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "cellAttendanceOfferingTransferSummary": "Transfer: {amount}",
+  "@cellAttendanceOfferingTransferSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
   "cellAttendanceOfferingAliasTitle": "Offering transfer alias",
   "cellAttendanceOfferingAliasInfo": "Transfer to: {alias}",
   "@cellAttendanceOfferingAliasInfo": {
@@ -1587,6 +1649,7 @@
     }
   },
   "cellAttendanceOfferingAliasMissing": "This church does not have a transfer alias yet",
+  "cellAttendanceOfferingQrHint": "Scan the QR code to transfer your offering",
   "cellAttendanceObservations": "Observations",
   "cellAttendanceObservationsHint": "Notes about the meeting (optional)",
   "cellAttendanceOfferingSummary": "Offering: {amount}",
@@ -1771,7 +1834,7 @@
   "cellMemberListTitle": "Disciples",
   "cellMemberListEmpty": "No disciples assigned to this cell yet",
   "cellMemberSelectTitle": "Select disciples",
-  "cellMemberSelectHint": "Only disciples assigned to this cell group's leader through pastoral registration, without another cell, are shown",
+  "cellMemberSelectHint": "Only believers you registered, without a cell group assignment, are shown",
   "cellMemberSelectConfirm": "Assign {count}",
   "@cellMemberSelectConfirm": {
     "placeholders": {
@@ -1780,7 +1843,7 @@
   },
   "cellMemberSelectRequiresChurch": "Cannot assign disciples without a church on your account",
   "cellMemberSelectSearchHint": "Search by name, phone or leader",
-  "cellMemberSelectEmpty": "No disciples from this cell group's leader are available to assign",
+  "cellMemberSelectEmpty": "No believers you registered are available to assign",
   "cellMemberSelectMaxReached": "Maximum {max} disciple(s) per cell",
   "@cellMemberSelectMaxReached": {
     "placeholders": {
@@ -1839,13 +1902,13 @@
   "cellMemberAssignCellLeaderRequired": "This cell group must have an assigned leader before you can select disciples.",
   "cellMemberAssignGenderMismatch": "You can only assign disciples of the same sex as the cell leader.",
   "cellMemberAssignLeaderExcluded": "Leaders cannot be assigned as cell disciples.",
-  "cellMemberSelectEmptyGender": "No disciples from this cell group's leader match the leader's sex ({gender}).",
+  "cellMemberSelectEmptyGender": "No believers you registered of the same sex ({gender}) are available to assign.",
   "@cellMemberSelectEmptyGender": {
     "placeholders": {
       "gender": { "type": "String" }
     }
   },
-  "cellMemberSelectGenderHint": "Only pastoral-registration disciples of this cell group's leader, matching sex ({gender}), without another cell, are shown.",
+  "cellMemberSelectGenderHint": "Only believers you registered, of the same sex ({gender}), without another cell group, are shown.",
   "@cellMemberSelectGenderHint": {
     "placeholders": {
       "gender": { "type": "String" }
@@ -2026,6 +2089,8 @@
   "adminRegEmailLockedHelper": "The sign-in email cannot be changed from here.",
   "adminRegSectionChurch": "ASSIGNED CHURCH",
   "adminRegChurchHint": "This administrator will only manage the selected church.",
+  "adminRegSpecialStatistics": "Special statistics",
+  "adminRegSpecialStatisticsHint": "Allows viewing the offerings dashboard and other sensitive reports.",
   "adminRegPasswordRequired": "Enter the password",
   "adminRegRegisterButton": "Register administrator",
   "editPersonalDataSectionName": "NAME",

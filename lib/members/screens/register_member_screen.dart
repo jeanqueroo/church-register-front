@@ -35,8 +35,10 @@ class RegisterMemberScreen extends StatefulWidget {
     this.leaderService,
     this.memberToEdit,
     this.cellToAssign,
+    this.managedCell,
     this.permissions,
     this.actingLeaderId,
+    this.supervisedLeaderIds = const [],
   });
 
   final String registeredBy;
@@ -47,10 +49,17 @@ class RegisterMemberScreen extends StatefulWidget {
   final ChurchMember? memberToEdit;
   /// Si se indica, el creyente nuevo se asigna a esta célula al guardar.
   final ChurchCell? cellToAssign;
+  /// Célula desde la que se edita un discípulo (permiso de líder/supervisor).
+  final ChurchCell? managedCell;
   final AppPermissions? permissions;
   final String? actingLeaderId;
+  final List<String> supervisedLeaderIds;
 
   bool get isEditing => memberToEdit != null;
+
+  /// Edición de discípulo desde detalle de célula: oculta campos pastorales.
+  bool get isEditingCellDisciple =>
+      isEditing && managedCell != null;
 
   AppPermissions get _permissions =>
       permissions ?? AppPermissions.adminDefault();
@@ -423,17 +432,23 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       return;
     }
 
-    if (_manualLeader && _selectedLeader == null) {
+    final editingCellDisciple = widget.isEditingCellDisciple;
+
+    if (!editingCellDisciple && _manualLeader && _selectedLeader == null) {
       _showMessage(l10n.memberSelectLeaderFromList);
       return;
     }
 
-    if (!_manualLeader && _wantsVisit && _gender == null) {
+    if (!editingCellDisciple &&
+        !_manualLeader &&
+        _wantsVisit &&
+        _gender == null) {
       _showMessage(l10n.memberGenderForAutoLeader);
       return;
     }
 
-    if (_needsAddressForAssignment &&
+    if (!editingCellDisciple &&
+        _needsAddressForAssignment &&
         (!_includeAddress || _streetController.text.trim().isEmpty)) {
       _showMessage(l10n.memberAddressRequiredAutoLeader);
       return;
@@ -456,7 +471,13 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
       double? assignedDistanceKm;
       ChurchLeader? assignedLeader;
 
-      if (_manualLeader) {
+      if (editingCellDisciple) {
+        final existing = widget.memberToEdit!;
+        assignedLeaderId = existing.assignedLeaderId;
+        assignedLeaderName = existing.assignedLeaderName;
+        assignedLeaderCellCode = existing.assignedLeaderCellCode;
+        assignedDistanceKm = existing.assignedDistanceKm;
+      } else if (_manualLeader) {
         assignedLeader = _selectedLeader;
         assignedLeaderId = assignedLeader?.id;
         assignedLeaderName = assignedLeader?.fullName;
@@ -500,16 +521,22 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         assignedLeader = null;
       }
 
-      final assignedLeaderFromRegistration = !isCellRegistration &&
-          assignedLeaderId != null &&
-          assignedLeaderId.isNotEmpty;
-      final assignmentKind = isCellRegistration ||
-              (widget.isEditing &&
-                  (widget.memberToEdit?.isAssignedToCell ?? false))
-          ? MemberAssignmentKind.cell
-          : (assignedLeaderFromRegistration
-              ? MemberAssignmentKind.pastoral
-              : (widget.isEditing ? widget.memberToEdit?.assignmentKind : null));
+      final assignedLeaderFromRegistration = editingCellDisciple
+          ? widget.memberToEdit?.assignedLeaderFromRegistration
+          : (!isCellRegistration &&
+              assignedLeaderId != null &&
+              assignedLeaderId.isNotEmpty);
+      final assignmentKind = editingCellDisciple
+          ? (widget.memberToEdit?.assignmentKind ?? MemberAssignmentKind.cell)
+          : (isCellRegistration ||
+                  (widget.isEditing &&
+                      (widget.memberToEdit?.isAssignedToCell ?? false))
+              ? MemberAssignmentKind.cell
+              : (assignedLeaderFromRegistration == true
+                  ? MemberAssignmentKind.pastoral
+                  : (widget.isEditing
+                      ? widget.memberToEdit?.assignmentKind
+                      : null)));
 
       final registrationTimestamp =
           widget.memberToEdit?.registeredAt ?? DateTime.now();
@@ -547,16 +574,24 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         birthDate: _birthDate!,
         occupation: _occupationController.text.trim(),
         maritalStatus: _maritalStatus!,
-        cellDay: _cellDay,
-        cellTime: _cellTimeController.text.trim().isEmpty
-            ? null
-            : _cellTimeController.text.trim(),
-        cellZone: _cellZoneController.text.trim().isEmpty
-            ? null
-            : _cellZoneController.text.trim(),
-        observations: _observationsController.text.trim().isEmpty
-            ? null
-            : _observationsController.text.trim(),
+        cellDay: editingCellDisciple
+            ? widget.memberToEdit?.cellDay
+            : _cellDay,
+        cellTime: editingCellDisciple
+            ? widget.memberToEdit?.cellTime
+            : (_cellTimeController.text.trim().isEmpty
+                ? null
+                : _cellTimeController.text.trim()),
+        cellZone: editingCellDisciple
+            ? widget.memberToEdit?.cellZone
+            : (_cellZoneController.text.trim().isEmpty
+                ? null
+                : _cellZoneController.text.trim()),
+        observations: editingCellDisciple
+            ? widget.memberToEdit?.observations
+            : (_observationsController.text.trim().isEmpty
+                ? null
+                : _observationsController.text.trim()),
         volunteer: _volunteerController.text.trim().isEmpty
             ? null
             : _volunteerController.text.trim(),
@@ -566,7 +601,9 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         assignedLeaderFromRegistration: assignedLeaderFromRegistration,
         assignmentKind: assignmentKind,
         assignedDistanceKm: assignedDistanceKm,
-        wantsVisit: _wantsVisit,
+        wantsVisit: editingCellDisciple
+            ? (widget.memberToEdit?.wantsVisit ?? false)
+            : _wantsVisit,
         isNewBeliever: widget.isEditing
             ? (widget.memberToEdit?.isNewBeliever ?? false)
             : true,
@@ -577,7 +614,9 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
         baptizedAt: _isBaptized
             ? (widget.memberToEdit?.baptizedAt ?? DateTime.now())
             : null,
-        entrySource: _entrySource,
+        entrySource: editingCellDisciple
+            ? widget.memberToEdit?.entrySource
+            : _entrySource,
         formDate: _formDate,
         registeredAt: registrationTimestamp,
         registeredBy: widget.memberToEdit?.registeredBy ?? widget.registeredBy,
@@ -589,7 +628,9 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                 : MemberRegistrationSource.registerMember),
         pastoralAssignedAt: widget.isEditing
             ? widget.memberToEdit?.pastoralAssignedAt
-            : (assignedLeaderFromRegistration ? registrationTimestamp : null),
+            : (assignedLeaderFromRegistration == true
+                ? registrationTimestamp
+                : null),
         cellAssignedAt: widget.isEditing
             ? widget.memberToEdit?.cellAssignedAt
             : null,
@@ -900,13 +941,20 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
     final permissions = widget._permissions;
     final l10n = context.l10n;
     final cellDayOptions = _cellDayOptions(l10n);
+    final editingCellDisciple = widget.isEditingCellDisciple;
+    final canEdit = widget.memberToEdit != null &&
+        (permissions.canEditMember(widget.memberToEdit!) ||
+            (widget.managedCell != null &&
+                permissions.canEditCellDisciple(
+                  widget.memberToEdit!,
+                  widget.managedCell!,
+                  actingLeaderId: widget.actingLeaderId,
+                  supervisedLeaderIds: widget.supervisedLeaderIds,
+                )));
 
     return RoleGate(
       permissions: permissions,
-      allowed: widget.isEditing
-          ? widget.memberToEdit != null &&
-              permissions.canEditMember(widget.memberToEdit!)
-          : permissions.canRegisterMember,
+      allowed: widget.isEditing ? canEdit : permissions.canRegisterMember,
       deniedMessage: widget.isEditing
           ? l10n.memberNoPermissionEdit
           : l10n.memberNoPermissionRegister,
@@ -945,56 +993,58 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   onTap: _pickFormDate,
                   clearDateLabel: l10n.memberClearDate,
                 ),
-                const SizedBox(height: 16),
-                FormField<MemberEntrySource>(
-                  key: _entrySourceFieldKey,
-                  initialValue: _entrySource,
-                  validator: (value) =>
-                      value == null ? l10n.memberEntrySourceRequired : null,
-                  builder: (field) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          l10n.memberEntrySource,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: MemberEntrySource.values.map((source) {
-                            final selected = _entrySource == source;
-                            return FilterChip(
-                              label: Text(source.localizedLabel(l10n)),
-                              selected: selected,
-                              onSelected: _isLoading
-                                  ? null
-                                  : (value) {
-                                      final picked = value ? source : null;
-                                      setState(() => _entrySource = picked);
-                                      field.didChange(picked);
-                                    },
-                            );
-                          }).toList(),
-                        ),
-                        if (field.hasError) ...[
-                          const SizedBox(height: 4),
+                if (!editingCellDisciple) ...[
+                  const SizedBox(height: 16),
+                  FormField<MemberEntrySource>(
+                    key: _entrySourceFieldKey,
+                    initialValue: _entrySource,
+                    validator: (value) =>
+                        value == null ? l10n.memberEntrySourceRequired : null,
+                    builder: (field) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
                           Text(
-                            field.errorText!,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                              fontSize: 12,
-                            ),
+                            l10n.memberEntrySource,
+                            style:
+                                Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
                           ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: MemberEntrySource.values.map((source) {
+                              final selected = _entrySource == source;
+                              return FilterChip(
+                                label: Text(source.localizedLabel(l10n)),
+                                selected: selected,
+                                onSelected: _isLoading
+                                    ? null
+                                    : (value) {
+                                        final picked = value ? source : null;
+                                        setState(() => _entrySource = picked);
+                                        field.didChange(picked);
+                                      },
+                              );
+                            }).toList(),
+                          ),
+                          if (field.hasError) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              field.errorText!,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
+                ],
                 FormSectionTitle(l10n.memberSectionPersonalData),
                 TextFormField(
                   controller: _firstNameController,
@@ -1215,61 +1265,66 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                     );
                   },
                 ),
-                FormSectionTitle(l10n.memberSectionCellSchedule),
-                DropdownButtonFormField<String>(
-                  initialValue: _cellDay,
-                  decoration: InputDecoration(
-                    labelText: l10n.memberCellDay,
-                    prefixIcon: const Icon(Icons.event_outlined),
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: cellDayOptions
-                      .map(
-                        (day) => DropdownMenuItem(
-                          value: day.value,
-                          child: Text(day.label),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: _isLoading
-                      ? null
-                      : (v) => setState(() => _cellDay = v),
-                ),
-                const SizedBox(height: 16),
-                InkWell(
-                  onTap: _isLoading ? null : _pickCellTime,
-                  borderRadius: BorderRadius.circular(4),
-                  child: InputDecorator(
+                if (!editingCellDisciple) ...[
+                  FormSectionTitle(l10n.memberSectionCellSchedule),
+                  DropdownButtonFormField<String>(
+                    initialValue: _cellDay,
                     decoration: InputDecoration(
-                      labelText: l10n.memberCellTime,
-                      prefixIcon: const Icon(Icons.access_time_outlined),
+                      labelText: l10n.memberCellDay,
+                      prefixIcon: const Icon(Icons.event_outlined),
                       border: const OutlineInputBorder(),
-                      filled: true,
                     ),
-                    child: Text(
-                      _cellTimeController.text.isEmpty
-                          ? l10n.memberSelectTime
-                          : _cellTimeController.text,
-                      style: TextStyle(
-                        color: _cellTimeController.text.isEmpty
-                            ? Theme.of(context).colorScheme.onSurfaceVariant
-                            : Theme.of(context).colorScheme.onSurface,
+                    items: cellDayOptions
+                        .map(
+                          (day) => DropdownMenuItem(
+                            value: day.value,
+                            child: Text(day.label),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: _isLoading
+                        ? null
+                        : (v) => setState(() => _cellDay = v),
+                  ),
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: _isLoading ? null : _pickCellTime,
+                    borderRadius: BorderRadius.circular(4),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: l10n.memberCellTime,
+                        prefixIcon: const Icon(Icons.access_time_outlined),
+                        border: const OutlineInputBorder(),
+                        filled: true,
+                      ),
+                      child: Text(
+                        _cellTimeController.text.isEmpty
+                            ? l10n.memberSelectTime
+                            : _cellTimeController.text,
+                        style: TextStyle(
+                          color: _cellTimeController.text.isEmpty
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _cellZoneController,
-                  textCapitalization: TextCapitalization.words,
-                  enabled: !_isLoading,
-                  decoration: InputDecoration(
-                    labelText: l10n.memberCellZone,
-                    prefixIcon: const Icon(Icons.map_outlined),
-                    border: const OutlineInputBorder(),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _cellZoneController,
+                    textCapitalization: TextCapitalization.words,
+                    enabled: !_isLoading,
+                    decoration: InputDecoration(
+                      labelText: l10n.memberCellZone,
+                      prefixIcon: const Icon(Icons.map_outlined),
+                      border: const OutlineInputBorder(),
+                    ),
                   ),
-                ),
-                FormSectionTitle(l10n.memberSectionVisit),
+                ],
+                if (!editingCellDisciple)
+                  FormSectionTitle(l10n.memberSectionVisit)
+                else
+                  const SizedBox(height: 16),
                 SwitchListTile(
                   value: _isBaptized,
                   onChanged: _isLoading
@@ -1279,35 +1334,37 @@ class _RegisterMemberScreenState extends State<RegisterMemberScreen> {
                   subtitle: Text(l10n.memberIsBaptizedSubtitle),
                   secondary: const Icon(Icons.water_outlined),
                 ),
-                const SizedBox(height: 8),
-                SwitchListTile(
-                  value: _wantsVisit,
-                  onChanged: _isLoading
-                      ? null
-                      : (value) => setState(() {
-                            _wantsVisit = value;
-                            if (value && !_includeAddress) {
-                              _includeAddress = true;
-                            }
-                          }),
-                  title: Text(l10n.memberWantsVisit),
-                  subtitle: Text(l10n.memberWantsVisitSubtitle),
-                  secondary: const Icon(Icons.home_outlined),
-                ),
-                const SizedBox(height: 8),
-                _leaderAssignmentSection(l10n),
-                FormSectionTitle(l10n.memberSectionObservations),
-                TextFormField(
-                  controller: _observationsController,
-                  enabled: !_isLoading,
-                  maxLines: 4,
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: InputDecoration(
-                    hintText: l10n.memberObservationsHint,
-                    border: const OutlineInputBorder(),
-                    alignLabelWithHint: true,
+                if (!editingCellDisciple) ...[
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    value: _wantsVisit,
+                    onChanged: _isLoading
+                        ? null
+                        : (value) => setState(() {
+                              _wantsVisit = value;
+                              if (value && !_includeAddress) {
+                                _includeAddress = true;
+                              }
+                            }),
+                    title: Text(l10n.memberWantsVisit),
+                    subtitle: Text(l10n.memberWantsVisitSubtitle),
+                    secondary: const Icon(Icons.home_outlined),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  _leaderAssignmentSection(l10n),
+                  FormSectionTitle(l10n.memberSectionObservations),
+                  TextFormField(
+                    controller: _observationsController,
+                    enabled: !_isLoading,
+                    maxLines: 4,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      hintText: l10n.memberObservationsHint,
+                      border: const OutlineInputBorder(),
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _volunteerController,

@@ -6,16 +6,26 @@ import 'app_user_role.dart';
 
 /// Permisos efectivos según los roles del usuario (unión de varios roles).
 class AppPermissions {
-  AppPermissions(this.roles, {this.churchId});
+  AppPermissions(
+    this.roles, {
+    this.churchId,
+    this.canViewSpecialStatistics = false,
+  });
 
   final Set<String> roles;
   final String? churchId;
+  final bool canViewSpecialStatistics;
 
   factory AppPermissions.fromRoles(
     List<String> roles, {
     String? churchId,
+    bool canViewSpecialStatistics = false,
   }) {
-    return AppPermissions(roles.toSet(), churchId: churchId);
+    return AppPermissions(
+      roles.toSet(),
+      churchId: churchId,
+      canViewSpecialStatistics: canViewSpecialStatistics,
+    );
   }
 
   /// Sin perfil en Firestore: super administrador (cuenta de Firebase Console).
@@ -147,8 +157,14 @@ class AppPermissions {
   /// Estadísticas de bautismos (administrador / super administrador).
   bool get canViewBaptismDashboard => isAdmin;
 
+  /// Dashboard de ofrendas: super admin o admin con estadísticas especiales.
+  bool get canViewOfferingDashboard =>
+      isSuperAdmin || (isAdmin && canViewSpecialStatistics);
+
   /// Asignar integrantes a una fecha de bautismo (admin, supervisor o líder).
-  bool get canAssignBaptismCalendarMembers => canViewBaptismCalendar;
+  /// La lista muestra creyentes sin bautizar de toda la iglesia.
+  bool get canAssignBaptismCalendarMembers =>
+      isAdmin || isSupervisor || isLeader;
   bool get canViewMembersList => isAdmin || isRegistrar || isSupervisor || isLeader;
   bool get canViewOldMembersList => isAdmin;
   bool get canViewMembersByLeader => isAdmin;
@@ -202,6 +218,36 @@ class AppPermissions {
     if (canManageMembers) return true;
     if (!member.isNewBeliever) return false;
     return isLeader || isSupervisor || isRegistrar;
+  }
+
+  /// Pasar un nuevo creyente a miembro (deja de figurar en nuevos creyentes).
+  bool canPromoteNewBelieverToMember(ChurchMember member) {
+    if (!member.isNewBeliever) return false;
+    return canManageMembers || canEditMember(member);
+  }
+
+  /// Editar discípulo de una célula: quien puede gestionar miembros de esa célula.
+  bool canEditCellDisciple(
+    ChurchMember member,
+    ChurchCell cell, {
+    String? actingLeaderId,
+    Iterable<String> supervisedLeaderIds = const [],
+  }) {
+    if (canEditMember(member)) return true;
+    final cellId = cell.id?.trim();
+    final memberCellId = member.assignedCellId?.trim();
+    if (cellId == null ||
+        cellId.isEmpty ||
+        memberCellId == null ||
+        memberCellId.isEmpty ||
+        memberCellId != cellId) {
+      return false;
+    }
+    return canAssignCellMembersFor(
+      cell,
+      actingLeaderId: actingLeaderId,
+      supervisedLeaderIds: supervisedLeaderIds,
+    );
   }
 
   /// Ver datos de la iglesia en Mi cuenta (solo lectura).

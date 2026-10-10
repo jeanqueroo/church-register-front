@@ -72,12 +72,14 @@ class _MembersListBodyState extends State<_MembersListBody> {
   bool _exporting = false;
   bool _loading = true;
   bool _loadingMore = false;
+  bool _searching = false;
   bool _hasMore = true;
   Object? _loadError;
   List<ChurchMember> _members = [];
   DocumentSnapshot<Map<String, dynamic>>? _lastDocument;
   Timer? _searchDebounce;
   String _activeSearchQuery = '';
+  int _listRequestId = 0;
 
   MemberService get _service => widget.memberService ?? MemberService();
 
@@ -104,7 +106,7 @@ class _MembersListBodyState extends State<_MembersListBody> {
   }
 
   void _onScroll() {
-    if (!_hasMore || _loading || _loadingMore) return;
+    if (!_hasMore || _loading || _loadingMore || _searching) return;
     if (!_scrollController.hasClients) return;
     final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 240) {
@@ -112,11 +114,24 @@ class _MembersListBodyState extends State<_MembersListBody> {
     }
   }
 
-  Future<void> _loadFirstPage({bool forceRefresh = false}) async {
+  Future<void> _loadFirstPage({
+    bool forceRefresh = false,
+    bool fromSearch = false,
+  }) async {
+    final requestId = ++_listRequestId;
+    final keepPreviousResults = fromSearch && _members.isNotEmpty;
+
     setState(() {
-      _loading = true;
+      if (fromSearch) {
+        _searching = true;
+        if (!keepPreviousResults) {
+          _loading = true;
+        }
+      } else {
+        _loading = true;
+        _members = [];
+      }
       _loadError = null;
-      _members = [];
       _lastDocument = null;
       _hasMore = true;
     });
@@ -127,19 +142,23 @@ class _MembersListBodyState extends State<_MembersListBody> {
         searchQuery: _activeSearchQuery,
         filter: widget.filter,
       );
-      if (!mounted) return;
+      if (!mounted || requestId != _listRequestId) return;
       setState(() {
         _members = page.members;
         _lastDocument = page.lastDocument;
         _hasMore = page.hasMore;
         _loading = false;
+        _searching = false;
       });
     } on FirebaseException catch (error) {
-      if (!mounted) return;
+      if (!mounted || requestId != _listRequestId) return;
       setState(() {
         _loadError = error;
         _loading = false;
-        _members = [];
+        _searching = false;
+        if (!keepPreviousResults) {
+          _members = [];
+        }
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -149,11 +168,14 @@ class _MembersListBodyState extends State<_MembersListBody> {
         ),
       );
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || requestId != _listRequestId) return;
       setState(() {
         _loadError = error;
         _loading = false;
-        _members = [];
+        _searching = false;
+        if (!keepPreviousResults) {
+          _members = [];
+        }
       });
     }
   }
@@ -188,13 +210,11 @@ class _MembersListBodyState extends State<_MembersListBody> {
 
   void _onSearchChanged(String value) {
     _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+    _searchDebounce = Timer(const Duration(milliseconds: 450), () {
       final query = value.trim();
       if (query == _activeSearchQuery) return;
       _activeSearchQuery = query;
-      _lastDocument = null;
-      _hasMore = true;
-      _loadFirstPage();
+      _loadFirstPage(fromSearch: true);
     });
   }
 
@@ -300,19 +320,67 @@ class _MembersListBodyState extends State<_MembersListBody> {
     }
   }
 
-  Widget _buildSearchField(AppLocalizations l10n) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: TextField(
-        key: const ValueKey('members_list_search'),
-        controller: _searchController,
-        focusNode: _searchFocusNode,
-        onChanged: _onSearchChanged,
-        decoration: InputDecoration(
-          hintText: l10n.membersListSearchHint,
-          prefixIcon: const Icon(Icons.search),
-          border: const OutlineInputBorder(),
+  Future<void> _confirmPromoteToMember(
+    BuildContext context,
+    ChurchMember member,
+  ) async {
+    final l10n = context.l10n;
+    final id = member.id;
+    if (id == null || id.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.membersListPromoteToMemberTitle),
+        content: Text(l10n.membersListPromoteToMemberConfirm(member.fullName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.membersListPromoteToMember),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await _service.markAsChurchMember(id);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.membersListPromoteToMemberSuccess(member.fullName),
+          ),
         ),
+      );
+      await _loadFirstPage(forceRefresh: true);
+    } on FirebaseException catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            MemberService.messageFromFirestoreException(e, context.l10n),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildSearchField(AppLocalizations l10n) {
+    return TextField(
+      key: const ValueKey('members_list_search'),
+      controller: _searchController,
+      focusNode: _searchFocusNode,
+      onChanged: _onSearchChanged,
+      decoration: InputDecoration(
+        hintText: l10n.membersListSearchHint,
+        prefixIcon: const Icon(Icons.search),
+        border: const OutlineInputBorder(),
       ),
     );
   }
@@ -362,6 +430,8 @@ class _MembersListBodyState extends State<_MembersListBody> {
                 );
               case 'edit':
                 _openEdit(context, member);
+              case 'promote':
+                _confirmPromoteToMember(context, member);
               case 'delete':
                 _confirmDelete(context, member);
             }
@@ -371,6 +441,12 @@ class _MembersListBodyState extends State<_MembersListBody> {
               value: 'view',
               child: Text(l10n.membersMapViewDetail),
             ),
+            if (widget.filter == MembersListFilter.newBelievers &&
+                widget.permissions.canPromoteNewBelieverToMember(member))
+              PopupMenuItem(
+                value: 'promote',
+                child: Text(l10n.membersListPromoteToMember),
+              ),
             if (widget.permissions.canEditMember(member))
               PopupMenuItem(
                 value: 'edit',
@@ -491,11 +567,30 @@ class _MembersListBodyState extends State<_MembersListBody> {
   }
 
   Widget _buildBody(BuildContext context, AppLocalizations l10n) {
-    if (_loading && _members.isEmpty) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: _buildSearchField(l10n),
+        ),
+        if (_searching)
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: LinearProgressIndicator(minHeight: 2),
+          ),
+        const SizedBox(height: 8),
+        Expanded(child: _buildListContent(context, l10n)),
+      ],
+    );
+  }
+
+  Widget _buildListContent(BuildContext context, AppLocalizations l10n) {
+    if (_loading && _members.isEmpty && !_searching) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_loadError != null && _members.isEmpty) {
+    if (_loadError != null && _members.isEmpty && !_searching) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -520,74 +615,67 @@ class _MembersListBodyState extends State<_MembersListBody> {
       );
     }
 
-    if (_members.isEmpty) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildSearchField(l10n),
-          Expanded(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.people_outline,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _activeSearchQuery.isEmpty
-                          ? _emptyTitle(l10n)
-                          : l10n.commonNoMatches,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    if (_activeSearchQuery.isEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        _emptySubtitle(l10n),
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
-                      ),
-                    ],
-                  ],
-                ),
+    if (_members.isEmpty &&
+        _activeSearchQuery.isEmpty &&
+        !_searching) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.people_outline,
+                size: 64,
+                color: Theme.of(context).colorScheme.outline,
               ),
-            ),
+              const SizedBox(height: 16),
+              Text(
+                _emptyTitle(l10n),
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _emptySubtitle(l10n),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
           ),
-        ],
+        ),
+      );
+    }
+
+    if (_members.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            l10n.commonNoMatches,
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+        ),
       );
     }
 
     return RefreshIndicator(
       onRefresh: () => _loadFirstPage(forceRefresh: true),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildSearchField(l10n),
-          Expanded(
-            child: ListView.separated(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              itemCount: _members.length + 1,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                if (index >= _members.length) {
-                  return _buildListFooter(l10n);
-                }
-                return _buildMemberTile(context, l10n, _members[index]);
-              },
-            ),
-          ),
-        ],
+      child: ListView.separated(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        itemCount: _members.length + 1,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          if (index >= _members.length) {
+            return _buildListFooter(l10n);
+          }
+          return _buildMemberTile(context, l10n, _members[index]);
+        },
       ),
     );
   }

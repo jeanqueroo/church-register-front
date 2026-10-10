@@ -13,10 +13,17 @@ import '../models/church_cell.dart';
 import '../services/cell_service.dart';
 import 'cell_detail_screen.dart';
 import 'register_cell_attendance_screen.dart';
+import 'register_cell_member_screen.dart';
 import 'cell_attendance_overview_screen.dart';
 import 'cell_attendance_sessions_screen.dart';
 
-enum MyAssignedCellsMode { browse, attendance, attendanceReport, attendanceManage }
+enum MyAssignedCellsMode {
+  browse,
+  attendance,
+  attendanceReport,
+  attendanceManage,
+  registerDisciple,
+}
 
 class MyAssignedCellsScreen extends StatefulWidget {
   const MyAssignedCellsScreen({
@@ -172,6 +179,44 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
     );
   }
 
+  Future<void> _openRegisterDisciple(ChurchCell cell) async {
+    final permissions = widget.session.permissions;
+    final cellId = cell.id;
+    if (cellId == null || cellId.isEmpty) return;
+
+    final count = await _memberService.countMembersInCell(cellId);
+    if (!permissions.canRegisterNewCellMember(
+      cell,
+      currentMemberCount: count,
+      actingLeaderId: widget.session.profile.leaderId,
+      supervisedLeaderIds: widget.session.profile.supervisedLeaderIds,
+    )) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            MemberService.messageForCellAssignmentLeaderOnly(context.l10n),
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => RegisterCellMemberScreen(
+          cell: cell,
+          registeredBy: widget.registeredBy,
+          churchId: cell.churchId ?? widget.session.profile.churchId,
+          permissions: permissions,
+          actingLeaderId: widget.session.profile.leaderId,
+          supervisedLeaderIds: widget.session.profile.supervisedLeaderIds,
+        ),
+      ),
+    );
+  }
+
   Future<void> _openAttendanceManage(ChurchCell cell) async {
     final permissions = widget.session.permissions;
     if (!permissions.canManageCellAttendanceSessions(
@@ -217,6 +262,8 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
         _openAttendanceReport(cell);
       case MyAssignedCellsMode.attendanceManage:
         _openAttendanceManage(cell);
+      case MyAssignedCellsMode.registerDisciple:
+        _openRegisterDisciple(cell);
       case MyAssignedCellsMode.browse:
         _openCellDetail(cell);
     }
@@ -227,9 +274,16 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
       MyAssignedCellsMode.attendance => l10n.cellAttendancePickCellTitle,
       MyAssignedCellsMode.attendanceReport => l10n.cellAttendanceReportPickCellTitle,
       MyAssignedCellsMode.attendanceManage => l10n.cellAttendanceSessionsPickCellTitle,
+      MyAssignedCellsMode.registerDisciple => l10n.cellDisciplePickCellTitle,
       MyAssignedCellsMode.browse => l10n.myAssignedCellTitle,
     };
   }
+
+  bool get _isPickMode =>
+      widget.mode == MyAssignedCellsMode.attendance ||
+      widget.mode == MyAssignedCellsMode.attendanceReport ||
+      widget.mode == MyAssignedCellsMode.attendanceManage ||
+      widget.mode == MyAssignedCellsMode.registerDisciple;
 
   String _emptyMessage(AppLocalizations l10n) {
     return l10n.myAssignedCellEmpty;
@@ -323,6 +377,16 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
           actingLeaderId: widget.session.profile.leaderId,
         );
       }
+      if (widget.mode == MyAssignedCellsMode.registerDisciple) {
+        return RegisterCellMemberScreen(
+          cell: _cells.first,
+          registeredBy: widget.registeredBy,
+          churchId: _cells.first.churchId ?? widget.session.profile.churchId,
+          permissions: permissions,
+          actingLeaderId: widget.session.profile.leaderId,
+          supervisedLeaderIds: widget.session.profile.supervisedLeaderIds,
+        );
+      }
       return CellDetailScreen(
         cell: _cells.first,
         registeredBy: widget.registeredBy,
@@ -339,18 +403,10 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
         onRefresh: _loadCells,
         child: ListView.separated(
           padding: const EdgeInsets.all(16),
-          itemCount: _cells.length +
-              (widget.mode == MyAssignedCellsMode.attendance ||
-                      widget.mode == MyAssignedCellsMode.attendanceReport ||
-                      widget.mode == MyAssignedCellsMode.attendanceManage
-                  ? 1
-                  : 0),
+          itemCount: _cells.length + (_isPickMode ? 1 : 0),
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
-            if ((widget.mode == MyAssignedCellsMode.attendance ||
-                    widget.mode == MyAssignedCellsMode.attendanceReport ||
-                    widget.mode == MyAssignedCellsMode.attendanceManage) &&
-                index == 0) {
+            if (_isPickMode && index == 0) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
@@ -359,6 +415,8 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
                       l10n.cellAttendanceReportPickCellHint,
                     MyAssignedCellsMode.attendanceManage =>
                       l10n.cellAttendanceSessionsPickCellHint,
+                    MyAssignedCellsMode.registerDisciple =>
+                      l10n.cellDisciplePickCellHint,
                     _ => l10n.cellAttendancePickCellHint,
                   },
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -368,11 +426,7 @@ class _MyAssignedCellsScreenState extends State<MyAssignedCellsScreen> {
               );
             }
 
-            final cellIndex = (widget.mode == MyAssignedCellsMode.attendance ||
-                    widget.mode == MyAssignedCellsMode.attendanceReport ||
-                    widget.mode == MyAssignedCellsMode.attendanceManage)
-                ? index - 1
-                : index;
+            final cellIndex = _isPickMode ? index - 1 : index;
             final cell = _cells[cellIndex];
             final parts = <String>[
               if (cell.leaderName != null && cell.leaderName!.trim().isNotEmpty)

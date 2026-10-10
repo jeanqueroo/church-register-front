@@ -82,13 +82,40 @@ class ChurchService {
     required String churchId,
     String? contentType,
   }) async {
+    return _uploadChurchImage(
+      bytes,
+      churchId: churchId,
+      fileName: 'logo.jpg',
+      contentType: contentType,
+    );
+  }
+
+  Future<String> uploadOfferingQr(
+    Uint8List bytes, {
+    required String churchId,
+    String? contentType,
+  }) async {
+    return _uploadChurchImage(
+      bytes,
+      churchId: churchId,
+      fileName: 'offering_qr.jpg',
+      contentType: contentType,
+    );
+  }
+
+  Future<String> _uploadChurchImage(
+    Uint8List bytes, {
+    required String churchId,
+    required String fileName,
+    String? contentType,
+  }) async {
     await ensureAppCheckTokenForUpload();
 
     final id = _resolveChurchId(churchId);
-    final ref = _storage.ref().child('church_profiles/$id/logo.jpg');
+    final ref = _storage.ref().child('church_profiles/$id/$fileName');
     if (kDebugMode) {
       final bucket = _storage.bucket;
-      debugPrint('Storage upload → gs://$bucket/church_profiles/$id/logo.jpg');
+      debugPrint('Storage upload → gs://$bucket/church_profiles/$id/$fileName');
     }
     await ref.putData(
       bytes,

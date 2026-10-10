@@ -5,6 +5,7 @@ import '../../auth/services/user_profile_service.dart';
 import '../../core/search/firestore_search_text.dart';
 import '../../l10n/app_localizations.dart';
 import '../../members/services/member_service.dart';
+import '../../notifications/services/leader_notification_service.dart';
 import '../models/church_leader.dart';
 import '../models/church_office.dart';
 import '../models/leaders_page.dart';
@@ -13,12 +14,21 @@ class LeaderService {
   LeaderService({
     FirebaseFirestore? firestore,
     UserProfileService? userProfileService,
+    MemberService? memberService,
   })  : _leaders = (firestore ?? FirebaseFirestore.instance)
             .collection('leaders'),
-        _userProfileService = userProfileService ?? UserProfileService();
+        _userProfileService = userProfileService ?? UserProfileService(),
+        _memberServiceOverride = memberService;
 
   final CollectionReference<Map<String, dynamic>> _leaders;
   final UserProfileService _userProfileService;
+  final MemberService? _memberServiceOverride;
+  MemberService? _memberServiceLazy;
+
+  MemberService get _memberService => _memberServiceOverride ??
+      (_memberServiceLazy ??= MemberService(
+        notificationService: LeaderNotificationService(leaderService: this),
+      ));
 
   static const int leadersPageSize = 50;
 
@@ -175,7 +185,7 @@ class LeaderService {
     MemberService? memberService,
   }) async {
     final leaderId = await addLeader(leader);
-    await (memberService ?? MemberService()).syncMemberForPromotedLeader(
+    await (memberService ?? _memberService).syncMemberForPromotedLeader(
       leader: leader,
       leaderId: leaderId,
       registeredBy: registeredBy,
@@ -184,12 +194,33 @@ class LeaderService {
     return leaderId;
   }
 
+  Future<String?> findMemberIdByLinkedLeaderId(String leaderId) {
+    return _memberService.findMemberIdByLinkedLeaderId(leaderId);
+  }
+
+  Future<void> syncLinkedMemberPersonalDataFromLeader(
+    ChurchLeader leader, {
+    bool nameOnly = false,
+  }) {
+    return _memberService.syncMemberPersonalDataFromLeader(
+      leader,
+      nameOnly: nameOnly,
+    );
+  }
+
   Future<void> updateLeader(ChurchLeader leader) {
     final id = leader.id;
     if (id == null || id.isEmpty) {
       throw ArgumentError('El líder debe tener id para actualizar');
     }
-    return _leaders.doc(id).set(leader.toMap(), SetOptions(merge: true));
+    final data = leader.toMap();
+    if (leader.workAgeFrom == null) {
+      data['workAgeFrom'] = FieldValue.delete();
+    }
+    if (leader.workAgeTo == null) {
+      data['workAgeTo'] = FieldValue.delete();
+    }
+    return _leaders.doc(id).set(data, SetOptions(merge: true));
   }
 
   Future<void> updateLeaderPhotoUrl({
@@ -456,6 +487,132 @@ class LeaderService {
     return list;
   }
 
+  Future<String?> findLeaderIdByEmail(
+    String email, {
+    String? churchId,
+    String? excludeLeaderId,
+  }) async {
+    final normalized = email.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+
+    Query<Map<String, dynamic>> query =
+        _leaders.where('email', isEqualTo: normalized);
+    final church = churchId?.trim();
+    if (church != null && church.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: church);
+    }
+
+    final snapshot = await query.limit(5).get();
+    for (final doc in snapshot.docs) {
+      if (excludeLeaderId != null &&
+          excludeLeaderId.isNotEmpty &&
+          doc.id == excludeLeaderId) {
+        continue;
+      }
+      return doc.id;
+    }
+    return null;
+  }
+
+  Future<String?> findLeaderIdByDocumentNumber(
+    String idDocumentNumber, {
+    String? churchId,
+    String? excludeLeaderId,
+  }) async {
+    final normalized = idDocumentNumber.trim();
+    if (normalized.isEmpty) return null;
+
+    Query<Map<String, dynamic>> query =
+        _leaders.where('idDocumentNumber', isEqualTo: normalized);
+    final church = churchId?.trim();
+    if (church != null && church.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: church);
+    }
+
+    final snapshot = await query.limit(5).get();
+    for (final doc in snapshot.docs) {
+      if (excludeLeaderId != null &&
+          excludeLeaderId.isNotEmpty &&
+          doc.id == excludeLeaderId) {
+        continue;
+      }
+      return doc.id;
+    }
+    return null;
+  }
+
+  /// Comprueba correo y documento antes de crear o actualizar un líder con acceso.
+  Future<void> ensureLeaderRegistrationAvailable({
+    required String email,
+    String? idDocumentNumber,
+    String? churchId,
+    String? excludeLeaderId,
+    String? excludeAuthUserId,
+    String? excludeMemberId,
+  }) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail.isEmpty) {
+      throw ArgumentError('email required');
+    }
+
+    final existingUserUid = await _userProfileService.findUserUidByEmail(
+      normalizedEmail,
+      excludeUid: excludeAuthUserId,
+    );
+    if (existingUserUid != null) {
+      throw LeaderRegistrationConflictException(
+        LeaderRegistrationConflictKind.email,
+      );
+    }
+
+    final existingLeaderEmail = await findLeaderIdByEmail(
+      normalizedEmail,
+      excludeLeaderId: excludeLeaderId,
+    );
+    if (existingLeaderEmail != null) {
+      throw LeaderRegistrationConflictException(
+        LeaderRegistrationConflictKind.email,
+      );
+    }
+
+    final docNumber = idDocumentNumber?.trim();
+    if (docNumber == null || docNumber.isEmpty) return;
+
+    final existingMemberId = await _memberService.findMemberIdByDocumentNumber(
+      idDocumentNumber: docNumber,
+      churchId: churchId,
+      excludeMemberId: excludeMemberId,
+    );
+    if (existingMemberId != null) {
+      throw LeaderRegistrationConflictException(
+        LeaderRegistrationConflictKind.documentNumber,
+      );
+    }
+
+    final existingLeaderDoc = await findLeaderIdByDocumentNumber(
+      docNumber,
+      churchId: churchId,
+      excludeLeaderId: excludeLeaderId,
+    );
+    if (existingLeaderDoc != null) {
+      throw LeaderRegistrationConflictException(
+        LeaderRegistrationConflictKind.documentNumber,
+      );
+    }
+  }
+
+  static String messageForRegistrationConflict(
+    LeaderRegistrationConflictKind kind,
+    AppLocalizations l10n,
+  ) {
+    switch (kind) {
+      case LeaderRegistrationConflictKind.email:
+        return l10n.authEmailInUse;
+      case LeaderRegistrationConflictKind.documentNumber:
+        return MemberService.messageForDuplicateDocument(l10n);
+    }
+  }
+
   static String messageFromFirestoreException(
     FirebaseException e,
     AppLocalizations l10n,
@@ -471,4 +628,15 @@ class LeaderService {
         return l10n.firestoreGenericError;
     }
   }
+}
+
+enum LeaderRegistrationConflictKind {
+  email,
+  documentNumber,
+}
+
+class LeaderRegistrationConflictException implements Exception {
+  LeaderRegistrationConflictException(this.kind);
+
+  final LeaderRegistrationConflictKind kind;
 }

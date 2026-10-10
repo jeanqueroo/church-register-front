@@ -13,6 +13,7 @@ class UserProfile {
     this.photoUrl,
     this.isBlocked = false,
     this.supervisedLeaderIds = const [],
+    this.canViewSpecialStatistics = false,
   });
 
   final List<String> roles;
@@ -24,9 +25,14 @@ class UserProfile {
   final String? photoUrl;
   final bool isBlocked;
   final List<String> supervisedLeaderIds;
+  /// Dashboards sensibles (p. ej. ofrendas): solo si el super admin lo habilita.
+  final bool canViewSpecialStatistics;
 
-  AppPermissions get permissions =>
-      AppPermissions.fromRoles(roles, churchId: churchId);
+  AppPermissions get permissions => AppPermissions.fromRoles(
+        roles,
+        churchId: churchId,
+        canViewSpecialStatistics: canViewSpecialStatistics,
+      );
 
   factory UserProfile.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
@@ -43,6 +49,8 @@ class UserProfile {
       photoUrl: data['photoUrl'] as String?,
       isBlocked: data['isBlocked'] as bool? ?? false,
       supervisedLeaderIds: _parseSupervisedLeaderIds(data['supervisedLeaderIds']),
+      canViewSpecialStatistics:
+          data['canViewSpecialStatistics'] as bool? ?? false,
     );
   }
 

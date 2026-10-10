@@ -60,6 +60,9 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
   String? _existingLogoUrl;
   Uint8List? _pickedLogoBytes;
   String? _pickedContentType;
+  String? _existingOfferingQrUrl;
+  Uint8List? _pickedOfferingQrBytes;
+  String? _pickedOfferingQrContentType;
   GeoLocation? _churchLocation;
   bool _addressFromSelection = false;
   String? _loadedAddress;
@@ -112,6 +115,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
         _aliasController.text = church.alias ?? '';
         _addressController.text = church.address;
         _existingLogoUrl = church.logoUrl;
+        _existingOfferingQrUrl = church.offeringQrUrl;
         _isBlocked = church.isBlocked;
         _loadedAddress = church.address.trim();
         if (church.hasCoordinates) {
@@ -181,12 +185,13 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
     return null;
   }
 
-  ChurchProfile _buildProfile({String? logoUrl}) {
+  ChurchProfile _buildProfile({String? logoUrl, String? offeringQrUrl}) {
     final location = _churchLocation ?? _loadedLocation;
     return ChurchProfile(
       name: _nameController.text.trim(),
       address: _addressController.text.trim(),
       logoUrl: logoUrl,
+      offeringQrUrl: offeringQrUrl,
       alias: _aliasController.text.trim().isEmpty
           ? null
           : _aliasController.text.trim(),
@@ -228,12 +233,44 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
     });
   }
 
+  Future<void> _pickOfferingQr() async {
+    if (_saving) return;
+    try {
+      final file = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 90,
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _pickedOfferingQrBytes = bytes;
+        _pickedOfferingQrContentType = 'image/jpeg';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.churchRegImageError('$e'))),
+      );
+    }
+  }
+
+  void _clearPickedOfferingQr() {
+    setState(() {
+      _pickedOfferingQrBytes = null;
+      _pickedOfferingQrContentType = null;
+    });
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _saving = true);
     try {
       var logoUrl = _existingLogoUrl;
+      var offeringQrUrl = _existingOfferingQrUrl;
       var targetChurchId = _effectiveChurchId ?? ChurchService.mainChurchId;
 
       if (widget.createNew) {
@@ -251,7 +288,18 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
         );
       }
 
-      final profile = _buildProfile(logoUrl: logoUrl);
+      if (_pickedOfferingQrBytes != null) {
+        offeringQrUrl = await _churchService.uploadOfferingQr(
+          _pickedOfferingQrBytes!,
+          churchId: targetChurchId,
+          contentType: _pickedOfferingQrContentType,
+        );
+      }
+
+      final profile = _buildProfile(
+        logoUrl: logoUrl,
+        offeringQrUrl: offeringQrUrl,
+      );
 
       if (!widget.createNew) {
         await _churchService.saveChurch(
@@ -259,7 +307,7 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
           profile: profile,
           updatedBy: widget.updatedBy,
         );
-      } else if (logoUrl != null) {
+      } else if (logoUrl != null || offeringQrUrl != null) {
         await _churchService.saveChurch(
           churchId: targetChurchId,
           profile: profile,
@@ -315,6 +363,52 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
       );
     }
     return ChurchLogo(size: 140, churchId: _effectiveChurchId);
+  }
+
+  Widget _buildOfferingQrPreview() {
+    if (_pickedOfferingQrBytes != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.memory(
+          _pickedOfferingQrBytes!,
+          width: 180,
+          height: 180,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+    if (_existingOfferingQrUrl != null && _existingOfferingQrUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          _existingOfferingQrUrl!,
+          width: 180,
+          height: 180,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => _offeringQrPlaceholder(),
+        ),
+      );
+    }
+    return _offeringQrPlaceholder();
+  }
+
+  Widget _offeringQrPlaceholder() {
+    return Container(
+      width: 180,
+      height: 180,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+      child: Icon(
+        Icons.qr_code_2_outlined,
+        size: 72,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    );
   }
 
   @override
@@ -473,6 +567,47 @@ class _RegisterChurchScreenState extends State<RegisterChurchScreen> {
                             filled: widget.readOnly,
                           ),
                         ),
+                        const SizedBox(height: 24),
+                        FormSectionTitle(
+                          widget.readOnly
+                              ? l10n.churchRegOfferingQr
+                              : l10n.churchRegOfferingQrOptional,
+                        ),
+                        Center(child: _buildOfferingQrPreview()),
+                        if (!widget.readOnly) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.churchRegOfferingQrHint,
+                            textAlign: TextAlign.center,
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              FilledButton.tonalIcon(
+                                onPressed: _saving || lockedByBlock
+                                    ? null
+                                    : _pickOfferingQr,
+                                icon: const Icon(Icons.upload_outlined),
+                                label: Text(l10n.churchRegUploadOfferingQr),
+                              ),
+                              if (_pickedOfferingQrBytes != null) ...[
+                                const SizedBox(width: 8),
+                                TextButton(
+                                  onPressed:
+                                      _saving ? null : _clearPickedOfferingQr,
+                                  child: Text(l10n.churchRegRemoveLogo),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 16),
                         if (widget.readOnly)
                           TextFormField(

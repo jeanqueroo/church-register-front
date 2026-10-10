@@ -152,6 +152,12 @@ abstract class AppLocalizations {
   /// **'Estadísticas de bautismo'**
   String get menuBaptismDashboard;
 
+  /// No description provided for @menuOfferingDashboard.
+  ///
+  /// In es, this message translates to:
+  /// **'Ofrendas'**
+  String get menuOfferingDashboard;
+
   /// No description provided for @menuNewMember.
   ///
   /// In es, this message translates to:
@@ -386,6 +392,18 @@ abstract class AppLocalizations {
   /// **'Bautizados desde registro de creyente'**
   String get quickBaptismDashboardSubtitle;
 
+  /// No description provided for @quickOfferingDashboardTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ofrendas'**
+  String get quickOfferingDashboardTitle;
+
+  /// No description provided for @quickOfferingDashboardSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Totales por efectivo y transferencia'**
+  String get quickOfferingDashboardSubtitle;
+
   /// No description provided for @baptismDashboardTitle.
   ///
   /// In es, this message translates to:
@@ -397,6 +415,72 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No tienes permiso para ver las estadísticas de bautismo.'**
   String get baptismDashboardDenied;
+
+  /// No description provided for @offeringDashboardTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ofrendas'**
+  String get offeringDashboardTitle;
+
+  /// No description provided for @offeringDashboardDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo los administradores pueden ver el dashboard de ofrendas.'**
+  String get offeringDashboardDenied;
+
+  /// No description provided for @offeringDashboardCashTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Efectivo'**
+  String get offeringDashboardCashTotal;
+
+  /// No description provided for @offeringDashboardTransferTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Transferencia'**
+  String get offeringDashboardTransferTotal;
+
+  /// No description provided for @offeringDashboardGrandTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total'**
+  String get offeringDashboardGrandTotal;
+
+  /// No description provided for @offeringDashboardSessionCount.
+  ///
+  /// In es, this message translates to:
+  /// **'Reuniones'**
+  String get offeringDashboardSessionCount;
+
+  /// No description provided for @offeringDashboardChartTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Evolución de ofrendas'**
+  String get offeringDashboardChartTitle;
+
+  /// No description provided for @offeringDashboardByCell.
+  ///
+  /// In es, this message translates to:
+  /// **'Por célula'**
+  String get offeringDashboardByCell;
+
+  /// No description provided for @offeringDashboardCashSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'Efectivo: {amount}'**
+  String offeringDashboardCashSummary(String amount);
+
+  /// No description provided for @offeringDashboardTransferSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'Transferencia: {amount}'**
+  String offeringDashboardTransferSummary(String amount);
+
+  /// No description provided for @offeringDashboardIndexHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Falta un índice de Firestore para consultar asistencias. Contacta al administrador.'**
+  String get offeringDashboardIndexHint;
 
   /// No description provided for @baptismDashboardLoadError.
   ///
@@ -1015,6 +1099,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Selecciona tu célula para registrar asistencia'**
   String get homeRegisterAttendanceSubtitle;
+
+  /// No description provided for @homeRegisterDiscipleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar discípulo nuevo'**
+  String get homeRegisterDiscipleTitle;
+
+  /// No description provided for @homeRegisterDiscipleSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar un discípulo a tu célula'**
+  String get homeRegisterDiscipleSubtitle;
 
   /// No description provided for @homeDashboardLoadError.
   ///
@@ -2880,6 +2976,30 @@ abstract class AppLocalizations {
   /// **'Buscar por nombre, teléfono, líder o localidad…'**
   String get membersListSearchHint;
 
+  /// No description provided for @membersListPromoteToMember.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasar a miembro'**
+  String get membersListPromoteToMember;
+
+  /// No description provided for @membersListPromoteToMemberTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasar a miembro'**
+  String get membersListPromoteToMemberTitle;
+
+  /// No description provided for @membersListPromoteToMemberConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Pasar a \"{name}\" de nuevo creyente a miembro? Dejará de aparecer en esta lista.'**
+  String membersListPromoteToMemberConfirm(String name);
+
+  /// No description provided for @membersListPromoteToMemberSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'{name} ahora es miembro'**
+  String membersListPromoteToMemberSuccess(String name);
+
   /// No description provided for @membersListEndOfList.
   ///
   /// In es, this message translates to:
@@ -3563,6 +3683,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Por día'**
   String get chartPeriodDay;
+
+  /// No description provided for @chartPeriodWeek.
+  ///
+  /// In es, this message translates to:
+  /// **'Por semana'**
+  String get chartPeriodWeek;
 
   /// No description provided for @chartPeriodMonth.
   ///
@@ -4529,6 +4655,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Alias bancario para transferencias'**
   String get churchRegAliasHelper;
+
+  /// No description provided for @churchRegOfferingQr.
+  ///
+  /// In es, this message translates to:
+  /// **'QR PARA OFRENDAS'**
+  String get churchRegOfferingQr;
+
+  /// No description provided for @churchRegOfferingQrOptional.
+  ///
+  /// In es, this message translates to:
+  /// **'QR PARA OFRENDAS (opcional)'**
+  String get churchRegOfferingQrOptional;
+
+  /// No description provided for @churchRegOfferingQrHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Sube el código QR de la cuenta bancaria para que los miembros puedan escanearlo al dar la ofrenda.'**
+  String get churchRegOfferingQrHint;
+
+  /// No description provided for @churchRegUploadOfferingQr.
+  ///
+  /// In es, this message translates to:
+  /// **'Subir QR'**
+  String get churchRegUploadOfferingQr;
 
   /// No description provided for @churchRegAddressSection.
   ///
@@ -5514,6 +5664,12 @@ abstract class AppLocalizations {
   /// **'Información adicional'**
   String get cellAttendanceSectionNotes;
 
+  /// No description provided for @cellAttendanceSectionOffering.
+  ///
+  /// In es, this message translates to:
+  /// **'Ofrenda'**
+  String get cellAttendanceSectionOffering;
+
   /// No description provided for @cellAttendanceOfferingCollected.
   ///
   /// In es, this message translates to:
@@ -5525,6 +5681,42 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Monto o detalle (opcional)'**
   String get cellAttendanceOfferingCollectedHint;
+
+  /// No description provided for @cellAttendanceOfferingCash.
+  ///
+  /// In es, this message translates to:
+  /// **'Ofrenda en efectivo'**
+  String get cellAttendanceOfferingCash;
+
+  /// No description provided for @cellAttendanceOfferingCashHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto (opcional)'**
+  String get cellAttendanceOfferingCashHint;
+
+  /// No description provided for @cellAttendanceOfferingTransfer.
+  ///
+  /// In es, this message translates to:
+  /// **'Ofrenda en transferencia'**
+  String get cellAttendanceOfferingTransfer;
+
+  /// No description provided for @cellAttendanceOfferingTransferHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto (opcional)'**
+  String get cellAttendanceOfferingTransferHint;
+
+  /// No description provided for @cellAttendanceOfferingCashSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'Efectivo: {amount}'**
+  String cellAttendanceOfferingCashSummary(String amount);
+
+  /// No description provided for @cellAttendanceOfferingTransferSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'Transferencia: {amount}'**
+  String cellAttendanceOfferingTransferSummary(String amount);
 
   /// No description provided for @cellAttendanceOfferingAliasTitle.
   ///
@@ -5543,6 +5735,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'La iglesia aún no tiene alias de transferencias'**
   String get cellAttendanceOfferingAliasMissing;
+
+  /// No description provided for @cellAttendanceOfferingQrHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Escanea el QR para transferir la ofrenda'**
+  String get cellAttendanceOfferingQrHint;
 
   /// No description provided for @cellAttendanceObservations.
   ///
@@ -6071,7 +6269,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberSelectHint.
   ///
   /// In es, this message translates to:
-  /// **'Solo aparecen discípulos asignados al líder de esta célula desde el registro pastoral y sin otra célula asignada'**
+  /// **'Solo aparecen creyentes que tú registraste, sin célula asignada'**
   String get cellMemberSelectHint;
 
   /// No description provided for @cellMemberSelectConfirm.
@@ -6095,7 +6293,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberSelectEmpty.
   ///
   /// In es, this message translates to:
-  /// **'No hay discípulos del líder de esta célula disponibles para asignar'**
+  /// **'No hay creyentes registrados por ti disponibles para asignar'**
   String get cellMemberSelectEmpty;
 
   /// No description provided for @cellMemberSelectMaxReached.
@@ -6191,13 +6389,13 @@ abstract class AppLocalizations {
   /// No description provided for @cellMemberSelectEmptyGender.
   ///
   /// In es, this message translates to:
-  /// **'No hay discípulos del líder de esta célula del mismo sexo ({gender}) disponibles para asignar.'**
+  /// **'No hay creyentes registrados por ti del mismo sexo ({gender}) disponibles para asignar.'**
   String cellMemberSelectEmptyGender(String gender);
 
   /// No description provided for @cellMemberSelectGenderHint.
   ///
   /// In es, this message translates to:
-  /// **'Solo aparecen discípulos del líder de esta célula, del mismo sexo ({gender}), registrados desde el registro pastoral y sin otra célula.'**
+  /// **'Solo aparecen creyentes que tú registraste, del mismo sexo ({gender}) y sin otra célula.'**
   String cellMemberSelectGenderHint(String gender);
 
   /// No description provided for @cellMemberRegisterGenderLocked.
@@ -6781,6 +6979,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Este administrador solo gestionará la iglesia seleccionada.'**
   String get adminRegChurchHint;
+
+  /// No description provided for @adminRegSpecialStatistics.
+  ///
+  /// In es, this message translates to:
+  /// **'Estadísticas especiales'**
+  String get adminRegSpecialStatistics;
+
+  /// No description provided for @adminRegSpecialStatisticsHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Permite ver el dashboard de ofrendas y otros reportes sensibles.'**
+  String get adminRegSpecialStatisticsHint;
 
   /// No description provided for @adminRegPasswordRequired.
   ///

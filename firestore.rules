@@ -110,6 +110,16 @@ service cloud.firestore {
       return isSuperAdmin() || canManageChurchRecords();
     }
 
+    /// Dashboard de ofrendas: collectionGroup('sessions').
+    function canReadSessionDocumentForOfferings() {
+      return isSuperAdmin() || (
+        isChurchAdmin() &&
+        currentUserChurchId() != '' &&
+        currentUserData().get('canViewSpecialStatistics', false) == true &&
+        resource.data.get('churchId', '') == currentUserChurchId()
+      );
+    }
+
     function isAssignedLeaderForNotification() {
       return userDocExists() &&
         currentUserData().get('leaderId', '') != '' &&
@@ -518,6 +528,11 @@ service cloud.firestore {
     // Consultas collection group para el dashboard de visitas.
     match /{path=**}/visits/{visitId} {
       allow read: if isSignedIn() && canReadVisitDocument();
+    }
+
+    // Consultas collection group para el dashboard de ofrendas.
+    match /{path=**}/sessions/{sessionId} {
+      allow read: if isSignedIn() && canReadSessionDocumentForOfferings();
     }
 
     match /users/{userId} {

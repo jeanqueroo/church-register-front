@@ -9,16 +9,20 @@ class LeaderNotificationService {
     FirebaseFirestore? firestore,
     LeaderService? leaderService,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _leaderService = leaderService ?? LeaderService(),
+        _leaderServiceOverride = leaderService,
         _notifications = (firestore ?? FirebaseFirestore.instance)
             .collection('notifications'),
         _members = (firestore ?? FirebaseFirestore.instance)
             .collection('members');
 
   final FirebaseFirestore _firestore;
-  final LeaderService _leaderService;
+  final LeaderService? _leaderServiceOverride;
+  LeaderService? _leaderServiceLazy;
   final CollectionReference<Map<String, dynamic>> _notifications;
   final CollectionReference<Map<String, dynamic>> _members;
+
+  LeaderService get _leaderService => _leaderServiceOverride ??
+      (_leaderServiceLazy ??= LeaderService());
 
   /// Escucha notificaciones del líder por [leaderId] (coincide con `users.leaderId`).
   Stream<List<LeaderNotification>> watchForLeader(String leaderId) {

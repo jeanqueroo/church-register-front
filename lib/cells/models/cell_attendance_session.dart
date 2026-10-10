@@ -19,6 +19,8 @@ class CellAttendanceSession {
     required this.locationDiffersFromRegistered,
     required this.noteLocationChangeForSession,
     this.locationChangeReason,
+    this.offeringCash,
+    this.offeringTransfer,
     this.offeringCollected,
     this.observations,
     required this.records,
@@ -46,6 +48,9 @@ class CellAttendanceSession {
   final bool locationDiffersFromRegistered;
   final bool noteLocationChangeForSession;
   final String? locationChangeReason;
+  final String? offeringCash;
+  final String? offeringTransfer;
+  /// Campo legado; usar [offeringCash] y [offeringTransfer].
   final String? offeringCollected;
   final String? observations;
   final List<CellAttendanceRecord> records;
@@ -77,8 +82,10 @@ class CellAttendanceSession {
       if (locationChangeReason != null &&
           locationChangeReason!.trim().isNotEmpty)
         'locationChangeReason': locationChangeReason!.trim(),
-      if (offeringCollected != null && offeringCollected!.trim().isNotEmpty)
-        'offeringCollected': offeringCollected!.trim(),
+      if (offeringCash != null && offeringCash!.trim().isNotEmpty)
+        'offeringCash': offeringCash!.trim(),
+      if (offeringTransfer != null && offeringTransfer!.trim().isNotEmpty)
+        'offeringTransfer': offeringTransfer!.trim(),
       if (observations != null && observations!.trim().isNotEmpty)
         'observations': observations!.trim(),
       'records': records.map((record) => record.toMap()).toList(),
@@ -119,6 +126,8 @@ class CellAttendanceSession {
       noteLocationChangeForSession:
           data['noteLocationChangeForSession'] as bool? ?? false,
       locationChangeReason: data['locationChangeReason'] as String?,
+      offeringCash: data['offeringCash'] as String?,
+      offeringTransfer: data['offeringTransfer'] as String?,
       offeringCollected: data['offeringCollected'] as String?,
       observations: data['observations'] as String?,
       records: records,

@@ -51,7 +51,8 @@ class _RegisterCellAttendanceScreenState
   final _placeController = TextEditingController();
   final _dayChangeReasonController = TextEditingController();
   final _locationChangeReasonController = TextEditingController();
-  final _offeringCollectedController = TextEditingController();
+  final _offeringCashController = TextEditingController();
+  final _offeringTransferController = TextEditingController();
   final _observationsController = TextEditingController();
 
   late final CellAttendanceService _attendanceService;
@@ -65,6 +66,7 @@ class _RegisterCellAttendanceScreenState
   bool _isSaving = false;
   String? _loadError;
   String? _churchAlias;
+  String? _churchOfferingQrUrl;
   List<ChurchMember> _members = [];
   final Map<String, bool> _presentByMemberId = {};
 
@@ -91,10 +93,10 @@ class _RegisterCellAttendanceScreenState
     });
     _applySessionToEdit(widget.sessionToEdit);
     _loadMembers();
-    _loadChurchAlias();
+    _loadChurchOfferingInfo();
   }
 
-  Future<void> _loadChurchAlias() async {
+  Future<void> _loadChurchOfferingInfo() async {
     final churchId = (widget.cell.churchId ??
             widget._permissions.churchId)
         ?.trim();
@@ -102,7 +104,10 @@ class _RegisterCellAttendanceScreenState
     try {
       final church = await ChurchService().fetchChurch(churchId);
       if (!mounted) return;
-      setState(() => _churchAlias = church?.alias?.trim());
+      setState(() {
+        _churchAlias = church?.alias?.trim();
+        _churchOfferingQrUrl = church?.offeringQrUrl?.trim();
+      });
     } catch (_) {}
   }
 
@@ -120,7 +125,13 @@ class _RegisterCellAttendanceScreenState
     _noteLocationChangeForSession = session.noteLocationChangeForSession;
     _dayChangeReasonController.text = session.dayChangeReason ?? '';
     _locationChangeReasonController.text = session.locationChangeReason ?? '';
-    _offeringCollectedController.text = session.offeringCollected ?? '';
+    final cash = session.offeringCash?.trim();
+    if (cash != null && cash.isNotEmpty) {
+      _offeringCashController.text = cash;
+    } else {
+      _offeringCashController.text = session.offeringCollected ?? '';
+    }
+    _offeringTransferController.text = session.offeringTransfer?.trim() ?? '';
     _observationsController.text = session.observations ?? '';
   }
 
@@ -139,7 +150,8 @@ class _RegisterCellAttendanceScreenState
     _placeController.dispose();
     _dayChangeReasonController.dispose();
     _locationChangeReasonController.dispose();
-    _offeringCollectedController.dispose();
+    _offeringCashController.dispose();
+    _offeringTransferController.dispose();
     _observationsController.dispose();
     super.dispose();
   }
@@ -316,9 +328,12 @@ class _RegisterCellAttendanceScreenState
       locationChangeReason: _noteLocationChangeForSession
           ? _locationChangeReasonController.text.trim()
           : null,
-      offeringCollected: _offeringCollectedController.text.trim().isEmpty
+      offeringCash: _offeringCashController.text.trim().isEmpty
           ? null
-          : _offeringCollectedController.text.trim(),
+          : _offeringCashController.text.trim(),
+      offeringTransfer: _offeringTransferController.text.trim().isEmpty
+          ? null
+          : _offeringTransferController.text.trim(),
       observations: _observationsController.text.trim().isEmpty
           ? null
           : _observationsController.text.trim(),
@@ -424,53 +439,127 @@ class _RegisterCellAttendanceScreenState
   Widget _offeringAliasInfo(AppLocalizations l10n) {
     final alias = _churchAlias?.trim();
     final hasAlias = alias != null && alias.isNotEmpty;
+    final qrUrl = _churchOfferingQrUrl?.trim();
+    final hasQr = qrUrl != null && qrUrl.isNotEmpty;
+    final hasOfferingInfo = hasAlias || hasQr;
     final scheme = Theme.of(context).colorScheme;
 
     return Card(
-      color: hasAlias
+      color: hasOfferingInfo
           ? scheme.secondaryContainer
           : scheme.surfaceContainerHighest,
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(
-              Icons.account_balance_outlined,
-              color: hasAlias
-                  ? scheme.onSecondaryContainer
-                  : scheme.onSurfaceVariant,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  hasQr ? Icons.qr_code_2_outlined : Icons.account_balance_outlined,
+                  color: hasOfferingInfo
+                      ? scheme.onSecondaryContainer
+                      : scheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.cellAttendanceOfferingAliasTitle,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: hasOfferingInfo
+                                  ? scheme.onSecondaryContainer
+                                  : scheme.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      if (hasAlias)
+                        Text(
+                          l10n.cellAttendanceOfferingAliasInfo(alias),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: scheme.onSecondaryContainer,
+                              ),
+                        )
+                      else if (!hasQr)
+                        Text(
+                          l10n.cellAttendanceOfferingAliasMissing,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.cellAttendanceOfferingAliasTitle,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: hasAlias
-                              ? scheme.onSecondaryContainer
-                              : scheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    hasAlias
-                        ? l10n.cellAttendanceOfferingAliasInfo(alias)
-                        : l10n.cellAttendanceOfferingAliasMissing,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: hasAlias
-                              ? scheme.onSecondaryContainer
-                              : scheme.onSurfaceVariant,
-                        ),
-                  ),
-                ],
+            if (hasQr) ...[
+              const SizedBox(height: 12),
+              Text(
+                l10n.cellAttendanceOfferingQrHint,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSecondaryContainer,
+                    ),
               ),
+              const SizedBox(height: 8),
+              Center(
+                child: InkWell(
+                  onTap: () => _showOfferingQrDialog(l10n, qrUrl),
+                  borderRadius: BorderRadius.circular(8),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      qrUrl,
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.broken_image_outlined,
+                        size: 48,
+                        color: scheme.onSecondaryContainer,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showOfferingQrDialog(AppLocalizations l10n, String qrUrl) {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.cellAttendanceOfferingAliasTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.cellAttendanceOfferingQrHint,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Image.network(
+              qrUrl,
+              width: 280,
+              height: 280,
+              fit: BoxFit.contain,
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.commonCancel),
+          ),
+        ],
       ),
     );
   }
@@ -732,23 +821,39 @@ class _RegisterCellAttendanceScreenState
                   ),
                   _locationDifferenceSection(l10n),
                   const SizedBox(height: 24),
-                  FormSectionTitle(l10n.cellAttendanceSectionNotes),
+                  FormSectionTitle(l10n.cellAttendanceSectionOffering),
                   _offeringAliasInfo(l10n),
                   const SizedBox(height: 12),
                   TextFormField(
-                    controller: _offeringCollectedController,
+                    controller: _offeringCashController,
                     enabled: !_isSaving,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
                     decoration: InputDecoration(
-                      labelText: l10n.cellAttendanceOfferingCollected,
-                      hintText: l10n.cellAttendanceOfferingCollectedHint,
-                      prefixIcon: const Icon(Icons.volunteer_activism_outlined),
+                      labelText: l10n.cellAttendanceOfferingCash,
+                      hintText: l10n.cellAttendanceOfferingCashHint,
+                      prefixIcon: const Icon(Icons.payments_outlined),
                       border: const OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _offeringTransferController,
+                    enabled: !_isSaving,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: l10n.cellAttendanceOfferingTransfer,
+                      hintText: l10n.cellAttendanceOfferingTransferHint,
+                      prefixIcon: const Icon(Icons.account_balance_outlined),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  FormSectionTitle(l10n.cellAttendanceSectionNotes),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: _observationsController,
                     enabled: !_isSaving,

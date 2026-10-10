@@ -165,7 +165,8 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
       MaterialPageRoute<List<ChurchMember>>(
         builder: (_) => SelectMemberForCellScreen(
           churchId: widget.cell.churchId ?? _permissions.churchId,
-          cellLeaderId: leaderId,
+          registeredBy: widget.registeredBy,
+          filterByRegistrar: !_permissions.isAdmin,
           memberService: widget.memberService,
           maxSelection: remaining,
           requiredGender: _cellLeaderGender,
@@ -511,15 +512,18 @@ class SelectMemberForCellScreen extends StatefulWidget {
   const SelectMemberForCellScreen({
     super.key,
     this.churchId,
-    this.cellLeaderId,
+    this.registeredBy,
+    this.filterByRegistrar = true,
     this.memberService,
     this.maxSelection,
     this.requiredGender,
   });
 
   final String? churchId;
-  /// Líder de la célula: solo sus discípulos del registro pastoral.
-  final String? cellLeaderId;
+  /// Email del usuario: solo creyentes que él registró / tiene como líder.
+  final String? registeredBy;
+  /// Si es false (p. ej. admin), no filtra por registeredBy / assignedLeaderId.
+  final bool filterByRegistrar;
   final MemberService? memberService;
   /// Máximo seleccionable según cupo restante de la célula.
   final int? maxSelection;
@@ -560,8 +564,9 @@ class _SelectMemberForCellScreenState extends State<SelectMemberForCellScreen> {
       final service = widget.memberService ?? MemberService();
       final members = await service.fetchMembersForCellAssignment(
         churchId: widget.churchId,
-        cellLeaderId: widget.cellLeaderId,
+        registeredBy: widget.registeredBy,
         matchingGender: widget.requiredGender,
+        filterByRegistrar: widget.filterByRegistrar,
       );
       if (!mounted) return;
       setState(() {

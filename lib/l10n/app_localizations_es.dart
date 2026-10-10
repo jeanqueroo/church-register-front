@@ -36,6 +36,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuBaptismDashboard => 'Estadísticas de bautismo';
 
   @override
+  String get menuOfferingDashboard => 'Ofrendas';
+
+  @override
   String get menuNewMember => 'Nuevo creyente';
 
   @override
@@ -157,11 +160,57 @@ class AppLocalizationsEs extends AppLocalizations {
       'Bautizados desde registro de creyente';
 
   @override
+  String get quickOfferingDashboardTitle => 'Ofrendas';
+
+  @override
+  String get quickOfferingDashboardSubtitle =>
+      'Totales por efectivo y transferencia';
+
+  @override
   String get baptismDashboardTitle => 'Estadísticas de bautismo';
 
   @override
   String get baptismDashboardDenied =>
       'No tienes permiso para ver las estadísticas de bautismo.';
+
+  @override
+  String get offeringDashboardTitle => 'Ofrendas';
+
+  @override
+  String get offeringDashboardDenied =>
+      'Solo los administradores pueden ver el dashboard de ofrendas.';
+
+  @override
+  String get offeringDashboardCashTotal => 'Efectivo';
+
+  @override
+  String get offeringDashboardTransferTotal => 'Transferencia';
+
+  @override
+  String get offeringDashboardGrandTotal => 'Total';
+
+  @override
+  String get offeringDashboardSessionCount => 'Reuniones';
+
+  @override
+  String get offeringDashboardChartTitle => 'Evolución de ofrendas';
+
+  @override
+  String get offeringDashboardByCell => 'Por célula';
+
+  @override
+  String offeringDashboardCashSummary(String amount) {
+    return 'Efectivo: $amount';
+  }
+
+  @override
+  String offeringDashboardTransferSummary(String amount) {
+    return 'Transferencia: $amount';
+  }
+
+  @override
+  String get offeringDashboardIndexHint =>
+      'Falta un índice de Firestore para consultar asistencias. Contacta al administrador.';
 
   @override
   String get baptismDashboardLoadError =>
@@ -547,6 +596,12 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get homeRegisterAttendanceSubtitle =>
       'Selecciona tu célula para registrar asistencia';
+
+  @override
+  String get homeRegisterDiscipleTitle => 'Registrar discípulo nuevo';
+
+  @override
+  String get homeRegisterDiscipleSubtitle => 'Agregar un discípulo a tu célula';
 
   @override
   String get homeDashboardLoadError =>
@@ -1569,6 +1624,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'Buscar por nombre, teléfono, líder o localidad…';
 
   @override
+  String get membersListPromoteToMember => 'Pasar a miembro';
+
+  @override
+  String get membersListPromoteToMemberTitle => 'Pasar a miembro';
+
+  @override
+  String membersListPromoteToMemberConfirm(String name) {
+    return '¿Pasar a \"$name\" de nuevo creyente a miembro? Dejará de aparecer en esta lista.';
+  }
+
+  @override
+  String membersListPromoteToMemberSuccess(String name) {
+    return '$name ahora es miembro';
+  }
+
+  @override
   String get membersListEndOfList => 'Fin de la lista';
 
   @override
@@ -2002,6 +2073,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get chartPeriodDay => 'Por día';
+
+  @override
+  String get chartPeriodWeek => 'Por semana';
 
   @override
   String get chartPeriodMonth => 'Por mes';
@@ -2577,6 +2651,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get churchRegAliasHelper => 'Alias bancario para transferencias';
 
   @override
+  String get churchRegOfferingQr => 'QR PARA OFRENDAS';
+
+  @override
+  String get churchRegOfferingQrOptional => 'QR PARA OFRENDAS (opcional)';
+
+  @override
+  String get churchRegOfferingQrHint =>
+      'Sube el código QR de la cuenta bancaria para que los miembros puedan escanearlo al dar la ofrenda.';
+
+  @override
+  String get churchRegUploadOfferingQr => 'Subir QR';
+
+  @override
   String get churchRegAddressSection => 'Dirección';
 
   @override
@@ -3141,11 +3228,36 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cellAttendanceSectionNotes => 'Información adicional';
 
   @override
+  String get cellAttendanceSectionOffering => 'Ofrenda';
+
+  @override
   String get cellAttendanceOfferingCollected => 'Ofrenda recogida';
 
   @override
   String get cellAttendanceOfferingCollectedHint =>
       'Monto o detalle (opcional)';
+
+  @override
+  String get cellAttendanceOfferingCash => 'Ofrenda en efectivo';
+
+  @override
+  String get cellAttendanceOfferingCashHint => 'Monto (opcional)';
+
+  @override
+  String get cellAttendanceOfferingTransfer => 'Ofrenda en transferencia';
+
+  @override
+  String get cellAttendanceOfferingTransferHint => 'Monto (opcional)';
+
+  @override
+  String cellAttendanceOfferingCashSummary(String amount) {
+    return 'Efectivo: $amount';
+  }
+
+  @override
+  String cellAttendanceOfferingTransferSummary(String amount) {
+    return 'Transferencia: $amount';
+  }
 
   @override
   String get cellAttendanceOfferingAliasTitle => 'Alias para la ofrenda';
@@ -3158,6 +3270,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get cellAttendanceOfferingAliasMissing =>
       'La iglesia aún no tiene alias de transferencias';
+
+  @override
+  String get cellAttendanceOfferingQrHint =>
+      'Escanea el QR para transferir la ofrenda';
 
   @override
   String get cellAttendanceObservations => 'Observaciones';
@@ -3491,7 +3607,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellMemberSelectHint =>
-      'Solo aparecen discípulos asignados al líder de esta célula desde el registro pastoral y sin otra célula asignada';
+      'Solo aparecen creyentes que tú registraste, sin célula asignada';
 
   @override
   String cellMemberSelectConfirm(int count) {
@@ -3508,7 +3624,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellMemberSelectEmpty =>
-      'No hay discípulos del líder de esta célula disponibles para asignar';
+      'No hay creyentes registrados por ti disponibles para asignar';
 
   @override
   String cellMemberSelectMaxReached(int max) {
@@ -3578,12 +3694,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cellMemberSelectEmptyGender(String gender) {
-    return 'No hay discípulos del líder de esta célula del mismo sexo ($gender) disponibles para asignar.';
+    return 'No hay creyentes registrados por ti del mismo sexo ($gender) disponibles para asignar.';
   }
 
   @override
   String cellMemberSelectGenderHint(String gender) {
-    return 'Solo aparecen discípulos del líder de esta célula, del mismo sexo ($gender), registrados desde el registro pastoral y sin otra célula.';
+    return 'Solo aparecen creyentes que tú registraste, del mismo sexo ($gender) y sin otra célula.';
   }
 
   @override
@@ -3931,6 +4047,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get adminRegChurchHint =>
       'Este administrador solo gestionará la iglesia seleccionada.';
+
+  @override
+  String get adminRegSpecialStatistics => 'Estadísticas especiales';
+
+  @override
+  String get adminRegSpecialStatisticsHint =>
+      'Permite ver el dashboard de ofrendas y otros reportes sensibles.';
 
   @override
   String get adminRegPasswordRequired => 'Ingresa la contraseña';

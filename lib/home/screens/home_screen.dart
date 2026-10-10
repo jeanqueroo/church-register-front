@@ -34,6 +34,7 @@ import '../../cells/screens/cells_list_screen.dart';
 import '../../cells/screens/cells_over_capacity_screen.dart';
 import '../../cells/screens/my_assigned_cells_screen.dart';
 import '../../cells/screens/register_cell_screen.dart';
+import '../../dashboard/screens/offering_dashboard_screen.dart';
 import '../../dashboard/screens/pastoral_dashboard_screen.dart';
 import '../../dashboard/screens/visits_dashboard_screen.dart';
 import '../home_role_layout.dart';
@@ -364,6 +365,20 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () => _navigate(
             BaptismDashboardScreen(session: widget.session),
             'baptismDashboard',
+          ),
+        ),
+      );
+    }
+
+    if (p.canViewOfferingDashboard) {
+      items.add(
+        SlideMenuItem(
+          id: 'offeringDashboard',
+          icon: Icons.volunteer_activism_outlined,
+          label: l10n.menuOfferingDashboard,
+          onTap: () => _navigate(
+            OfferingDashboardScreen(session: widget.session),
+            'offeringDashboard',
           ),
         ),
       );
@@ -1037,6 +1052,17 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
+    if (p.canViewOfferingDashboard) {
+      addEntry(
+        icon: Icons.volunteer_activism_outlined,
+        title: l10n.quickOfferingDashboardTitle,
+        subtitle: l10n.quickOfferingDashboardSubtitle,
+        onTap: () => _navigate(
+          OfferingDashboardScreen(session: widget.session),
+          'offeringDashboard',
+        ),
+      );
+    }
     if (p.canViewLeadersList) {
       addEntry(
         icon: Icons.groups_outlined,
@@ -1264,7 +1290,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<HomeBottomNavItem> _visibleBottomNavItems(AppPermissions p) {
     final items = <HomeBottomNavItem>[HomeBottomNavItem.home];
-    if (p.canViewMembersList) {
+    if (p.isAdmin) {
       items.add(HomeBottomNavItem.believers);
     }
     if (p.canViewLeadersList) {
@@ -1285,7 +1311,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case HomeBottomNavItem.home:
         setState(() => _selectedMenuId = _menuHome);
       case HomeBottomNavItem.believers:
-        if (p.canViewMembersList) {
+        if (p.isAdmin) {
           _navigate(
             MembersListScreen(registeredBy: _email, permissions: p),
             'members',

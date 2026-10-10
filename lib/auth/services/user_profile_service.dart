@@ -60,6 +60,7 @@ class UserProfileService {
     required String email,
     required String churchId,
     required String leaderId,
+    bool canViewSpecialStatistics = false,
   }) async {
     await _users.doc(uid).set({
       'email': email.trim().toLowerCase(),
@@ -67,6 +68,7 @@ class UserProfileService {
       'churchId': churchId,
       'leaderId': leaderId,
       'isBlocked': false,
+      'canViewSpecialStatistics': canViewSpecialStatistics,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
@@ -113,11 +115,13 @@ class UserProfileService {
     required String uid,
     required String churchId,
     required String leaderId,
+    required bool canViewSpecialStatistics,
   }) async {
     await _users.doc(uid).set(
       {
         'churchId': churchId,
         'leaderId': leaderId,
+        'canViewSpecialStatistics': canViewSpecialStatistics,
         'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
@@ -172,6 +176,27 @@ class UserProfileService {
     final doc = await _users.doc(uid).get();
     if (!doc.exists) return null;
     return doc;
+  }
+
+  /// Busca un usuario de app con el mismo correo (normalizado en minúsculas).
+  Future<String?> findUserUidByEmail(
+    String email, {
+    String? excludeUid,
+  }) async {
+    final normalized = email.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+
+    final snapshot =
+        await _users.where('email', isEqualTo: normalized).limit(5).get();
+    for (final doc in snapshot.docs) {
+      if (excludeUid != null &&
+          excludeUid.isNotEmpty &&
+          doc.id == excludeUid) {
+        continue;
+      }
+      return doc.id;
+    }
+    return null;
   }
 
   Stream<UserProfile?> watchProfile(String uid) {

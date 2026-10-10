@@ -104,6 +104,17 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
     );
   }
 
+  void _openRegisterDisciple() {
+    widget.onNavigate(
+      MyAssignedCellsScreen(
+        session: widget.session,
+        registeredBy: _email,
+        mode: MyAssignedCellsMode.registerDisciple,
+      ),
+      'registerDisciple',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -321,6 +332,15 @@ class _RoleHomeBodyState extends State<RoleHomeBody> {
             title: l10n.quickNewMemberTitle,
             subtitle: l10n.quickNewMemberSubtitle,
             onTap: _openRegisterMember,
+          );
+        }
+        if (_permissions.canRegisterMember &&
+            _permissions.canViewMyAssignedCell) {
+          add(
+            icon: Icons.person_add_alt_1_outlined,
+            title: l10n.homeRegisterDiscipleTitle,
+            subtitle: l10n.homeRegisterDiscipleSubtitle,
+            onTap: _openRegisterDisciple,
           );
         }
         if (_permissions.canViewMyAssignedCell) {
