@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
 
 import '../../core/locale/l10n_extensions.dart';
 import '../../core/models/leader_gender.dart';
@@ -216,30 +217,52 @@ class _LeadersMapViewState extends State<LeadersMapView> {
     );
   }
 
-  Set<Marker> _buildMarkers(AppLocalizations l10n) {
+  Future<BitmapDescriptor> _getIconForLeader(LeaderGender? gender) async {
+    if (kIsWeb) {
+      // 🌐 SOLUCIÓN WEB: Usar imágenes de red
+      String url = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
+      if (gender == LeaderGender.hombre) {
+        url = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+      } else if (gender == LeaderGender.mujer) {
+        url = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
+      }
+      
+      // Descargamos la imagen y la convertimos en bytes
+      final response = await http.get(Uri.parse(url));
+      return BitmapDescriptor.fromBytes(response.bodyBytes);
+      
+    } else {
+      // 📱 SOLUCIÓN MÓVIL: Tu código original intacto
+      return BitmapDescriptor.defaultMarkerWithHue(_markerHue(gender));
+    }
+  }
+
+  Future<Set<Marker>> _buildMarkers(AppLocalizations l10n) async {
     final markers = <Marker>{};
 
     for (var i = 0; i < _locatedLeaders.length; i++) {
       final leader = _locatedLeaders[i];
       final id = leader.id ?? leader.fullName;
+
+      // 1. Agregamos esta línea para descargar la imagen
+      final icon = await _getIconForLeader(leader.gender);
+
       markers.add(
         Marker(
           markerId: MarkerId('leader-$id'),
           position: LatLng(leader.latitude!, leader.longitude!),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            _markerHue(leader.gender),
-          ),
+          // 2. Usamos la variable "icon" en lugar de defaultMarkerWithHue
+          icon: icon, 
           infoWindow: InfoWindow(
             title: leader.fullName,
             snippet: leader.cellCode != null && leader.cellCode!.isNotEmpty
                 ? l10n.leadersListCellPrefix(leader.cellCode!)
                 : leader.mobilePhone,
-          ),
+          ), // InfoWindow
           onTap: () => _showLeaderSheet(leader),
-        ),
+        ), // Marker
       );
     }
-
     return markers;
   }
 
@@ -305,30 +328,41 @@ class _LeadersMapViewState extends State<LeadersMapView> {
               ),
             ),
           ),
-        Expanded(
-          child: GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: _allPoints.first,
-              zoom: 12,
-            ),
-            markers: _buildMarkers(l10n),
-            scrollGesturesEnabled: true,
-            zoomGesturesEnabled: true,
-            rotateGesturesEnabled: true,
-            tiltGesturesEnabled: true,
-            gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-              Factory<OneSequenceGestureRecognizer>(
-                () => EagerGestureRecognizer(),
-              ),
-            },
-            onMapCreated: (controller) {
-              _mapController = controller;
-              _fitMap();
-            },
-          ),
-        ),
-      ],
-    );
+        Expanded( // <-- INICIA EL EXPANDED
+          child: FutureBuilder<Set<Marker>>(
+            future: _buildMarkers(l10n),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData) {
+                return const Center(child: Text('Cargando mapa...'));
+              }
+              return GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: _allPoints.first,
+                  zoom: 12,
+                ),
+                markers: snapshot.data!,
+                scrollGesturesEnabled: true,
+                zoomGesturesEnabled: true,
+                rotateGesturesEnabled: true,
+                tiltGesturesEnabled: true,
+                gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                  Factory<OneSequenceGestureRecognizer>(
+                    () => EagerGestureRecognizer(),
+                  ),
+                },
+                onMapCreated: (controller) {
+                  _mapController = controller;
+                  _fitMap();
+                },
+              ); // Cierra GoogleMap
+            }, // Cierra builder
+          ), // Cierra FutureBuilder
+        ), // 👈 ¡ESTE ERA EL PARÉNTESIS QUE FALTABA! Cierra el Expanded
+      ], // Cierra la lista de children
+    ); // Cierra el Column
   }
 }
 

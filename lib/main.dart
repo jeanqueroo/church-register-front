@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'auth/widgets/auth_gate.dart';
@@ -17,8 +18,11 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ensureFirebaseInitialized();
-  await activateFirebaseAppCheck();
+  // await activateFirebaseAppCheck(); // Comentado para la web
+
+if (!kIsWeb) {
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+}
   final localeController = await LocaleController.load();
   final themeController = await ThemeController.load();
   runApp(ChurchRegisterApp(
