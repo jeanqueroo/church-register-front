@@ -21,6 +21,9 @@ import 'leaders/screens/leaders_list_screen.dart';
 import 'cells/screens/cells_list_screen.dart'; 
 import 'members/models/members_list_filter.dart'; 
 
+// 👇 IMPORTAMOS LA PANTALLA DE CUMPLEAÑOS 👇
+import 'dashboard/screens/birthdays_screen.dart'; 
+
 // Pantallas para la ventana "Más" y paneles
 import 'members/screens/register_member_screen.dart';
 import 'members/screens/members_by_leader_screen.dart';
@@ -281,7 +284,7 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
   }
 
   // ==========================================
-  // DASHBOARD DINÁMICO
+  // DASHBOARD DINÁMICO (MANTENIDO CLARO)
   // ==========================================
   Widget _buildDashboardInicio() {
     final p = widget.session.permissions;
@@ -912,7 +915,7 @@ class _FullScreenMoreMenu extends StatelessWidget {
     );
   }
 
-  // 👇 ADMINISTRADOR: SOLO BAUTISMO Y ADMINISTRACIÓN 👇
+  // 👇 ADMINISTRADOR (CON EL BOTÓN DE CUMPLEAÑOS) 👇
   Widget _buildAdminMenu(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -921,6 +924,17 @@ class _FullScreenMoreMenu extends StatelessWidget {
         children: [
           // COLUMNA 1: BAUTISMO
           Expanded(flex: 1, child: _buildColumn(title: 'BAUTISMO', children: [
+            
+            // 👇 AQUI ESTA EL BOTÓN DE CUMPLEAÑOS 👇
+            _buildVerticalItem(
+              context, 
+              icon: Icons.cake, 
+              title: 'Cumpleaños', 
+              description: 'Cumpleaños del día', 
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => BirthdaysScreen(session: session)))
+            ),
+            
+            // LOS BOTONES ANTERIORES
             _buildVerticalItem(context, icon: Icons.calendar_month, title: 'Calendario', description: 'Programación fechas', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => BaptismCalendarScreen(registeredBy: session.uid, churchId: session.profile.churchId, actingLeaderId: session.profile.leaderId, permissions: session.permissions)))),
             _buildVerticalItem(context, icon: Icons.bar_chart, title: 'Estadísticas', description: 'Reporte bautizados', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => BaptismDashboardScreen(session: session)))),
           ])),
@@ -937,6 +951,7 @@ class _FullScreenMoreMenu extends StatelessWidget {
     );
   }
 
+  // 👇 SUPERVISOR (SIN EL BOTÓN DE CUMPLEAÑOS) 👇
   Widget _buildSupervisorMenu(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
@@ -966,6 +981,7 @@ class _FullScreenMoreMenu extends StatelessWidget {
     );
   }
 
+  // 👇 LÍDER (SIN EL BOTÓN DE CUMPLEAÑOS) 👇
   Widget _buildLeaderMenu(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
@@ -1014,18 +1030,17 @@ class _FullScreenMoreMenu extends StatelessWidget {
     );
   }
 
-  // Título de columna actualizado a fondo oscuro
   Widget _buildCategoryTitle(String title) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0A3370), // Fondo azul medio
+        color: const Color(0xFF0A3370), 
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Container(width: 4, height: 20, decoration: BoxDecoration(color: const Color(0xFF29D2F5), borderRadius: BorderRadius.circular(2))), // Línea celeste
+          Container(width: 4, height: 20, decoration: BoxDecoration(color: const Color(0xFF29D2F5), borderRadius: BorderRadius.circular(2))), 
           const SizedBox(width: 12),
           Expanded(
             child: Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5), overflow: TextOverflow.ellipsis),
@@ -1035,12 +1050,11 @@ class _FullScreenMoreMenu extends StatelessWidget {
     );
   }
 
-  // Tarjetas actualizadas a fondo oscuro
   Widget _buildVerticalItem(BuildContext context, {required IconData icon, required String title, required String description, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12), 
       child: Material(
-        color: const Color(0xFF0A3370), // Fondo azul medio
+        color: const Color(0xFF0A3370), 
         borderRadius: BorderRadius.circular(12),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -1052,7 +1066,7 @@ class _FullScreenMoreMenu extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(10), 
-                  decoration: const BoxDecoration(color: Color(0xFF1A66C2), shape: BoxShape.circle), // Ícono en círculo azul claro
+                  decoration: const BoxDecoration(color: Color(0xFF1A66C2), shape: BoxShape.circle), 
                   child: Icon(icon, color: Colors.white, size: 20)
                 ),
                 const SizedBox(width: 16),
@@ -1066,7 +1080,7 @@ class _FullScreenMoreMenu extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Color(0xFF29D2F5), size: 20), // Flecha celeste
+                const Icon(Icons.chevron_right, color: Color(0xFF29D2F5), size: 20), 
               ],
             ),
           ),
