@@ -1,0 +1,200 @@
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
+
+import '../../core/firebase/app_check_bootstrap.dart';
+import '../models/church_profile.dart';
+import '../../l10n/app_localizations.dart';
+import '../models/church_record.dart';
+
+class ChurchService {
+  ChurchService({
+    FirebaseFirestore? firestore,
+    FirebaseStorage? storage,
+  })  : _churches = (firestore ?? FirebaseFirestore.instance)
+            .collection('churches'),
+        _storage = storage ?? _defaultStorage();
+
+  /// Id legado cuando aún no hay multi-iglesia.
+  static const String mainChurchId = 'main';
+
+  final CollectionReference<Map<String, dynamic>> _churches;
+  final FirebaseStorage _storage;
+
+  static FirebaseStorage _defaultStorage() => FirebaseStorage.instance;
+
+  String _resolveChurchId(String? churchId) =>
+      churchId != null && churchId.isNotEmpty ? churchId : mainChurchId;
+
+  DocumentReference<Map<String, dynamic>> _ref(String? churchId) =>
+      _churches.doc(_resolveChurchId(churchId));
+
+  Stream<List<ChurchRecord>> watchChurches() {
+    return _churches.orderBy('name').snapshots().map((snapshot) {
+      return snapshot.docs
+          .map(
+            (doc) => ChurchRecord(
+              id: doc.id,
+              profile: ChurchProfile.fromFirestore(doc),
+            ),
+          )
+          .toList();
+    });
+  }
+
+  Future<List<ChurchRecord>> fetchChurches() async {
+    final snapshot = await _churches.orderBy('name').get();
+    return snapshot.docs
+        .map(
+          (doc) => ChurchRecord(
+            id: doc.id,
+            profile: ChurchProfile.fromFirestore(doc),
+          ),
+        )
+        .toList();
+  }
+
+  Stream<ChurchProfile?> watchChurch([String? churchId]) {
+    return _ref(churchId).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      return ChurchProfile.fromFirestore(doc);
+    });
+  }
+
+  Future<ChurchProfile?> fetchChurch([String? churchId]) async {
+    final doc = await _ref(churchId).get();
+    if (!doc.exists) return null;
+    return ChurchProfile.fromFirestore(doc);
+  }
+
+  /// Crea una iglesia nueva y devuelve su id.
+  Future<String> addChurch({
+    required ChurchProfile profile,
+    required String updatedBy,
+  }) async {
+    final doc = await _churches.add(profile.toMap(updatedBy: updatedBy));
+    return doc.id;
+  }
+
+  Future<String> uploadLogo(
+    Uint8List bytes, {
+    required String churchId,
+    String? contentType,
+  }) async {
+    return _uploadChurchImage(
+      bytes,
+      churchId: churchId,
+      fileName: 'logo.jpg',
+      contentType: contentType,
+    );
+  }
+
+  Future<String> uploadOfferingQr(
+    Uint8List bytes, {
+    required String churchId,
+    String? contentType,
+  }) async {
+    return _uploadChurchImage(
+      bytes,
+      churchId: churchId,
+      fileName: 'offering_qr.jpg',
+      contentType: contentType,
+    );
+  }
+
+  Future<String> _uploadChurchImage(
+    Uint8List bytes, {
+    required String churchId,
+    required String fileName,
+    String? contentType,
+  }) async {
+    await ensureAppCheckTokenForUpload();
+
+    final id = _resolveChurchId(churchId);
+    final ref = _storage.ref().child('church_profiles/$id/$fileName');
+    if (kDebugMode) {
+      final bucket = _storage.bucket;
+      debugPrint('Storage upload → gs://$bucket/church_profiles/$id/$fileName');
+    }
+    await ref.putData(
+      bytes,
+      SettableMetadata(
+        contentType: contentType ?? 'image/jpeg',
+        cacheControl: 'public,max-age=86400',
+      ),
+    );
+    return ref.getDownloadURL();
+  }
+
+  Future<void> saveChurch({
+    required String churchId,
+    required ChurchProfile profile,
+    required String updatedBy,
+  }) async {
+    await _ref(churchId)
+        .set(profile.toMap(updatedBy: updatedBy), SetOptions(merge: true));
+  }
+
+  Future<void> setChurchBlocked({
+    required String churchId,
+    required bool blocked,
+    required String updatedBy,
+  }) async {
+    await _ref(churchId).update({
+      'isBlocked': blocked,
+      'updatedAt': FieldValue.serverTimestamp(),
+      'updatedBy': updatedBy,
+    });
+  }
+
+  static bool _isStorageNotConfigured(FirebaseException e) {
+    final message = (e.message ?? '').toLowerCase();
+    return e.code == 'object-not-found' ||
+        e.code == 'bucket-not-found' ||
+        message.contains('404') ||
+        message.contains('not found') ||
+        message.contains('terminated the upload session');
+  }
+
+  static bool _isAppCheckError(FirebaseException e) {
+    final message = (e.message ?? '').toLowerCase();
+    return message.contains('app check') ||
+        e.code == 'app-check-token-invalid' ||
+        e.code == 'app-check-token-missing' ||
+        e.code == 'app-check-throttled' ||
+        e.code == 'app-check' ||
+        e.code == 'failed-precondition' ||
+        message.contains('too many attempts') ||
+        message.contains('placeholder token');
+  }
+
+  static String messageFromException(Object e, AppLocalizations l10n) {
+    if (e is FirebaseException) {
+      if (e.code == 'app-check-throttled' ||
+          (e.message ?? '').toLowerCase().contains('too many attempts')) {
+        return l10n.churchServiceAppCheckThrottled;
+      }
+      if (_isAppCheckError(e)) {
+        return l10n.churchServiceAppCheckError;
+      }
+      if (_isStorageNotConfigured(e)) {
+        return l10n.churchServiceStorageNotConfigured;
+      }
+      switch (e.code) {
+        case 'permission-denied':
+          return l10n.churchServicePermissionDenied;
+        case 'not-found':
+          return l10n.churchServiceNotFound;
+        case 'unauthorized':
+          // Con App Check enforced, un token placeholder suele acabar en 403 unauthorized.
+          return l10n.churchServiceAppCheckThrottled;
+        case 'unavailable':
+          return l10n.serviceUnavailable;
+        default:
+          return l10n.churchServiceSaveError(e.message ?? e.code);
+      }
+    }
+    return l10n.serviceGenericError;
+  }
+}

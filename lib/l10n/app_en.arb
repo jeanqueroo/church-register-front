@@ -1,0 +1,2122 @@
+{
+  "@@locale": "en",
+  "menuHome": "Home",
+  "menuRegistration": "New believers registration",
+  "menuCellGroup": "Cell group",
+  "menuLeaderGroup": "Leader registration",
+  "menuNewCell": "Create cell group",
+  "menuCellDashboard": "Cell statistics",
+  "menuBaptismGroup": "Baptism",
+  "menuBaptismCalendar": "Baptism calendar",
+  "menuBaptismDashboard": "Baptism statistics",
+  "menuOfferingDashboard": "Offerings",
+  "menuNewMember": "New member",
+  "menuMembers": "View new believers",
+  "menuChurchMembers": "View members",
+  "menuByLeader": "View new believers by leader",
+  "menuMyMembers": "My new believers",
+  "menuMyAssignedCell": "My cell",
+  "menuNewLeader": "Create leader",
+  "menuLeaders": "View leaders",
+  "menuMySupervisedLeaders": "My assigned leaders",
+  "menuVisitsDashboard": "Visits dashboard",
+  "menuPastoralDashboard": "Pastoral dashboard",
+  "menuSupervisorLeaders": "Leaders by supervisor",
+  "menuLeaderDashboard": "Leader statistics",
+  "menuChurches": "Churches",
+  "menuAdmins": "Administrators",
+  "menuNewAdmin": "New administrator",
+  "menuNotifications": "Notifications",
+  "menuMyAccount": "My account",
+  "menuRegisterNewMember": "New member registration",
+  "quickNewMemberTitle": "New member registration",
+  "quickNewMemberSubtitle": "New member form",
+  "quickViewMembersTitle": "View new believers",
+  "quickViewMembersSubtitle": "List of registered new believers",
+  "quickMembersByLeaderTitle": "View new believers by leader",
+  "quickMembersByLeaderSubtitle": "New believers assigned to each leader",
+  "quickMyMembersTitle": "My new believers",
+  "quickMyMembersSubtitle": "Believers assigned to your visits",
+  "quickMyAssignedCellTitle": "My assigned cell",
+  "quickMyAssignedCellSubtitle": "Cell details and disciples",
+  "quickRegisterLeaderTitle": "Leader registration",
+  "quickRegisterLeaderSubtitle": "Leadership details",
+  "quickNewCellTitle": "Create cell group",
+  "quickNewCellSubtitle": "Register a new cell group",
+  "quickViewCellsTitle": "View cell groups",
+  "quickViewCellsSubtitle": "List of registered cell groups",
+  "quickBaptismCalendarTitle": "Baptism calendar",
+  "quickBaptismCalendarSubtitle": "View scheduled baptism dates",
+  "quickBaptismDashboardTitle": "Baptism statistics",
+  "quickBaptismDashboardSubtitle": "Baptized from believer registration",
+  "quickOfferingDashboardTitle": "Offerings",
+  "quickOfferingDashboardSubtitle": "Cash and transfer totals",
+  "baptismDashboardTitle": "Baptism statistics",
+  "baptismDashboardDenied": "You do not have permission to view baptism statistics.",
+  "offeringDashboardTitle": "Offerings",
+  "offeringDashboardDenied": "Only administrators can view the offerings dashboard.",
+  "offeringDashboardCashTotal": "Cash",
+  "offeringDashboardTransferTotal": "Transfer",
+  "offeringDashboardGrandTotal": "Total",
+  "offeringDashboardSessionCount": "Meetings",
+  "offeringDashboardChartTitle": "Offering trend",
+  "offeringDashboardByCell": "By cell group",
+  "offeringDashboardCashSummary": "Cash: {amount}",
+  "@offeringDashboardCashSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "offeringDashboardTransferSummary": "Transfer: {amount}",
+  "@offeringDashboardTransferSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "offeringDashboardIndexHint": "A Firestore index is required to query attendance sessions. Contact your administrator.",
+  "baptismDashboardLoadError": "Could not load baptism statistics.",
+  "baptismDashboardBaptizedInPeriod": "Baptized in period",
+  "baptismDashboardBaptizedInYear": "Baptized in year",
+  "baptismDashboardBaptizedInMonth": "Baptized in month",
+  "baptismDashboardNewBelieversAmongBaptized": "New believers among baptized (believer registration)",
+  "baptismDashboardSelectYear": "Year",
+  "baptismDashboardSelectMonth": "Month",
+  "baptismDashboardAllMonths": "Full year",
+  "baptismDashboardChartTitleYear": "Baptisms per month in {year}",
+  "@baptismDashboardChartTitleYear": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "baptismDashboardChartTitle": "Baptisms per period",
+  "baptismDashboardListTitleYear": "Baptized in year",
+  "baptismDashboardListTitleMonth": "Baptized in {month}",
+  "@baptismDashboardListTitleMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "baptismDashboardListTitle": "Baptized in period",
+  "baptismDashboardListSelectMonth": "Select a month to see baptized believers.",
+  "baptismDashboardListCount": "{count, plural, =1{1 baptized} other{{count} baptized}}",
+  "@baptismDashboardListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baptismDashboardListEmpty": "No baptized believers in this period.",
+  "baptismDashboardPeriodLastMonths": "Last {count} months",
+  "@baptismDashboardPeriodLastMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baptismDashboardPeriodLastYears": "Last {count} years",
+  "@baptismDashboardPeriodLastYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baptismDashboardConversionHint": "The baptism rate only includes believers registered from «Believer registration» (not cell or direct baptism registration). The chart uses the confirmed baptism date.",
+  "cellDashboardTitle": "Cell statistics",
+  "cellDashboardDenied": "You do not have permission to view cell statistics.",
+  "cellDashboardLoadError": "Could not load cell statistics.",
+  "cellDashboardCreatedInYear": "Cells created in year",
+  "cellDashboardCreatedInMonth": "Cells created in month",
+  "cellDashboardChartTitleYear": "Cells created per month in {year}",
+  "@cellDashboardChartTitleYear": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "cellDashboardListTitleMonth": "Cells created in {month}",
+  "@cellDashboardListTitleMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "cellDashboardListSelectMonth": "Select a month to see cells created.",
+  "cellDashboardListCount": "{count, plural, =1{1 cell} other{{count} cells}}",
+  "@cellDashboardListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cellDashboardListEmpty": "No cells created in this period.",
+  "leaderDashboardTitle": "Leader statistics",
+  "leaderDashboardDenied": "You do not have permission to view leader statistics.",
+  "leaderDashboardLoadError": "Could not load leader statistics.",
+  "leaderDashboardCreatedInYear": "Leaders created in the year",
+  "leaderDashboardCreatedInMonth": "Leaders created in the month",
+  "leaderDashboardFromRegisterLeader": "From leader registration",
+  "leaderDashboardFromCell": "From cell group",
+  "leaderDashboardChartTitleYear": "Leaders created per month in {year}",
+  "@leaderDashboardChartTitleYear": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderDashboardListTitleMonth": "Leaders created in {month}",
+  "@leaderDashboardListTitleMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderDashboardListSelectMonth": "Select a month to view created leaders.",
+  "leaderDashboardListCount": "{count, plural, =1{1 leader} other{{count} leaders}}",
+  "@leaderDashboardListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderDashboardListEmpty": "No leaders created in this period.",
+  "leaderRegistrationSourceRegisterLeader": "Leader registration",
+  "leaderRegistrationSourceRegisterCell": "Cell group",
+  "quickViewLeadersTitle": "View leaders",
+  "quickViewLeadersSubtitle": "List of registered leaders",
+  "quickMySupervisedLeadersTitle": "My assigned leaders",
+  "quickMySupervisedLeadersSubtitle": "Leaders under your supervision",
+  "quickVisitsDashboardTitle": "Visits dashboard",
+  "quickVisitsDashboardSubtitle": "Visit charts by day, month and year",
+  "quickPastoralDashboardTitle": "Pastoral dashboard",
+  "quickPastoralDashboardSubtitle": "Follow-up, new members and prayer",
+  "quickSupervisorLeadersTitle": "Leaders by supervisor",
+  "quickSupervisorLeadersSubtitle": "Assign leader portfolios to each supervisor",
+  "quickChurchesTitle": "Churches",
+  "quickChurchesSubtitle": "View, edit and register locations",
+  "quickAdminsTitle": "Administrators",
+  "quickAdminsSubtitle": "View, edit and block accounts",
+  "quickNewAdminTitle": "New administrator",
+  "quickNewAdminSubtitle": "Assign a church to the administrator",
+  "signOut": "Sign out",
+  "menuTooltip": "Menu",
+  "welcome": "Welcome",
+  "homeWelcomeName": "👋 Welcome, {name}",
+  "@homeWelcomeName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSummaryTitle": "Summary",
+  "homeMembersCount": "👥 Assigned members: {count}",
+  "@homeMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLeadersCount": "👥 Assigned leaders: {count}",
+  "@homeLeadersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryMembersCount": "👥 Members: {count}",
+  "@homeSummaryMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryNewBelieversCount": "👥 New believers: {count}",
+  "@homeSummaryNewBelieversCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryLeadersCount": "👥 Leaders and supervisors: {count}",
+  "@homeSummaryLeadersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryDisciplesCount": "👥 Assigned disciples: {count}",
+  "@homeSummaryDisciplesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryAssignedNewBelieversCount": "👥 Assigned new believers: {count}",
+  "@homeSummaryAssignedNewBelieversCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeChurchMembersCount": "👥 Church members {churchName}: {count}",
+  "@homeChurchMembersCount": {
+    "placeholders": {
+      "churchName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeChurchLeadersCount": "👥 Church leaders {churchName}: {count}",
+  "@homeChurchLeadersCount": {
+    "placeholders": {
+      "churchName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTodayTitle": "Today",
+  "homeCellBirthdaysTitle": "Today's birthdays in my cell",
+  "homeBirthdaysEmpty": "No birthdays today in your cell.",
+  "homeQuickActionsTitle": "Quick actions",
+  "homeWelcomeSubtitle": "Thank you for leading with purpose.",
+  "homeSummarySeeDetail": "See details",
+  "homeStatMembersTitle": "Members",
+  "homeStatMembersSubtitle": "Total active members",
+  "homeStatNewBelieversTitle": "New believers",
+  "homeStatNewBelieversSubtitle": "Registered new believers",
+  "homeStatLeadersTitle": "Leaders",
+  "homeStatLeadersSubtitle": "Registered active leaders",
+  "homeStatCellsTitle": "Cells",
+  "homeStatCellsSubtitle": "Active cells",
+  "homeStatBaptismsTitle": "Baptisms",
+  "homeStatBaptismsSubtitle": "Scheduled baptisms",
+  "homeStatDisciplesTitle": "Disciples",
+  "homeStatDisciplesSubtitle": "Assigned disciples",
+  "homeStatMyDisciplesTitle": "My disciples",
+  "homeStatMyDisciplesSubtitle": "In your assigned cell",
+  "homeStatMyNewBelieversTitle": "My new believers",
+  "homeStatMyNewBelieversSubtitle": "Assigned to your leadership",
+  "homeStatMyAssignedLeadersTitle": "My assigned leaders",
+  "homeStatMyAssignedLeadersSubtitle": "Leaders under your supervision",
+  "homeNavBelievers": "Believers",
+  "homeNavLeaders": "Leaders",
+  "homeNavCells": "Cells",
+  "homeNavMore": "More",
+  "homeRegisterAttendanceTitle": "Register attendance",
+  "homeRegisterAttendanceSubtitle": "Select your cell to register attendance",
+  "homeRegisterDiscipleTitle": "Register new disciple",
+  "homeRegisterDiscipleSubtitle": "Add a disciple to your cell group",
+  "homeDashboardLoadError": "Could not load the home summary.",
+  "user": "User",
+  "noAccessForRole": "No shortcuts available for your role. Contact the administrator.",
+  "leaderAccountNotLinked": "Your leader account is not linked to a record.",
+  "leaderRecordNotFound": "Your leader record was not found.",
+  "retry": "Retry",
+  "profileLoadError": "Could not load your user profile.",
+  "loginSubtitle": "Sign in to continue",
+  "emailLabel": "Email",
+  "passwordLabel": "Password",
+  "emailRequired": "Enter your email",
+  "emailInvalid": "Invalid email",
+  "passwordRequired": "Enter your password",
+  "passwordMinLength": "At least 6 characters",
+  "passwordRegistrationMinLength": "At least 8 characters",
+  "passwordRegistrationNeedsLetter": "Must include at least one letter",
+  "passwordRegistrationNeedsNumber": "Must include at least one number",
+  "passwordRegistrationNeedsSpecial": "Must include at least one special character",
+  "forgotPassword": "Forgot your password?",
+  "signIn": "Sign in",
+  "loginUnexpectedError": "Unexpected error while signing in.",
+  "forgotPasswordEnterEmail": "Enter your email to reset your password",
+  "forgotPasswordEmailSent": "Check your email to reset your password",
+  "forgotPasswordSendFailed": "Could not send the recovery email.",
+  "myAccount": "My account",
+  "systemRoles": "System roles",
+  "personalData": "Personal data",
+  "personalDataSubtitleFull": "Name, address, document and phone",
+  "personalDataSubtitleName": "Your profile name",
+  "churchData": "Church data",
+  "churchDataSubtitle": "View your church location details",
+  "changePassword": "Change password",
+  "changePasswordSubtitle": "Update your access password",
+  "language": "Language",
+  "languageSubtitle": "Spanish, English or system language",
+  "languageSettingsTitle": "Language",
+  "languageSystem": "System language",
+  "languageSystemSubtitle": "Uses your device settings",
+  "languageSpanish": "Español",
+  "languageEnglish": "English",
+  "theme": "Theme",
+  "themeSubtitle": "Light, dark or follow system",
+  "themeSettingsTitle": "App theme",
+  "themeSystem": "System default",
+  "themeSystemSubtitle": "Uses your device settings",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeColorSection": "Color palette",
+  "themeModeSection": "Display mode",
+  "templateManantial": "Manantial",
+  "templateManantialSubtitle": "Deep blue and gold — recommended",
+  "templateWhatsapp": "Messaging green",
+  "templateWhatsappSubtitle": "WhatsApp style, the previous app look",
+  "templatePeace": "Peace",
+  "templatePeaceSubtitle": "Soft indigo and calm tones",
+  "templateTraditional": "Traditional",
+  "templateTraditionalSubtitle": "Wine and cream, elegant",
+  "roleSuperAdmin": "Super administrator",
+  "roleAdmin": "Church administrator",
+  "roleRegistrar": "Registrar",
+  "roleSupervisor": "Supervisor",
+  "roleLeader": "Leader",
+  "authInvalidEmail": "The email address is not valid.",
+  "authUserDisabled": "This account has been disabled.",
+  "authUserNotFound": "No account exists with this email.",
+  "authWrongPassword": "Incorrect email or password.",
+  "authEmailInUse": "An account already exists with this email.",
+  "authWeakPassword": "Password must be at least 6 characters.",
+  "authRequiresRecentLogin": "For security, sign in again and try once more.",
+  "authTooManyRequests": "Too many attempts. Try again later.",
+  "authNetworkError": "No connection. Check your internet.",
+  "authOperationNotAllowed": "Email registration is not enabled in Firebase.",
+  "authGenericError": "Authentication error. Please try again.",
+  "memberRegisterTitle": "New member registration",
+  "memberEditTitle": "Edit member",
+  "memberNoPermissionRegister": "You do not have permission to register members.",
+  "memberNoPermissionEdit": "You do not have permission to edit members.",
+  "memberFormDate": "Date",
+  "memberEntrySource": "Where did the believer join? *",
+  "memberEntrySourceRequired": "Select where the believer joined",
+  "memberDetailEntrySource": "Where they joined",
+  "memberDetailLeadershipStatus": "Pastoral status",
+  "memberDetailAssignmentKind": "Assignment type",
+  "memberAssignmentPastoral": "New believer",
+  "memberAssignmentCell": "Cell group disciple",
+  "memberDetailSectionJourney": "Journey",
+  "memberDetailRegistrationSource": "Registered from",
+  "memberDetailPastoralAssignedAt": "Assigned to leader",
+  "memberDetailNewBelieverAt": "Registered as new believer",
+  "memberDetailCellAssignedAt": "Assigned to cell group",
+  "memberDetailBaptizedAt": "Baptism date",
+  "memberDetailJourneyComplete": "Believer registration → cell → baptism",
+  "memberDetailHistoryTitle": "Change history",
+  "memberRegistrationSourceRegisterMember": "Believer registration",
+  "memberRegistrationSourceRegisterMemberCell": "Believer registration in cell",
+  "memberRegistrationSourceRegisterCellMember": "Cell group registration",
+  "memberRegistrationSourceRegisterBaptismBeliever": "Baptism registration",
+  "memberHistoryEventRegistered": "Record created",
+  "memberHistoryEventPastoralAssigned": "Assigned to leader",
+  "memberHistoryEventCellAssigned": "Assigned to cell group",
+  "memberHistoryEventCellUnassigned": "Removed from cell group",
+  "memberHistoryEventBaptizedConfirmed": "Baptism confirmed",
+  "memberDetailAssignedCell": "Assigned cell group",
+  "entrySourceCampaignOutside": "Outreach campaign",
+  "entrySourceCell": "Cell group",
+  "entrySourceHospital": "Hospital",
+  "entrySourceEvangelism": "Evangelism",
+  "entrySourceMotherChurch": "Mother church",
+  "entrySourceDaughterChurch": "Daughter church",
+  "memberSectionPersonalData": "PERSONAL DATA",
+  "memberFirstName": "First name *",
+  "memberFirstNameRequired": "Enter the first name",
+  "memberLastName": "Last name *",
+  "memberLastNameRequired": "Enter the last name",
+  "memberIdDocumentType": "ID document",
+  "memberIdDocumentNumber": "Document number",
+  "memberIdDocumentNumberAlreadyExists":
+      "A believer with this document number is already registered",
+  "idDocumentDni": "National ID (DNI)",
+  "idDocumentPassport": "Passport",
+  "idDocumentOther": "Other",
+  "memberGenderRequired": "Gender *",
+  "memberGender": "Gender",
+  "memberIncludeAddress": "Include address",
+  "memberAddressRequiredForLeader": "Required to assign a leader automatically",
+  "memberAddressOptional": "Optional: member home address",
+  "memberPhone": "Phone *",
+  "memberPhoneRequired": "Enter the phone number",
+  "memberBirthDate": "Date of birth *",
+  "memberBirthDateRequired": "Select the date of birth",
+  "memberSelectDate": "Select date",
+  "memberClearDate": "Clear date",
+  "memberAge": "Age *",
+  "memberAgeYears": "{age} years",
+  "@memberAgeYears": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "memberOccupation": "Occupation *",
+  "memberOccupationRequired": "Enter the occupation",
+  "memberMaritalStatus": "Marital status *",
+  "memberMaritalStatusRequired": "Select marital status",
+  "memberSectionCellSchedule": "CELL GROUP SCHEDULE",
+  "memberCellDay": "Day",
+  "memberCellTime": "Time",
+  "memberSelectTime": "Select time",
+  "memberCellZone": "Zone",
+  "memberSectionVisit": "VISIT",
+  "memberWantsVisit": "Wants to be visited",
+  "memberWantsVisitSubtitle": "Indicates whether the person requests a home visit",
+  "memberSectionObservations": "NOTES",
+  "memberObservationsHint": "Additional notes...",
+  "memberVolunteer": "Volunteer",
+  "memberSaving": "Saving...",
+  "memberSaveChanges": "Save changes",
+  "memberRegisterButton": "Register member",
+  "memberSectionAssignedLeader": "ASSIGNED LEADER",
+  "memberManualLeader": "Choose leader manually",
+  "memberManualLeaderSubtitle": "Search and pick a leader by name",
+  "memberAutoLeaderSubtitle": "The nearest leader of the same gender will be assigned",
+  "memberNoLeaderSubtitle": "No leader until you enable a visit or choose one",
+  "memberNoLeadersAvailable": "There are no leaders in the app. Assign the Leader role when registering a leader.",
+  "memberSelectLeader": "Select a leader",
+  "memberSelectLeaderFromList": "Select a leader from the list",
+  "memberGenderForAutoLeader": "Select gender to assign a leader automatically",
+  "memberCompatibleLeadersHint": "Showing leaders compatible with the selected gender.",
+  "memberNoChurchAssigned": "Your account has no church assigned. Contact the administrator.",
+  "memberAddressRequiredAutoLeader": "Enable \"Include address\" and select an address from search to assign a leader automatically.",
+  "memberAddressGeocodeFailed": "Could not locate the address. Select it from autocomplete.",
+  "memberUpdatedSuccess": "Member updated successfully",
+  "memberRegisteredSuccess": "Member registered successfully",
+  "memberRegisteredWithLeader": "Member registered. Leader: {leader}{cell}{distance}",
+  "@memberRegisteredWithLeader": {
+    "placeholders": {
+      "leader": {
+        "type": "String"
+      },
+      "cell": {
+        "type": "String"
+      },
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "memberRegisteredNoNearbyLeader": "Member registered. No leader of the same gender with a nearby address.",
+  "memberSaveUnexpectedError": "Unexpected error while saving.",
+  "memberCellCodeSuffix": " (Cell {code})",
+  "@memberCellCodeSuffix": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "memberDistanceKm": " · {km} km",
+  "@memberDistanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "genderMale": "Male (H)",
+  "genderFemale": "Female (M)",
+  "maritalSingle": "Single",
+  "maritalMarried": "Married",
+  "maritalConcubino": "Cohabiting",
+  "maritalDivorced": "Divorced",
+  "maritalWidowed": "Widowed",
+  "weekdayMonday": "Monday",
+  "weekdayTuesday": "Tuesday",
+  "weekdayWednesday": "Wednesday",
+  "weekdayThursday": "Thursday",
+  "weekdayFriday": "Friday",
+  "weekdaySaturday": "Saturday",
+  "weekdaySunday": "Sunday",
+  "addressSection": "ADDRESS",
+  "addressSearchRequired": "Search address *",
+  "addressSearchOptional": "Search address",
+  "addressSearchHint": "Type and pick a suggestion...",
+  "addressSearchTapToChange": "Tap here to change the address...",
+  "addressChangeButton": "Change address",
+  "addressSearchAndSelect": "Search and select an address",
+  "addressMustPickFromList": "You must pick an address from the list",
+  "addressAutoFilledHint": "Filled when you search an address",
+  "addressStreetRequired": "Street *",
+  "addressStreetOptional": "Street",
+  "addressNumber": "Number",
+  "addressPostalCode": "Postal code",
+  "addressNeighborhood": "Neighborhood",
+  "addressLocality": "City / District",
+  "addressStateProvince": "State / Province",
+  "leaderSearchLabel": "Search leader *",
+  "leaderSearchHint": "Type letters from name or cell group...",
+  "leaderSearchClear": "Clear leader",
+  "leaderCellLabel": "Cell {code}",
+  "@leaderCellLabel": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "firestorePermissionDenied": "You do not have permission for this operation.",
+  "firestoreUnavailable": "Firestore is unavailable. Check your connection.",
+  "firestoreNotFound": "The member no longer exists.",
+  "firestoreGenericError": "Error processing the request. Please try again.",
+  "commonYes": "Yes",
+  "commonNo": "No",
+  "commonCancel": "Cancel",
+  "commonDelete": "Delete",
+  "commonEdit": "Edit",
+  "memberDetailSectionPersonal": "Personal data",
+  "memberDetailSectionAddress": "Address",
+  "memberDetailSectionLeader": "Assigned leader",
+  "memberDetailSectionCellSchedule": "Cell group schedule",
+  "memberDetailSectionObservations": "Notes",
+  "memberDetailSectionRegistration": "Registration",
+  "memberDetailFirstName": "First name",
+  "memberDetailLastName": "Last name",
+  "memberDetailGender": "Gender",
+  "memberDetailPhone": "Phone",
+  "memberDetailIdDocument": "Document",
+  "memberDetailIdDocumentNumber": "Document number",
+  "memberDetailBirthDate": "Date of birth",
+  "memberDetailAge": "Age",
+  "memberDetailOccupation": "Occupation",
+  "memberDetailMaritalStatus": "Marital status",
+  "memberDetailWantsVisit": "Wants to be visited",
+  "memberDetailLeaderName": "Name",
+  "memberDetailCell": "Cell group",
+  "memberDetailDistance": "Distance",
+  "memberDetailDistanceKm": "{km} km",
+  "@memberDetailDistanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "memberDetailCellDay": "Day",
+  "memberDetailCellTime": "Time",
+  "memberDetailCellZone": "Zone",
+  "memberDetailFormDate": "Form date",
+  "memberDetailVolunteer": "Volunteer",
+  "memberDetailRegisteredBy": "Registered by",
+  "memberDetailDeleteTitle": "Delete member",
+  "memberDetailDeleteConfirm": "Delete {name}? This action cannot be undone.",
+  "@memberDetailDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "memberDetailDeletedSuccess": "Member deleted",
+  "memberDetailRegisterVisit": "Register visit",
+  "memberDetailEditMember": "Edit member",
+  "memberDetailDeleteMember": "Delete member",
+  "memberVisitsTitle": "Registered visits",
+  "memberVisitsLoadError": "Could not load visits.",
+  "memberVisitsEmpty": "No visits registered yet.",
+  "memberVisitsNeedsFollowUp": " · Follow-up required",
+  "visitDuration": "Duration: {value}",
+  "@visitDuration": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "visitPrayer": "Prayer: {value}",
+  "@visitPrayer": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "visitRequests": "Requests: {value}",
+  "@visitRequests": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "visitFollowUp": "Follow-up: {value}",
+  "@visitFollowUp": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "visitSpiritualState": "State: {value}",
+  "@visitSpiritualState": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "visitPlaceHome": "Home",
+  "visitPlaceHospital": "Hospital",
+  "visitPlaceWork": "Work",
+  "visitPlaceChurch": "Church",
+  "visitPlaceVideoCall": "Video call",
+  "spiritualNewBeliever": "New believer",
+  "spiritualInDiscipleship": "In discipleship",
+  "spiritualActiveMember": "Active member",
+  "spiritualDistant": "Distant",
+  "spiritualFrequentVisitor": "Frequent visitor",
+  "membersMapNoLocationSnack": "This member has no location on the map",
+  "membersMapNavigationFailed": "Could not open navigation",
+  "membersMapRequestsVisit": "Requests visit",
+  "membersMapDistanceFromLeader": "{km} km from leader",
+  "@membersMapDistanceFromLeader": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "membersMapGetDirections": "Get directions",
+  "membersMapViewDetail": "View details",
+  "membersMapLeaderLabel": "Leader",
+  "membersMapEmptyTitle": "No locations on the map",
+  "membersMapEmptySubtitle": "Members need an address with coordinates to appear on the map.",
+  "membersMapMissingLocationCount": "{count, plural, =1{1 member without map location} other{{count} members without map location}}",
+  "@membersMapMissingLocationCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "membersMapLeaderMarker": "Purple marker: {name} (leader)",
+  "@membersMapLeaderMarker": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commonBack": "Back",
+  "commonSave": "Save",
+  "commonSaving": "Saving...",
+  "commonNew": "New",
+  "commonRefresh": "Refresh",
+  "commonUnblock": "Unblock",
+  "commonBlock": "Block",
+  "commonBlocked": "Blocked",
+  "commonBlockedFem": "Blocked",
+  "commonUnblocked": "Unblocked",
+  "commonUnblockedFem": "Unblocked",
+  "commonNoMatches": "No matches",
+  "commonNoName": "(No name)",
+  "commonLoadListError": "Could not load the list.",
+  "commonExportError": "Could not export the list. Try again.",
+  "commonDeleteConfirm": "Delete {name}? This action cannot be undone.",
+  "@commonDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accessDeniedTitle": "Access restricted",
+  "accessDeniedDefault": "You do not have permission to view this section.",
+  "blockedAccountUserTitle": "Account blocked",
+  "blockedAccountChurchTitle": "Church blocked",
+  "blockedAccountUserMessage": "Your account was suspended. Contact the super administrator to restore access.",
+  "blockedAccountChurchMessage": "Your assigned church is blocked. You cannot use the system until the super administrator reactivates it.",
+  "membersListTitle": "New believers",
+  "churchMembersListTitle": "Members",
+  "churchMembersListEmptyTitle": "No members registered yet",
+  "churchMembersListEmptySubtitle": "New believers and those promoted to leadership do not appear here.",
+  "membersListExportExcel": "Download Excel",
+  "membersListDeleteTitle": "Delete member",
+  "membersListDeleted": "Member deleted",
+  "membersListLoadError": "Could not load the list.\nCheck Firestore in Firebase Console.",
+  "membersListEmptyTitle": "No new believers registered yet",
+  "membersListEmptySubtitle": "Tap \"New\" to register the first one.",
+  "membersListSearchHint": "Search by name, phone, leader or city…",
+  "membersListPromoteToMember": "Make church member",
+  "membersListPromoteToMemberTitle": "Make church member",
+  "membersListPromoteToMemberConfirm": "Move \"{name}\" from new believer to church member? They will leave this list.",
+  "@membersListPromoteToMemberConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "membersListPromoteToMemberSuccess": "{name} is now a church member",
+  "@membersListPromoteToMemberSuccess": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "membersListEndOfList": "End of list",
+  "membersListLeaderPrefix": "Leader: {name}",
+  "@membersListLeaderPrefix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "membersListDatePrefix": "Date: {date}",
+  "@membersListDatePrefix": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "membersByLeaderTitle": "View new believers by leader",
+  "membersByLeaderEmpty": "No believers registered",
+  "membersByLeaderAssignedCount": "{assigned} of {total} believers with assigned leader",
+  "@membersByLeaderAssignedCount": {
+    "placeholders": {
+      "assigned": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "membersByLeaderMemberCount": "{count, plural, =1{1 believer} other{{count} believers}}",
+  "@membersByLeaderMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "membersByLeaderRegistrationDate": "Registered: {date}",
+  "@membersByLeaderRegistrationDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderAssignedTitle": "My new believers",
+  "leaderAssignedTabList": "List",
+  "leaderAssignedTabMap": "Map",
+  "leaderAssignedCount": "{count, plural, =1{1 new believer assigned} other{{count} new believers assigned}}",
+  "@leaderAssignedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderAssignedCellSuffix": "· Cell {code}",
+  "@leaderAssignedCellSuffix": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderAssignedEmptyTitle": "No new believers assigned",
+  "leaderAssignedEmptySubtitle": "New believers assigned to your leadership will appear here.",
+  "leaderAssignedNoMapLocation": "No map location",
+  "leaderAssignedRegisterVisit": "Register visit",
+  "leaderAssignedLoadError": "Could not load members.",
+  "leadersListTitle": "Leaders",
+  "leadersBlockTitle": "Block leader",
+  "leadersUnblockTitle": "Unblock leader",
+  "leadersBlockConfirm": "Block \"{name}\"? They will not be able to sign in or be assigned to new members until you unblock them.",
+  "@leadersBlockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leadersUnblockConfirm": "Unblock \"{name}\" and allow access again?",
+  "@leadersUnblockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leadersBlocked": "Leader blocked",
+  "leadersUnblocked": "Leader unblocked",
+  "leadersShowBlocked": "Show blocked ({count})",
+  "@leadersShowBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadersHideBlocked": "Hide blocked ({count})",
+  "@leadersHideBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadersAllBlocked": "All leaders are blocked",
+  "leadersListLoadError": "Could not load the list. Check Firestore and the \"leaders\" collection rules.",
+  "leadersListEmpty": "No leaders registered yet",
+  "leadersListSearchHint": "Search by name, phone, email or cell group…",
+  "leadersListEndOfList": "End of list",
+  "leadersListCellPrefix": "Cell {code}",
+  "@leadersListCellPrefix": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "leadersListViewMembers": "View members assigned to visit",
+  "leadersListViewLeader": "View leader",
+  "leaderDetailEditLeader": "Edit leader",
+  "leaderDetailBlockLeader": "Block leader",
+  "leaderDetailUnblockLeader": "Unblock leader",
+  "leaderDetailViewMembers": "View members assigned to visit",
+  "leaderDetailSectionLeadership": "Leadership data",
+  "leaderDetailSectionCellContact": "Contact",
+  "leaderDetailSectionRoles": "App roles",
+  "leaderDetailLastName": "Last name",
+  "leaderDetailFirstNames": "First names",
+  "leaderDetailChurchOffice": "Church office",
+  "leaderDetailMobile": "Mobile phone",
+  "leaderDetailPermissions": "Permissions",
+  "leadersMapNoLocationSnack": "This leader has no location on the map",
+  "leadersMapEmptyTitle": "No locations on the map",
+  "leadersMapEmptySubtitle": "Leaders need an address with coordinates to appear on the map.",
+  "leadersMapMissingLocationCount": "{count, plural, =1{1 leader without map location} other{{count} leaders without map location}}",
+  "@leadersMapMissingLocationCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadersMapViewLeader": "View leader",
+  "supervisorMyLeadersTitle": "My assigned leaders",
+  "supervisorMyLeadersDenied": "You do not have permission to view your assigned leaders.",
+  "supervisorMyLeadersCount": "{count, plural, =1{1 leader under your supervision} other{{count} leaders under your supervision}}",
+  "@supervisorMyLeadersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supervisorMyLeadersSearchHint": "Search leader",
+  "supervisorMyLeadersEmptyTitle": "No assigned leaders",
+  "supervisorMyLeadersEmptySubtitle": "The administrator will assign leaders when appropriate.",
+  "supervisorMyLeadersNoSearchResults": "No leader matches your search.",
+  "supervisorMyLeadersViewMembers": "Members",
+  "supervisorAssignmentsTitle": "Leaders by supervisor",
+  "supervisorAssignmentsDeniedSupervisor": "Supervisors cannot access this screen. Use \"My assigned leaders\" to view your portfolio.",
+  "supervisorAssignmentsDeniedAdmin": "Only the administrator can assign leaders to supervisors.",
+  "supervisorAssignmentsNoSupervisors": "There are no supervisors in your church",
+  "supervisorAssignmentsNoSupervisorsHint": "When registering a leader, assign the Supervisor role in the app.",
+  "supervisorAssignmentsSelectSupervisor": "Select supervisor *",
+  "supervisorAssignmentsAssignedLeaders": "Assigned leaders ({count})",
+  "@supervisorAssignmentsAssignedLeaders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supervisorAssignmentsSearchLeader": "Search leader",
+  "supervisorAssignmentsNoLeaders": "There are no leaders registered in your church.",
+  "supervisorAssignmentsNoLeaderMatches": "No leader matches your search.",
+  "supervisorAssignmentsNoLeadersAvailable": "No leaders available to assign.",
+  "supervisorAssignmentsSelectSupervisorError": "Select a supervisor",
+  "supervisorAssignmentsConflict": "Cannot save: a leader already belongs to {name}",
+  "@supervisorAssignmentsConflict": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "supervisorAssignmentsSaved": "Leaders assigned successfully",
+  "dashboardVisitsTitle": "Visits dashboard",
+  "dashboardPastoralTitle": "Pastoral dashboard",
+  "dashboardVisitsDenied": "You do not have permission to view the visits dashboard.",
+  "dashboardPastoralDenied": "You do not have permission to view the pastoral dashboard.",
+  "dashboardAdminMissingChurch": "Your administrator account has no church assigned. Contact the super administrator or add \"superadmin\" to roles in Firebase.",
+  "dashboardScopeAllChurches": "All churches",
+  "dashboardScopeYourChurch": "Your church",
+  "dashboardScopeYourLeaders": "Your assigned leaders",
+  "dashboardChurchLabel": "Church",
+  "dashboardNoAssignedLeadersTitle": "No assigned leaders",
+  "dashboardNoAssignedLeadersVisits": "When the administrator assigns leaders, you will see their visit statistics here.",
+  "dashboardNoAssignedLeadersPastoral": "When the administrator assigns leaders, you will see pastoral follow-up here.",
+  "dashboardTotalPeriod": "Total in period",
+  "dashboardLeadersWithVisits": "Leaders with visits",
+  "dashboardLeadersWithVisitsCount": "{count} leaders with visits",
+  "@dashboardLeadersWithVisitsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardVisitCount": "Number of visits",
+  "dashboardTopVisitPlaces": "Most frequent visit places",
+  "dashboardByVisitPlace": "By visit place",
+  "dashboardTopPrayerRequests": "Most common prayer requests",
+  "dashboardPrayerRequestsSubtitle": "Repeated texts in the period",
+  "dashboardNoPrayerRequests": "No prayer requests recorded in this period.",
+  "dashboardVisitsByLeader": "Visits by leader",
+  "dashboardPeriodLast14Days": "Last 14 days",
+  "dashboardPeriodLast12Months": "Last 12 months",
+  "dashboardPeriodLast6Months": "Last 6 months",
+  "dashboardPeriodLast5Years": "Last 5 years",
+  "dashboardFollowUpTitle": "People requiring follow-up",
+  "dashboardFollowUpSubtitle": "Marked in visits during the period",
+  "dashboardFollowUpCount": "{count} person(s)",
+  "@dashboardFollowUpCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardFollowUpEmpty": "No people with pending follow-up in this period.",
+  "dashboardVisitOnDate": "Visit: {date}",
+  "@dashboardVisitOnDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardLeaderPrefix": "Leader: {name}",
+  "@dashboardLeaderPrefix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardMemberNotFound": "Member not found.",
+  "dashboardNewMembersTitle": "New members",
+  "dashboardNewMembersCount": "{count} registered in the period",
+  "@dashboardNewMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardPrayerVisitsTitle": "Visits with prayer",
+  "dashboardPrayerVisitsEmpty": "No visits in the selected period.",
+  "dashboardPrayerVisitsSummary": "{withPrayer} of {total} visits included prayer.",
+  "@dashboardPrayerVisitsSummary": {
+    "placeholders": {
+      "withPrayer": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardNoData": "No data to display",
+  "chartPeriodDay": "By day",
+  "chartPeriodWeek": "By week",
+  "chartPeriodMonth": "By month",
+  "chartPeriodYear": "By year",
+  "notificationsTitle": "Notifications",
+  "notificationsLeaderNotLinked": "Your leader account is not linked. Contact the administrator.",
+  "notificationsMarkRead": "Mark as read",
+  "notificationsDismissAll": "Dismiss all",
+  "notificationsDismissAllConfirmTitle": "Dismiss all alerts?",
+  "notificationsDismissAllConfirmMessage": "Alerts will be removed from your list. This cannot be undone.",
+  "notificationsLoadError": "Could not load notifications. Check Firestore rules.",
+  "notificationsEmptyTitle": "You have no notifications",
+  "notificationsEmptySubtitle": "When a new member is assigned to you, it will appear here.",
+  "notificationsMemberUnavailable": "The member is no longer available.",
+  "notificationsToday": "Today {time}",
+  "@notificationsToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsYesterday": "Yesterday {time}",
+  "@notificationsYesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationNewMemberTitle": "New member assigned",
+  "notificationNewMemberBody": "You were assigned {name}. Tap to view details.",
+  "@notificationNewMemberBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationMemberFallback": "Member",
+  "notificationCellCapacityTitle": "Cell with more than 12 disciples",
+  "notificationCellCapacityBody": "Cell {cell} has {count} assigned disciples.",
+  "@notificationCellCapacityBody": {
+    "placeholders": {
+      "cell": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "notificationCellSplitNotRequired": "This cell group no longer exceeds 12 disciples. Splitting is not needed.",
+  "splitCellTitle": "Split cell group",
+  "splitCellSourceCellLabel": "Source cell group",
+  "splitCellNewCellSection": "New cell group",
+  "splitCellSelectLeaderHelper": "New cell group leader",
+  "splitCellSelectLeaderHelperHint": "Choose a helper from the source cell as leader",
+  "splitCellNoHelpers": "This cell has no helpers. Assign helpers in My cell group before splitting.",
+  "splitCellSelectMembers": "Disciples for the new cell group",
+  "splitCellSelectMembersHint": "Select up to {max} disciples from the source cell",
+  "@splitCellSelectMembersHint": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "splitCellMembersMaxReached": "Maximum {max} disciples for the new cell group",
+  "@splitCellMembersMaxReached": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "splitCellLeaderRequired": "Select a helper as leader of the new cell group",
+  "splitCellMembersRequired": "Select at least one disciple for the new cell group",
+  "splitCellLeaderBusy": "That helper already leads another cell group",
+  "splitCellSuccess": "New cell group created and disciples transferred",
+  "splitCellCreateAction": "Create new cell group",
+  "splitCellLoadError": "Could not load the source cell group",
+  "splitCellLeaderAccountSection": "Leader account",
+  "splitCellLeaderAccountHint": "An app login will be created for the helper selected as leader of the new cell group.",
+  "splitCellLeaderAlreadyHasAccount": "This helper already has a leader account in the system.",
+  "splitCellLeaderAccountRequired": "Enter email and password to create the leader account",
+  "splitCellLeaderBlocked": "That helper is blocked as a leader and cannot lead a cell group",
+  "memberLeadershipPromotedToLeader": "Promoted to leader",
+  "memberLeadershipPromotedToVolunteer": "Promoted to registrar",
+  "memberLeadershipCreatedAsLeader": "Created as leader",
+  "menuCellsOverCapacity": "Cells to split",
+  "cellsOverCapacityTitle": "Cell groups over 12 disciples",
+  "cellsOverCapacityDenied": "You do not have permission to split cell groups",
+  "cellsOverCapacityNoChurch": "No church is assigned to your account",
+  "cellsOverCapacityLoadError": "Could not load cell groups",
+  "cellsOverCapacityEmpty": "No cell groups exceed the limit",
+  "cellsOverCapacityEmptySubtitle": "All cell groups have {max} disciples or fewer",
+  "@cellsOverCapacityEmptySubtitle": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "cellsOverCapacityIntro": "These cell groups exceed {max} disciples. Tap one to create a new cell group and transfer disciples.",
+  "@cellsOverCapacityIntro": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "cellsOverCapacityLeaderLabel": "Leader: {name}",
+  "@cellsOverCapacityLeaderLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cellMemberCapacityAdminNotified": "Disciple registered. The administrator was alerted: the cell exceeds 12 disciples.",
+  "cellMemberRegisterLeaderOnlyAtCapacity": "With 12 or more disciples, only the cell leader can register a new disciple.",
+  "menuAdminNotifications": "Church alerts",
+  "adminNotificationsTitle": "Church alerts",
+  "adminNotificationsDenied": "You do not have permission to view church alerts",
+  "adminNotificationsEmptyTitle": "No alerts",
+  "adminNotificationsEmptySubtitle": "You will receive alerts here when a cell exceeds 12 disciples.",
+  "visitRegDenied": "Only the leader can register visits for their members.",
+  "visitRegTitle": "Register visit",
+  "visitRegPrayerFollowUpRequired": "Indicate whether prayer was performed and if follow-up is needed.",
+  "visitRegInvalidMember": "The member does not have a valid identifier.",
+  "visitRegSaved": "Visit registered",
+  "visitRegSaveFailed": "Could not register the visit.",
+  "visitRegSelectOption": "Select an option",
+  "visitRegDate": "Visit date *",
+  "visitRegPlace": "Visit place *",
+  "visitRegSelectPlace": "Select place",
+  "visitRegDuration": "Approximate visit duration",
+  "visitRegDurationHint": "E.g. 30 min, 1 hour",
+  "visitRegPrayerTitle": "Prayer performed *",
+  "visitRegPrayerRequests": "Prayer requests",
+  "visitRegPrayerRequestsHint": "Optional: shared reasons or requests",
+  "visitRegFollowUpTitle": "Needs follow-up *",
+  "visitRegSpiritualState": "Spiritual state (optional)",
+  "visitRegSpiritualUnspecified": "Unspecified",
+  "visitRegComment": "Comment *",
+  "visitRegCommentHint": "Visit summary, topics covered...",
+  "visitRegCommentRequired": "Write a comment",
+  "visitRegSaveButton": "Save visit",
+  "addressAutocompleteApiKey": "Configure the Google Maps API key in maps_api_key.dart",
+  "addressAutocompleteLoadError": "Could not load Google Maps suggestions.",
+  "leaderNoLeaderAssigned": "No leader assigned",
+  "leaderFallbackName": "Leader",
+  "serviceGenericError": "Unexpected error. Please try again.",
+  "serviceUnavailable": "Service unavailable. Check your connection.",
+  "servicePermissionDenied": "You do not have permission for this operation.",
+  "visitServicePermissionDenied": "You do not have permission to register visits.",
+  "visitServiceSaveError": "Error saving visit. Please try again.",
+  "visitDashboardPermissionDenied": "You do not have permission to view the visits dashboard.",
+  "visitDashboardIndexBuilding": "The visits index is being created in Firebase. Wait a few minutes and try again.",
+  "visitDashboardIndexMissing": "A Firestore index for visits is missing. Run: firebase deploy --only firestore:indexes",
+  "visitDashboardDateFormatError": "Error formatting chart dates. Restart the app and try again.",
+  "visitDashboardLoadUnexpected": "Unexpected error loading visits ({code}).",
+  "@visitDashboardLoadUnexpected": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "visitDashboardLoadError": "Error loading visits: {message}",
+  "@visitDashboardLoadError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "churchOfficePastor": "Pastor",
+  "churchOfficeLeader": "Leaders",
+  "churchOfficeJuniorElder": "Junior elder",
+  "churchOfficeElder": "Elder",
+  "churchOfficeSeniorElder": "Senior elder",
+  "churchOfficeVolunteer": "Volunteer",
+  "assignableRolesRegistrarExclusive": "The Registrar role is exclusive and cannot be combined with others.",
+  "assignableRolesVolunteerOnly": "As a volunteer, only the Registrar role can be assigned.",
+  "assignableRolesHint": "Select app access permissions. You can combine Leader and Supervisor on one account. Registrar must be alone.",
+  "adminsDenied": "Only the super administrator can manage administrators.",
+  "adminsTitle": "Administrators",
+  "adminsNoChurch": "No church assigned",
+  "adminsChurchLabel": "Church ({id})",
+  "@adminsChurchLabel": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "adminsBlockTitle": "Block administrator",
+  "adminsUnblockTitle": "Unblock administrator",
+  "adminsBlockConfirm": "Block \"{name}\"? They will not be able to sign in until you unblock them.",
+  "@adminsBlockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminsUnblockConfirm": "Unblock \"{name}\" and allow access again?",
+  "@adminsUnblockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminsBlocked": "Administrator blocked",
+  "adminsUnblocked": "Administrator unblocked",
+  "adminsLoadError": "Could not load administrators. Check Firestore and the \"users\" collection index.",
+  "adminsEmpty": "No administrators registered yet",
+  "adminsRegister": "Register administrator",
+  "adminsSearchHint": "Search by name, email or church…",
+  "adminsShowBlocked": "Show blocked ({count})",
+  "@adminsShowBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminsHideBlocked": "Hide blocked ({count})",
+  "@adminsHideBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminsAllBlocked": "All administrators are blocked",
+  "churchesDenied": "Only the super administrator can manage churches.",
+  "churchesTitle": "Churches",
+  "churchesBlockTitle": "Block church",
+  "churchesUnblockTitle": "Unblock church",
+  "churchesBlockConfirm": "Block \"{name}\"? It cannot be assigned to new administrators until you unblock it.",
+  "@churchesBlockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "churchesUnblockConfirm": "Unblock \"{name}\" and allow use again?",
+  "@churchesUnblockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "churchesBlocked": "Church blocked",
+  "churchesUnblocked": "Church unblocked",
+  "churchesLoadError": "Could not load churches. Check Firestore and the \"churches\" collection rules.",
+  "churchesEmpty": "No churches registered yet",
+  "churchesRegister": "Register church",
+  "churchesSearchHint": "Search by name or address…",
+  "churchesShowBlocked": "Show blocked ({count})",
+  "@churchesShowBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "churchesHideBlocked": "Hide blocked ({count})",
+  "@churchesHideBlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "churchesAllBlocked": "All churches are blocked",
+  "churchRegLoadError": "Could not load church data.",
+  "churchRegPickAddress": "Pick an address from the list to locate it on the map",
+  "churchRegImageError": "Could not select image: {error}",
+  "@churchRegImageError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "churchRegSaved": "Church registered",
+  "churchRegUpdated": "Church data saved",
+  "churchRegNewTitle": "New church",
+  "churchRegViewTitle": "Church data",
+  "churchRegEditTitle": "Edit church",
+  "churchRegCreateDenied": "Only the super administrator can create churches.",
+  "churchRegViewDenied": "You do not have permission to view this church data.",
+  "churchRegEditDenied": "You do not have permission to edit this church data.",
+  "churchRegBlocked": "This church is blocked. Contact the super administrator to reactivate it.",
+  "churchRegLogo": "LOGO",
+  "churchRegLogoOptional": "LOGO (optional)",
+  "churchRegLogoHint": "You can save without a logo; the default will be used.",
+  "churchRegUploadLogo": "Upload logo",
+  "churchRegRemoveLogo": "Remove",
+  "churchRegSectionInfo": "INFORMATION",
+  "churchRegName": "Church name",
+  "churchRegNameRequired": "Church name *",
+  "churchRegNameValidation": "Enter the name",
+  "churchRegAlias": "Bank alias",
+  "churchRegAliasHint": "E.g. church.central.mb",
+  "churchRegAliasHelper": "Bank alias for transfers",
+  "churchRegOfferingQr": "OFFERING QR CODE",
+  "churchRegOfferingQrOptional": "OFFERING QR CODE (optional)",
+  "churchRegOfferingQrHint": "Upload the bank account QR code so members can scan it when giving offerings.",
+  "churchRegUploadOfferingQr": "Upload QR",
+  "churchRegAddressSection": "Address",
+  "churchSearchLabel": "Church *",
+  "churchSearchClear": "Clear selection",
+  "churchSearchTitle": "Select church",
+  "churchSearchHint": "Search by name or address…",
+  "churchSearchEmpty": "No churches available",
+  "churchSearchNoMatches": "No matches for \"{query}\"",
+  "@churchSearchNoMatches": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "changePasswordTitle": "Change password",
+  "changePasswordCurrent": "Current password *",
+  "changePasswordNew": "New password *",
+  "changePasswordConfirm": "Confirm password *",
+  "changePasswordCurrentRequired": "Enter your current password",
+  "changePasswordNewRequired": "Enter the new password",
+  "changePasswordConfirmRequired": "Confirm the new password",
+  "changePasswordMismatch": "Passwords do not match",
+  "changePasswordSuccess": "Password updated",
+  "changePasswordSubmit": "Update password",
+  "editPersonalDataTitle": "Personal data",
+  "editPersonalDataSaved": "Data saved",
+  "editPersonalDataRoles": "System roles",
+  "editPersonalDataPhoto": "Profile photo",
+  "editPersonalDataPhotoHint": "Optional. Shown on your account.",
+  "editPersonalDataUploadPhoto": "Upload photo",
+  "editPersonalDataChangePhoto": "Change photo",
+  "editPersonalDataRemovePhoto": "Remove",
+  "editPersonalDataImageError": "Could not select the image: {error}",
+  "@editPersonalDataImageError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "pushChannelName": "Member assignments",
+  "pushChannelDescription": "Alerts when a member is assigned to you",
+  "authCreateUserFailed": "Could not create the user account",
+  "firestoreLeaderNotFound": "The leader no longer exists.",
+  "leaderRegNewTitle": "New leader",
+  "leaderRegEditTitle": "Edit leader",
+  "leaderRegSelectChurchOffice": "Select the church office",
+  "leaderRegSelectAtLeastOneRole": "Select at least one app role",
+  "leaderRegSuccessWithLogin": "Leader registered. They can sign in with their email and password.",
+  "leaderRegUpdatedSuccess": "Leader updated successfully",
+  "leaderRegEditDenied": "Only the administrator can edit leaders.",
+  "leaderRegRegisterDenied": "You do not have permission to register leaders.",
+  "leaderRegSectionChurchOffice": "CHURCH OFFICE",
+  "leaderRegChurchOffice": "Office *",
+  "leaderRegSelectChurchOfficeField": "Select the office",
+  "leaderRegNoAccessAccountHint": "No access account: roles will apply when the user is created.",
+  "leaderRegCell": "Cell group",
+  "leaderRegCellHint": "E.g.: N10, E4, L4",
+  "cellRegTitle": "New cell group",
+  "cellEditTitle": "Edit cell group",
+  "cellEditSuccess": "Cell group updated",
+  "cellEditDenied": "You do not have permission to edit cell groups",
+  "cellRegSectionData": "Cell group data",
+  "cellRegSectionMeeting": "Cell group meeting",
+  "cellRegMeetingDay": "Day of the week",
+  "cellRegMeetingDayRequired": "Select the cell group meeting day",
+  "cellRegSectionLeader": "Assigned leader",
+  "cellRegLeaderRequired": "Select the cell group leader",
+  "cellRegLeaderWrongChurch": "That leader belongs to another church and cannot be assigned to this cell group",
+  "cellRegCode": "Cell group code",
+  "cellRegCodeHint": "E.g.: N10, E4, L4",
+  "cellRegCodeRequired": "Enter the cell group code",
+  "cellRegCodeDuplicate": "A cell group with this code already exists in this church",
+  "cellRegName": "Name (optional)",
+  "cellRegAlias": "Alias",
+  "cellRegAliasHint": "e.g. cell.north.mb",
+  "cellRegAliasHelper": "Bank alias for transfers",
+  "cellRegAliasEmpty": "No alias",
+  "cellRegAliasEditAction": "Edit alias",
+  "cellRegAliasSaveSuccess": "Alias updated",
+  "cellRegNotes": "Notes (optional)",
+  "cellRegSuccess": "Cell group registered",
+  "cellRegDenied": "You do not have permission to register cell groups",
+  "cellRegSectionDisciples": "Disciples (optional)",
+  "cellRegDisciplesHint": "Add up to {max} new disciples or select ones not yet assigned to a cell group",
+  "cellRegSelectExistingDisciple": "Select existing",
+  "cellRegSelectDiscipleTitle": "Select disciple",
+  "cellRegSelectDiscipleHint": "Only disciples registered without a cell group assignment in your church are shown",
+  "cellRegSelectDiscipleRequiresChurch": "Disciples cannot be selected without a church assigned to your account",
+  "cellRegSelectDiscipleSearchHint": "Search by name, phone, or cell group",
+  "cellRegSelectDiscipleEmpty": "No unassigned disciples. Register them from Cell group → Register disciple",
+  "cellRegSelectDiscipleLoadError": "Could not load disciples",
+  "cellRegDiscipleFromCell": "Cell group: {cell}",
+  "@cellRegDiscipleFromCell": {
+    "placeholders": {
+      "cell": { "type": "String" }
+    }
+  },
+  "cellRegDiscipleAlreadySelected": "This disciple was already added",
+  "cellRegDiscipleExistingBadge": "Existing",
+  "cellRegDiscipleUnassignedBadge": "Unassigned",
+  "cellDiscipleUnassignedHint": "Will be saved without a cell group. You can assign them when creating a cell group.",
+  "cellDiscipleUnassignedSuccess": "Disciple registered without a cell group assignment",
+  "@cellRegDisciplesHint": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellRegDisciplesCount": "{current} of {max}",
+  "@cellRegDisciplesCount": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+  "cellRegDisciplesEmpty": "No disciples added yet",
+  "cellRegAddDisciple": "Add disciple",
+  "cellRegEditDisciple": "Edit disciple",
+  "cellRegDisciplesMaxReached": "Maximum {max} disciples when registering the cell group",
+  "@cellRegDisciplesMaxReached": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellRegSuccessWithDisciples": "Cell group registered with {count} disciple(s)",
+  "@cellRegSuccessWithDisciples": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "menuViewCells": "View cell groups",
+  "menuViewCellAttendanceReport": "Disciple attendance",
+  "menuCellAbsenceByLeader": "Absences by leader",
+  "menuCellAttendanceSessions": "My attendance records",
+  "menuRegisterCellDisciple": "Register disciple",
+  "cellDisciplePickCellTitle": "Select cell group",
+  "cellDisciplePickCellHint": "Choose the cell group to register the disciple in",
+  "cellsListTitle": "Cell groups",
+  "cellsListSearchHint": "Search by code, name, leader, or address",
+  "cellsListEmpty": "No cell groups registered",
+  "cellsListLoadError": "Could not load cell groups",
+  "cellsBlockTitle": "Block cell group",
+  "cellsUnblockTitle": "Unblock cell group",
+  "cellsBlockConfirm": "Block \"{name}\"? Attendance and member assignment will be disabled until you unblock it.",
+  "@cellsBlockConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellsUnblockConfirm": "Unblock \"{name}\" and allow its use again?",
+  "@cellsUnblockConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellsBlocked": "Cell group blocked",
+  "cellsUnblocked": "Cell group unblocked",
+  "cellsBlockedBanner": "This cell group is blocked. Attendance and member assignment are disabled.",
+  "cellsShowBlocked": "Show blocked ({count})",
+  "@cellsShowBlocked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellsHideBlocked": "Hide blocked ({count})",
+  "@cellsHideBlocked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellsListFilterOverCapacity": "More than {max} disciples",
+  "@cellsListFilterOverCapacity": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "cellsListMemberCount": "{count} disciples",
+  "@cellsListMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cellDiscipleTitle": "Register disciple",
+  "cellDiscipleForCell": "Cell group",
+  "cellDiscipleDenied": "You do not have permission to register disciples",
+  "cellDiscipleSuccess": "Disciple registered",
+  "cellDiscipleCellMissing": "Cell group not found",
+  "cellDiscipleEmailOptional": "Optional (no app login account)",
+  "cellDiscipleEmailLabel": "Email (optional)",
+  "cellDiscipleEmailHelper": "For contact only. Does not create an account or sign in to the app.",
+  "cellDiscipleChurchOfficeLabel": "Church office *",
+  "cellDiscipleChurchOfficeHelper": "Select the disciple's role or office in the church",
+  "cellDiscipleAdd": "Register disciple",
+  "cellDiscipleListTitle": "Disciples",
+  "cellDiscipleListEmpty": "No disciples in this cell group yet",
+  "cellDiscipleListCount": "{count} disciple(s)",
+  "@cellDiscipleListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cellDiscipleDeleteTitle": "Delete disciple",
+  "cellDiscipleDeleted": "Disciple deleted",
+  "cellHelpersTitle": "Cell group helpers",
+  "cellHelpersHint": "Select up to {max} disciples from this cell group as helpers",
+  "@cellHelpersHint": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellHelpersEmpty": "No helpers assigned yet",
+  "cellHelpersSelectAction": "Select helpers",
+  "cellHelpersCount": "{current} of {max}",
+  "@cellHelpersCount": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+  "cellHelpersMaxReached": "Maximum {max} helpers per cell group",
+  "@cellHelpersMaxReached": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellHelpersSaved": "Helpers updated",
+  "cellHelpersBadge": "Helper",
+  "cellAttendanceRegisterTitle": "Register attendance",
+  "cellAttendancePickCellTitle": "Register attendance",
+  "cellAttendancePickCellHint": "Select the cell group to register meeting attendance",
+  "cellAttendanceNoOwnCell": "You do not have an assigned cell",
+  "cellAttendanceDenied": "Only the cell group leader can register attendance",
+  "cellAttendanceNoDisciples": "Assign disciples to the cell before registering attendance",
+  "cellAttendanceLeaderRequired": "The cell group must have an assigned leader to register attendance",
+  "cellAttendanceMembersLoadError": "Could not load cell group disciples",
+  "cellAttendanceSectionWhen": "Date and time",
+  "cellAttendanceSectionWhere": "Location",
+  "cellAttendanceSectionRoll": "Disciple attendance",
+  "cellAttendanceSectionRollHint": "Mark who attended the cell group meeting",
+  "cellAttendanceSessionDate": "Meeting date",
+  "cellAttendanceSessionTime": "Time",
+  "cellAttendanceSessionPlace": "Meeting place",
+  "cellAttendanceSessionPlaceHint": "Address or location reference",
+  "cellAttendancePlaceRequired": "Enter the meeting place",
+  "cellAttendanceDayDiffersInfo": "The meeting was on {actualDay}, but the cell group is registered on {registeredDay}.",
+  "@cellAttendanceDayDiffersInfo": {
+    "placeholders": {
+      "registeredDay": { "type": "String" },
+      "actualDay": { "type": "String" }
+    }
+  },
+  "cellAttendanceDayChangeSwitch": "Record with a different day for this meeting",
+  "cellAttendanceDayChangeSwitchHint": "Applies only to this meeting, not the cell group's regular day",
+  "cellAttendanceDayChangeReason": "Reason for day change",
+  "cellAttendanceDayReasonRequired": "Explain why it was held on a different day",
+  "cellAttendanceLocationDiffersInfo": "The place is different from the one registered for the cell group.",
+  "cellAttendanceLocationChangeSwitch": "Record with a different place for this meeting",
+  "cellAttendanceLocationChangeSwitchHint": "Applies only to this meeting, not the cell group's regular address",
+  "cellAttendanceLocationChangeReason": "Reason for location change",
+  "cellAttendanceLocationReasonRequired": "Explain why it was held in another place",
+  "cellAttendanceSectionNotes": "Additional information",
+  "cellAttendanceSectionOffering": "Offering",
+  "cellAttendanceOfferingCollected": "Offering collected",
+  "cellAttendanceOfferingCollectedHint": "Amount or detail (optional)",
+  "cellAttendanceOfferingCash": "Cash offering",
+  "cellAttendanceOfferingCashHint": "Amount (optional)",
+  "cellAttendanceOfferingTransfer": "Transfer offering",
+  "cellAttendanceOfferingTransferHint": "Amount (optional)",
+  "cellAttendanceOfferingCashSummary": "Cash: {amount}",
+  "@cellAttendanceOfferingCashSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "cellAttendanceOfferingTransferSummary": "Transfer: {amount}",
+  "@cellAttendanceOfferingTransferSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "cellAttendanceOfferingAliasTitle": "Offering transfer alias",
+  "cellAttendanceOfferingAliasInfo": "Transfer to: {alias}",
+  "@cellAttendanceOfferingAliasInfo": {
+    "placeholders": {
+      "alias": { "type": "String" }
+    }
+  },
+  "cellAttendanceOfferingAliasMissing": "This church does not have a transfer alias yet",
+  "cellAttendanceOfferingQrHint": "Scan the QR code to transfer your offering",
+  "cellAttendanceObservations": "Observations",
+  "cellAttendanceObservationsHint": "Notes about the meeting (optional)",
+  "cellAttendanceOfferingSummary": "Offering: {amount}",
+  "@cellAttendanceOfferingSummary": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "cellAttendanceMarkAllPresent": "All present",
+  "cellAttendanceMarkAllAbsent": "All absent",
+  "cellAttendanceSaveAction": "Save attendance",
+  "cellAttendanceSaved": "Attendance saved",
+  "cellAttendanceUpdated": "Attendance updated",
+  "cellAttendanceDeleted": "Attendance deleted",
+  "cellAttendanceEditTitle": "Edit attendance",
+  "cellAttendanceEditAction": "Edit",
+  "cellAttendanceUpdateAction": "Save changes",
+  "cellAttendanceDeleteTitle": "Delete attendance",
+  "cellAttendanceDeleteAction": "Delete",
+  "cellAttendanceDeleteConfirm": "Delete attendance for {date}?",
+  "@cellAttendanceDeleteConfirm": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "cellAttendanceSessionsTitle": "My attendance records",
+  "cellAttendanceSessionsPickCellTitle": "My attendance records",
+  "cellAttendanceSessionsPickCellHint": "Select the cell group to view and manage recorded attendance",
+  "cellAttendanceSessionsDateRangeTitle": "Date range",
+  "cellAttendanceSessionsFromDate": "From {date}",
+  "@cellAttendanceSessionsFromDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "cellAttendanceSessionsToDate": "To {date}",
+  "@cellAttendanceSessionsToDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "cellAttendanceSessionsEmpty": "No attendance records in this date range",
+  "cellAttendanceManageDenied": "You do not have permission to manage attendance for this cell",
+  "cellAttendanceHistoryTitle": "Recent attendance",
+  "cellAttendanceHistoryRecentCount": "Last {count}",
+  "@cellAttendanceHistoryRecentCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellAttendancePresentCount": "{present} of {total} present",
+  "@cellAttendancePresentCount": {
+    "placeholders": {
+      "present": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "cellAttendanceDayChangedBadge": "Different day",
+  "cellAttendanceLocationChangedBadge": "Different place",
+  "cellAttendanceReportTitle": "Disciple attendance",
+  "cellAttendanceReportPickCellTitle": "Attendance by cell",
+  "cellAttendanceReportPickCellHint": "Select a cell group to view disciple attendance",
+  "cellAttendanceReportNoOwnCell": "You do not have an assigned cell",
+  "cellAttendanceReportDenied": "You do not have permission to view the attendance report",
+  "cellAttendanceReportSessionCount": "{count} meetings recorded",
+  "@cellAttendanceReportSessionCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellAttendanceReportFilteredSessionCount": "{filtered} of {total} meetings in range",
+  "@cellAttendanceReportFilteredSessionCount": {
+    "placeholders": {
+      "filtered": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "cellAttendanceReportWeekFilterTitle": "Week range",
+  "cellAttendanceReportWeekFrom": "From week",
+  "cellAttendanceReportWeekTo": "To week",
+  "cellAttendanceReportWeekAll": "All",
+  "cellAttendanceReportWeekPreset": "Last {count} wks",
+  "@cellAttendanceReportWeekPreset": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellAttendanceReportLegendTitle": "Consecutive absence alerts",
+  "cellAttendanceReportLegendExcellent": "Green: 0 or 1 consecutive absence",
+  "cellAttendanceReportLegendWarning": "Yellow: 2 consecutive absences",
+  "cellAttendanceReportLegendCritical": "Red: 3 or more consecutive absences",
+  "cellAbsenceByLeaderTitle": "Absences by leader",
+  "cellAbsenceByLeaderDenied": "Only the church administrator can view this report",
+  "cellAbsenceByLeaderNoChurch": "Your account has no church assigned",
+  "cellAbsenceByLeaderLoadError": "Could not load the absence report",
+  "cellAbsenceByLeaderEmpty": "There are no cell groups with an assigned leader in your church",
+  "cellAbsenceByLeaderCellLabel": "Cell {code}",
+  "@cellAbsenceByLeaderCellLabel": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+  "cellAbsenceByLeaderCriticalCount": "{count} disciples with 3+ consecutive absences",
+  "@cellAbsenceByLeaderCriticalCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellAbsenceByLeaderTotalCritical": "Total: {count} disciples in red alert",
+  "@cellAbsenceByLeaderTotalCritical": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellAbsenceByLeaderLeaderOk": "No disciples with 3 or more consecutive absences",
+  "cellAttendanceReportMembersTitle": "Disciples",
+  "cellAttendanceReportEmpty": "No disciples in this cell or no attendance recorded yet",
+  "cellAttendanceReportMemberStats": "{present} present · {consecutive} in a row · {total} roll calls",
+  "@cellAttendanceReportMemberStats": {
+    "placeholders": {
+      "present": { "type": "int" },
+      "consecutive": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "cellMemberAssignTitle": "Cell disciples",
+  "cellMemberAssignAction": "Assign disciples",
+  "cellDetailAssignDisciplesAction": "Assign disciples",
+  "cellMemberAssignAdd": "Add disciple",
+  "cellMemberRegisterNew": "Register new disciple",
+  "cellMemberRegisterTitle": "Register disciple in cell",
+  "cellMemberFormHint": "Register disciples for this cell group. If a visit is requested, the cell group leader will be assigned.",
+  "cellMemberFormSubmit": "Register in cell group",
+  "cellMemberWantsVisitSubtitle": "If a visit is requested, this cell group's leader will be assigned automatically",
+  "cellMemberIsNewBelieverSubtitle": "Turn on if this disciple should be registered as a new believer",
+  "cellMemberVisitLeaderHint": "{leader} will be assigned as leader (cell group {cell})",
+  "@cellMemberVisitLeaderHint": {
+    "placeholders": {
+      "leader": { "type": "String" },
+      "cell": { "type": "String" }
+    }
+  },
+  "cellMemberVisitNoLeader": "This cell group has no assigned leader. Assign a leader to the cell group or turn off the visit request.",
+  "cellClaimLeadershipTitle": "No cell leader assigned",
+  "cellClaimLeadershipSubtitle": "This cell group has no leader. You can assign yourself to register visits and disciples.",
+  "cellClaimLeadershipAction": "Assign myself as leader",
+  "cellClaimLeadershipSuccess": "You are now the leader of this cell group.",
+  "cellClaimLeadershipAlreadyAssigned": "You already lead another cell group. A leader can only lead one cell group.",
+  "cellClaimLeadershipDenied": "You do not have permission to assign yourself as leader of this cell group.",
+  "cellMemberRegisteredWithCellLeader": "{name} registered in {cell} with visit assigned to {leader}",
+  "@cellMemberRegisteredWithCellLeader": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "cell": { "type": "String" },
+      "leader": { "type": "String" }
+    }
+  },
+  "myAssignedCellTitle": "My cell",
+  "myAssignedCellDenied": "You do not have permission to view the assigned cell",
+  "myAssignedCellLoadError": "Could not load cell information",
+  "myAssignedCellNoLeaderProfile": "Your leader account is not linked to a leader profile in the system",
+  "myAssignedCellEmpty": "You do not have an assigned cell",
+  "myAssignedCellLeaderLabel": "Leader: {name}",
+  "@myAssignedCellLeaderLabel": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellMemberRegisteredAndAssigned": "{name} registered and assigned to {cell}",
+  "@cellMemberRegisteredAndAssigned": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "cell": { "type": "String" }
+    }
+  },
+  "cellMemberAssignHint": "Assign disciples without a cell to {cell}. Cell assignment is separate from the disciple's assigned leader.",
+  "@cellMemberAssignHint": {
+    "placeholders": {
+      "cell": { "type": "String" }
+    }
+  },
+  "cellMemberListTitle": "Disciples",
+  "cellMemberListEmpty": "No disciples assigned to this cell yet",
+  "cellMemberSelectTitle": "Select disciples",
+  "cellMemberSelectHint": "Only believers you registered, without a cell group assignment, are shown",
+  "cellMemberSelectConfirm": "Assign {count}",
+  "@cellMemberSelectConfirm": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellMemberSelectRequiresChurch": "Cannot assign disciples without a church on your account",
+  "cellMemberSelectSearchHint": "Search by name, phone or leader",
+  "cellMemberSelectEmpty": "No believers you registered are available to assign",
+  "cellMemberSelectMaxReached": "Maximum {max} disciple(s) per cell",
+  "@cellMemberSelectMaxReached": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellMemberSelectLimitHint": "You can select up to {max} disciple(s). A cell holds {total} at most.",
+  "@cellMemberSelectLimitHint": {
+    "placeholders": {
+      "max": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "cellMemberAssignLimitReached": "This cell already has the maximum of {max} disciples. No more can be assigned.",
+  "@cellMemberAssignLimitReached": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "cellMemberAssignLimitPartial": "Assigned {assigned} of {requested}: a cell holds {max} disciples at most.",
+  "@cellMemberAssignLimitPartial": {
+    "placeholders": {
+      "assigned": { "type": "int" },
+      "requested": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+  "cellMemberSelectLoadError": "Could not load disciples",
+  "cellMemberAssigned": "{name} assigned to the cell",
+  "@cellMemberAssigned": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellMemberAssignedMultiple": "{count} disciples assigned to the cell",
+  "@cellMemberAssignedMultiple": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "cellMemberUnassignTitle": "Remove from cell",
+  "cellMemberUnassignConfirm": "Remove {name} from this cell?",
+  "@cellMemberUnassignConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cellMemberUnassignAction": "Remove",
+  "cellMemberAssignGenderHint": "Only disciples of the same sex as the cell leader can be assigned ({gender}).",
+  "@cellMemberAssignGenderHint": {
+    "placeholders": {
+      "gender": { "type": "String" }
+    }
+  },
+  "cellMemberAssignLeaderGenderMissing": "The cell leader has no sex on file. Complete their profile before assigning disciples.",
+  "cellMemberAssignCellLeaderRequired": "This cell group must have an assigned leader before you can select disciples.",
+  "cellMemberAssignGenderMismatch": "You can only assign disciples of the same sex as the cell leader.",
+  "cellMemberAssignLeaderExcluded": "Leaders cannot be assigned as cell disciples.",
+  "cellMemberSelectEmptyGender": "No believers you registered of the same sex ({gender}) are available to assign.",
+  "@cellMemberSelectEmptyGender": {
+    "placeholders": {
+      "gender": { "type": "String" }
+    }
+  },
+  "cellMemberSelectGenderHint": "Only believers you registered, of the same sex ({gender}), without another cell group, are shown.",
+  "@cellMemberSelectGenderHint": {
+    "placeholders": {
+      "gender": { "type": "String" }
+    }
+  },
+  "cellMemberRegisterGenderLocked": "Must be {gender}, same as the cell leader.",
+  "@cellMemberRegisterGenderLocked": {
+    "placeholders": {
+      "gender": { "type": "String" }
+    }
+  },
+  "cellMemberUnassigned": "{name} is no longer assigned to this cell",
+  "@cellMemberUnassigned": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "baptismCalendarTitle": "Baptism calendar",
+  "baptismCalendarRegisterTitle": "Register baptism date",
+  "baptismCalendarAdd": "Register date",
+  "baptismCalendarTime": "Time (optional)",
+  "baptismCalendarTimeHint": "E.g.: 10:00",
+  "baptismCalendarLocation": "Location (optional)",
+  "baptismCalendarNotes": "Notes (optional)",
+  "baptismCalendarSuccess": "Baptism date registered",
+  "baptismCalendarDeleted": "Baptism date removed",
+  "baptismCalendarDenied": "You do not have permission to view the baptism calendar",
+  "baptismCalendarLoadError": "Could not load the baptism calendar",
+  "baptismCalendarEmpty": "No baptisms scheduled",
+  "baptismCalendarSelectDay": "Select a day on the calendar",
+  "baptismCalendarDayTitle": "Baptisms on {date}",
+  "@baptismCalendarDayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "baptismCalendarDayEmpty": "No baptisms scheduled for this day",
+  "baptismCalendarUpcoming": "Upcoming baptisms",
+  "baptismCalendarDeleteTitle": "Delete baptism date",
+  "baptismCalendarDeleteConfirm": "Delete the baptism scheduled for {date}?",
+  "@baptismCalendarDeleteConfirm": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "baptismCalendarAssignMembersAction": "Assign believers",
+  "baptismCalendarAssignMembersTitle": "Members for baptism",
+  "baptismCalendarAssignMembersHint": "Select unbaptized believers who will be baptized on this date",
+  "baptismCalendarAssignMembersSearchHint": "Search by name or phone",
+  "baptismCalendarAssignMembersEmpty": "No unbaptized believers available to assign",
+  "memberIsBaptized": "Baptized",
+  "memberIsBaptizedSubtitle": "When enabled, they will not appear in the baptism calendar",
+  "baptismCalendarAssignMembersLoadError": "Could not load members",
+  "baptismCalendarAssignMembersConfirm": "Save ({count})",
+  "@baptismCalendarAssignMembersConfirm": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "baptismCalendarAssignedCount": "{count} member(s) assigned",
+  "@baptismCalendarAssignedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "baptismCalendarMembersAssigned": "{count} member(s) assigned to the baptism",
+  "@baptismCalendarMembersAssigned": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "baptismCalendarAddForDay": "Schedule baptism for this day",
+  "baptismCalendarUpdated": "Baptism updated",
+  "baptismCalendarSelectEvent": "Event for this day",
+  "baptismCalendarMembersSection": "Assigned members",
+  "baptismCalendarMembersEmpty": "No members assigned yet",
+  "baptismCalendarDeleteAction": "Delete baptism",
+  "baptismCalendarCreateBelieverToBaptize": "Create new believer to baptize",
+  "baptismCalendarRegisterBelieverTitle": "Register believer to baptize",
+  "baptismCalendarRegisterBelieverButton": "Register believer",
+  "baptismCalendarBelieverCreatedScheduleFirst": "Believer registered. Schedule the baptism for this day to assign them.",
+  "baptismCalendarBelieverCreatedAndAssigned": "{name} registered and assigned to the baptism",
+  "@baptismCalendarBelieverCreatedAndAssigned": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "baptismCalendarBelieverAlreadyBaptized": "This believer is already marked as baptized",
+  "baptismCalendarBelieverAlreadyAssigned": "{name} is already assigned to this baptism",
+  "@baptismCalendarBelieverAlreadyAssigned": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "baptismCalendarPastReadOnlyHint": "This baptism date has passed. It cannot be edited; only confirm who was baptized.",
+  "baptismCalendarConfirmBaptizedSection": "Confirm baptized",
+  "baptismCalendarConfirmBaptizedHint": "Check the believers who were baptized on this date",
+  "baptismCalendarConfirmBaptizedAction": "Save confirmation",
+  "baptismCalendarConfirmBaptizedSuccess": "{count} believer(s) confirmed as baptized",
+  "@baptismCalendarConfirmBaptizedSuccess": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "baptismCalendarRemoveMemberTitle": "Remove from baptism",
+  "baptismCalendarRemoveMemberConfirm": "Remove {name} from this baptism?",
+  "@baptismCalendarRemoveMemberConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "baptismCalendarRemoveMemberAction": "Remove",
+  "baptismCalendarRemoveMemberSuccess": "{name} is no longer assigned to this baptism",
+  "@baptismCalendarRemoveMemberSuccess": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "leaderRegMobileRequired": "Enter the mobile number",
+  "leaderRegSectionAppAccess": "APP ACCESS",
+  "leaderRegEmailLoginHint": "The leader will sign in with their email as username.",
+  "leaderRegEmailLabel": "Email (login username)",
+  "leaderRegEmailLabelRequired": "Email (login username) *",
+  "leaderRegEmailLockedHelper": "The account was already created; the email cannot be changed here",
+  "leaderRegEmailAdminEditHelper": "This will also update the sign-in email",
+  "leaderRegEmailLoginHelper": "This will be the username to sign in",
+  "leaderRegEmailRequired": "Enter the leader's email",
+  "leaderRegEmailUpdateFailed": "Could not update the sign-in email: {message}",
+  "@leaderRegEmailUpdateFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderRegPasswordRequired": "Enter a password",
+  "leaderRegSubmitButton": "Register leader",
+  "leaderRegLastName": "Last name *",
+  "leaderRegLastNameRequired": "Enter the last name",
+  "leaderRegFirstNames": "First names *",
+  "leaderRegFirstNamesRequired": "Enter the first names",
+  "leaderRegBirthDate": "Date of birth",
+  "leaderRegAge": "Age",
+  "leaderWorkAgeRange": "Age range they work with",
+  "leaderWorkAgeRangeHelper": "Ages of the people they can accompany",
+  "leaderWorkAgeFrom": "From (years)",
+  "leaderWorkAgeTo": "To (years)",
+  "leaderWorkAgeFromRequired": "Enter the minimum age",
+  "leaderWorkAgeToRequired": "Enter the maximum age",
+  "leaderWorkAgeInvalid": "Enter a valid age (0–120)",
+  "leaderWorkAgeOrderInvalid": "Minimum age cannot be greater than maximum",
+  "adminRegNewTitle": "New administrator",
+  "adminRegEditTitle": "Edit administrator",
+  "adminRegNoChurches": "No active churches. Create one or unblock an existing church.",
+  "adminRegCreateChurch": "Create church",
+  "adminRegSelectChurch": "Select a church",
+  "adminRegNewChurch": "New church",
+  "adminRegChurchCreated": "Church created. Select it from the list.",
+  "adminRegSelectChurchForAdmin": "Select the church for this administrator.",
+  "adminRegUpdated": "Administrator updated",
+  "adminRegSuccess": "Administrator registered successfully",
+  "adminRegSaveProfileError": "Error saving the profile.",
+  "adminRegRegisterError": "Registration error: {error}",
+  "@adminRegRegisterError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "adminRegEditDenied": "Only the super administrator can edit administrators.",
+  "adminRegRegisterDenied": "Only the super administrator can register church administrators.",
+  "adminRegSectionAccount": "ACCOUNT",
+  "adminRegEmailLockedHelper": "The sign-in email cannot be changed from here.",
+  "adminRegSectionChurch": "ASSIGNED CHURCH",
+  "adminRegChurchHint": "This administrator will only manage the selected church.",
+  "adminRegSpecialStatistics": "Special statistics",
+  "adminRegSpecialStatisticsHint": "Allows viewing the offerings dashboard and other sensitive reports.",
+  "adminRegPasswordRequired": "Enter the password",
+  "adminRegRegisterButton": "Register administrator",
+  "editPersonalDataSectionName": "NAME",
+  "editPersonalDataSectionContact": "CONTACT",
+  "churchServiceStorageNotConfigured": "Firebase Storage is not enabled for this project. In Firebase Console → Storage, click \"Get started\", choose a location, and upload the logo again.",
+  "churchServicePermissionDenied": "You do not have permission to manage churches.",
+  "churchServiceNotFound": "The church no longer exists.",
+  "churchServiceUploadUnauthorized": "Not authorized to upload the file. In debug this is usually App Check: register the debug token in Firebase Console (correct project), or wait 15 min if throttled.",
+  "churchServiceAppCheckError": "App Check is not configured. In development: find \"App Check debug token\" in logcat, register it in Firebase Console → App Check → Android, then fully restart the app.",
+  "churchServiceAppCheckThrottled": "App Check blocked due to too many attempts. Wait 15 minutes, register the debug token in Firebase Console, or temporarily disable App Check enforcement on Storage.",
+  "churchServiceSaveError": "Error saving: {message}",
+  "@churchServiceSaveError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "userProfileAdminPermissionDenied": "You do not have permission to manage administrators.",
+  "userProfileError": "Error: {message}",
+  "@userProfileError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "supervisorServicePermissionDenied": "You do not have permission to assign leaders to supervisors."
+}

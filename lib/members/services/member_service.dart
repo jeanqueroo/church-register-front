@@ -1,0 +1,1248 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../cells/cell_leader_gender.dart';
+import '../../cells/cell_member_capacity.dart';
+import '../../cells/models/church_cell.dart';
+import '../../core/models/leader_gender.dart';
+import '../../core/search/firestore_search_text.dart';
+import '../../core/utils/birthday_date.dart';
+import '../../auth/models/app_user_role.dart';
+import '../../l10n/app_localizations.dart';
+import '../../leaders/models/church_leader.dart';
+import '../../leaders/models/church_office.dart';
+import '../../notifications/services/cell_capacity_notification_service.dart';
+import '../../notifications/services/leader_notification_service.dart';
+import '../models/church_member.dart';
+import '../models/member_assignment_kind.dart';
+import '../models/member_history_event.dart';
+import '../models/member_leadership_status.dart';
+import '../models/members_list_filter.dart';
+import '../models/members_page.dart';
+import '../../cells/models/cell_attendance_record.dart';
+import '../../cells/models/cell_helper.dart';
+
+class MemberService {
+  MemberService({
+    FirebaseFirestore? firestore,
+    LeaderNotificationService? notificationService,
+    CellCapacityNotificationService? capacityNotificationService,
+  })  : _members = (firestore ?? FirebaseFirestore.instance)
+            .collection('members'),
+        _notificationServiceOverride = notificationService,
+        _capacityNotificationService =
+            capacityNotificationService ?? CellCapacityNotificationService();
+
+  final CollectionReference<Map<String, dynamic>> _members;
+  final LeaderNotificationService? _notificationServiceOverride;
+  LeaderNotificationService? _notificationServiceLazy;
+  final CellCapacityNotificationService _capacityNotificationService;
+
+  LeaderNotificationService get _notificationService =>
+      _notificationServiceOverride ??
+      (_notificationServiceLazy ??= LeaderNotificationService());
+
+  CollectionReference<Map<String, dynamic>> get _cells =>
+      _members.firestore.collection('cells');
+
+  Future<void> _adjustCellMemberCount(String cellId, int delta) async {
+    if (cellId.trim().isEmpty || delta == 0) return;
+    await _cells.doc(cellId).set(
+      {
+        'memberCount': FieldValue.increment(delta),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  static const int membersPageSize = 50;
+
+  /// Presente en más de esta cantidad de reuniones de célula → deja de ser nuevo creyente.
+  static const int cellPresentAttendancesToGraduateNewBeliever = 3;
+
+  Stream<List<ChurchMember>> watchMembers({String? churchId}) {
+    final query = churchId != null && churchId.isNotEmpty
+        ? _members.where('churchId', isEqualTo: churchId)
+        : _members.orderBy('registeredAt', descending: true);
+    return query.snapshots().map((snapshot) {
+      final list = snapshot.docs.map(ChurchMember.fromFirestore).toList();
+      list.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
+      return list;
+    });
+  }
+
+  /// Lista paginada de creyentes (sin listener en tiempo real).
+  Future<MembersPage> fetchMembersPage({
+    String? churchId,
+    String? searchQuery,
+    DocumentSnapshot<Map<String, dynamic>>? startAfter,
+    MembersListFilter? filter,
+    bool newBelieversOnly = false,
+    int limit = membersPageSize,
+  }) async {
+    final resolvedFilter = filter ??
+        (newBelieversOnly ? MembersListFilter.newBelievers : null);
+    final trimmedSearch = normalizeSearchText(searchQuery ?? '');
+
+    if (trimmedSearch.isNotEmpty) {
+      return _fetchMembersClientSearchPage(
+        churchId: churchId,
+        trimmedSearch: trimmedSearch,
+        filter: resolvedFilter,
+      );
+    }
+
+    if (resolvedFilter != null) {
+      return _fetchFilteredMembersPage(
+        churchId: churchId,
+        startAfter: startAfter,
+        filter: resolvedFilter,
+        limit: limit,
+      );
+    }
+
+    Query<Map<String, dynamic>> query = _members;
+    if (churchId != null && churchId.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: churchId);
+    }
+
+    query = query.orderBy('registeredAt', descending: true);
+
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
+    final snapshot = await query.limit(limit + 1).get();
+    final docs = snapshot.docs;
+    final hasMore = docs.length > limit;
+    final pageDocs = hasMore ? docs.sublist(0, limit) : docs;
+
+    return MembersPage(
+      members: pageDocs.map(ChurchMember.fromFirestore).toList(),
+      hasMore: hasMore,
+      lastDocument: pageDocs.isEmpty ? startAfter : pageDocs.last,
+    );
+  }
+
+  /// Paginación con filtro de negocio (excluye liderazgo promovido, etc.).
+  Future<MembersPage> _fetchFilteredMembersPage({
+    required String? churchId,
+    required DocumentSnapshot<Map<String, dynamic>>? startAfter,
+    required MembersListFilter filter,
+    required int limit,
+  }) async {
+    final members = <ChurchMember>[];
+    DocumentSnapshot<Map<String, dynamic>>? cursor = startAfter;
+    var sourceExhausted = false;
+
+    while (members.length < limit && !sourceExhausted) {
+      Query<Map<String, dynamic>> query = _members;
+      if (churchId != null && churchId.isNotEmpty) {
+        query = query.where('churchId', isEqualTo: churchId);
+      }
+      final isNewBelieverEquals = filter.firestoreIsNewBelieverEquals;
+      if (isNewBelieverEquals != null) {
+        query = query.where('isNewBeliever', isEqualTo: isNewBelieverEquals);
+      }
+      query = query.orderBy('registeredAt', descending: true);
+      if (cursor != null) {
+        query = query.startAfterDocument(cursor);
+      }
+
+      final remaining = limit - members.length;
+      final snapshot = await query.limit(remaining + 15).get();
+      if (snapshot.docs.isEmpty) {
+        sourceExhausted = true;
+        break;
+      }
+
+      for (final doc in snapshot.docs) {
+        cursor = doc;
+        final member = ChurchMember.fromFirestore(doc);
+        if (!filter.matches(member)) continue;
+        members.add(member);
+        if (members.length >= limit) break;
+      }
+
+      if (snapshot.docs.length < remaining + 15) {
+        sourceExhausted = true;
+      }
+    }
+
+    return MembersPage(
+      members: members,
+      hasMore: !sourceExhausted && members.length >= limit,
+      lastDocument: cursor ?? startAfter,
+    );
+  }
+
+  /// Búsqueda en memoria: recorre creyentes y filtra por nombre, apellido, teléfono, etc.
+  Future<MembersPage> _fetchMembersClientSearchPage({
+    String? churchId,
+    required String trimmedSearch,
+    MembersListFilter? filter,
+  }) async {
+    final matches = <ChurchMember>[];
+    DocumentSnapshot<Map<String, dynamic>>? cursor;
+
+    while (true) {
+      Query<Map<String, dynamic>> query = _members;
+      if (churchId != null && churchId.isNotEmpty) {
+        query = query.where('churchId', isEqualTo: churchId);
+      }
+      final isNewBelieverEquals = filter?.firestoreIsNewBelieverEquals;
+      if (isNewBelieverEquals != null) {
+        query = query.where('isNewBeliever', isEqualTo: isNewBelieverEquals);
+      }
+      query = query.orderBy('registeredAt', descending: true);
+      if (cursor != null) {
+        query = query.startAfterDocument(cursor);
+      }
+
+      final snapshot = await query.limit(membersPageSize).get();
+      if (snapshot.docs.isEmpty) break;
+
+      for (final doc in snapshot.docs) {
+        final member = ChurchMember.fromFirestore(doc);
+        if (filter != null && !filter.matches(member)) continue;
+        if (member.matchesSearchQuery(trimmedSearch)) {
+          matches.add(member);
+        }
+      }
+
+      cursor = snapshot.docs.last;
+      if (snapshot.docs.length < membersPageSize) break;
+    }
+
+    matches.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
+
+    return MembersPage(
+      members: matches,
+      hasMore: false,
+      lastDocument: null,
+    );
+  }
+
+  /// Exportación: recorre todas las páginas que coinciden con el filtro.
+  Future<List<ChurchMember>> fetchAllMembersForExport({
+    String? churchId,
+    String? searchQuery,
+    MembersListFilter? filter,
+    bool newBelieversOnly = false,
+  }) async {
+    final all = <ChurchMember>[];
+    DocumentSnapshot<Map<String, dynamic>>? cursor;
+
+    while (true) {
+      final page = await fetchMembersPage(
+        churchId: churchId,
+        searchQuery: searchQuery,
+        startAfter: cursor,
+        filter: filter,
+        newBelieversOnly: newBelieversOnly,
+        limit: membersPageSize,
+      );
+      all.addAll(page.members);
+      if (!page.hasMore || page.lastDocument == null) break;
+      cursor = page.lastDocument;
+    }
+
+    return all;
+  }
+
+  /// Totales de creyentes y asignados a líder (tarjeta resumen).
+  Future<({int total, int assigned})> fetchMemberAssignmentStats({
+    String? churchId,
+    bool newBelieversOnly = false,
+  }) async {
+    Query<Map<String, dynamic>> base = _members;
+    if (churchId != null && churchId.isNotEmpty) {
+      base = base.where('churchId', isEqualTo: churchId);
+    }
+    if (newBelieversOnly) {
+      base = base.where('isNewBeliever', isEqualTo: true);
+    }
+
+    final totalFuture = base.count().get();
+    Query<Map<String, dynamic>> assignedQuery = base;
+    assignedQuery = assignedQuery.where('assignedLeaderId', isGreaterThan: '');
+    final assignedFuture = assignedQuery.count().get();
+
+    final results = await Future.wait([totalFuture, assignedFuture]);
+    return (
+      total: results[0].count ?? 0,
+      assigned: results[1].count ?? 0,
+    );
+  }
+
+  /// Solo nuevos creyentes asignados a un líder (lectura para rol líder).
+  Stream<List<ChurchMember>> watchMembersAssignedToLeader({
+    required String leaderId,
+    String? churchId,
+  }) {
+    return _members
+        .where('assignedLeaderId', isEqualTo: leaderId)
+        .where('isNewBeliever', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+      var list = snapshot.docs.map(ChurchMember.fromFirestore).toList();
+      if (churchId != null && churchId.isNotEmpty) {
+        list = list.where((member) {
+          final memberChurchId = member.churchId?.trim();
+          if (memberChurchId == null || memberChurchId.isEmpty) {
+            return true;
+          }
+          return memberChurchId == churchId;
+        }).toList();
+      }
+      list = list
+          .where((member) => member.isPastoralLeaderAssignment)
+          .toList();
+      list.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
+      return list;
+    });
+  }
+
+  /// Busca un integrante con el mismo número de documento en la iglesia.
+  /// Si [churchId] está vacío, busca en toda la colección.
+  /// [excludeMemberId] permite ignorar el propio registro al editar.
+  Future<String?> findMemberIdByDocumentNumber({
+    required String idDocumentNumber,
+    String? churchId,
+    String? excludeMemberId,
+  }) async {
+    final normalized = idDocumentNumber.trim();
+    if (normalized.isEmpty) return null;
+
+    Query<Map<String, dynamic>> query =
+        _members.where('idDocumentNumber', isEqualTo: normalized);
+    final church = churchId?.trim();
+    if (church != null && church.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: church);
+    }
+
+    final snapshot = await query.limit(5).get();
+    for (final doc in snapshot.docs) {
+      if (excludeMemberId != null &&
+          excludeMemberId.isNotEmpty &&
+          doc.id == excludeMemberId) {
+        continue;
+      }
+      return doc.id;
+    }
+    return null;
+  }
+
+  /// Integrante vinculado a un líder (p. ej. al editar su propio documento).
+  Future<String?> findMemberIdByLinkedLeaderId(String leaderId) async {
+    final normalized = leaderId.trim();
+    if (normalized.isEmpty) return null;
+
+    final snapshot = await _members
+        .where('linkedLeaderId', isEqualTo: normalized)
+        .limit(1)
+        .get();
+    if (snapshot.docs.isEmpty) return null;
+    return snapshot.docs.first.id;
+  }
+
+  /// Refleja en `members/{id}` los datos personales del líder vinculado.
+  Future<void> syncMemberPersonalDataFromLeader(
+    ChurchLeader leader, {
+    bool nameOnly = false,
+  }) async {
+    final leaderId = leader.id?.trim();
+    if (leaderId == null || leaderId.isEmpty) return;
+
+    final memberId = await findMemberIdByLinkedLeaderId(leaderId);
+    if (memberId == null) return;
+
+    final member = await fetchMemberById(memberId);
+    if (member == null) return;
+
+    final firstName = leader.firstName.trim();
+    final lastName = leader.lastName.trim();
+    if (firstName.isEmpty || lastName.isEmpty) return;
+
+    final data = <String, dynamic>{
+      'firstName': firstName,
+      'lastName': lastName,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+
+    if (!nameOnly) {
+      final documentNumber = leader.idDocumentNumber?.trim();
+      if (documentNumber != null && documentNumber.isNotEmpty) {
+        await _ensureDocumentNumberAvailable(
+          ChurchMember(
+            id: memberId,
+            firstName: firstName,
+            lastName: lastName,
+            phone: leader.mobilePhone,
+            idDocumentNumber: documentNumber,
+            churchId: member.churchId,
+            formDate: member.formDate,
+            registeredAt: member.registeredAt,
+            registeredBy: member.registeredBy,
+          ),
+        );
+      }
+
+      data.addAll({
+        'gender': leader.gender?.code,
+        'street': leader.street,
+        'streetNumber': leader.streetNumber,
+        'neighborhood': leader.neighborhood,
+        'locality': leader.locality,
+        'stateProvince': leader.stateProvince,
+        'postalCode': leader.postalCode,
+        'latitude': leader.latitude,
+        'longitude': leader.longitude,
+        'phone': leader.mobilePhone,
+        'idDocumentType': leader.idDocumentType?.name,
+        'idDocumentNumber': leader.idDocumentNumber,
+        'birthDate': leader.birthDate != null
+            ? Timestamp.fromDate(BirthdayDate.normalize(leader.birthDate)!)
+            : FieldValue.delete(),
+        'occupation': leader.occupation,
+        'maritalStatus': leader.maritalStatus?.name,
+      });
+    }
+
+    final searchMember = ChurchMember(
+      id: memberId,
+      firstName: firstName,
+      lastName: lastName,
+      gender: nameOnly ? member.gender : (leader.gender ?? member.gender),
+      street: nameOnly ? member.street : leader.street,
+      streetNumber: nameOnly ? member.streetNumber : leader.streetNumber,
+      neighborhood: nameOnly ? member.neighborhood : leader.neighborhood,
+      locality: nameOnly ? member.locality : leader.locality,
+      stateProvince: nameOnly ? member.stateProvince : leader.stateProvince,
+      postalCode: nameOnly ? member.postalCode : leader.postalCode,
+      latitude: nameOnly ? member.latitude : leader.latitude,
+      longitude: nameOnly ? member.longitude : leader.longitude,
+      phone: nameOnly ? member.phone : leader.mobilePhone,
+      idDocumentType:
+          nameOnly ? member.idDocumentType : leader.idDocumentType,
+      idDocumentNumber:
+          nameOnly ? member.idDocumentNumber : leader.idDocumentNumber,
+      birthDate: nameOnly ? member.birthDate : leader.birthDate,
+      occupation: nameOnly ? member.occupation : leader.occupation,
+      maritalStatus: nameOnly ? member.maritalStatus : leader.maritalStatus,
+      cellDay: member.cellDay,
+      cellTime: member.cellTime,
+      cellZone: member.cellZone,
+      observations: member.observations,
+      volunteer: member.volunteer,
+      assignedLeaderId: member.assignedLeaderId,
+      assignedLeaderName: member.assignedLeaderName,
+      assignedLeaderCellCode: member.assignedLeaderCellCode,
+      assignedLeaderFromRegistration: member.assignedLeaderFromRegistration,
+      assignmentKind: member.assignmentKind,
+      assignedCellId: member.assignedCellId,
+      assignedCellCode: member.assignedCellCode,
+      spiritualState: member.spiritualState,
+      assignedDistanceKm: member.assignedDistanceKm,
+      wantsVisit: member.wantsVisit,
+      isNewBeliever: member.isNewBeliever,
+      newBelieverAt: member.newBelieverAt,
+      isBaptized: member.isBaptized,
+      baptizedAt: member.baptizedAt,
+      entrySource: member.entrySource,
+      entrySourceStored: member.entrySourceStored,
+      formDate: member.formDate,
+      registeredAt: member.registeredAt,
+      registeredBy: member.registeredBy,
+      churchId: member.churchId,
+      leadershipStatus: member.leadershipStatus,
+      linkedLeaderId: member.linkedLeaderId,
+      promotedToLeaderAt: member.promotedToLeaderAt,
+      registrationSource: member.registrationSource,
+      pastoralAssignedAt: member.pastoralAssignedAt,
+      cellAssignedAt: member.cellAssignedAt,
+    );
+    data['searchName'] = searchMember.buildSearchIndex();
+    data['searchLastFirst'] = searchMember.buildSearchLastFirstIndex();
+
+    await _members.doc(memberId).update(data);
+  }
+
+  Future<void> _ensureDocumentNumberAvailable(ChurchMember member) async {
+    final number = member.idDocumentNumber?.trim();
+    if (number == null || number.isEmpty) return;
+    final existingId = await findMemberIdByDocumentNumber(
+      idDocumentNumber: number,
+      churchId: member.churchId,
+      excludeMemberId: member.id,
+    );
+    if (existingId != null) {
+      throw DuplicateMemberDocumentException(number);
+    }
+  }
+
+  Future<String> addMember(
+    ChurchMember member, {
+    bool notifyLeader = true,
+  }) async {
+    await _ensureDocumentNumberAvailable(member);
+    final ref = await _members.add(member.toMap());
+    await _appendMemberHistory(
+      memberId: ref.id,
+      event: MemberHistoryEvent(
+        type: MemberHistoryEventType.registered,
+        occurredAt: member.registeredAt,
+        performedBy: member.registeredBy,
+        details: {
+          if (member.registrationSource != null)
+            'registrationSource': member.registrationSource!.storageKey,
+          if (member.churchId != null) 'churchId': member.churchId,
+        },
+      ),
+    );
+    if (member.pastoralAssignedAt != null &&
+        member.assignedLeaderId?.trim().isNotEmpty == true) {
+      await _appendMemberHistory(
+        memberId: ref.id,
+        event: MemberHistoryEvent(
+          type: MemberHistoryEventType.pastoralAssigned,
+          occurredAt: member.pastoralAssignedAt!,
+          performedBy: member.registeredBy,
+          details: {
+            'leaderId': member.assignedLeaderId,
+            if (member.assignedLeaderName != null)
+              'leaderName': member.assignedLeaderName,
+          },
+        ),
+      );
+    }
+    if (notifyLeader) {
+      await _notifyLeaderIfAssigned(
+        memberId: ref.id,
+        member: member,
+        previousLeaderId: null,
+      );
+    }
+    return ref.id;
+  }
+
+  Future<void> updateMember(
+    ChurchMember member, {
+    String? previousAssignedLeaderId,
+  }) async {
+    final id = member.id;
+    if (id == null || id.isEmpty) {
+      throw ArgumentError('El integrante debe tener id para actualizar');
+    }
+    await _ensureDocumentNumberAvailable(member);
+    final data = member.toMap();
+    if (!member.isBaptized) {
+      data['baptizedAt'] = FieldValue.delete();
+    }
+    await _members.doc(id).update(data);
+    await _notifyLeaderIfAssigned(
+      memberId: id,
+      member: member,
+      previousLeaderId: previousAssignedLeaderId,
+    );
+  }
+
+  Future<void> updateMembersBaptismConfirmation({
+    required List<String> baptizedMemberIds,
+    required List<String> notBaptizedMemberIds,
+    required DateTime baptizedAt,
+    String? performedBy,
+  }) async {
+    final batch = FirebaseFirestore.instance.batch();
+    final at = Timestamp.fromDate(
+      DateTime(baptizedAt.year, baptizedAt.month, baptizedAt.day),
+    );
+    final confirmedAt = DateTime.now();
+
+    for (final id in baptizedMemberIds) {
+      if (id.trim().isEmpty) continue;
+      batch.update(_members.doc(id), {
+        'isBaptized': true,
+        'isNewBeliever': false,
+        'baptizedAt': at,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+
+    for (final id in notBaptizedMemberIds) {
+      if (id.trim().isEmpty) continue;
+      batch.update(_members.doc(id), {
+        'isBaptized': false,
+        'baptizedAt': FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+
+    if (baptizedMemberIds.isEmpty && notBaptizedMemberIds.isEmpty) return;
+    await batch.commit();
+
+    for (final id in baptizedMemberIds) {
+      if (id.trim().isEmpty) continue;
+      await _appendMemberHistory(
+        memberId: id,
+        event: MemberHistoryEvent(
+          type: MemberHistoryEventType.baptizedConfirmed,
+          occurredAt: confirmedAt,
+          performedBy: performedBy,
+          details: {
+            'baptizedAt': at.millisecondsSinceEpoch,
+          },
+        ),
+      );
+    }
+  }
+
+  Future<void> markMemberPromotedToLeader({
+    required String memberId,
+    required String leaderId,
+  }) {
+    return markMemberLeadershipStatus(
+      memberId: memberId,
+      leaderId: leaderId,
+      status: MemberLeadershipStatus.promotedToLeader,
+    );
+  }
+
+  Future<void> markMemberLeadershipStatus({
+    required String memberId,
+    required String leaderId,
+    required MemberLeadershipStatus status,
+  }) async {
+    if (memberId.isEmpty || leaderId.isEmpty) {
+      throw ArgumentError('memberId and leaderId are required');
+    }
+    await _members.doc(memberId).update({
+      'leadershipStatus': status.name,
+      'linkedLeaderId': leaderId,
+      'promotedToLeaderAt': FieldValue.serverTimestamp(),
+      'isNewBeliever': false,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  static MemberLeadershipStatus leadershipStatusForLeader(ChurchLeader leader) {
+    final roles = leader.appRoles ?? const <String>[];
+    if (roles.contains(AppUserRole.registrar) ||
+        leader.churchOffice == ChurchOffice.voluntario) {
+      return MemberLeadershipStatus.promotedToVolunteer;
+    }
+    return MemberLeadershipStatus.promotedToLeader;
+  }
+
+  /// Registro directo en «Nuevo líder» (rol líder o supervisor).
+  static MemberLeadershipStatus leadershipStatusForNewLeaderRegistration(
+    ChurchLeader leader,
+  ) {
+    final roles = leader.appRoles ?? const <String>[];
+    if (roles.contains(AppUserRole.registrar) ||
+        leader.churchOffice == ChurchOffice.voluntario) {
+      return MemberLeadershipStatus.promotedToVolunteer;
+    }
+    return MemberLeadershipStatus.createdAsLeader;
+  }
+
+  /// Crea un integrante vinculado a un líder recién registrado.
+  Future<String> createMemberForLeader({
+    required ChurchLeader leader,
+    required String leaderId,
+    required String registeredBy,
+  }) async {
+    final now = DateTime.now();
+    final leadershipStatus = leadershipStatusForNewLeaderRegistration(leader);
+    final member = ChurchMember(
+      firstName: leader.firstName,
+      lastName: leader.lastName,
+      gender: leader.gender,
+      street: leader.street,
+      streetNumber: leader.streetNumber,
+      neighborhood: leader.neighborhood,
+      locality: leader.locality,
+      stateProvince: leader.stateProvince,
+      postalCode: leader.postalCode,
+      latitude: leader.latitude,
+      longitude: leader.longitude,
+      phone: leader.mobilePhone,
+      idDocumentType: leader.idDocumentType,
+      idDocumentNumber: leader.idDocumentNumber,
+      birthDate: leader.birthDate,
+      occupation: leader.occupation,
+      maritalStatus: leader.maritalStatus,
+      isNewBeliever: false,
+      isBaptized: true,
+      baptizedAt: now,
+      wantsVisit: false,
+      formDate: now,
+      registeredAt: leader.registeredAt,
+      registeredBy: registeredBy,
+      churchId: leader.churchId,
+      leadershipStatus: leadershipStatus,
+      linkedLeaderId: leaderId,
+      promotedToLeaderAt: now,
+    );
+    return addMember(member, notifyLeader: false);
+  }
+
+  /// Si ya existe integrante (p. ej. ayudante de célula), lo marca; si no, crea uno.
+  Future<void> syncMemberForPromotedLeader({
+    required ChurchLeader leader,
+    required String leaderId,
+    required String registeredBy,
+    String? existingMemberId,
+  }) async {
+    final memberId = existingMemberId?.trim();
+    if (memberId != null && memberId.isNotEmpty) {
+      await markMemberLeadershipStatus(
+        memberId: memberId,
+        leaderId: leaderId,
+        status: MemberLeadershipStatus.promotedToLeader,
+      );
+      return;
+    }
+    await createMemberForLeader(
+      leader: leader,
+      leaderId: leaderId,
+      registeredBy: registeredBy,
+    );
+  }
+
+  Future<ChurchMember?> fetchMemberById(String id) async {
+    final doc = await _members.doc(id).get();
+    if (!doc.exists) return null;
+    return ChurchMember.fromFirestore(doc);
+  }
+
+  Stream<List<ChurchMember>> watchMembersInCell(String cellId) {
+    return _members
+        .where('assignedCellId', isEqualTo: cellId)
+        .snapshots()
+        .map((snapshot) {
+      final list = snapshot.docs.map(ChurchMember.fromFirestore).toList();
+      list.sort((a, b) => a.fullName.compareTo(b.fullName));
+      return list;
+    });
+  }
+
+  Future<List<ChurchMember>> fetchMembersInCell(String cellId) async {
+    if (cellId.isEmpty) return [];
+    final snapshot =
+        await _members.where('assignedCellId', isEqualTo: cellId).get();
+    final list = snapshot.docs.map(ChurchMember.fromFirestore).toList();
+    list.sort((a, b) => a.fullName.compareTo(b.fullName));
+    return list;
+  }
+
+  /// Integrantes sin bautizar disponibles para asignar a una fecha de bautismo.
+  Future<List<ChurchMember>> fetchMembersForBaptismAssignment({
+    required String? churchId,
+    String? assignedLeaderId,
+    Set<String> includeMemberIds = const {},
+  }) async {
+    if (churchId == null || churchId.isEmpty) return [];
+
+    Query<Map<String, dynamic>> query =
+        _members.where('churchId', isEqualTo: churchId);
+    final leaderId = assignedLeaderId?.trim();
+    if (leaderId != null && leaderId.isNotEmpty) {
+      query = query.where('assignedLeaderId', isEqualTo: leaderId);
+    }
+
+    final snapshot = await query.get();
+    final pastBaptizedIds = await _memberIdsFromPastBaptisms(churchId);
+    final list = snapshot.docs.map(ChurchMember.fromFirestore).where((member) {
+      final id = member.id;
+      if (id == null || id.isEmpty) return false;
+      if (includeMemberIds.contains(id)) return true;
+      if (!member.canBeAssignedToBaptism) return false;
+      if (pastBaptizedIds.contains(id)) return false;
+      return true;
+    }).toList();
+    list.sort((a, b) => a.fullName.compareTo(b.fullName));
+    return list;
+  }
+
+  Future<Set<String>> _memberIdsFromPastBaptisms(String churchId) async {
+    final snapshot = await (FirebaseFirestore.instance)
+        .collection('baptismCalendar')
+        .where('churchId', isEqualTo: churchId)
+        .get();
+    final today = DateTime.now();
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    final ids = <String>{};
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final baptismTimestamp = data['baptismDate'];
+      if (baptismTimestamp is! Timestamp) continue;
+      final baptismDate = baptismTimestamp.toDate();
+      final dateOnly = DateTime(
+        baptismDate.year,
+        baptismDate.month,
+        baptismDate.day,
+      );
+      if (dateOnly.isAfter(todayOnly)) continue;
+
+      final assigned = data['assignedMembers'];
+      if (assigned is! List) continue;
+      for (final item in assigned) {
+        if (item is! Map) continue;
+        final memberId = item['memberId'];
+        if (memberId is String && memberId.isNotEmpty) {
+          ids.add(memberId);
+        }
+      }
+    }
+
+    return ids;
+  }
+
+  Future<List<ChurchMember>> fetchMembersWithoutCell({
+    required String? churchId,
+    LeaderGender? matchingGender,
+  }) async {
+    if (churchId == null || churchId.isEmpty) return [];
+
+    final snapshot =
+        await _members.where('churchId', isEqualTo: churchId).get();
+
+    var list = snapshot.docs
+        .map(ChurchMember.fromFirestore)
+        .where((member) => !member.isAssignedToCell)
+        .where((member) => member.canBeAssignedAsCellDisciple)
+        .toList();
+    if (matchingGender != null) {
+      list = list.where((member) => member.gender == matchingGender).toList();
+    }
+    list.sort((a, b) => a.fullName.compareTo(b.fullName));
+    return list;
+  }
+
+  /// Creyentes sin célula aptos para asignar.
+  /// Si [filterByRegistrar] es true, solo los de [registeredBy] (email o id)
+  /// o con ese valor en `assignedLeaderId`. Admin suele pasar `false`.
+  Future<List<ChurchMember>> fetchMembersForCellAssignment({
+    required String? churchId,
+    String? registeredBy,
+    LeaderGender? matchingGender,
+    bool filterByRegistrar = true,
+  }) async {
+    if (churchId == null || churchId.isEmpty) return [];
+
+    final base = _members.where('churchId', isEqualTo: churchId);
+    final List<QuerySnapshot<Map<String, dynamic>>> snapshots;
+
+    if (!filterByRegistrar) {
+      snapshots = [await base.get()];
+    } else {
+      final registrar = registeredBy?.trim();
+      if (registrar == null || registrar.isEmpty) return [];
+      snapshots = await Future.wait([
+        base.where('registeredBy', isEqualTo: registrar).get(),
+        base.where('assignedLeaderId', isEqualTo: registrar).get(),
+      ]);
+    }
+
+    final byId = <String, ChurchMember>{};
+    for (final snapshot in snapshots) {
+      for (final doc in snapshot.docs) {
+        byId.putIfAbsent(doc.id, () => ChurchMember.fromFirestore(doc));
+      }
+    }
+
+    var list = byId.values
+        .where((member) => !member.isAssignedToCell)
+        .where((member) => member.canBeAssignedAsCellDisciple)
+        .toList();
+    if (matchingGender != null) {
+      list = list.where((member) => member.gender == matchingGender).toList();
+    }
+    list.sort((a, b) => a.fullName.compareTo(b.fullName));
+    return list;
+  }
+
+  Future<int> countMembersInCell(String cellId) async {
+    if (cellId.isEmpty) return 0;
+    final snapshot =
+        await _members.where('assignedCellId', isEqualTo: cellId).get();
+    return snapshot.docs.length;
+  }
+
+  /// Integrantes asignados por `assignedCellId` (una consulta por iglesia).
+  Future<Map<String, int>> fetchMemberCountsByCellForChurch(
+    String? churchId,
+  ) async {
+    Query<Map<String, dynamic>> query = _members;
+    if (churchId != null && churchId.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: churchId);
+    }
+
+    final snapshot = await query.get();
+    final counts = <String, int>{};
+
+    for (final doc in snapshot.docs) {
+      final cellId = (doc.data()['assignedCellId'] as String? ?? '').trim();
+      if (cellId.isEmpty) continue;
+      counts[cellId] = (counts[cellId] ?? 0) + 1;
+    }
+
+    return counts;
+  }
+
+  Future<bool> assignMemberToCell({
+    required ChurchMember member,
+    required ChurchCell cell,
+    String? actingLeaderId,
+    LeaderGender? requiredLeaderGender,
+    bool allowExceedCapacityForNewRegistration = false,
+    String? performedBy,
+    Iterable<String> supervisedLeaderIds = const [],
+  }) async {
+    final memberId = member.id;
+    final cellId = cell.id;
+    if (memberId == null || memberId.isEmpty) {
+      throw ArgumentError('El integrante debe tener id');
+    }
+    if (cellId == null || cellId.isEmpty) {
+      throw ArgumentError('La célula debe tener id');
+    }
+
+    if (!member.canBeAssignedAsCellDisciple) {
+      throw CellAssignmentLeaderException();
+    }
+
+    if (requiredLeaderGender != null &&
+        !memberMatchesCellLeaderGender(
+          memberGender: member.gender,
+          leaderGender: requiredLeaderGender,
+        )) {
+      throw CellAssignmentGenderException();
+    }
+
+    final currentCount = cell.memberCount ?? await countMembersInCell(cellId);
+    if (currentCount >= CellMemberCapacity.maxAssignableMembers) {
+      throw CellAssignmentLimitException();
+    }
+    if (allowExceedCapacityForNewRegistration &&
+        currentCount >= CellMemberCapacity.maxMembers &&
+        !CellMemberCapacity.canManageCellMembers(
+          cell: cell,
+          actingLeaderId: actingLeaderId,
+          supervisedLeaderIds: supervisedLeaderIds,
+        )) {
+      throw CellAssignmentLeaderOnlyException();
+    }
+
+    if (!allowExceedCapacityForNewRegistration &&
+        !CellMemberCapacity.canAssignAnother(
+          currentCount: currentCount,
+          cell: cell,
+          actingLeaderId: actingLeaderId,
+        )) {
+      throw CellAssignmentLimitException();
+    }
+
+    final memberSnap = await _members.doc(memberId).get();
+    final existingData = memberSnap.data();
+    final previousCellId =
+        (existingData?['assignedCellId'] as String? ?? '').trim();
+    final hasCellAssignedAt =
+        existingData?['cellAssignedAt'] is Timestamp;
+
+    final updates = <String, dynamic>{
+      'assignedCellId': cellId,
+      'assignedCellCode': cell.code.trim(),
+      'assignmentKind': MemberAssignmentKind.cell.storageKey,
+      'assignedLeaderFromRegistration': false,
+      if (!hasCellAssignedAt) 'cellAssignedAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+
+    await _members.doc(memberId).update(updates);
+
+    if (previousCellId != cellId) {
+      if (previousCellId.isNotEmpty) {
+        await _adjustCellMemberCount(previousCellId, -1);
+      }
+      await _adjustCellMemberCount(cellId, 1);
+    }
+
+    await _appendMemberHistory(
+      memberId: memberId,
+      event: MemberHistoryEvent(
+        type: MemberHistoryEventType.cellAssigned,
+        occurredAt: DateTime.now(),
+        performedBy: performedBy ?? member.registeredBy,
+        details: {
+          'cellId': cellId,
+          'cellCode': cell.code.trim(),
+          if (actingLeaderId != null) 'actingLeaderId': actingLeaderId,
+        },
+      ),
+    );
+
+    final memberCount =
+        previousCellId == cellId ? currentCount : currentCount + 1;
+    final capacityExceeded = memberCount > CellMemberCapacity.maxMembers;
+    if (capacityExceeded) {
+      _notifyCapacityExceededInBackground(
+        cell: cell,
+        memberCount: memberCount,
+        memberId: memberId,
+        memberName: member.fullName,
+      );
+    }
+    return capacityExceeded;
+  }
+
+  void _notifyCapacityExceededInBackground({
+    required ChurchCell cell,
+    required int memberCount,
+    required String memberId,
+    required String memberName,
+  }) {
+    unawaited(
+      _capacityNotificationService
+          .notifyAdminsIfExceeded(
+            cell: cell,
+            memberCount: memberCount,
+            memberId: memberId,
+            memberName: memberName,
+          )
+          .catchError((_) => false),
+    );
+  }
+
+  Future<void> unassignMemberFromCell(
+    String memberId, {
+    String? performedBy,
+  }) async {
+    if (memberId.isEmpty) {
+      throw ArgumentError('El integrante debe tener id');
+    }
+
+    final memberRef = _members.doc(memberId);
+    final memberSnap = await memberRef.get();
+    if (!memberSnap.exists) return;
+
+    final cellId =
+        (memberSnap.data()?['assignedCellId'] as String? ?? '').trim();
+
+    final batch = _members.firestore.batch();
+    batch.update(memberRef, {
+      'assignedCellId': FieldValue.delete(),
+      'assignedCellCode': FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    if (cellId.isNotEmpty) {
+      final cellRef = _members.firestore.collection('cells').doc(cellId);
+      final cellSnap = await cellRef.get();
+      if (cellSnap.exists) {
+        final helpers =
+            CellHelper.listFromFirestore(cellSnap.data()?['helpers']);
+        if (helpers.any((helper) => helper.memberId == memberId)) {
+          batch.update(cellRef, {
+            'helpers': helpers
+                .where((helper) => helper.memberId != memberId)
+                .map((helper) => helper.toMap())
+                .toList(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+    }
+
+    await batch.commit();
+
+    if (cellId.isNotEmpty) {
+      await _adjustCellMemberCount(cellId, -1);
+      await _appendMemberHistory(
+        memberId: memberId,
+        event: MemberHistoryEvent(
+          type: MemberHistoryEventType.cellUnassigned,
+          occurredAt: DateTime.now(),
+          performedBy: performedBy,
+          details: {'cellId': cellId},
+        ),
+      );
+    }
+  }
+
+  CollectionReference<Map<String, dynamic>> _memberHistory(String memberId) {
+    return _members.doc(memberId).collection('history');
+  }
+
+  Future<void> _appendMemberHistory({
+    required String memberId,
+    required MemberHistoryEvent event,
+  }) async {
+    if (memberId.trim().isEmpty) return;
+    await _memberHistory(memberId).add(event.toMap());
+  }
+
+  Stream<List<MemberHistoryEvent>> watchMemberHistory(String memberId) {
+    return _memberHistory(memberId)
+        .orderBy('occurredAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(MemberHistoryEvent.fromFirestore)
+              .toList(),
+        );
+  }
+
+  /// Al asignar ayudantes de célula dejan de figurar como nuevo creyente.
+  Future<void> clearNewBelieverForCellHelpers(Iterable<String> memberIds) async {
+    final ids = memberIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    if (ids.isEmpty) return;
+
+    final batch = _members.firestore.batch();
+    for (final memberId in ids) {
+      batch.update(_members.doc(memberId), {
+        'isNewBeliever': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    await batch.commit();
+  }
+
+  /// Pasa un nuevo creyente a miembro de iglesia (`isNewBeliever: false`).
+  Future<void> markAsChurchMember(String memberId) async {
+    final id = memberId.trim();
+    if (id.isEmpty) {
+      throw ArgumentError('El integrante debe tener id');
+    }
+    await _members.doc(id).update({
+      'isNewBeliever': false,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Tras registrar asistencia: quita `isNewBeliever` a quienes acumulan más de
+  /// [cellPresentAttendancesToGraduateNewBeliever] presentes en la célula.
+  Future<void> graduateNewBelieversFromCellAttendance({
+    required String cellId,
+  }) async {
+    if (cellId.isEmpty) return;
+
+    final sessionsSnapshot = await _members.firestore
+        .collection('cells')
+        .doc(cellId)
+        .collection('sessions')
+        .get();
+
+    final presentCounts = <String, int>{};
+    for (final doc in sessionsSnapshot.docs) {
+      final records = CellAttendanceRecord.listFromFirestore(
+        doc.data()['records'],
+      );
+      for (final record in records) {
+        if (!record.present) continue;
+        final id = record.memberId.trim();
+        if (id.isEmpty) continue;
+        presentCounts[id] = (presentCounts[id] ?? 0) + 1;
+      }
+    }
+
+    final toGraduate = presentCounts.entries
+        .where(
+          (e) => e.value > cellPresentAttendancesToGraduateNewBeliever,
+        )
+        .map((e) => e.key)
+        .toList();
+
+    if (toGraduate.isEmpty) return;
+
+    final batch = _members.firestore.batch();
+    for (final memberId in toGraduate) {
+      batch.update(_members.doc(memberId), {
+        'isNewBeliever': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    await batch.commit();
+  }
+
+  Future<void> _notifyLeaderIfAssigned({
+    required String memberId,
+    required ChurchMember member,
+    required String? previousLeaderId,
+  }) async {
+    if (!member.isPastoralLeaderAssignment) return;
+    final leaderId = member.assignedLeaderId?.trim();
+    if (leaderId == null || leaderId.isEmpty) return;
+    if (previousLeaderId != null && previousLeaderId == leaderId) return;
+
+    try {
+      await _notificationService.notifyMemberAssigned(
+        leaderId: leaderId,
+        memberId: memberId,
+        memberName: member.fullName,
+      );
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        return;
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> deleteMember(String id) {
+    return _members.doc(id).delete();
+  }
+
+  static String messageForDuplicateDocument(AppLocalizations l10n) {
+    return l10n.memberIdDocumentNumberAlreadyExists;
+  }
+
+  static String messageForCellAssignmentLimit(AppLocalizations l10n) {
+    return l10n.cellMemberAssignLimitReached(
+      CellMemberCapacity.maxAssignableMembers,
+    );
+  }
+
+  static String messageForCellAssignmentGender(AppLocalizations l10n) {
+    return l10n.cellMemberAssignGenderMismatch;
+  }
+
+  static String messageForCellAssignmentLeaderOnly(AppLocalizations l10n) {
+    return l10n.cellMemberRegisterLeaderOnlyAtCapacity;
+  }
+
+  static String messageForCellAssignmentLeader(AppLocalizations l10n) {
+    return l10n.cellMemberAssignLeaderExcluded;
+  }
+
+  static String messageFromFirestoreException(
+    FirebaseException e,
+    AppLocalizations l10n,
+  ) {
+    switch (e.code) {
+      case 'permission-denied':
+        return l10n.firestorePermissionDenied;
+      case 'unavailable':
+        return l10n.firestoreUnavailable;
+      case 'not-found':
+        return l10n.firestoreNotFound;
+      case 'failed-precondition':
+        return l10n.firestoreGenericError;
+      default:
+        return l10n.firestoreGenericError;
+    }
+  }
+}
+
+class DuplicateMemberDocumentException implements Exception {
+  DuplicateMemberDocumentException(this.documentNumber);
+
+  final String documentNumber;
+}

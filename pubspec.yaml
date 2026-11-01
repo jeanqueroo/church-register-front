@@ -1,0 +1,75 @@
+name: church_register
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.24+25
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  firebase_core: ^4.9.0
+  firebase_auth: ^6.5.1
+  firebase_messaging: ^16.0.4
+  cloud_firestore: ^6.4.1
+  firebase_storage: ^13.0.0
+  image_picker: ^1.1.2
+  flutter_local_notifications: ^19.4.0
+  http: ^1.6.0
+  excel: ^4.0.6
+  path_provider: ^2.1.5
+  share_plus: ^12.0.2
+  shared_preferences: ^2.5.3
+  intl: ^0.20.2
+  google_maps_flutter: ^2.14.2
+  url_launcher: ^6.3.2
+  fl_chart: ^1.2.0
+  google_fonts: ^8.1.0
+  firebase_app_check: ^0.4.5+2
+  cloud_functions: ^6.0.4
+  
+  # 👇 AGREGADOS PARA EL PDF 👇
+  pdf: ^3.12.0
+  printing: ^5.14.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  # 👇 ELIMINADO fl_chart DE AQUÍ (estaba duplicado) 👇
+
+  flutter_lints: ^5.0.0
+  firebase_core_platform_interface: ^8.0.0
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/images/logo_manantial_splash_1024.png
+  adaptive_icon_background: "#1B3A5C"
+  adaptive_icon_foreground: assets/images/logo_manantial_splash_1024.png
+  remove_alpha_ios: true
+
+flutter_native_splash:
+  color: "#0B1F4D"
+  image: assets/images/flutter_splash_1152.png
+  android_12:
+    color: "#0B1F4D"
+    image: assets/images/android12_splash.png
+    icon_background_color: "#ffffff"
+  android: true
+  ios: true
+  web: false
+
+flutter:
+  generate: true
+  uses-material-design: true
+
+  assets:
+    - assets/images/logo_iglesia.png
