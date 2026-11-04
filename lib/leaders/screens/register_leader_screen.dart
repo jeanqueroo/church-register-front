@@ -16,6 +16,7 @@ import '../../core/models/geo_location.dart';
 import '../../core/models/leader_gender.dart';
 import '../../core/widgets/form_section_title.dart';
 import '../../l10n/app_localizations.dart';
+import '../../members/models/church_member.dart';
 import '../../members/models/id_document_type.dart';
 import '../models/church_leader.dart';
 import '../models/leader_registration_source.dart';
@@ -31,6 +32,7 @@ class RegisterLeaderScreen extends StatefulWidget {
     this.churchId,
     this.leaderService,
     this.leaderToEdit,
+    this.memberToPromote,
     this.permissions,
   });
 
@@ -39,9 +41,14 @@ class RegisterLeaderScreen extends StatefulWidget {
   final String? churchId;
   final LeaderService? leaderService;
   final ChurchLeader? leaderToEdit;
+  /// Miembro existente a promover a líder (prellena el formulario).
+  final ChurchMember? memberToPromote;
   final AppPermissions? permissions;
 
   bool get isEditing => leaderToEdit != null;
+
+  bool get isPromotingMember =>
+      memberToPromote != null && leaderToEdit == null;
 
   AppPermissions get _permissions =>
       permissions ?? AppPermissions.adminDefault();
@@ -105,6 +112,14 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
       (_selectedRoles.contains(AppUserRole.leader) ||
           _selectedRoles.contains(AppUserRole.supervisor));
 
+  String? get _effectiveChurchId {
+    final fromWidget = widget.churchId?.trim();
+    if (fromWidget != null && fromWidget.isNotEmpty) return fromWidget;
+    final fromMember = widget.memberToPromote?.churchId?.trim();
+    if (fromMember != null && fromMember.isNotEmpty) return fromMember;
+    return null;
+  }
+
   (int?, int?) get _parsedWorkAgeRange {
     if (!_showsWorkAgeRange) return (null, null);
     return (
@@ -120,6 +135,8 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     if (widget.leaderToEdit != null) {
       _loadLeader(widget.leaderToEdit!);
       _loadUserRoles(widget.leaderToEdit!);
+    } else if (widget.memberToPromote != null) {
+      _loadMember(widget.memberToPromote!);
     }
   }
 
@@ -170,6 +187,24 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
     if (_churchOffice == ChurchOffice.voluntario) {
       _selectedRoles = {AppUserRole.registrar};
     }
+  }
+
+  void _loadMember(ChurchMember member) {
+    _lastNameController.text = member.lastName;
+    _firstNameController.text = member.firstName;
+    _streetController.text = member.street ?? '';
+    _streetNumberController.text = member.streetNumber ?? '';
+    _neighborhoodController.text = member.neighborhood ?? '';
+    _localityController.text = member.locality ?? '';
+    _stateProvinceController.text = member.stateProvince ?? 'Buenos Aires';
+    _postalCodeController.text = member.postalCode ?? '';
+    _mobilePhoneController.text = member.phone;
+    _gender = member.gender;
+    _idDocumentType = member.idDocumentType;
+    _idDocumentNumberController.text = member.idDocumentNumber ?? '';
+    _birthDate = member.birthDate;
+    _occupationController.text = member.occupation ?? '';
+    _leaderLocation = member.geoLocation;
   }
 
   void _onChurchOfficeChanged(ChurchOffice? value) {
@@ -460,17 +495,19 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           mobilePhone: _mobilePhoneController.text.trim(),
           registeredAt: DateTime.now(),
           registeredBy: widget.registeredBy,
-          churchId: widget.churchId,
+          churchId: _effectiveChurchId,
           registrationSource: LeaderRegistrationSource.registerLeader,
           churchOffice: _churchOffice,
           appRoles: roles,
           workAgeFrom: workAges.$1,
           workAgeTo: workAges.$2,
+          maritalStatus: widget.memberToPromote?.maritalStatus,
         );
 
         final leaderId = await _leaderService.addLeaderWithMember(
           leader: leader,
           registeredBy: widget.registeredBy,
+          existingMemberId: widget.memberToPromote?.id,
         );
 
         await _userProfileService.setLeaderProfile(
@@ -478,7 +515,7 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           email: email,
           leaderId: leaderId,
           roles: roles,
-          churchId: widget.churchId,
+          churchId: _effectiveChurchId,
         );
 
         if (!mounted) return;
@@ -614,7 +651,13 @@ class _RegisterLeaderScreenState extends State<RegisterLeaderScreen> {
           : l10n.leaderRegRegisterDenied,
       child: Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? l10n.leaderRegEditTitle : l10n.leaderRegNewTitle),
+        title: Text(
+          widget.isEditing
+              ? l10n.leaderRegEditTitle
+              : widget.isPromotingMember
+                  ? l10n.membersListPromoteToLeaderTitle
+                  : l10n.leaderRegNewTitle,
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

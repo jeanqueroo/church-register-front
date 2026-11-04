@@ -775,6 +775,8 @@
       "name": { "type": "String" }
     }
   },
+  "membersListPromoteToLeader": "Promote to leader",
+  "membersListPromoteToLeaderTitle": "Promote to leader",
   "membersListEndOfList": "End of list",
   "membersListLeaderPrefix": "Leader: {name}",
   "@membersListLeaderPrefix": {
@@ -1592,7 +1594,7 @@
   "cellAttendancePickCellTitle": "Register attendance",
   "cellAttendancePickCellHint": "Select the cell group to register meeting attendance",
   "cellAttendanceNoOwnCell": "You do not have an assigned cell",
-  "cellAttendanceDenied": "Only the cell group leader can register attendance",
+  "cellAttendanceDenied": "Only the administrator or the assigned cell leader can register attendance",
   "cellAttendanceNoDisciples": "Assign disciples to the cell before registering attendance",
   "cellAttendanceLeaderRequired": "The cell group must have an assigned leader to register attendance",
   "cellAttendanceMembersLoadError": "Could not load cell group disciples",

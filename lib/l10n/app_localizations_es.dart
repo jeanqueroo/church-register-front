@@ -1640,6 +1640,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get membersListPromoteToLeader => 'Pasar a líder';
+
+  @override
+  String get membersListPromoteToLeaderTitle => 'Pasar a líder';
+
+  @override
   String get membersListEndOfList => 'Fin de la lista';
 
   @override
@@ -3142,7 +3148,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cellAttendanceDenied =>
-      'Solo el líder asignado a la célula puede registrar asistencia';
+      'Solo el administrador o el líder asignado a la célula pueden registrar asistencia';
 
   @override
   String get cellAttendanceNoDisciples =>

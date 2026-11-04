@@ -15,6 +15,7 @@ import '../services/cell_attendance_service.dart';
 import '../services/cell_service.dart';
 import '../../members/models/church_member.dart';
 import '../../members/services/member_service.dart';
+import '../../leaders/models/church_leader.dart';
 import '../../leaders/services/leader_service.dart';
 import 'assign_cell_members_screen.dart';
 import 'register_cell_attendance_screen.dart';
@@ -50,6 +51,8 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
   bool _savingHelpers = false;
   bool _claimingLeadership = false;
   String? _churchAlias;
+  ChurchLeader? _assignedLeader;
+  String? _loadedLeaderId;
 
   @override
   void initState() {
@@ -57,6 +60,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
     _cell = widget.cell;
     _listenToCellUpdates();
     _loadChurchAlias();
+    _loadAssignedLeader();
   }
 
   @override
@@ -102,8 +106,39 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
     _cellSubscription = _cellService.watchCellById(cellId).listen((fresh) {
       if (fresh != null && mounted) {
         setState(() => _cell = fresh);
+        _loadAssignedLeader();
       }
     });
+  }
+
+  Future<void> _loadAssignedLeader() async {
+    final leaderId = _cell.leaderId?.trim();
+    if (leaderId == null || leaderId.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _assignedLeader = null;
+        _loadedLeaderId = null;
+      });
+      return;
+    }
+    if (_loadedLeaderId == leaderId && _assignedLeader != null) return;
+
+    try {
+      final leader = await LeaderService().fetchLeaderById(leaderId);
+      if (!mounted) return;
+      if (_cell.leaderId?.trim() != leaderId) return;
+      setState(() {
+        _assignedLeader = leader;
+        _loadedLeaderId = leaderId;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      if (_cell.leaderId?.trim() != leaderId) return;
+      setState(() {
+        _assignedLeader = null;
+        _loadedLeaderId = leaderId;
+      });
+    }
   }
 
   Future<void> _openEdit() async {
@@ -127,6 +162,7 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
     final fresh = await _cellService.fetchCellById(cellId);
     if (fresh != null && mounted) {
       setState(() => _cell = fresh);
+      await _loadAssignedLeader();
     }
   }
 
@@ -765,6 +801,10 @@ class _CellDetailScreenState extends State<CellDetailScreen> {
       ),
       _Row(l10n.memberDetailSectionAddress, _cell.formattedAddress),
       _Row(l10n.cellRegSectionLeader, _cell.leaderName),
+      _Row(
+        l10n.leaderWorkAgeRange,
+        _assignedLeader?.workAgeRangeLabel,
+      ),
       _Row(l10n.cellRegNotes, _cell.notes),
     ];
   }

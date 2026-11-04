@@ -701,7 +701,7 @@ class MemberService {
       await markMemberLeadershipStatus(
         memberId: memberId,
         leaderId: leaderId,
-        status: MemberLeadershipStatus.promotedToLeader,
+        status: leadershipStatusForLeader(leader),
       );
       return;
     }

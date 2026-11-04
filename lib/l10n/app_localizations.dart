@@ -3000,6 +3000,18 @@ abstract class AppLocalizations {
   /// **'{name} ahora es miembro'**
   String membersListPromoteToMemberSuccess(String name);
 
+  /// No description provided for @membersListPromoteToLeader.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasar a líder'**
+  String get membersListPromoteToLeader;
+
+  /// No description provided for @membersListPromoteToLeaderTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasar a líder'**
+  String get membersListPromoteToLeaderTitle;
+
   /// No description provided for @membersListEndOfList.
   ///
   /// In es, this message translates to:
@@ -5523,7 +5535,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellAttendanceDenied.
   ///
   /// In es, this message translates to:
-  /// **'Solo el líder asignado a la célula puede registrar asistencia'**
+  /// **'Solo el administrador o el líder asignado a la célula pueden registrar asistencia'**
   String get cellAttendanceDenied;
 
   /// No description provided for @cellAttendanceNoDisciples.

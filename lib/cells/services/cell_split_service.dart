@@ -25,7 +25,7 @@ class CellSplitService {
         _authService = authService ?? AuthService(),
         _userProfileService = userProfileService ?? UserProfileService();
 
-  static const maxTransferMembers = 6;
+  static const maxTransferMembers = 12;
 
   final CellService _cellService;
   final MemberService _memberService;

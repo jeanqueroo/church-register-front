@@ -775,6 +775,8 @@
       "name": { "type": "String" }
     }
   },
+  "membersListPromoteToLeader": "Pasar a líder",
+  "membersListPromoteToLeaderTitle": "Pasar a líder",
   "membersListEndOfList": "Fin de la lista",
   "membersListLeaderPrefix": "Líder: {name}",
   "@membersListLeaderPrefix": {
@@ -1592,7 +1594,7 @@
   "cellAttendancePickCellTitle": "Registrar asistencia",
   "cellAttendancePickCellHint": "Selecciona la célula para registrar la asistencia de la reunión",
   "cellAttendanceNoOwnCell": "No tienes célula asignada",
-  "cellAttendanceDenied": "Solo el líder asignado a la célula puede registrar asistencia",
+  "cellAttendanceDenied": "Solo el administrador o el líder asignado a la célula pueden registrar asistencia",
   "cellAttendanceNoDisciples": "Asigna discípulos a la célula antes de registrar asistencia",
   "cellAttendanceLeaderRequired": "La célula debe tener un líder asignado para registrar asistencia",
   "cellAttendanceMembersLoadError": "No se pudieron cargar los discípulos de la célula",

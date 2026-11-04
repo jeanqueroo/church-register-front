@@ -107,12 +107,13 @@ class AppPermissions {
     );
   }
 
-  /// Líder asignado a la célula: registrar asistencia.
+  /// Admin de iglesia o líder asignado a la célula: registrar asistencia.
   bool canRegisterCellAttendance(
     ChurchCell cell, {
     String? actingLeaderId,
   }) {
     if (cell.isBlocked) return false;
+    if (canEditCell) return true;
     return CellMemberCapacity.isCellLeader(
       cell: cell,
       actingLeaderId: actingLeaderId,

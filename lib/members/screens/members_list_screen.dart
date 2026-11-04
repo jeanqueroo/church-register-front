@@ -7,6 +7,7 @@ import '../../core/locale/l10n_extensions.dart';
 import '../../auth/models/app_permissions.dart';
 import '../../l10n/app_localizations.dart';
 import '../../auth/widgets/role_gate.dart';
+import '../../leaders/screens/register_leader_screen.dart';
 import '../models/church_member.dart';
 import '../models/members_list_filter.dart';
 import '../services/member_service.dart';
@@ -320,6 +321,25 @@ class _MembersListBodyState extends State<_MembersListBody> {
     }
   }
 
+  Future<void> _openPromoteToLeader(
+    BuildContext context,
+    ChurchMember member,
+  ) async {
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => RegisterLeaderScreen(
+          registeredBy: widget.registeredBy,
+          churchId: widget.permissions.churchId ?? member.churchId,
+          memberToPromote: member,
+          permissions: widget.permissions,
+        ),
+      ),
+    );
+    if (created == true && mounted) {
+      await _loadFirstPage(forceRefresh: true);
+    }
+  }
+
   Future<void> _confirmPromoteToMember(
     BuildContext context,
     ChurchMember member,
@@ -432,6 +452,8 @@ class _MembersListBodyState extends State<_MembersListBody> {
                 _openEdit(context, member);
               case 'promote':
                 _confirmPromoteToMember(context, member);
+              case 'promoteLeader':
+                _openPromoteToLeader(context, member);
               case 'delete':
                 _confirmDelete(context, member);
             }
@@ -446,6 +468,12 @@ class _MembersListBodyState extends State<_MembersListBody> {
               PopupMenuItem(
                 value: 'promote',
                 child: Text(l10n.membersListPromoteToMember),
+              ),
+            if (widget.permissions.canRegisterLeader &&
+                !member.hasPromotedLeadershipStatus)
+              PopupMenuItem(
+                value: 'promoteLeader',
+                child: Text(l10n.membersListPromoteToLeader),
               ),
             if (widget.permissions.canEditMember(member))
               PopupMenuItem(
