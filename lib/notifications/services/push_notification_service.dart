@@ -46,12 +46,12 @@ class PushNotificationService {
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const darwinSettings = DarwinInitializationSettings();
     await _localNotifications.initialize(
-      const InitializationSettings(
-        android: androidSettings,
-        iOS: darwinSettings,
-      ),
-      onDidReceiveNotificationResponse: (_) {},
-    );
+    const InitializationSettings(
+    android: androidSettings,
+    iOS: darwinSettings,
+  ),
+  onDidReceiveNotificationResponse: (_) {},
+);
 
     if (!kIsWeb && Platform.isAndroid) {
       await _localNotifications
@@ -132,11 +132,11 @@ class PushNotificationService {
     );
 
     await _localNotifications.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
-      details,
-    );
+  notification.hashCode,
+  notification.title,
+  notification.body,
+  details,
+);
   }
 
   void _dispatchTap(RemoteMessage message) {

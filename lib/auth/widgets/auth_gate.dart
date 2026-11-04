@@ -18,6 +18,8 @@ import '../screens/login_screen.dart';
 import 'access_enforcement_gate.dart';
 import '../services/auth_service.dart';
 import '../services/user_profile_service.dart';
+// 👇 IMPORTANTE: Importamos el diseño web 👇
+import '../../web_dashboard_screen.dart'; 
 
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key, this.authService, this.userProfileService});
@@ -321,15 +323,18 @@ class _AuthGateState extends State<AuthGate> {
           _registerPushIfNeeded(session);
         });
 
+        // 👇 AQUÍ ESTÁ LA MAGIA: SI ES PC MUESTRA LA WEB, SI ES CELULAR LA APP 👇
         return AccessEnforcementGate(
           session: session,
           authService: _auth,
           userProfileService: _profileService,
           churchService: _churchService,
-          child: HomeScreen(
-            session: session,
-            authService: _auth,
-          ),
+          child: MediaQuery.of(context).size.width > 800
+              ? WebDashboardScreen(session: session) // Pantalla Web
+              : HomeScreen(                          // Pantalla Móvil
+                  session: session,
+                  authService: _auth,
+                ),
         );
       },
     );
