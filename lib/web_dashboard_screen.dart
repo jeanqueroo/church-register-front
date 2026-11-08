@@ -1058,7 +1058,6 @@ class _ReportsScreen extends StatefulWidget {
   @override
   State<_ReportsScreen> createState() => _ReportsScreenState();
 }
-
 class _ReportsScreenState extends State<_ReportsScreen> {
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
   bool _isLoading = true;
@@ -1070,6 +1069,7 @@ class _ReportsScreenState extends State<_ReportsScreen> {
   int _bautismosRealizados = 0;
   int _lideresBloqueados = 0;
   int _nuevosCreyentesMes = 0; 
+  int _nuevosEnCelulaMes = 0; 
 
   List<FlSpot> _chartSpots = [];
   List<String> _chartMonths = [];
@@ -1078,6 +1078,7 @@ class _ReportsScreenState extends State<_ReportsScreen> {
   List<Map<String, dynamic>> _riskCells = [];
   List<Map<String, dynamic>> _blockedLeadersDetails = [];
   List<Map<String, dynamic>> _newBelieversDetails = []; 
+  List<Map<String, dynamic>> _newInCellDetails = []; 
   List<Map<String, dynamic>> _volunteersDetails = [];
 
   final _dashboardService = HomeDashboardService(); 
@@ -1107,9 +1108,11 @@ class _ReportsScreenState extends State<_ReportsScreen> {
     int tBautismos = 0;
     int tBloqueados = 0;
     int tNuevosCreyentesMes = 0;
+    int tNuevosEnCelulaMes = 0;
     
     List<Map<String, dynamic>> tBlockedLeadersDetails = [];
     List<Map<String, dynamic>> tNewBelieversDetails = [];
+    List<Map<String, dynamic>> tNewInCellDetails = [];
     List<Map<String, dynamic>> tVolunteersDetails = [];
     
     List<FlSpot> tChartSpots = [];
@@ -1123,32 +1126,59 @@ class _ReportsScreenState extends State<_ReportsScreen> {
       tTotalIglesia = tMiembrosEnCelula + tLideres;
     } catch (e) { debugPrint("Error en Total Iglesia: $e"); }
 
-    // 2. VOLUNTARIOS
-    try {
-      final snapVoluntarios = await FirebaseFirestore.instance
-          .collection('leaders')
-          .where('churchId', isEqualTo: churchId)
-          .where('registeredAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-          .where('registeredAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
-          .get();
-          
-      for (var doc in snapVoluntarios.docs) {
-        final data = doc.data();
-        bool esVoluntario = data['isVolunteer'] == true || 
-                            (data['role']?.toString().toLowerCase().contains('voluntario') ?? false);
-        if (esVoluntario) {
-          tVoluntarios++;
-          DateTime? fechaRegistro = data['registeredAt'] != null ? (data['registeredAt'] as Timestamp).toDate() : null;
-          String nombre = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
-          if (nombre.isEmpty) nombre = data['fullName'] ?? data['name'] ?? 'Sin nombre';
-          tVolunteersDetails.add({
-            'Nombre': nombre,
-            'Teléfono': data['mobilePhone'] ?? data['phone'] ?? 'Sin teléfono',
-            'Fecha Registro': fechaRegistro != null ? '${fechaRegistro.day}/${fechaRegistro.month}/${fechaRegistro.year}' : 'Sin fecha',
-          });
-        }
+    // 2. VOLUNTARIOS (Solo asistentes, NO líderes consolidados)
+try {
+  final snapVoluntarios = await FirebaseFirestore.instance
+      .collection('leaders')
+      .where('churchId', isEqualTo: churchId)
+      .get();
+
+  for (var doc in snapVoluntarios.docs) {
+    final data = doc.data();
+    
+    String roleString = data['role']?.toString().toLowerCase() ?? '';
+    
+    // 1. Detectar si YA ES UN LÍDER CONSOLIDADOS
+    // (Ajusta estas palabras clave si en tu app usas otros nombres para líderes)
+    bool esLiderConsolidado = roleString.contains('líder') || 
+                              roleString.contains('lider') || 
+                              data['isLeader'] == true ||
+                              data['isConsolidated'] == true;
+
+    // 2. Detectar si ES VOLUNTARIO (y no un líder)
+    bool esVoluntario = (data['isVolunteer'] == true || roleString.contains('voluntario')) && !esLiderConsolidado;
+
+    if (esVoluntario) {
+      // Buscamos la fecha en que se convirtió en voluntario
+      DateTime? fechaVoluntario;
+      if (data['volunteerSince'] != null) {
+        fechaVoluntario = (data['volunteerSince'] as Timestamp).toDate();
+      } else if (data['updatedAt'] != null) {
+        fechaVoluntario = (data['updatedAt'] as Timestamp).toDate();
+      } else if (data['registeredAt'] != null) {
+        fechaVoluntario = (data['registeredAt'] as Timestamp).toDate();
       }
-    } catch (e) { debugPrint("Error en Voluntarios: $e"); }
+
+      // Si la fecha cae dentro del mes del reporte
+      if (fechaVoluntario != null && 
+          fechaVoluntario.isAfter(startDate) && 
+          fechaVoluntario.isBefore(endDate)) {
+          
+        tVoluntarios++;
+        String nombre = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
+        if (nombre.isEmpty) nombre = data['fullName'] ?? data['name'] ?? 'Sin nombre';
+        
+        tVolunteersDetails.add({
+          'Nombre': nombre,
+          'Teléfono': data['mobilePhone'] ?? data['phone'] ?? 'Sin teléfono',
+          'Fecha Voluntario': '${fechaVoluntario.day}/${fechaVoluntario.month}/${fechaVoluntario.year}',
+        });
+      }
+    }
+  }
+} catch (e) { 
+  debugPrint("Error en Voluntarios: $e"); 
+}
 
     // 3. BAUTISMOS (Desactivado)
     tBautismos = 0;
@@ -1178,6 +1208,9 @@ class _ReportsScreenState extends State<_ReportsScreen> {
 
     // 5. NUEVOS CREYENTES Y GRÁFICA
     try {
+      final cellsNamesSnap = await FirebaseFirestore.instance.collection('cells').where('churchId', isEqualTo: churchId).get();
+      Map<String, String> cellNamesMap = { for (var d in cellsNamesSnap.docs) d.id: d.data()['name'] ?? 'Sin nombre' };
+
       final snap = await FirebaseFirestore.instance.collection('members')
           .where('churchId', isEqualTo: churchId)
           .where('isNewBeliever', isEqualTo: true) 
@@ -1191,10 +1224,26 @@ class _ReportsScreenState extends State<_ReportsScreen> {
         String nombre = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
         if (nombre.isEmpty) nombre = data['fullName'] ?? data['name'] ?? 'Sin nombre';
 
-        String cellId = data['cellId']?.toString().trim() ?? '';
-        bool estaEnCelula = cellId.isNotEmpty && cellId.length > 3;
+        String idRealCelula = '';
+        dynamic celdaRaw = data['cellId'] ?? 
+                           data['assignedCellId'] ?? 
+                           data['cell'] ?? 
+                           data['celula'] ?? 
+                           data['cell_id'] ?? 
+                           data['assignedCell'];
+
+        if (celdaRaw != null) {
+          if (celdaRaw is String) {
+            idRealCelula = celdaRaw.trim();
+          } else if (celdaRaw is DocumentReference) {
+            idRealCelula = celdaRaw.id.trim(); 
+          }
+        }
+
+        bool estaEnCelula = idRealCelula.isNotEmpty && idRealCelula.length > 3;
         
         if (!estaEnCelula) {
+          // SIN CÉLULA
           tNuevosCreyentesMes++;
           tNewBelieversDetails.add({
             'Nombre': nombre,
@@ -1202,9 +1251,19 @@ class _ReportsScreenState extends State<_ReportsScreen> {
             'Fecha Registro': fechaRegistro != null ? '${fechaRegistro.day}/${fechaRegistro.month}/${fechaRegistro.year}' : 'Sin fecha',
             'En Célula': 'No',
           });
+        } else {
+          // EN CÉLULA
+          tNuevosEnCelulaMes++;
+          tNewInCellDetails.add({
+            'Nombre': nombre,
+            'Teléfono': data['mobilePhone'] ?? data['phone'] ?? 'Sin teléfono',
+            'Fecha Registro': fechaRegistro != null ? '${fechaRegistro.day}/${fechaRegistro.month}/${fechaRegistro.year}' : 'Sin fecha',
+            'Célula': cellNamesMap[idRealCelula] ?? 'Célula Desconocida',
+          });
         }
       }
 
+      // Gráfica
       for (int i = 5; i >= 0; i--) {
         DateTime d = DateTime(_selectedMonth.year, _selectedMonth.month - i, 1);
         DateTime start = DateTime(d.year, d.month, 1);
@@ -1217,174 +1276,212 @@ class _ReportsScreenState extends State<_ReportsScreen> {
             .where('registeredAt', isLessThanOrEqualTo: Timestamp.fromDate(end))
             .get();
             
-        int count = snapChart.docs.where((doc) {
-           final cId = doc.data()['cellId']?.toString().trim() ?? '';
-           return cId.isEmpty || cId.length <= 3;
-        }).length;
-
+        int count = snapChart.docs.length;
         tChartSpots.add(FlSpot((5 - i).toDouble(), count.toDouble()));
         tChartMonths.add(_getShortMonthName(d.month));
       }
 
     } catch (e) { debugPrint("Error en Nuevos Creyentes/Gráfica: $e"); }
 
-// 6. CÉLULAS (Estado actual sin importar el mes)
-  try {
-    final cellsSnap = await FirebaseFirestore.instance.collection('cells').where('churchId', isEqualTo: churchId).get();
-    
-    final allMembersSnap = await FirebaseFirestore.instance.collection('members')
-        .where('churchId', isEqualTo: churchId)
-        .get();
+    // 6. CÉLULAS
+    try {
+      final leadersSnap = await FirebaseFirestore.instance.collection('leaders').where('churchId', isEqualTo: churchId).get();
+      
+      Map<String, String> phoneById = {};
+      Map<String, String> phoneByName = {};
 
-    Map<String, int> membersCountByCell = {};
-    for (var mDoc in allMembersSnap.docs) {
-      final mData = mDoc.data();
-      final cellId = mData['cellId']?.toString().trim() ?? '';
-      final assignedCellId = mData['assignedCellId']?.toString().trim() ?? '';
-      
-      String idParaContar = cellId.isNotEmpty ? cellId : assignedCellId;
-      
-      if (idParaContar.isNotEmpty && idParaContar.length > 3) {
-        membersCountByCell[idParaContar] = (membersCountByCell[idParaContar] ?? 0) + 1;
+      for (var doc in leadersSnap.docs) {
+        final lData = doc.data();
+        String phone = lData['mobilePhone'] ?? lData['phone'] ?? 'Sin teléfono';
+        phoneById[doc.id] = phone;
+
+        String lName = '${lData['firstName'] ?? ''} ${lData['lastName'] ?? ''}'.trim();
+        if (lName.isEmpty) lName = lData['fullName'] ?? lData['name'] ?? '';
+        if (lName.isNotEmpty) phoneByName[lName.toLowerCase()] = phone;
       }
+
+      final cellsSnap = await FirebaseFirestore.instance.collection('cells').where('churchId', isEqualTo: churchId).get();
+      final allMembersSnap = await FirebaseFirestore.instance.collection('members').where('churchId', isEqualTo: churchId).get();
+
+      Map<String, int> membersCountByCell = {};
+      for (var mDoc in allMembersSnap.docs) {
+        final mData = mDoc.data();
+        
+        String idParaContar = '';
+        dynamic celdaRaw = mData['cellId'] ?? mData['assignedCellId'] ?? mData['cell'] ?? mData['celula'] ?? mData['cell_id'] ?? mData['assignedCell'];
+        
+        if (celdaRaw != null) {
+          if (celdaRaw is String) idParaContar = celdaRaw.trim();
+          else if (celdaRaw is DocumentReference) idParaContar = celdaRaw.id.trim();
+        }
+        
+        if (idParaContar.isNotEmpty && idParaContar.length > 3) {
+          membersCountByCell[idParaContar] = (membersCountByCell[idParaContar] ?? 0) + 1;
+        }
+      }
+
+      List<Map<String, dynamic>> allCells = [];
+      for (var doc in cellsSnap.docs) {
+        final data = doc.data();
+        int totalCount = membersCountByCell[doc.id] ?? 0;
+        
+        String nombreLider = data['leaderName'] ?? data['name'] ?? 'Sin líder';
+        String telefonoLider = 'Sin teléfono';
+
+        String? leaderId = data['leaderId'] ?? data['leaderUid'] ?? data['encargadoId'];
+        if (leaderId != null && phoneById.containsKey(leaderId)) {
+          telefonoLider = phoneById[leaderId]!;
+        } else {
+          String busquedaNombre = nombreLider.toLowerCase().trim();
+          if (phoneByName.containsKey(busquedaNombre)) {
+            telefonoLider = phoneByName[busquedaNombre]!;
+          } else {
+             for (var entry in phoneByName.entries) {
+               if (entry.key.contains(busquedaNombre) || busquedaNombre.contains(entry.key)) {
+                 telefonoLider = entry.value;
+                 break;
+               }
+             }
+          }
+        }
+
+        allCells.add({
+          'Cód': data['code'] ?? 'N/A',
+          'Líder': nombreLider,
+          'Teléfono': telefonoLider,
+          'Miembros': totalCount, 
+          'count': totalCount,
+        });
+      }
+
+      allCells.sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+      _topCells = allCells.take(5).toList();
+      _riskCells = allCells.where((c) => (c['count'] as int) < 3).toList();
+
+    } catch (e) { 
+      debugPrint("Error en Células: $e"); 
     }
 
-    List<Map<String, dynamic>> allCells = [];
-    for (var doc in cellsSnap.docs) {
-      final data = doc.data();
-      int totalCount = membersCountByCell[doc.id] ?? 0; 
-      
-      allCells.add({
-        'Cód': data['code'] ?? 'N/A',
-        'Célula': data['name'] ?? 'Sin nombre',
-        'Líder': data['leaderName'] ?? 'Sin líder',
-        'Nuevos': totalCount, 
-        'count': totalCount,
+    if (mounted) {
+      setState(() {
+        _totalIglesia = tTotalIglesia;
+        _totalMiembros = tMiembrosEnCelula; 
+        _totalLideres = tLideres;
+        _totalVoluntarios = tVoluntarios;
+        _bautismosRealizados = tBautismos;
+        _lideresBloqueados = tBloqueados;
+        _nuevosCreyentesMes = tNuevosCreyentesMes;
+        _nuevosEnCelulaMes = tNuevosEnCelulaMes;
+        _blockedLeadersDetails = tBlockedLeadersDetails;
+        _newBelieversDetails = tNewBelieversDetails;
+        _newInCellDetails = tNewInCellDetails;
+        _volunteersDetails = tVolunteersDetails;
+        _chartSpots = tChartSpots;
+        _chartMonths = tChartMonths;
+        _isLoading = false;
       });
     }
-
-    allCells.sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
-    _topCells = allCells.take(5).toList();
-    
-    _riskCells = allCells.where((c) => (c['count'] as int) < 3).toList();
-
-  } catch (e) { 
-    debugPrint("Error en Células: $e"); 
   }
 
-  if (mounted) {
-    setState(() {
-      _totalIglesia = tTotalIglesia;
-      _totalMiembros = tMiembrosEnCelula; 
-      _totalLideres = tLideres;
-      _totalVoluntarios = tVoluntarios;
-      _bautismosRealizados = tBautismos;
-      _lideresBloqueados = tBloqueados;
-      _nuevosCreyentesMes = tNuevosCreyentesMes;
-      _blockedLeadersDetails = tBlockedLeadersDetails;
-      _newBelieversDetails = tNewBelieversDetails;
-      _volunteersDetails = tVolunteersDetails;
-      _chartSpots = tChartSpots;
-      _chartMonths = tChartMonths;
-      _isLoading = false;
-    });
+  String _getMonthName(int month) {
+    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    return months[month - 1];
   }
-} // <-- Esta llave cierra la función _loadReportData
 
-// Funciones que se borraron y hacen falta
-String _getMonthName(int month) {
-  const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-  return months[month - 1];
-}
+  String _getShortMonthName(int month) {
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return months[month - 1];
+  }
 
-String _getShortMonthName(int month) {
-  const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-  return months[month - 1];
-}
-// ============================================================================
-// FUNCIÓN PARA GENERAR EL PDF
-// ============================================================================
-Future<void> _generarPDF() async {
-  setState(() => _isGeneratingPdf = true);
-  try {
-    final pdf = pw.Document();
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+  Future<void> _generarPDF() async {
+    setState(() => _isGeneratingPdf = true);
+    try {
+      final pdf = pw.Document();
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          build: (pw.Context context) {
+            return [
+              pw.Header(
+                level: 0,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('Reporte Mensual - ${_getMonthName(_selectedMonth.month)} ${_selectedMonth.year}', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                    pw.SizedBox(height: 5),
+                    pw.Text('Manantial de Bendiciones Central', style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700)),
+                    pw.Divider(),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              
+              // 👇 CAMBIO APLICADO AQUÍ: WRAP CON LAS 6 TARJETAS 👇
+              pw.Wrap(
+                spacing: 15,
+                runSpacing: 15,
+                alignment: pw.WrapAlignment.spaceBetween,
                 children: [
-                  pw.Text('Reporte Mensual - ${_getMonthName(_selectedMonth.month)} ${_selectedMonth.year}', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-                  pw.SizedBox(height: 5),
-                  pw.Text('Manantial de Bendiciones Central', style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700)),
-                  pw.Divider(),
+                  _pdfMetricBox('Total Iglesia', '$_totalIglesia'),
+                  _pdfMetricBox('Nuevos Creyentes', '$_nuevosCreyentesMes'),
+                  _pdfMetricBox('Nuevos en Célula', '$_nuevosEnCelulaMes'),
+                  _pdfMetricBox('Voluntarios', '$_totalVoluntarios'),
+                  _pdfMetricBox('Bautismos', '$_bautismosRealizados'),
+                  _pdfMetricBox('Líderes Bloqueados', '$_lideresBloqueados'),
                 ],
               ),
-            ),
-            pw.SizedBox(height: 20),
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                _pdfMetricBox('Total Iglesia', '$_totalIglesia'),
-                _pdfMetricBox('Nuevos Creyentes', '$_nuevosCreyentesMes'),
-                _pdfMetricBox('Voluntarios', '$_totalVoluntarios'),
-                _pdfMetricBox('Líderes Bloqueados', '$_lideresBloqueados'),
-              ],
-            ),
-            pw.SizedBox(height: 30),
-            pw.Text('Top 5 Células', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.SizedBox(height: 10),
-            _pdfBuildTable(['Cód', 'Célula', 'Líder', 'Nuevos'], _topCells),
-            pw.SizedBox(height: 30),
-            pw.Text('Células en Riesgo', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.SizedBox(height: 10),
-            _pdfBuildTable(['Cód', 'Célula', 'Líder', 'Nuevos'], _riskCells),
-          ];
-        },
+              
+              pw.SizedBox(height: 30),
+              pw.Text('Top 5 Células', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 10),
+              _pdfBuildTable(['Cód', 'Líder', 'Teléfono', 'Miembros'], _topCells),
+              pw.SizedBox(height: 30),
+              pw.Text('Células en Riesgo', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 10),
+              _pdfBuildTable(['Cód', 'Líder', 'Teléfono', 'Miembros'], _riskCells),
+            ];
+          },
+        ),
+      );
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+        name: 'Reporte_Mensual_${_getMonthName(_selectedMonth.month)}.pdf',
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al generar PDF: $e')));
+    } finally {
+      if (mounted) setState(() => _isGeneratingPdf = false);
+    }
+  }
+
+  pw.Widget _pdfMetricBox(String title, String value) {
+    return pw.Container(
+      width: 110,
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8))),
+      child: pw.Column(
+        children: [
+          pw.Text(value, style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800)),
+          pw.SizedBox(height: 4),
+          pw.Text(title, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700), textAlign: pw.TextAlign.center),
+        ],
       ),
     );
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Reporte_Mensual_${_getMonthName(_selectedMonth.month)}.pdf',
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al generar PDF: $e')));
-  } finally {
-    if (mounted) setState(() => _isGeneratingPdf = false);
   }
-}
 
-pw.Widget _pdfMetricBox(String title, String value) {
-  return pw.Container(
-    width: 110,
-    padding: const pw.EdgeInsets.all(10),
-    decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8))),
-    child: pw.Column(
-      children: [
-        pw.Text(value, style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800)),
-        pw.SizedBox(height: 4),
-        pw.Text(title, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700), textAlign: pw.TextAlign.center),
-      ],
-    ),
-  );
-}
+  pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) {
+    return pw.TableHelper.fromTextArray(
+      headers: headers,
+      data: data.map((row) => headers.map((h) => '${row[h] ?? ''}').toList()).toList(),
+      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+      headerDecoration: const pw.BoxDecoration(color: PdfColors.blue800),
+      cellStyle: const pw.TextStyle(fontSize: 10),
+      cellPadding: const pw.EdgeInsets.all(8),
+    );
+  }
 
-pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) {
-  return pw.TableHelper.fromTextArray(
-    headers: headers,
-    data: data.map((row) => headers.map((h) => '${row[h] ?? ''}').toList()).toList(),
-    headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
-    headerDecoration: const pw.BoxDecoration(color: PdfColors.blue800),
-    cellStyle: const pw.TextStyle(fontSize: 10),
-    cellPadding: const pw.EdgeInsets.all(8),
-  );
-}
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
@@ -1397,7 +1494,6 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
         ),
         title: const Text('Reporte Mensual', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         actions: [
-          // Selector de mes movido aquí arriba para ahorrar espacio
           Container(
             margin: const EdgeInsets.only(right: 8),
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -1420,7 +1516,6 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
               ),
             ),
           ),
-          // 👇 BOTÓN DE DESCARGA PDF 👇
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: _isGeneratingPdf
@@ -1441,7 +1536,7 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
             if (_isLoading)
               const Center(child: Padding(padding: EdgeInsets.all(40.0), child: CircularProgressIndicator(color: Color(0xFF0A2558))))
             else ...[
-              // 1. TARJETAS (Mismo tamaño original)
+              // 1. TARJETAS
               Wrap(
                 spacing: 20,
                 runSpacing: 20,
@@ -1457,7 +1552,7 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
                   ),
                   _buildMetricCard(
                     title: 'Nuevos Creyentes',
-                    subtitle: 'Registrados este mes',
+                    subtitle: 'Aún no están en célula',
                     value: '$_nuevosCreyentesMes',
                     icon: Icons.person_add_alt_1,
                     bgColor: const Color(0xFFDCFCE7), 
@@ -1467,11 +1562,32 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
                       if (_newBelieversDetails.isEmpty) return;
                       Navigator.push(context, MaterialPageRoute(
                         builder: (context) => _DetalleTablaScreen(
-                          titulo: 'Nuevos Creyentes (${_getMonthName(_selectedMonth.month)})',
+                          titulo: 'Nuevos Creyentes (Sin Célula)',
                           datos: _newBelieversDetails,
                           headers: ['Nombre', 'Teléfono', 'Fecha Registro', 'En Célula'],
                           icon: Icons.person_add_alt_1,
                           color: const Color(0xFF16A34A),
+                        ),
+                      ));
+                    },
+                  ),
+                  _buildMetricCard(
+                    title: 'Nuevos en Célula',
+                    subtitle: 'Logrados sumar este mes',
+                    value: '$_nuevosEnCelulaMes',
+                    icon: Icons.group_add,
+                    bgColor: const Color(0xFFFFEDD5), 
+                    iconColor: const Color(0xFFF97316), 
+                    textColor: const Color(0xFF7C2D12),
+                    onTap: () {
+                      if (_newInCellDetails.isEmpty) return;
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => _DetalleTablaScreen(
+                          titulo: 'Nuevos Creyentes en Célula (${_getMonthName(_selectedMonth.month)})',
+                          datos: _newInCellDetails,
+                          headers: ['Nombre', 'Teléfono', 'Fecha Registro', 'Célula'],
+                          icon: Icons.group_add,
+                          color: const Color(0xFFF97316),
                         ),
                       ));
                     },
@@ -1550,7 +1666,7 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Últimos 6 meses',
+                      'Últimos 6 meses (Total general)',
                       style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
                     ),
                     const SizedBox(height: 30),
@@ -1629,7 +1745,7 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
               
               const SizedBox(height: 30),
               
-              // 3. TABLAS CERRADAS (Tamaño original)
+              // 3. TABLAS CERRADAS
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1638,7 +1754,7 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
                       title: 'Top 5 Células',
                       icon: Icons.emoji_events,
                       iconColor: const Color(0xFFF59E0B), 
-                      headers: ['Cód', 'Célula', 'Líder', 'Nuevos'],
+                      headers: ['Cód', 'Líder', 'Teléfono', 'Miembros'],
                       data: _topCells,
                       mostrarDatos: false, 
                       onTap: () {
@@ -1646,7 +1762,7 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
                           builder: (context) => _DetalleTablaScreen(
                             titulo: 'Top 5 Células (${_getMonthName(_selectedMonth.month)})',
                             datos: _topCells,
-                            headers: ['Cód', 'Célula', 'Líder', 'Nuevos'],
+                            headers: ['Cód', 'Líder', 'Teléfono', 'Miembros'],
                             icon: Icons.emoji_events,
                             color: const Color(0xFFF59E0B),
                           ),
@@ -1660,7 +1776,7 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
                       title: 'Células en Riesgo',
                       icon: Icons.warning_amber_rounded,
                       iconColor: const Color(0xFFEF4444), 
-                      headers: ['Cód', 'Célula', 'Líder', 'Nuevos'],
+                      headers: ['Cód', 'Líder', 'Teléfono', 'Miembros'],
                       data: _riskCells,
                       mostrarDatos: false, 
                       onTap: () {
@@ -1668,7 +1784,7 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
                           builder: (context) => _DetalleTablaScreen(
                             titulo: 'Células en Riesgo (${_getMonthName(_selectedMonth.month)})',
                             datos: _riskCells,
-                            headers: ['Cód', 'Célula', 'Líder', 'Nuevos'],
+                            headers: ['Cód', 'Líder', 'Teléfono', 'Miembros'],
                             icon: Icons.warning_amber_rounded,
                             color: const Color(0xFFEF4444),
                           ),
@@ -1702,7 +1818,7 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
         borderRadius: BorderRadius.circular(24),
         child: Container(
           width: 200, 
-          height: 210, // Tamaño original
+          height: 210, 
           decoration: BoxDecoration(
             color: bgColor, 
             borderRadius: BorderRadius.circular(24),
@@ -1844,9 +1960,6 @@ pw.Widget _pdfBuildTable(List<String> headers, List<Map<String, dynamic>> data) 
   }
 }
 
-// ==============================================================================
-// CLASE PARA DIBUJAR LA OLA
-// ==============================================================================
 class _WavePainter extends CustomPainter {
   final Color waveColor;
   _WavePainter({required this.waveColor});
@@ -1868,9 +1981,6 @@ class _WavePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ==============================================================================
-// PANTALLA DE DETALLE PARA TABLAS
-// ==============================================================================
 class _DetalleTablaScreen extends StatelessWidget {
   final String titulo;
   final List<Map<String, dynamic>> datos;
@@ -1889,15 +1999,19 @@ class _DetalleTablaScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: const Color(0xFFF1F5F9), 
       appBar: AppBar(
         backgroundColor: const Color(0xFF0A2558),
+        foregroundColor: Colors.white, 
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(titulo, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(
+          titulo, 
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -1906,7 +2020,14 @@ class _DetalleTablaScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05), 
+                blurRadius: 15, 
+                offset: const Offset(0, 5)
+              )
+            ],
+            border: Border.all(color: Colors.grey.shade200),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1915,48 +2036,86 @@ class _DetalleTablaScreen extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1), 
+                      shape: BoxShape.circle
+                    ),
                     child: Icon(icon, color: color, size: 24),
                   ),
                   const SizedBox(width: 15),
-                  Expanded(child: Text(titulo, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                  Expanded(
+                    child: Text(
+                      titulo, 
+                      style: const TextStyle(
+                        fontSize: 18, 
+                        fontWeight: FontWeight.bold, 
+                        color: Colors.black87 
+                      )
+                    )
+                  ),
                 ],
               ),
               const SizedBox(height: 25),
               if (datos.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 40),
-                  child: Center(child: Text('No hay datos disponibles.', style: TextStyle(color: Colors.grey.shade500, fontSize: 16))),
+                  child: Center(
+                    child: Text(
+                      'No hay datos disponibles.', 
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 16)
+                    )
+                  ),
                 )
               else
-                Table(
-                  columnWidths: headers.length == 3
-                      ? const { 0: FlexColumnWidth(3), 1: FlexColumnWidth(2), 2: FlexColumnWidth(1) }
-                      : const { 0: FlexColumnWidth(2), 1: FlexColumnWidth(2), 2: FlexColumnWidth(2), 3: FlexColumnWidth(1) },
-                  children: [
-                    TableRow(
-                      decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
-                      children: headers.map((h) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                        child: Text(h, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B))),
-                      )).toList(),
-                    ),
-                    ...datos.map((row) {
-                      List<Widget> cells = [];
-                      for (var header in headers) {
-                        cells.add(
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                            child: Text('${row[header] ?? ''}', style: const TextStyle(fontSize: 13, color: Color(0xFF475569), fontWeight: FontWeight.w500)),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Table(
+                    columnWidths: headers.length == 3
+                        ? const { 0: FlexColumnWidth(3), 1: FlexColumnWidth(2.5), 2: FlexColumnWidth(1.5) }
+                        : const { 0: FlexColumnWidth(1), 1: FlexColumnWidth(3), 2: FlexColumnWidth(2), 3: FlexColumnWidth(1) },
+                    border: TableBorder.all(color: Colors.grey.shade200),
+                    children: [
+                      TableRow(
+                        decoration: BoxDecoration(color: Colors.grey.shade100),
+                        children: headers.map((h) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                          child: Text(
+                            h, 
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold, 
+                              fontSize: 13, 
+                              color: Color(0xFF1E293B) 
+                            )
                           ),
+                        )).toList(),
+                      ),
+                      ...datos.map((row) {
+                        List<Widget> cells = [];
+                        for (var header in headers) {
+                          cells.add(
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                              child: Text(
+                                '${row[header] ?? ''}', 
+                                style: const TextStyle(
+                                  fontSize: 14, 
+                                  color: Color(0xFF334155), 
+                                  fontWeight: FontWeight.w500
+                                )
+                              ),
+                            ),
+                          );
+                        }
+                        return TableRow(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border(bottom: BorderSide(color: Colors.grey.shade100))
+                          ),
+                          children: cells,
                         );
-                      }
-                      return TableRow(
-                        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade100))),
-                        children: cells,
-                      );
-                    }).toList(),
-                  ],
+                      }).toList(),
+                    ],
+                  ),
                 ),
             ],
           ),
