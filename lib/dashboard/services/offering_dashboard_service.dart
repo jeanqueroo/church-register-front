@@ -141,11 +141,14 @@ class OfferingDashboardService {
         .toList();
   }
 
+  // 👇 MODIFICADO: Busca el jueves más cercano hacia atrás
   DateTime rangeStartFor(OfferingChartPeriod period, DateTime now) {
     switch (period) {
       case OfferingChartPeriod.week:
         final today = DateTime(now.year, now.month, now.day);
-        return today.subtract(const Duration(days: 6));
+        // Retrocede hasta el jueves más cercano
+        final daysToSubtract = (today.weekday - DateTime.thursday) % 7;
+        return today.subtract(Duration(days: daysToSubtract));
       case OfferingChartPeriod.month:
         return DateTime(now.year, now.month, 1);
       case OfferingChartPeriod.year:
@@ -153,10 +156,13 @@ class OfferingDashboardService {
     }
   }
 
+  // 👇 MODIFICADO: El fin de la semana es el miércoles (6 días después del jueves)
   DateTime rangeEndFor(OfferingChartPeriod period, DateTime now) {
     switch (period) {
       case OfferingChartPeriod.week:
-        return DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
+        final start = rangeStartFor(period, now);
+        final end = start.add(const Duration(days: 6)); // De jueves a miércoles
+        return DateTime(end.year, end.month, end.day, 23, 59, 59, 999);
       case OfferingChartPeriod.month:
         return DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
       case OfferingChartPeriod.year:
@@ -164,12 +170,14 @@ class OfferingDashboardService {
     }
   }
 
+  // 👇 MODIFICADO: Muestra las fechas exactas de Jueves a Miércoles
   String periodLabel(OfferingChartPeriod period, DateTime now) {
     switch (period) {
       case OfferingChartPeriod.week:
         final start = rangeStartFor(period, now);
+        final end = rangeEndFor(period, now);
         final dayFormat = DateFormat('dd/MM');
-        return '${dayFormat.format(start)} – ${dayFormat.format(now)}';
+        return '${dayFormat.format(start)} – ${dayFormat.format(end)}';
       case OfferingChartPeriod.month:
         return DateFormat('MMMM yyyy').format(now);
       case OfferingChartPeriod.year:

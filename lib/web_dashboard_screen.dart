@@ -1068,8 +1068,10 @@ class _ReportsScreenState extends State<_ReportsScreen> {
   int _totalVoluntarios = 0;
   int _bautismosRealizados = 0;
   int _lideresBloqueados = 0;
+  int _voluntariosBloqueados = 0; 
   int _nuevosCreyentesMes = 0; 
   int _nuevosEnCelulaMes = 0; 
+  int _lideresLevantadosMes = 0; 
 
   List<FlSpot> _chartSpots = [];
   List<String> _chartMonths = [];
@@ -1077,9 +1079,11 @@ class _ReportsScreenState extends State<_ReportsScreen> {
   List<Map<String, dynamic>> _topCells = [];
   List<Map<String, dynamic>> _riskCells = [];
   List<Map<String, dynamic>> _blockedLeadersDetails = [];
+  List<Map<String, dynamic>> _blockedVolunteersDetails = []; 
   List<Map<String, dynamic>> _newBelieversDetails = []; 
   List<Map<String, dynamic>> _newInCellDetails = []; 
   List<Map<String, dynamic>> _volunteersDetails = [];
+  List<Map<String, dynamic>> _newLeadersDetails = []; 
 
   final _dashboardService = HomeDashboardService(); 
 
@@ -1107,13 +1111,17 @@ class _ReportsScreenState extends State<_ReportsScreen> {
     int tVoluntarios = 0;
     int tBautismos = 0;
     int tBloqueados = 0;
+    int tVoluntariosBloqueados = 0; 
     int tNuevosCreyentesMes = 0;
     int tNuevosEnCelulaMes = 0;
+    int tLideresLevantadosMes = 0; 
     
     List<Map<String, dynamic>> tBlockedLeadersDetails = [];
+    List<Map<String, dynamic>> tBlockedVolunteersDetails = []; 
     List<Map<String, dynamic>> tNewBelieversDetails = [];
     List<Map<String, dynamic>> tNewInCellDetails = [];
     List<Map<String, dynamic>> tVolunteersDetails = [];
+    List<Map<String, dynamic>> tNewLeadersDetails = []; 
     
     List<FlSpot> tChartSpots = [];
     List<String> tChartMonths = [];
@@ -1127,63 +1135,57 @@ class _ReportsScreenState extends State<_ReportsScreen> {
     } catch (e) { debugPrint("Error en Total Iglesia: $e"); }
 
     // 2. VOLUNTARIOS (Solo asistentes, NO líderes consolidados)
-try {
-  final snapVoluntarios = await FirebaseFirestore.instance
-      .collection('leaders')
-      .where('churchId', isEqualTo: churchId)
-      .get();
+    try {
+      final snapVoluntarios = await FirebaseFirestore.instance
+          .collection('leaders')
+          .where('churchId', isEqualTo: churchId)
+          .get();
 
-  for (var doc in snapVoluntarios.docs) {
-    final data = doc.data();
-    
-    String roleString = data['role']?.toString().toLowerCase() ?? '';
-    
-    // 1. Detectar si YA ES UN LÍDER CONSOLIDADOS
-    // (Ajusta estas palabras clave si en tu app usas otros nombres para líderes)
-    bool esLiderConsolidado = roleString.contains('líder') || 
-                              roleString.contains('lider') || 
-                              data['isLeader'] == true ||
-                              data['isConsolidated'] == true;
-
-    // 2. Detectar si ES VOLUNTARIO (y no un líder)
-    bool esVoluntario = (data['isVolunteer'] == true || roleString.contains('voluntario')) && !esLiderConsolidado;
-
-    if (esVoluntario) {
-      // Buscamos la fecha en que se convirtió en voluntario
-      DateTime? fechaVoluntario;
-      if (data['volunteerSince'] != null) {
-        fechaVoluntario = (data['volunteerSince'] as Timestamp).toDate();
-      } else if (data['updatedAt'] != null) {
-        fechaVoluntario = (data['updatedAt'] as Timestamp).toDate();
-      } else if (data['registeredAt'] != null) {
-        fechaVoluntario = (data['registeredAt'] as Timestamp).toDate();
-      }
-
-      // Si la fecha cae dentro del mes del reporte
-      if (fechaVoluntario != null && 
-          fechaVoluntario.isAfter(startDate) && 
-          fechaVoluntario.isBefore(endDate)) {
-          
-        tVoluntarios++;
-        String nombre = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
-        if (nombre.isEmpty) nombre = data['fullName'] ?? data['name'] ?? 'Sin nombre';
+      for (var doc in snapVoluntarios.docs) {
+        final data = doc.data();
+        String roleString = data['role']?.toString().toLowerCase() ?? '';
         
-        tVolunteersDetails.add({
-          'Nombre': nombre,
-          'Teléfono': data['mobilePhone'] ?? data['phone'] ?? 'Sin teléfono',
-          'Fecha Voluntario': '${fechaVoluntario.day}/${fechaVoluntario.month}/${fechaVoluntario.year}',
-        });
+        bool esLiderConsolidado = roleString.contains('líder') || 
+                                  roleString.contains('lider') || 
+                                  data['isLeader'] == true ||
+                                  data['isConsolidated'] == true;
+
+        bool esVoluntario = (data['isVolunteer'] == true || roleString.contains('voluntario')) && !esLiderConsolidado;
+
+        if (esVoluntario) {
+          DateTime? fechaVoluntario;
+          if (data['volunteerSince'] != null) {
+            fechaVoluntario = (data['volunteerSince'] as Timestamp).toDate();
+          } else if (data['updatedAt'] != null) {
+            fechaVoluntario = (data['updatedAt'] as Timestamp).toDate();
+          } else if (data['registeredAt'] != null) {
+            fechaVoluntario = (data['registeredAt'] as Timestamp).toDate();
+          }
+
+          if (fechaVoluntario != null && 
+              fechaVoluntario.isAfter(startDate) && 
+              fechaVoluntario.isBefore(endDate)) {
+              
+            tVoluntarios++;
+            String nombre = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
+            if (nombre.isEmpty) nombre = data['fullName'] ?? data['name'] ?? 'Sin nombre';
+            
+            tVolunteersDetails.add({
+              'Nombre': nombre,
+              'Teléfono': data['mobilePhone'] ?? data['phone'] ?? 'Sin teléfono',
+              'Fecha Voluntario': '${fechaVoluntario.day}/${fechaVoluntario.month}/${fechaVoluntario.year}',
+            });
+          }
+        }
       }
+    } catch (e) { 
+      debugPrint("Error en Voluntarios: $e"); 
     }
-  }
-} catch (e) { 
-  debugPrint("Error en Voluntarios: $e"); 
-}
 
     // 3. BAUTISMOS (Desactivado)
     tBautismos = 0;
 
-    // 4. LÍDERES BLOQUEADOS
+    // 4. LÍDERES Y VOLUNTARIOS BLOQUEADOS (Lógica blindada)
     try {
       final snap = await FirebaseFirestore.instance.collection('leaders')
           .where('churchId', isEqualTo: churchId).where('isBlocked', isEqualTo: true).get();
@@ -1193,15 +1195,38 @@ try {
         DateTime? fechaBloqueo = data['updatedAt'] != null ? (data['updatedAt'] as Timestamp).toDate() : (data['blockedAt'] != null ? (data['blockedAt'] as Timestamp).toDate() : null);
 
         if (fechaBloqueo != null && fechaBloqueo.isAfter(startDate) && fechaBloqueo.isBefore(endDate)) {
-          tBloqueados++;
+          String roleString = data['role']?.toString().toLowerCase() ?? '';
+          
+          // 1. Si tiene el check de voluntario, ES VOLUNTARIO (sin importar nada más)
+          bool tieneCheckVoluntario = data['isVolunteer'] == true || roleString.contains('voluntario');
+          
+          // 2. Si no es voluntario, revisamos si es líder
+          bool tieneRolLider = roleString.contains('líder') || roleString.contains('lider') || data['isLeader'] == true;
+
           String nombre = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
           if (nombre.isEmpty) nombre = data['fullName'] ?? data['name'] ?? 'Sin nombre';
-          tBlockedLeadersDetails.add({
+          
+          Map<String, dynamic> detail = {
             'Nombre': nombre,
             'Teléfono': data['mobilePhone'] ?? data['phone'] ?? 'Sin teléfono',
             'Fecha Bloqueo': '${fechaBloqueo.day}/${fechaBloqueo.month}/${fechaBloqueo.year}',
             'Estado': 'Bloqueado',
-          });
+          };
+
+          // 👇 AQUÍ ESTÁ LA CORRECCIÓN ESTRICTA 👇
+          if (tieneCheckVoluntario) {
+            // Si es voluntario, va a la tarjeta rosa
+            tVoluntariosBloqueados++;
+            tBlockedVolunteersDetails.add(detail);
+          } else if (tieneRolLider) {
+            // Si no es voluntario pero tiene rol de líder, va a la roja
+            tBloqueados++;
+            tBlockedLeadersDetails.add(detail);
+          } else {
+            // Si no tiene ni check de voluntario ni rol de líder (pero está en 'leaders'), lo mandamos a voluntarios por defecto
+            tVoluntariosBloqueados++;
+            tBlockedVolunteersDetails.add(detail);
+          }
         }
       }
     } catch (e) { debugPrint("Error en Bloqueados: $e"); }
@@ -1243,7 +1268,6 @@ try {
         bool estaEnCelula = idRealCelula.isNotEmpty && idRealCelula.length > 3;
         
         if (!estaEnCelula) {
-          // SIN CÉLULA
           tNuevosCreyentesMes++;
           tNewBelieversDetails.add({
             'Nombre': nombre,
@@ -1252,7 +1276,6 @@ try {
             'En Célula': 'No',
           });
         } else {
-          // EN CÉLULA
           tNuevosEnCelulaMes++;
           tNewInCellDetails.add({
             'Nombre': nombre,
@@ -1263,7 +1286,6 @@ try {
         }
       }
 
-      // Gráfica
       for (int i = 5; i >= 0; i--) {
         DateTime d = DateTime(_selectedMonth.year, _selectedMonth.month - i, 1);
         DateTime start = DateTime(d.year, d.month, 1);
@@ -1283,7 +1305,7 @@ try {
 
     } catch (e) { debugPrint("Error en Nuevos Creyentes/Gráfica: $e"); }
 
-    // 6. CÉLULAS
+    // 6. CÉLULAS (CON TELÉFONOS)
     try {
       final leadersSnap = await FirebaseFirestore.instance.collection('leaders').where('churchId', isEqualTo: churchId).get();
       
@@ -1362,6 +1384,39 @@ try {
       debugPrint("Error en Células: $e"); 
     }
 
+    // 7. LÍDERES LEVANTADOS ESTE MES
+    try {
+      final snapLideres = await FirebaseFirestore.instance
+          .collection('leaders')
+          .where('churchId', isEqualTo: churchId)
+          .where('registeredAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('registeredAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+          .get();
+
+      for (var doc in snapLideres.docs) {
+        final data = doc.data();
+        String roleString = data['role']?.toString().toLowerCase() ?? '';
+        
+        bool esVoluntario = data['isVolunteer'] == true || roleString.contains('voluntario');
+        bool esLider = roleString.contains('líder') || roleString.contains('lider') || data['isLeader'] == true;
+
+        if (esLider || (!esVoluntario && roleString.isNotEmpty)) {
+          tLideresLevantadosMes++;
+          DateTime? fechaRegistro = data['registeredAt'] != null ? (data['registeredAt'] as Timestamp).toDate() : null;
+          String nombre = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
+          if (nombre.isEmpty) nombre = data['fullName'] ?? data['name'] ?? 'Sin nombre';
+
+          tNewLeadersDetails.add({
+            'Nombre': nombre,
+            'Teléfono': data['mobilePhone'] ?? data['phone'] ?? 'Sin teléfono',
+            'Fecha Promoción': fechaRegistro != null ? '${fechaRegistro.day}/${fechaRegistro.month}/${fechaRegistro.year}' : 'Sin fecha',
+          });
+        }
+      }
+    } catch (e) { 
+      debugPrint("Error en Líderes Levantados: $e"); 
+    }
+
     if (mounted) {
       setState(() {
         _totalIglesia = tTotalIglesia;
@@ -1370,12 +1425,16 @@ try {
         _totalVoluntarios = tVoluntarios;
         _bautismosRealizados = tBautismos;
         _lideresBloqueados = tBloqueados;
+        _voluntariosBloqueados = tVoluntariosBloqueados; 
         _nuevosCreyentesMes = tNuevosCreyentesMes;
         _nuevosEnCelulaMes = tNuevosEnCelulaMes;
+        _lideresLevantadosMes = tLideresLevantadosMes;
         _blockedLeadersDetails = tBlockedLeadersDetails;
+        _blockedVolunteersDetails = tBlockedVolunteersDetails; 
         _newBelieversDetails = tNewBelieversDetails;
         _newInCellDetails = tNewInCellDetails;
         _volunteersDetails = tVolunteersDetails;
+        _newLeadersDetails = tNewLeadersDetails;
         _chartSpots = tChartSpots;
         _chartMonths = tChartMonths;
         _isLoading = false;
@@ -1417,18 +1476,26 @@ try {
               ),
               pw.SizedBox(height: 20),
               
-              // 👇 CAMBIO APLICADO AQUÍ: WRAP CON LAS 6 TARJETAS 👇
-              pw.Wrap(
-                spacing: 15,
-                runSpacing: 15,
-                alignment: pw.WrapAlignment.spaceBetween,
+              // FILA 1
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   _pdfMetricBox('Total Iglesia', '$_totalIglesia'),
                   _pdfMetricBox('Nuevos Creyentes', '$_nuevosCreyentesMes'),
                   _pdfMetricBox('Nuevos en Célula', '$_nuevosEnCelulaMes'),
                   _pdfMetricBox('Voluntarios', '$_totalVoluntarios'),
+                ],
+              ),
+              pw.SizedBox(height: 15),
+              
+              // FILA 2
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
                   _pdfMetricBox('Bautismos', '$_bautismosRealizados'),
-                  _pdfMetricBox('Líderes Bloqueados', '$_lideresBloqueados'),
+                  _pdfMetricBox('Líderes Bloq.', '$_lideresBloqueados'),
+                  _pdfMetricBox('Voluntarios Bloq.', '$_voluntariosBloqueados'),
+                  _pdfMetricBox('Líderes Levantados', '$_lideresLevantadosMes'),
                 ],
               ),
               
@@ -1458,13 +1525,22 @@ try {
   pw.Widget _pdfMetricBox(String title, String value) {
     return pw.Container(
       width: 110,
-      padding: const pw.EdgeInsets.all(10),
-      decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8))),
+      height: 65, // Altura fija para que todas queden iguales
+      padding: const pw.EdgeInsets.all(8),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey300), 
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8))
+      ),
       child: pw.Column(
+        mainAxisAlignment: pw.MainAxisAlignment.center, 
         children: [
           pw.Text(value, style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800)),
           pw.SizedBox(height: 4),
-          pw.Text(title, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700), textAlign: pw.TextAlign.center),
+          pw.Text(
+            title, 
+            style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700), 
+            textAlign: pw.TextAlign.center
+          ),
         ],
       ),
     );
@@ -1606,7 +1682,7 @@ try {
                         builder: (context) => _DetalleTablaScreen(
                           titulo: 'Voluntarios (${_getMonthName(_selectedMonth.month)})',
                           datos: _volunteersDetails,
-                          headers: ['Nombre', 'Teléfono', 'Fecha Registro'],
+                          headers: ['Nombre', 'Teléfono', 'Fecha Voluntario'],
                           icon: Icons.volunteer_activism,
                           color: const Color(0xFF9333EA),
                         ),
@@ -1639,6 +1715,48 @@ try {
                           headers: ['Nombre', 'Teléfono', 'Fecha Bloqueo', 'Estado'],
                           icon: Icons.person_off,
                           color: const Color(0xFFE11D48),
+                        ),
+                      ));
+                    },
+                  ),
+                  _buildMetricCard(
+                    title: 'Voluntarios Bloqueados',
+                    subtitle: 'Bloqueados este mes',
+                    value: '$_voluntariosBloqueados',
+                    icon: Icons.group_off,
+                    bgColor: const Color(0xFFFCE7F3), 
+                    iconColor: const Color(0xFFDB2777), 
+                    textColor: const Color(0xFF831843),
+                    onTap: () {
+                      if (_blockedVolunteersDetails.isEmpty) return;
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => _DetalleTablaScreen(
+                          titulo: 'Voluntarios Bloqueados (${_getMonthName(_selectedMonth.month)})',
+                          datos: _blockedVolunteersDetails,
+                          headers: ['Nombre', 'Teléfono', 'Fecha Bloqueo', 'Estado'],
+                          icon: Icons.group_off,
+                          color: const Color(0xFFDB2777),
+                        ),
+                      ));
+                    },
+                  ),
+                  _buildMetricCard(
+                    title: 'Líderes Levantados',
+                    subtitle: 'Nuevos líderes este mes',
+                    value: '$_lideresLevantadosMes',
+                    icon: Icons.military_tech,
+                    bgColor: const Color(0xFFE0E7FF), 
+                    iconColor: const Color(0xFF4F46E5), 
+                    textColor: const Color(0xFF312E81),
+                    onTap: () {
+                      if (_newLeadersDetails.isEmpty) return;
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => _DetalleTablaScreen(
+                          titulo: 'Líderes Levantados (${_getMonthName(_selectedMonth.month)})',
+                          datos: _newLeadersDetails,
+                          headers: ['Nombre', 'Teléfono', 'Fecha Promoción'],
+                          icon: Icons.military_tech,
+                          color: const Color(0xFF4F46E5),
                         ),
                       ));
                     },
