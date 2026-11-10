@@ -68,8 +68,21 @@ class AuthService {
     await user.updatePassword(newPassword);
   }
 
+  /// Envía el correo de recuperación.
+  ///
+  /// El enlace usa el manejador web [auth-action.html] (configuración WEB),
+  /// para que no falle por restricciones de la API key de Android.
   Future<void> sendPasswordResetEmail(String email) {
-    return _auth.sendPasswordResetEmail(email: email.trim());
+    final normalized = email.trim().toLowerCase();
+    return _auth.sendPasswordResetEmail(
+      email: normalized,
+      actionCodeSettings: ActionCodeSettings(
+        url: 'https://church-register-pro.web.app/auth-action.html',
+        handleCodeInApp: false,
+        androidPackageName: 'com.church.register.manantial',
+        iOSBundleId: 'com.church.register.manantial',
+      ),
+    );
   }
 
   static String messageFromFirebaseAuthException(
