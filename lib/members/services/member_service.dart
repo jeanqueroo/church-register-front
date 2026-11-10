@@ -824,11 +824,13 @@ class MemberService {
   }
 
   /// Creyentes sin célula aptos para asignar.
-  /// Si [filterByRegistrar] es true, solo los de [registeredBy] (email o id)
-  /// o con ese valor en `assignedLeaderId`. Admin suele pasar `false`.
+  /// Si [filterByRegistrar] es true: los que registró [registeredBy] o están
+  /// asignados pastoralmente a alguno de [assignedLeaderIds] (id de líder).
+  /// Admin suele pasar `filterByRegistrar: false`.
   Future<List<ChurchMember>> fetchMembersForCellAssignment({
     required String? churchId,
     String? registeredBy,
+    List<String> assignedLeaderIds = const [],
     LeaderGender? matchingGender,
     bool filterByRegistrar = true,
   }) async {
@@ -841,11 +843,26 @@ class MemberService {
       snapshots = [await base.get()];
     } else {
       final registrar = registeredBy?.trim();
-      if (registrar == null || registrar.isEmpty) return [];
-      snapshots = await Future.wait([
-        base.where('registeredBy', isEqualTo: registrar).get(),
-        base.where('assignedLeaderId', isEqualTo: registrar).get(),
-      ]);
+      final leaderIds = assignedLeaderIds
+          .map((id) => id.trim())
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+      if ((registrar == null || registrar.isEmpty) && leaderIds.isEmpty) {
+        return [];
+      }
+
+      final queries = <Future<QuerySnapshot<Map<String, dynamic>>>>[];
+      if (registrar != null && registrar.isNotEmpty) {
+        queries.add(base.where('registeredBy', isEqualTo: registrar).get());
+        // Compatibilidad: algunos datos viejos pueden guardar email en assignedLeaderId.
+        queries.add(base.where('assignedLeaderId', isEqualTo: registrar).get());
+      }
+      for (final leaderId in leaderIds) {
+        if (leaderId == registrar) continue;
+        queries.add(base.where('assignedLeaderId', isEqualTo: leaderId).get());
+      }
+      snapshots = await Future.wait(queries);
     }
 
     final byId = <String, ChurchMember>{};
