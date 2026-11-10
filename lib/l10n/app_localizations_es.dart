@@ -3480,6 +3480,21 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ningún discípulo con 3 o más inasistencias seguidas';
 
   @override
+  String get cellAbsenceByLeaderSelectLabel => 'Líder';
+
+  @override
+  String get cellAbsenceByLeaderSelectHint => 'Seleccionar líder';
+
+  @override
+  String get cellAbsenceByLeaderNoSelection =>
+      'Selecciona un líder para ver los discípulos con inasistencias';
+
+  @override
+  String cellAbsenceByLeaderOptionLabel(String name, int count) {
+    return '$name · $count en alerta';
+  }
+
+  @override
   String get cellAttendanceReportMembersTitle => 'Discípulos';
 
   @override

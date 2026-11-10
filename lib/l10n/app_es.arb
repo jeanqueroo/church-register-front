@@ -1767,6 +1767,16 @@
     }
   },
   "cellAbsenceByLeaderLeaderOk": "Ningún discípulo con 3 o más inasistencias seguidas",
+  "cellAbsenceByLeaderSelectLabel": "Líder",
+  "cellAbsenceByLeaderSelectHint": "Seleccionar líder",
+  "cellAbsenceByLeaderNoSelection": "Selecciona un líder para ver los discípulos con inasistencias",
+  "cellAbsenceByLeaderOptionLabel": "{name} · {count} en alerta",
+  "@cellAbsenceByLeaderOptionLabel": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
   "cellAttendanceReportMembersTitle": "Discípulos",
   "cellAttendanceReportEmpty": "No hay discípulos en esta célula o aún no hay asistencias registradas",
   "cellAttendanceReportMemberStats": "{present} presentes · {consecutive} seguidas · {total} listas",

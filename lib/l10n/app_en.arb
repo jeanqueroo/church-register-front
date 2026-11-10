@@ -1767,6 +1767,16 @@
     }
   },
   "cellAbsenceByLeaderLeaderOk": "No disciples with 3 or more consecutive absences",
+  "cellAbsenceByLeaderSelectLabel": "Leader",
+  "cellAbsenceByLeaderSelectHint": "Select a leader",
+  "cellAbsenceByLeaderNoSelection": "Select a leader to see disciples with absences",
+  "cellAbsenceByLeaderOptionLabel": "{name} · {count} at risk",
+  "@cellAbsenceByLeaderOptionLabel": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
   "cellAttendanceReportMembersTitle": "Disciples",
   "cellAttendanceReportEmpty": "No disciples in this cell or no attendance recorded yet",
   "cellAttendanceReportMemberStats": "{present} present · {consecutive} in a row · {total} roll calls",

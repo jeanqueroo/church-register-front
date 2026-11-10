@@ -6072,6 +6072,30 @@ abstract class AppLocalizations {
   /// **'Ningún discípulo con 3 o más inasistencias seguidas'**
   String get cellAbsenceByLeaderLeaderOk;
 
+  /// No description provided for @cellAbsenceByLeaderSelectLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Líder'**
+  String get cellAbsenceByLeaderSelectLabel;
+
+  /// No description provided for @cellAbsenceByLeaderSelectHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar líder'**
+  String get cellAbsenceByLeaderSelectHint;
+
+  /// No description provided for @cellAbsenceByLeaderNoSelection.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona un líder para ver los discípulos con inasistencias'**
+  String get cellAbsenceByLeaderNoSelection;
+
+  /// No description provided for @cellAbsenceByLeaderOptionLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'{name} · {count} en alerta'**
+  String cellAbsenceByLeaderOptionLabel(String name, int count);
+
   /// No description provided for @cellAttendanceReportMembersTitle.
   ///
   /// In es, this message translates to:

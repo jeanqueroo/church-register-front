@@ -25,10 +25,16 @@ class CellAttendanceService {
         );
   }
 
-  Future<List<CellAttendanceSession>> fetchSessions(String cellId) async {
-    final snapshot = await _sessions(cellId)
-        .orderBy('sessionDate', descending: true)
-        .get();
+  Future<List<CellAttendanceSession>> fetchSessions(
+    String cellId, {
+    int? limit,
+  }) async {
+    Query<Map<String, dynamic>> query =
+        _sessions(cellId).orderBy('sessionDate', descending: true);
+    if (limit != null && limit > 0) {
+      query = query.limit(limit);
+    }
+    final snapshot = await query.get();
     return snapshot.docs.map(CellAttendanceSession.fromFirestore).toList();
   }
 

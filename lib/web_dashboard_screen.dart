@@ -792,7 +792,7 @@ class _CelulasOptionsPanel extends StatelessWidget {
               Navigator.push(context, MaterialPageRoute(builder: (context) => CellsListScreen(registeredBy: session.uid, permissions: p, mode: CellsListMode.attendanceReport)));
             }),
             _buildOptionItem(context, icon: Icons.warning_amber, title: 'Inasistencias', description: 'Alertas de ausencias', onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => CellAbsenceByLeaderScreen(churchId: session.profile.churchId, permissions: p)));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CellAbsenceByLeaderScreen(churchId: session.profile.churchId, registeredBy: session.email, permissions: p)));
             }),
             _buildOptionItem(context, icon: Icons.call_split, title: 'Para multiplicar', description: 'Límite de capacidad', onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => CellsOverCapacityScreen(registeredBy: session.uid, churchId: session.profile.churchId, permissions: p)));

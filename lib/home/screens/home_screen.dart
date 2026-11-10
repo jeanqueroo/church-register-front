@@ -512,6 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () => _navigate(
               CellAbsenceByLeaderScreen(
                 churchId: _churchId,
+                registeredBy: _email,
                 permissions: p,
               ),
               'cellAbsenceByLeader',

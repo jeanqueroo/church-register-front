@@ -5,9 +5,9 @@ allprojects {
     }
 }
 
-// firebase_app_check 0.4.5+ needs App Check APIs from BOM >= 34.16.0
-// (InternalDebugSecretProvider). Overrides firebase_core's default 34.15.0.
-extra["FlutterFire"] = hashMapOf("FirebaseSDKVersion" to "34.16.0")
+// firebase_app_check 0.4.9+ needs RecaptchaAppCheckProviderFactory.getInstance(siteKey)
+// and InternalDebugSecretProvider (Firebase Android BoM >= 34.17 / 35.x).
+extra["FlutterFire"] = hashMapOf("FirebaseSDKVersion" to "35.1.0")
 
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
