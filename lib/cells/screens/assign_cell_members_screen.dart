@@ -166,6 +166,10 @@ class _AssignCellMembersScreenState extends State<AssignCellMembersScreen> {
         builder: (_) => SelectMemberForCellScreen(
           churchId: widget.cell.churchId ?? _permissions.churchId,
           registeredBy: widget.registeredBy,
+          assignedLeaderIds: [
+            if (widget.actingLeaderId != null) widget.actingLeaderId!,
+            if (widget.cell.leaderId != null) widget.cell.leaderId!,
+          ],
           filterByRegistrar: !_permissions.isAdmin,
           memberService: widget.memberService,
           maxSelection: remaining,
@@ -513,6 +517,7 @@ class SelectMemberForCellScreen extends StatefulWidget {
     super.key,
     this.churchId,
     this.registeredBy,
+    this.assignedLeaderIds = const [],
     this.filterByRegistrar = true,
     this.memberService,
     this.maxSelection,
@@ -520,8 +525,10 @@ class SelectMemberForCellScreen extends StatefulWidget {
   });
 
   final String? churchId;
-  /// Email del usuario: solo creyentes que él registró / tiene como líder.
+  /// Email/uid del usuario: creyentes que él registró (`registeredBy`).
   final String? registeredBy;
+  /// Ids de líder (`users.leaderId` / célula) para incluir asignados pastorales.
+  final List<String> assignedLeaderIds;
   /// Si es false (p. ej. admin), no filtra por registeredBy / assignedLeaderId.
   final bool filterByRegistrar;
   final MemberService? memberService;
@@ -565,6 +572,7 @@ class _SelectMemberForCellScreenState extends State<SelectMemberForCellScreen> {
       final members = await service.fetchMembersForCellAssignment(
         churchId: widget.churchId,
         registeredBy: widget.registeredBy,
+        assignedLeaderIds: widget.assignedLeaderIds,
         matchingGender: widget.requiredGender,
         filterByRegistrar: widget.filterByRegistrar,
       );
