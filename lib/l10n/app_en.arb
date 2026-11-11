@@ -1748,6 +1748,8 @@
   "cellAbsenceByLeaderNoChurch": "Your account has no church assigned",
   "cellAbsenceByLeaderLoadError": "Could not load the absence report",
   "cellAbsenceByLeaderEmpty": "There are no cell groups with an assigned leader in your church",
+  "cellAbsenceByLeaderNoAbsences": "No leaders currently have disciples with 3 or more consecutive absences",
+  "cellAbsenceByLeaderScanning": "Looking for leaders with absences…",
   "cellAbsenceByLeaderCellLabel": "Cell {code}",
   "@cellAbsenceByLeaderCellLabel": {
     "placeholders": {

@@ -277,6 +277,15 @@ class CellSplitService {
       throw ArgumentError('Too many members to transfer');
     }
 
+    // Validar código antes de crear líder / célula.
+    final codeExists = await _cellService.codeExists(
+      code: newCell.code,
+      churchId: churchId,
+    );
+    if (codeExists) {
+      throw CellSplitCodeDuplicateException();
+    }
+
     final leader = await resolveLeaderForHelperMember(
       member: leaderHelperMember,
       churchId: churchId,
@@ -305,14 +314,6 @@ class CellSplitService {
       )) {
         throw CellSplitGenderMismatchException();
       }
-    }
-
-    final codeExists = await _cellService.codeExists(
-      code: newCell.code,
-      churchId: churchId,
-    );
-    if (codeExists) {
-      throw CellSplitCodeDuplicateException();
     }
 
     final cellToCreate = ChurchCell(

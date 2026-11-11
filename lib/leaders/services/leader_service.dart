@@ -275,6 +275,44 @@ class LeaderService {
     return ChurchLeader.fromFirestore(doc);
   }
 
+  /// Carga por ids en lotes (`whereIn`, máx. 30) en paralelo.
+  Future<List<ChurchLeader>> fetchLeadersByIds(Iterable<String> ids) async {
+    final uniqueIds = ids
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (uniqueIds.isEmpty) return [];
+
+    const chunkSize = 30;
+    final chunks = <List<String>>[];
+    for (var i = 0; i < uniqueIds.length; i += chunkSize) {
+      final end = (i + chunkSize < uniqueIds.length)
+          ? i + chunkSize
+          : uniqueIds.length;
+      chunks.add(uniqueIds.sublist(i, end));
+    }
+
+    final snapshots = await Future.wait(
+      chunks.map(
+        (chunk) => _leaders.where(FieldPath.documentId, whereIn: chunk).get(),
+      ),
+    );
+
+    final byId = <String, ChurchLeader>{};
+    for (final snapshot in snapshots) {
+      for (final doc in snapshot.docs) {
+        byId[doc.id] = ChurchLeader.fromFirestore(doc);
+      }
+    }
+
+    // Conservar el orden de [ids] originales (únicos).
+    return uniqueIds
+        .map((id) => byId[id])
+        .whereType<ChurchLeader>()
+        .toList();
+  }
+
   Future<List<ChurchLeader>> fetchAllLeaders({String? churchId}) async {
     final snapshot = churchId != null && churchId.isNotEmpty
         ? await _leaders.where('churchId', isEqualTo: churchId).get()
@@ -429,13 +467,55 @@ class LeaderService {
           .toList();
     }
 
-    final results = await Future.wait(
-      leaders.map((leader) async {
-        if (await hasPastoralAssignmentAppRole(leader)) return leader;
-        return null;
-      }),
-    );
-    return results.whereType<ChurchLeader>().toList();
+    final accepted = <ChurchLeader>[];
+    final needsLookup = <ChurchLeader>[];
+
+    for (final leader in leaders) {
+      final docRoles = leader.appRoles;
+      if (docRoles != null && docRoles.isNotEmpty) {
+        if (rolesAllowPastoralAssignment(docRoles)) {
+          accepted.add(leader);
+        }
+        continue;
+      }
+
+      final authUserId = leader.authUserId?.trim();
+      if (authUserId == null || authUserId.isEmpty) {
+        if (isLeaderOrSupervisorInCollection(leader)) {
+          accepted.add(leader);
+        }
+        continue;
+      }
+      needsLookup.add(leader);
+    }
+
+    if (needsLookup.isNotEmpty) {
+      final profiles = await Future.wait(
+        needsLookup.map(
+          (leader) =>
+              _userProfileService.fetchProfileDoc(leader.authUserId!.trim()),
+        ),
+      );
+      for (var i = 0; i < needsLookup.length; i++) {
+        final leader = needsLookup[i];
+        final doc = profiles[i];
+        if (doc == null) {
+          if (isLeaderOrSupervisorInCollection(leader)) {
+            accepted.add(leader);
+          }
+          continue;
+        }
+        final data = doc.data() ?? {};
+        final roles = AppUserRole.parseList(data['roles']);
+        final rolesFinal =
+            roles.isNotEmpty ? roles : AppUserRole.parseList(data['role']);
+        if (rolesAllowPastoralAssignment(rolesFinal)) {
+          accepted.add(leader);
+        }
+      }
+    }
+
+    return accepted;
   }
 
   /// Asegura que [leaderId] esté en la lista (p. ej. líder actual de la célula al editar).

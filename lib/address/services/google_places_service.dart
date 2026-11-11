@@ -18,6 +18,7 @@ class GooglePlacesService {
   bool get isConfigured =>
       _apiKey.isNotEmpty && !_apiKey.contains('YOUR_');
 
+  /// Autocomplete (New): `places.googleapis.com/v1/places:autocomplete`
   Future<List<AddressPlace>> searchPlaces(
     String query, {
     int limit = 5,
@@ -26,38 +27,58 @@ class GooglePlacesService {
     if (trimmed.length < 3 || !isConfigured) return [];
 
     final uri = Uri.https(
-      'maps.googleapis.com',
-      '/maps/api/place/autocomplete/json',
-      {
-        'input': trimmed,
-        'key': _apiKey,
-        'language': 'es',
-        'components': 'country:ar',
-      },
+      'places.googleapis.com',
+      '/v1/places:autocomplete',
     );
 
-    final response = await _client.get(uri);
-    if (response.statusCode != 200) return [];
+    final response = await _client.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': _apiKey,
+      },
+      body: jsonEncode({
+        'input': trimmed,
+        'languageCode': 'es',
+        'includedRegionCodes': ['ar'],
+      }),
+    );
 
-    final map = jsonDecode(response.body) as Map<String, dynamic>;
-    if (map['status'] != 'OK' && map['status'] != 'ZERO_RESULTS') {
-      return [];
+    if (response.statusCode != 200) {
+      throw GooglePlacesException(
+        'autocomplete_http_${response.statusCode}',
+        _errorMessageFromBody(response.body),
+      );
     }
 
-    final predictions = (map['predictions'] as List<dynamic>? ?? [])
-        .take(limit);
+    final map = jsonDecode(response.body) as Map<String, dynamic>;
+    final suggestions = (map['suggestions'] as List<dynamic>? ?? []).take(limit);
 
-    return predictions.map((item) {
-      final prediction = item as Map<String, dynamic>;
-      final description = prediction['description'] as String? ?? '';
-      return AddressPlace(
-        displayName: description,
-        latitude: 0,
-        longitude: 0,
-        parsedAddress: const ParsedAddress(),
-        placeId: prediction['place_id'] as String?,
+    final places = <AddressPlace>[];
+    for (final item in suggestions) {
+      final suggestion = item as Map<String, dynamic>;
+      final prediction =
+          suggestion['placePrediction'] as Map<String, dynamic>?;
+      if (prediction == null) continue;
+
+      final description = _predictionText(prediction);
+      if (description.isEmpty) continue;
+
+      final placeId = _normalizePlaceId(
+        prediction['placeId'] as String? ?? prediction['place'] as String?,
       );
-    }).where((p) => p.displayName.isNotEmpty).toList();
+
+      places.add(
+        AddressPlace(
+          displayName: description,
+          latitude: 0,
+          longitude: 0,
+          parsedAddress: const ParsedAddress(),
+          placeId: placeId,
+        ),
+      );
+    }
+    return places;
   }
 
   Future<AddressPlace?> reverseGeocode(double lat, double lon) async {
@@ -82,7 +103,7 @@ class GooglePlacesService {
     final results = map['results'] as List<dynamic>?;
     if (results == null || results.isEmpty) return null;
 
-    return _placeFromGeocodeResult(results.first as Map<String, dynamic>);
+    return _placeFromLegacyGeocodeResult(results.first as Map<String, dynamic>);
   }
 
   Future<AddressPlace> enrichPlace(AddressPlace place) async {
@@ -120,35 +141,59 @@ class GooglePlacesService {
     final results = map['results'] as List<dynamic>?;
     if (results == null || results.isEmpty) return null;
 
-    final place = _placeFromGeocodeResult(results.first as Map<String, dynamic>);
+    final place =
+        _placeFromLegacyGeocodeResult(results.first as Map<String, dynamic>);
     return place.location;
   }
 
   Future<AddressPlace?> _fetchPlaceDetails(String placeId) async {
-    final uri = Uri.https(
-      'maps.googleapis.com',
-      '/maps/api/place/details/json',
-      {
-        'place_id': placeId,
-        'key': _apiKey,
-        'language': 'es',
-        'fields': 'formatted_address,geometry,address_components,name',
+    final id = _normalizePlaceId(placeId);
+    if (id == null || id.isEmpty) return null;
+
+    final uri = Uri.parse(
+      'https://places.googleapis.com/v1/places/${Uri.encodeComponent(id)}',
+    );
+
+    final response = await _client.get(
+      uri,
+      headers: {
+        'X-Goog-Api-Key': _apiKey,
+        'X-Goog-FieldMask':
+            'id,formattedAddress,location,addressComponents,displayName',
+        'X-Goog-LanguageCode': 'es',
       },
     );
 
-    final response = await _client.get(uri);
     if (response.statusCode != 200) return null;
 
-    final map = jsonDecode(response.body) as Map<String, dynamic>;
-    if (map['status'] != 'OK') return null;
-
-    final result = map['result'] as Map<String, dynamic>?;
-    if (result == null) return null;
-
-    return _placeFromGeocodeResult(result, placeId: placeId);
+    final result = jsonDecode(response.body) as Map<String, dynamic>;
+    return _placeFromNewDetails(result, placeId: id);
   }
 
-  AddressPlace _placeFromGeocodeResult(
+  AddressPlace _placeFromNewDetails(
+    Map<String, dynamic> result, {
+    String? placeId,
+  }) {
+    final location = result['location'] as Map<String, dynamic>?;
+    final lat = (location?['latitude'] as num?)?.toDouble() ?? 0;
+    final lng = (location?['longitude'] as num?)?.toDouble() ?? 0;
+    final displayName = (result['formattedAddress'] as String?)?.trim() ??
+        ((result['displayName'] as Map<String, dynamic>?)?['text'] as String?)
+            ?.trim() ??
+        '';
+    final components =
+        result['addressComponents'] as List<dynamic>? ?? const [];
+
+    return AddressPlace(
+      displayName: displayName,
+      latitude: lat,
+      longitude: lng,
+      parsedAddress: ParsedAddress.fromGoogleComponents(components),
+      placeId: placeId,
+    );
+  }
+
+  AddressPlace _placeFromLegacyGeocodeResult(
     Map<String, dynamic> result, {
     String? placeId,
   }) {
@@ -167,7 +212,53 @@ class GooglePlacesService {
       latitude: lat,
       longitude: lng,
       parsedAddress: ParsedAddress.fromGoogleComponents(components),
-      placeId: placeId,
+      placeId: placeId ?? result['place_id'] as String?,
     );
   }
+
+  static String _predictionText(Map<String, dynamic> prediction) {
+    final textObj = prediction['text'] as Map<String, dynamic>?;
+    final direct = (textObj?['text'] as String?)?.trim();
+    if (direct != null && direct.isNotEmpty) return direct;
+
+    final structured = prediction['structuredFormat'] as Map<String, dynamic>?;
+    final mainText = structured?['mainText'] as Map<String, dynamic>?;
+    final main = (mainText?['text'] as String?)?.trim();
+    return main ?? '';
+  }
+
+  static String? _normalizePlaceId(String? raw) {
+    if (raw == null) return null;
+    var id = raw.trim();
+    if (id.isEmpty) return null;
+    const prefix = 'places/';
+    if (id.startsWith(prefix)) {
+      id = id.substring(prefix.length);
+    }
+    return id;
+  }
+
+  static String? _errorMessageFromBody(String body) {
+    try {
+      final map = jsonDecode(body) as Map<String, dynamic>;
+      final error = map['error'] as Map<String, dynamic>?;
+      final message = error?['message'] as String?;
+      if (message != null && message.trim().isNotEmpty) return message.trim();
+      final status = map['status'] as String?;
+      return status;
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+class GooglePlacesException implements Exception {
+  GooglePlacesException(this.code, [this.message]);
+
+  final String code;
+  final String? message;
+
+  @override
+  String toString() =>
+      message == null || message!.isEmpty ? code : '$code: $message';
 }

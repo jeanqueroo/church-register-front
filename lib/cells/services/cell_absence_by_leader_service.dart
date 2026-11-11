@@ -1,4 +1,3 @@
-import '../../members/services/member_service.dart';
 import '../models/cell_member_attendance_summary.dart';
 import '../models/church_cell.dart';
 import '../models/leader_absence_list_item.dart';
@@ -10,23 +9,20 @@ import 'cell_service.dart';
 class CellAbsenceByLeaderService {
   CellAbsenceByLeaderService({
     CellService? cellService,
-    MemberService? memberService,
     CellAttendanceService? attendanceService,
   })  : _cellService = cellService ?? CellService(),
-        _memberService = memberService ?? MemberService(),
         _attendanceService = attendanceService ?? CellAttendanceService();
 
   static const minConsecutiveAbsences =
       CellMemberAbsenceAlert.criticalAbsenceThreshold;
 
-  /// Sesiones recientes bastan para rachas de inasistencia (umbral crítico = 3).
-  static const recentSessionsLimit = 20;
+  /// Con umbral 3, pocas sesiones recientes bastan y reducen lecturas.
+  static const recentSessionsLimit = 8;
 
   final CellService _cellService;
-  final MemberService _memberService;
   final CellAttendanceService _attendanceService;
 
-  /// Solo células/líderes: una consulta rápida para el desplegable.
+  /// Solo células/líderes: una consulta rápida.
   Future<List<LeaderAbsenceListItem>> loadLeadersForChurch(
     String churchId,
   ) async {
@@ -60,7 +56,7 @@ class CellAbsenceByLeaderService {
     return leaders;
   }
 
-  /// Inasistencias solo de las células del líder seleccionado.
+  /// Inasistencias del líder: solo lee sesiones (sin members).
   Future<List<LeaderCellAbsenceReport>> loadReportsForLeader({
     required String leaderId,
     required List<ChurchCell> cells,
@@ -81,8 +77,6 @@ class CellAbsenceByLeaderService {
     return result;
   }
 
-  /// Carga completa (todas las células). Preferir [loadLeadersForChurch] +
-  /// [loadReportsForLeader] en la UI.
   Future<List<LeaderCellAbsenceReport>> loadForChurch(String churchId) async {
     final leaders = await loadLeadersForChurch(churchId);
     if (leaders.isEmpty) return [];
@@ -112,39 +106,21 @@ class CellAbsenceByLeaderService {
     final cellId = cell.id?.trim();
     if (cellId == null || cellId.isEmpty) return null;
 
-    final members = await _memberService.fetchMembersInCell(cellId);
-    if (members.isEmpty) {
-      return LeaderCellAbsenceReport(
-        leaderId: leaderId,
-        leaderName: _leaderLabel(cell),
-        cellCode: cell.code,
-        cellId: cellId,
-        totalDisciples: 0,
-        criticalDisciples: const [],
-      );
-    }
-
     final sessions = await _attendanceService.fetchSessions(
       cellId,
       limit: recentSessionsLimit,
     );
-    final summaries = buildCellMemberAttendanceSummaries(
-      members: members,
+    final critical = buildCriticalAbsencesFromSessions(
       sessions: sessions,
+      minConsecutiveAbsences: minConsecutiveAbsences,
     );
-    final critical = summaries
-        .where(
-          (summary) =>
-              summary.consecutiveAbsenceStreak >= minConsecutiveAbsences,
-        )
-        .toList();
 
     return LeaderCellAbsenceReport(
       leaderId: leaderId,
       leaderName: _leaderLabel(cell),
       cellCode: cell.code,
       cellId: cellId,
-      totalDisciples: members.length,
+      totalDisciples: critical.length,
       criticalDisciples: critical,
     );
   }

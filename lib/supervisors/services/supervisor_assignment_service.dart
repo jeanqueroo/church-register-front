@@ -76,12 +76,13 @@ class SupervisorAssignmentService {
         .where((id) => id.isNotEmpty)
         .toSet();
 
+    final leaders = await _leaderService.fetchLeadersByIds(leaderIds);
     final leaderNames = <String, String>{};
-    for (final leaderId in leaderIds) {
-      final leader = await _leaderService.fetchLeaderById(leaderId);
-      final name = leader?.fullName.trim();
-      if (name != null && name.isNotEmpty) {
-        leaderNames[leaderId] = name;
+    for (final leader in leaders) {
+      final id = leader.id?.trim();
+      final name = leader.fullName.trim();
+      if (id != null && id.isNotEmpty && name.isNotEmpty) {
+        leaderNames[id] = name;
       }
     }
 

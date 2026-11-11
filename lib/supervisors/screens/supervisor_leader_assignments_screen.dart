@@ -72,13 +72,13 @@ class _SupervisorLeaderAssignmentsScreenState
     });
 
     try {
-      final supervisors = await _assignmentService.fetchSupervisors(
-        churchId: _churchId,
-      );
-      final leaders = await _leaderService.fetchAssignableLeaders(
-        churchId: _churchId,
-      );
-      leaders.sort((a, b) => a.fullName.compareTo(b.fullName));
+      final results = await Future.wait([
+        _assignmentService.fetchSupervisors(churchId: _churchId),
+        _leaderService.fetchAssignableLeaders(churchId: _churchId),
+      ]);
+      final supervisors = results[0] as List<SupervisorAccount>;
+      final leaders = List<ChurchLeader>.from(results[1] as List<ChurchLeader>)
+        ..sort((a, b) => a.fullName.compareTo(b.fullName));
 
       if (!mounted) return;
 
@@ -97,7 +97,7 @@ class _SupervisorLeaderAssignmentsScreenState
       });
 
       if (selectedUid != null) {
-        await _loadAssignmentsForSupervisor(selectedUid);
+        _applyAssignmentsFromSupervisor(selectedUid);
       }
     } catch (e) {
       if (!mounted) return;
@@ -111,60 +111,50 @@ class _SupervisorLeaderAssignmentsScreenState
     }
   }
 
-  Future<void> _loadAssignmentsForSupervisor(String supervisorUid) async {
-    try {
-      final ids =
-          await _assignmentService.fetchSupervisedLeaderIds(supervisorUid);
-      if (!mounted) return;
-
-      // Si el supervisor seleccionado también es líder (`leaderId`),
-      // no debe aparecer como "líder asignado" en esta pantalla.
-      String? supervisorOwnLeaderId = widget.session.profile.leaderId;
-      if (supervisorUid != widget.session.uid) {
-        final match = _supervisors.where((s) => s.uid == supervisorUid);
-        if (match.isNotEmpty) {
-          supervisorOwnLeaderId = match.first.leaderId;
-        } else {
-          supervisorOwnLeaderId = null;
-        }
+  void _applyAssignmentsFromSupervisor(String supervisorUid) {
+    SupervisorAccount? account;
+    for (final supervisor in _supervisors) {
+      if (supervisor.uid == supervisorUid) {
+        account = supervisor;
+        break;
       }
-
-      final idsSet = ids.toSet();
-
-      final allowedIds = _leaders
-          .map((l) => l.id)
-          .whereType<String>()
-          .toSet();
-      final selected = idsSet.intersection(allowedIds);
-      if (supervisorOwnLeaderId != null && supervisorOwnLeaderId.isNotEmpty) {
-        selected.remove(supervisorOwnLeaderId);
-      }
-
-      setState(() => _selectedLeaderIds = selected);
-    } catch (e) {
-      if (!mounted) return;
-      _showMessage(SupervisorAssignmentService.messageFromException(e, context.l10n));
     }
+    if (account == null) {
+      setState(() => _selectedLeaderIds = {});
+      return;
+    }
+
+    // Si el supervisor también es líder, no listarlo como asignado a sí mismo.
+    final supervisorOwnLeaderId = account.leaderId?.trim();
+    final allowedIds = _leaders.map((l) => l.id).whereType<String>().toSet();
+    final selected = account.supervisedLeaderIds.toSet().intersection(allowedIds);
+    if (supervisorOwnLeaderId != null && supervisorOwnLeaderId.isNotEmpty) {
+      selected.remove(supervisorOwnLeaderId);
+    }
+    setState(() => _selectedLeaderIds = selected);
   }
 
-  Future<void> _onSupervisorChanged(String? supervisorUid) async {
+  void _onSupervisorChanged(String? supervisorUid) {
     if (supervisorUid == null) return;
-    setState(() {
-      _selectedSupervisorUid = supervisorUid;
-      _selectedLeaderIds = {};
-    });
-    await _loadAssignmentsForSupervisor(supervisorUid);
+    setState(() => _selectedSupervisorUid = supervisorUid);
+    _applyAssignmentsFromSupervisor(supervisorUid);
+  }
+
+  /// Mapa líder → supervisor dueño (excluye el supervisor seleccionado).
+  Map<String, SupervisorAccount> get _ownerByLeaderId {
+    final currentUid = _selectedSupervisorUid;
+    final map = <String, SupervisorAccount>{};
+    for (final supervisor in _supervisors) {
+      if (supervisor.uid == currentUid) continue;
+      for (final leaderId in supervisor.supervisedLeaderIds) {
+        map.putIfAbsent(leaderId, () => supervisor);
+      }
+    }
+    return map;
   }
 
   SupervisorAccount? _supervisorOwningLeader(String leaderId) {
-    final currentUid = _selectedSupervisorUid;
-    for (final supervisor in _supervisors) {
-      if (supervisor.uid == currentUid) continue;
-      if (supervisor.supervisedLeaderIds.contains(leaderId)) {
-        return supervisor;
-      }
-    }
-    return null;
+    return _ownerByLeaderId[leaderId];
   }
 
   void _toggleLeader(String leaderId, bool selected) {

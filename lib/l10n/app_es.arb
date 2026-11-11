@@ -1748,6 +1748,8 @@
   "cellAbsenceByLeaderNoChurch": "Tu cuenta no tiene una iglesia asignada",
   "cellAbsenceByLeaderLoadError": "No se pudo cargar el reporte de inasistencias",
   "cellAbsenceByLeaderEmpty": "No hay células con líder asignado en tu iglesia",
+  "cellAbsenceByLeaderNoAbsences": "Ningún líder tiene discípulos con 3 o más inasistencias seguidas",
+  "cellAbsenceByLeaderScanning": "Buscando líderes con inasistencias…",
   "cellAbsenceByLeaderCellLabel": "Célula {code}",
   "@cellAbsenceByLeaderCellLabel": {
     "placeholders": {
