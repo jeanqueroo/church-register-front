@@ -1058,6 +1058,7 @@ class _ReportsScreen extends StatefulWidget {
   @override
   State<_ReportsScreen> createState() => _ReportsScreenState();
 }
+
 class _ReportsScreenState extends State<_ReportsScreen> {
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
   bool _isLoading = true;
@@ -1126,13 +1127,35 @@ class _ReportsScreenState extends State<_ReportsScreen> {
     List<FlSpot> tChartSpots = [];
     List<String> tChartMonths = [];
 
-    // 1. TOTAL IGLESIA
+    // 1. TOTAL IGLESIA (HISTÓRICO HASTA EL MES SELECCIONADO)
     try {
-      final data = await _dashboardService.loadForSession(widget.session);
-      tMiembrosEnCelula = data.memberCount; 
-      tLideres = data.leaderCount ?? 0;     
+      // Contamos los miembros registrados hasta el final del mes seleccionado
+      final membersSnap = await FirebaseFirestore.instance
+          .collection('members')
+          .where('churchId', isEqualTo: churchId)
+          .where('registeredAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+          .get();
+          
+      // Contamos los líderes registrados hasta el final del mes seleccionado
+      final leadersSnap = await FirebaseFirestore.instance
+          .collection('leaders')
+          .where('churchId', isEqualTo: churchId)
+          .where('registeredAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+          .get();
+
+      tMiembrosEnCelula = membersSnap.docs.length;
+      tLideres = leadersSnap.docs.length;
       tTotalIglesia = tMiembrosEnCelula + tLideres;
-    } catch (e) { debugPrint("Error en Total Iglesia: $e"); }
+    } catch (e) { 
+      debugPrint("Error en Total Iglesia Histórico: $e"); 
+      // Respaldo en caso de que falle (trae el total actual)
+      try {
+        final data = await _dashboardService.loadForSession(widget.session);
+        tMiembrosEnCelula = data.memberCount; 
+        tLideres = data.leaderCount ?? 0;     
+        tTotalIglesia = tMiembrosEnCelula + tLideres;
+      } catch (e2) {}
+    }
 
     // 2. VOLUNTARIOS (Solo asistentes, NO líderes consolidados)
     try {
@@ -1143,14 +1166,21 @@ class _ReportsScreenState extends State<_ReportsScreen> {
 
       for (var doc in snapVoluntarios.docs) {
         final data = doc.data();
-        String roleString = data['role']?.toString().toLowerCase() ?? '';
         
-        bool esLiderConsolidado = roleString.contains('líder') || 
-                                  roleString.contains('lider') || 
-                                  data['isLeader'] == true ||
-                                  data['isConsolidated'] == true;
+        List<dynamic> rolesList = data['appRoles'] ?? [];
+        String rolesStr = rolesList.join(' ').toLowerCase();
+        if (data['role'] != null) rolesStr += ' ${data['role'].toString().toLowerCase()}';
 
-        bool esVoluntario = (data['isVolunteer'] == true || roleString.contains('voluntario')) && !esLiderConsolidado;
+        bool esLiderConsolidado = rolesStr.contains('líder') || 
+                                  rolesStr.contains('lider') || 
+                                  rolesStr.contains('leader') ||
+                                  data['isLeader'] == true;
+
+        bool esVoluntario = (data['isVolunteer'] == true || 
+                             rolesStr.contains('voluntario') || 
+                             rolesStr.contains('volunteer') || 
+                             rolesStr.contains('registrador') ||
+                             rolesStr.contains('registrar')) && !esLiderConsolidado;
 
         if (esVoluntario) {
           DateTime? fechaVoluntario;
@@ -1185,7 +1215,7 @@ class _ReportsScreenState extends State<_ReportsScreen> {
     // 3. BAUTISMOS (Desactivado)
     tBautismos = 0;
 
-    // 4. LÍDERES Y VOLUNTARIOS BLOQUEADOS (Lógica blindada)
+    // 4. LÍDERES Y VOLUNTARIOS BLOQUEADOS
     try {
       final snap = await FirebaseFirestore.instance.collection('leaders')
           .where('churchId', isEqualTo: churchId).where('isBlocked', isEqualTo: true).get();
@@ -1195,13 +1225,19 @@ class _ReportsScreenState extends State<_ReportsScreen> {
         DateTime? fechaBloqueo = data['updatedAt'] != null ? (data['updatedAt'] as Timestamp).toDate() : (data['blockedAt'] != null ? (data['blockedAt'] as Timestamp).toDate() : null);
 
         if (fechaBloqueo != null && fechaBloqueo.isAfter(startDate) && fechaBloqueo.isBefore(endDate)) {
-          String roleString = data['role']?.toString().toLowerCase() ?? '';
           
-          // 1. Si tiene el check de voluntario, ES VOLUNTARIO (sin importar nada más)
-          bool tieneCheckVoluntario = data['isVolunteer'] == true || roleString.contains('voluntario');
-          
-          // 2. Si no es voluntario, revisamos si es líder
-          bool tieneRolLider = roleString.contains('líder') || roleString.contains('lider') || data['isLeader'] == true;
+          List<dynamic> rolesList = data['appRoles'] ?? [];
+          String rolesStr = rolesList.join(' ').toLowerCase();
+          if (data['role'] != null) rolesStr += ' ${data['role'].toString().toLowerCase()}';
+
+          bool rolDiceVoluntario = rolesStr.contains('voluntario') || 
+                                   rolesStr.contains('volunteer') || 
+                                   rolesStr.contains('registrador') || 
+                                   rolesStr.contains('registrar');
+                                   
+          bool rolDiceLider = rolesStr.contains('líder') || 
+                              rolesStr.contains('lider') || 
+                              rolesStr.contains('leader');
 
           String nombre = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
           if (nombre.isEmpty) nombre = data['fullName'] ?? data['name'] ?? 'Sin nombre';
@@ -1213,76 +1249,74 @@ class _ReportsScreenState extends State<_ReportsScreen> {
             'Estado': 'Bloqueado',
           };
 
-          // 👇 AQUÍ ESTÁ LA CORRECCIÓN ESTRICTA 👇
-          if (tieneCheckVoluntario) {
-            // Si es voluntario, va a la tarjeta rosa
-            tVoluntariosBloqueados++;
-            tBlockedVolunteersDetails.add(detail);
-          } else if (tieneRolLider) {
-            // Si no es voluntario pero tiene rol de líder, va a la roja
+          if (rolDiceLider) {
             tBloqueados++;
             tBlockedLeadersDetails.add(detail);
-          } else {
-            // Si no tiene ni check de voluntario ni rol de líder (pero está en 'leaders'), lo mandamos a voluntarios por defecto
+          } 
+          else if (rolDiceVoluntario) {
             tVoluntariosBloqueados++;
             tBlockedVolunteersDetails.add(detail);
+          } 
+          else {
+            if (data['isVolunteer'] == true && data['isLeader'] != true) {
+              tVoluntariosBloqueados++;
+              tBlockedVolunteersDetails.add(detail);
+            } else {
+              tBloqueados++;
+              tBlockedLeadersDetails.add(detail);
+            }
           }
         }
       }
     } catch (e) { debugPrint("Error en Bloqueados: $e"); }
 
-    // 5. NUEVOS CREYENTES Y GRÁFICA
+    // 5. NUEVOS CREYENTES Y GRÁFICA (CON HISTORIAL CORREGIDO)
     try {
       final cellsNamesSnap = await FirebaseFirestore.instance.collection('cells').where('churchId', isEqualTo: churchId).get();
       Map<String, String> cellNamesMap = { for (var d in cellsNamesSnap.docs) d.id: d.data()['name'] ?? 'Sin nombre' };
 
       final snap = await FirebaseFirestore.instance.collection('members')
           .where('churchId', isEqualTo: churchId)
-          .where('isNewBeliever', isEqualTo: true) 
-          .where('registeredAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-          .where('registeredAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
           .get();
           
       for (var doc in snap.docs) {
         final data = doc.data();
+        
         DateTime? fechaRegistro = data['registeredAt'] != null ? (data['registeredAt'] as Timestamp).toDate() : null;
+        DateTime? fechaCelula = data['cellAssignedAt'] != null ? (data['cellAssignedAt'] as Timestamp).toDate() : null;
+        
+        DateTime? fechaEvaluar = fechaCelula ?? fechaRegistro;
+
         String nombre = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
         if (nombre.isEmpty) nombre = data['fullName'] ?? data['name'] ?? 'Sin nombre';
 
         String idRealCelula = '';
-        dynamic celdaRaw = data['cellId'] ?? 
-                           data['assignedCellId'] ?? 
-                           data['cell'] ?? 
-                           data['celula'] ?? 
-                           data['cell_id'] ?? 
-                           data['assignedCell'];
-
+        dynamic celdaRaw = data['cellId'] ?? data['assignedCellId'] ?? data['cell'] ?? data['celula'] ?? data['cell_id'] ?? data['assignedCell'];
         if (celdaRaw != null) {
-          if (celdaRaw is String) {
-            idRealCelula = celdaRaw.trim();
-          } else if (celdaRaw is DocumentReference) {
-            idRealCelula = celdaRaw.id.trim(); 
-          }
+          if (celdaRaw is String) idRealCelula = celdaRaw.trim();
+          else if (celdaRaw is DocumentReference) idRealCelula = celdaRaw.id.trim();
         }
 
         bool estaEnCelula = idRealCelula.isNotEmpty && idRealCelula.length > 3;
         
-        if (!estaEnCelula) {
-          tNuevosCreyentesMes++;
-          tNewBelieversDetails.add({
-            'Nombre': nombre,
-            'Teléfono': data['mobilePhone'] ?? data['phone'] ?? 'Sin teléfono',
-            'Fecha Registro': fechaRegistro != null ? '${fechaRegistro.day}/${fechaRegistro.month}/${fechaRegistro.year}' : 'Sin fecha',
-            'En Célula': 'No',
-          });
-        } else {
-          tNuevosEnCelulaMes++;
-          tNewInCellDetails.add({
-            'Nombre': nombre,
-            'Teléfono': data['mobilePhone'] ?? data['phone'] ?? 'Sin teléfono',
-            'Fecha Registro': fechaRegistro != null ? '${fechaRegistro.day}/${fechaRegistro.month}/${fechaRegistro.year}' : 'Sin fecha',
-            'Célula': cellNamesMap[idRealCelula] ?? 'Célula Desconocida',
-          });
+        if (fechaEvaluar != null && fechaEvaluar.isAfter(startDate) && fechaEvaluar.isBefore(endDate)) {
+          if (!estaEnCelula) {
+            tNuevosCreyentesMes++;
+            tNewBelieversDetails.add({
+              'Nombre': nombre,
+              'Teléfono': data['mobilePhone'] ?? data['phone'] ?? 'Sin teléfono',
+              'Fecha Registro': '${fechaEvaluar.day}/${fechaEvaluar.month}/${fechaEvaluar.year}',
+              'En Célula': 'No',
+            });
+          } else {
+            tNuevosEnCelulaMes++;
+            tNewInCellDetails.add({
+              'Nombre': nombre,
+              'Teléfono': data['mobilePhone'] ?? data['phone'] ?? 'Sin teléfono',
+              'Fecha Registro': '${fechaEvaluar.day}/${fechaEvaluar.month}/${fechaEvaluar.year}',
+              'Célula': cellNamesMap[idRealCelula] ?? 'Célula Desconocida',
+            });
+          }
         }
       }
 
@@ -1293,12 +1327,15 @@ class _ReportsScreenState extends State<_ReportsScreen> {
 
         final snapChart = await FirebaseFirestore.instance.collection('members')
             .where('churchId', isEqualTo: churchId)
-            .where('isNewBeliever', isEqualTo: true) 
             .where('registeredAt', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('registeredAt', isLessThanOrEqualTo: Timestamp.fromDate(end))
             .get();
             
-        int count = snapChart.docs.length;
+        int count = snapChart.docs.where((doc) {
+           final docData = doc.data();
+           return docData['isNewBeliever'] == true || docData['newBelieverAt'] != null;
+        }).length;
+
         tChartSpots.add(FlSpot((5 - i).toDouble(), count.toDouble()));
         tChartMonths.add(_getShortMonthName(d.month));
       }
@@ -1395,12 +1432,23 @@ class _ReportsScreenState extends State<_ReportsScreen> {
 
       for (var doc in snapLideres.docs) {
         final data = doc.data();
-        String roleString = data['role']?.toString().toLowerCase() ?? '';
         
-        bool esVoluntario = data['isVolunteer'] == true || roleString.contains('voluntario');
-        bool esLider = roleString.contains('líder') || roleString.contains('lider') || data['isLeader'] == true;
+        List<dynamic> rolesList = data['appRoles'] ?? [];
+        String rolesStr = rolesList.join(' ').toLowerCase();
+        if (data['role'] != null) rolesStr += ' ${data['role'].toString().toLowerCase()}';
+        
+        bool esVoluntario = data['isVolunteer'] == true || 
+                            rolesStr.contains('voluntario') || 
+                            rolesStr.contains('volunteer') || 
+                            rolesStr.contains('registrador') ||
+                            rolesStr.contains('registrar');
+                            
+        bool esLider = rolesStr.contains('líder') || 
+                       rolesStr.contains('lider') || 
+                       rolesStr.contains('leader') || 
+                       data['isLeader'] == true;
 
-        if (esLider || (!esVoluntario && roleString.isNotEmpty)) {
+        if (esLider || (!esVoluntario && rolesStr.isNotEmpty)) {
           tLideresLevantadosMes++;
           DateTime? fechaRegistro = data['registeredAt'] != null ? (data['registeredAt'] as Timestamp).toDate() : null;
           String nombre = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
@@ -1476,7 +1524,6 @@ class _ReportsScreenState extends State<_ReportsScreen> {
               ),
               pw.SizedBox(height: 20),
               
-              // FILA 1
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
@@ -1488,7 +1535,6 @@ class _ReportsScreenState extends State<_ReportsScreen> {
               ),
               pw.SizedBox(height: 15),
               
-              // FILA 2
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
@@ -1525,7 +1571,7 @@ class _ReportsScreenState extends State<_ReportsScreen> {
   pw.Widget _pdfMetricBox(String title, String value) {
     return pw.Container(
       width: 110,
-      height: 65, // Altura fija para que todas queden iguales
+      height: 65,
       padding: const pw.EdgeInsets.all(8),
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: PdfColors.grey300), 
