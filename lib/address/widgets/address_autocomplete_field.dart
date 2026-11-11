@@ -123,6 +123,8 @@ class _AddressAutocompleteFieldState extends State<AddressAutocompleteField> {
     try {
       final results = await _service.searchPlaces(query);
       if (!mounted) return;
+      // Ignorar respuesta si el texto ya cambió.
+      if (widget.controller.text.trim() != query.trim()) return;
       setState(() {
         _suggestions = results;
         _isSearching = false;

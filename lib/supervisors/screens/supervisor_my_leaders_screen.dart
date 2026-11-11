@@ -67,13 +67,7 @@ class _SupervisorMyLeadersScreenState extends State<SupervisorMyLeadersScreen>
       final ids = await _assignmentService.fetchSupervisedLeaderIds(
         widget.session.uid,
       );
-      final leaders = <ChurchLeader>[];
-      for (final id in ids) {
-        final leader = await _leaderService.fetchLeaderById(id);
-        if (leader != null) {
-          leaders.add(leader);
-        }
-      }
+      final leaders = await _leaderService.fetchLeadersByIds(ids);
       leaders.sort((a, b) => a.fullName.compareTo(b.fullName));
 
       if (!mounted) return;

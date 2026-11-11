@@ -6048,6 +6048,18 @@ abstract class AppLocalizations {
   /// **'No hay células con líder asignado en tu iglesia'**
   String get cellAbsenceByLeaderEmpty;
 
+  /// No description provided for @cellAbsenceByLeaderNoAbsences.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún líder tiene discípulos con 3 o más inasistencias seguidas'**
+  String get cellAbsenceByLeaderNoAbsences;
+
+  /// No description provided for @cellAbsenceByLeaderScanning.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscando líderes con inasistencias…'**
+  String get cellAbsenceByLeaderScanning;
+
   /// No description provided for @cellAbsenceByLeaderCellLabel.
   ///
   /// In es, this message translates to:

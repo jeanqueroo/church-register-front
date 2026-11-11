@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Restablecer contraseña · Manantial de Bendiciones</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1b3a5c;
+      --accent: #15803d;
+      --bg: #f5f3ef;
+      --surface: #fff;
+      --text: #1a2332;
+      --muted: #5c6b7a;
+      --error: #b91c1c;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 28px rgba(27, 58, 92, 0.1);
+      padding: 28px 24px;
+    }
+    h1 { margin: 0 0 8px; font-size: 1.35rem; color: var(--primary); }
+    p { margin: 0 0 16px; color: var(--muted); line-height: 1.5; }
+    label { display: block; font-weight: 600; margin: 12px 0 6px; font-size: 0.9rem; }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #d7d2c8;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      margin-top: 18px;
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: default; }
+    .msg { margin-top: 14px; font-size: 0.95rem; }
+    .msg.error { color: var(--error); }
+    .msg.ok { color: var(--accent); }
+    .email { font-weight: 600; color: var(--text); }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div id="loading">
+      <h1>Verificando enlace…</h1>
+      <p>Un momento, por favor.</p>
+    </div>
+
+    <div id="resetForm" class="hidden">
+      <h1>Nueva contraseña</h1>
+      <p>Cuenta: <span class="email" id="accountEmail"></span></p>
+      <label for="password">Nueva contraseña</label>
+      <input id="password" type="password" autocomplete="new-password" minlength="6" required>
+      <label for="confirm">Confirmar contraseña</label>
+      <input id="confirm" type="password" autocomplete="new-password" minlength="6" required>
+      <button id="submitBtn" type="button">Guardar contraseña</button>
+      <p class="msg" id="formMsg"></p>
+    </div>
+
+    <div id="success" class="hidden">
+      <h1>Contraseña actualizada</h1>
+      <p class="msg ok">Ya puedes iniciar sesión en la app con tu nueva contraseña.</p>
+    </div>
+
+    <div id="errorBox" class="hidden">
+      <h1>No se pudo continuar</h1>
+      <p class="msg error" id="errorMsg"></p>
+      <p>Solicita un nuevo enlace desde la pantalla de inicio de sesión de la app.</p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+    import {
+      getAuth,
+      verifyPasswordResetCode,
+      confirmPasswordReset,
+    } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+
+    // Usar la configuración WEB (no la API key de Android del enlace).
+    const firebaseConfig = {
+      apiKey: 'AIzaSyDs443we-CoMcSI4N4fF6jxh4uQucM9dOU',
+      authDomain: 'church-register-pro.firebaseapp.com',
+      projectId: 'church-register-pro',
+      storageBucket: 'church-register-pro.firebasestorage.app',
+      messagingSenderId: '374770573112',
+      appId: '1:374770573112:web:dbaa4c9d8fd8679eef2bcd',
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
+    const actionCode = params.get('oobCode');
+
+    const loading = document.getElementById('loading');
+    const resetForm = document.getElementById('resetForm');
+    const success = document.getElementById('success');
+    const errorBox = document.getElementById('errorBox');
+    const errorMsg = document.getElementById('errorMsg');
+    const accountEmail = document.getElementById('accountEmail');
+    const formMsg = document.getElementById('formMsg');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function show(el) {
+      loading.classList.add('hidden');
+      resetForm.classList.add('hidden');
+      success.classList.add('hidden');
+      errorBox.classList.add('hidden');
+      el.classList.remove('hidden');
+    }
+
+    function fail(message) {
+      errorMsg.textContent = message;
+      show(errorBox);
+    }
+
+    if (!actionCode || mode !== 'resetPassword') {
+      fail('Este enlace no es válido para restablecer la contraseña.');
+    } else {
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      verifyPasswordResetCode(auth, actionCode)
+        .then((email) => {
+          accountEmail.textContent = email;
+          show(resetForm);
+          submitBtn.addEventListener('click', async () => {
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm').value;
+            formMsg.textContent = '';
+            formMsg.className = 'msg';
+
+            if (!password || password.length < 6) {
+              formMsg.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+              formMsg.classList.add('error');
+              return;
+            }
+            if (password !== confirm) {
+              formMsg.textContent = 'Las contraseñas no coinciden.';
+              formMsg.classList.add('error');
+              return;
+            }
+
+            submitBtn.disabled = true;
+            try {
+              await confirmPasswordReset(auth, actionCode, password);
+              show(success);
+            } catch (e) {
+              submitBtn.disabled = false;
+              const code = e?.code || '';
+              if (code === 'auth/expired-action-code' || code === 'auth/invalid-action-code') {
+                formMsg.textContent = 'El enlace expiró o ya fue usado. Solicita uno nuevo.';
+              } else if (code === 'auth/weak-password') {
+                formMsg.textContent = 'La contraseña es demasiado débil.';
+              } else {
+                formMsg.textContent = 'No se pudo guardar la contraseña. Inténtalo de nuevo.';
+              }
+              formMsg.classList.add('error');
+            }
+          });
+        })
+        .catch(() => {
+          fail('El enlace expiró o no es válido. Solicita uno nuevo desde la app.');
+        });
+    }
+  </script>
+</body>
+</html>

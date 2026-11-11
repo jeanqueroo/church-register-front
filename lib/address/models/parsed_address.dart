@@ -19,12 +19,17 @@ class ParsedAddress {
     String? component(String type, {bool shortName = false}) {
       for (final item in components) {
         final map = item as Map<String, dynamic>;
-        final types = (map['types'] as List<dynamic>).cast<String>();
-        if (types.contains(type)) {
-          final value = shortName ? map['short_name'] : map['long_name'];
-          if (value is String && value.trim().isNotEmpty) {
-            return value.trim();
-          }
+        final types = (map['types'] as List<dynamic>?)?.cast<String>() ??
+            const <String>[];
+        if (!types.contains(type)) continue;
+
+        // Places API (New): longText / shortText
+        // Geocoding / Places legacy: long_name / short_name
+        final value = shortName
+            ? (map['shortText'] ?? map['short_name'])
+            : (map['longText'] ?? map['long_name']);
+        if (value is String && value.trim().isNotEmpty) {
+          return value.trim();
         }
       }
       return null;

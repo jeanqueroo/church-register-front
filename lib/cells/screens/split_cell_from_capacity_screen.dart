@@ -272,12 +272,25 @@ class _SplitCellFromCapacityScreenState
         .whereType<ChurchMember>()
         .toList();
 
+    final code = _codeController.text.trim();
+    final churchId = widget.churchId ?? sourceCell.churchId;
+
     setState(() => _isSaving = true);
     try {
+      final exists = await _cellService.codeExists(
+        code: code,
+        churchId: churchId,
+      );
+      if (exists) {
+        if (!mounted) return;
+        _showMessage(l10n.cellRegCodeDuplicate);
+        return;
+      }
+
       await _splitService.splitFromCapacity(
         sourceCell: sourceCell,
         newCell: ChurchCell(
-          code: _codeController.text.trim(),
+          code: code,
           name: _nameController.text.trim().isEmpty
               ? null
               : _nameController.text.trim(),
@@ -307,7 +320,7 @@ class _SplitCellFromCapacityScreenState
               : _notesController.text.trim(),
           registeredAt: DateTime.now(),
           registeredBy: widget.registeredBy,
-          churchId: widget.churchId ?? sourceCell.churchId,
+          churchId: churchId,
         ),
         leaderHelperMember: leaderMember,
         membersToTransfer: membersToTransfer,

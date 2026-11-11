@@ -3461,6 +3461,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay células con líder asignado en tu iglesia';
 
   @override
+  String get cellAbsenceByLeaderNoAbsences =>
+      'Ningún líder tiene discípulos con 3 o más inasistencias seguidas';
+
+  @override
+  String get cellAbsenceByLeaderScanning =>
+      'Buscando líderes con inasistencias…';
+
+  @override
   String cellAbsenceByLeaderCellLabel(String code) {
     return 'Célula $code';
   }

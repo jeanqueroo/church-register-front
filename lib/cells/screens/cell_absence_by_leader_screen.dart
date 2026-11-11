@@ -42,10 +42,11 @@ class _CellAbsenceByLeaderScreenState extends State<CellAbsenceByLeaderScreen> {
   List<LeaderAbsenceListItem> _leaders = [];
   String? _selectedLeaderId;
   bool _loadingLeaders = true;
-  bool _loadingAbsences = false;
+  bool _scanningAbsences = false;
   bool _openingMember = false;
   String? _loadError;
-  String? _absencesError;
+  int _scanTotal = 0;
+  int _scanDone = 0;
 
   /// Cache por líder para no volver a consultar al cambiar de selección.
   final Map<String, _LeaderAbsenceDetail> _detailByLeaderId = {};
@@ -99,89 +100,96 @@ class _CellAbsenceByLeaderScreenState extends State<CellAbsenceByLeaderScreen> {
         _selectedLeaderId = null;
         _detailByLeaderId.clear();
         _loadingLeaders = false;
+        _scanningAbsences = false;
+        _scanTotal = 0;
+        _scanDone = 0;
       });
       return;
     }
 
     setState(() {
       _loadingLeaders = true;
+      _scanningAbsences = false;
+      _leaders = [];
+      _detailByLeaderId.clear();
+      _selectedLeaderId = null;
       _loadError = null;
+      _scanTotal = 0;
+      _scanDone = 0;
     });
 
     try {
-      final leaders = await _reportService.loadLeadersForChurch(churchId);
+      final allLeaders = await _reportService.loadLeadersForChurch(churchId);
       if (!mounted) return;
-      final stillValid = leaders.any((l) => l.leaderId == _selectedLeaderId);
-      setState(() {
-        _leaders = leaders;
-        _detailByLeaderId.removeWhere(
-          (id, _) => leaders.every((l) => l.leaderId != id),
-        );
-        if (!stillValid) _selectedLeaderId = null;
-        _loadingLeaders = false;
-      });
-      if (stillValid && _selectedLeaderId != null) {
-        await _loadAbsencesForLeader(_selectedLeaderId!, force: true);
+
+      if (allLeaders.isEmpty) {
+        setState(() {
+          _loadingLeaders = false;
+          _scanningAbsences = false;
+        });
+        return;
       }
+
+      setState(() {
+        _loadingLeaders = false;
+        _scanningAbsences = true;
+        _scanTotal = allLeaders.length;
+        _scanDone = 0;
+      });
+
+      // Progresivo: el desplegable se llena en cuanto aparece un líder con alertas.
+      await Future.wait(
+        allLeaders.map((leader) async {
+          try {
+            final reports = await _reportService.loadReportsForLeader(
+              leaderId: leader.leaderId,
+              cells: leader.cells,
+            );
+            if (!mounted) return;
+            final detail = _LeaderAbsenceDetail.fromReports(
+              leader: leader,
+              reports: reports,
+            );
+            setState(() {
+              _scanDone += 1;
+              if (detail.criticalCount <= 0) return;
+              _detailByLeaderId[leader.leaderId] = detail;
+              final exists =
+                  _leaders.any((item) => item.leaderId == leader.leaderId);
+              if (!exists) {
+                _leaders = [..._leaders, leader];
+              }
+              _leaders.sort((a, b) {
+                final aCount =
+                    _detailByLeaderId[a.leaderId]?.criticalCount ?? 0;
+                final bCount =
+                    _detailByLeaderId[b.leaderId]?.criticalCount ?? 0;
+                final byCritical = bCount.compareTo(aCount);
+                if (byCritical != 0) return byCritical;
+                return a.leaderName.compareTo(b.leaderName);
+              });
+            });
+          } catch (_) {
+            if (!mounted) return;
+            setState(() => _scanDone += 1);
+          }
+        }),
+      );
+
+      if (!mounted) return;
+      setState(() => _scanningAbsences = false);
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _loadError = context.l10n.cellAbsenceByLeaderLoadError;
         _loadingLeaders = false;
+        _scanningAbsences = false;
       });
     }
   }
 
-  Future<void> _onLeaderSelected(String? leaderId) async {
-    setState(() {
-      _selectedLeaderId = leaderId;
-      _absencesError = null;
-    });
-    if (leaderId == null || leaderId.isEmpty) return;
-    if (_detailByLeaderId.containsKey(leaderId)) return;
-    await _loadAbsencesForLeader(leaderId);
-  }
-
-  Future<void> _loadAbsencesForLeader(
-    String leaderId, {
-    bool force = false,
-  }) async {
-    LeaderAbsenceListItem? matched;
-    for (final item in _leaders) {
-      if (item.leaderId == leaderId) {
-        matched = item;
-        break;
-      }
-    }
-    final leader = matched;
-    if (leader == null) return;
-    if (!force && _detailByLeaderId.containsKey(leaderId)) return;
-
-    setState(() {
-      _loadingAbsences = true;
-      _absencesError = null;
-    });
-
-    try {
-      final reports = await _reportService.loadReportsForLeader(
-        leaderId: leader.leaderId,
-        cells: leader.cells,
-      );
-      if (!mounted) return;
-      setState(() {
-        _detailByLeaderId[leaderId] = _LeaderAbsenceDetail.fromReports(
-          leader: leader,
-          reports: reports,
-        );
-        _loadingAbsences = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _absencesError = context.l10n.cellAbsenceByLeaderLoadError;
-        _loadingAbsences = false;
-      });
-    }
+  void _onLeaderSelected(String? leaderId) {
+    setState(() => _selectedLeaderId = leaderId);
   }
 
   LeaderAbsenceListItem? get _selectedLeader {
@@ -255,7 +263,7 @@ class _CellAbsenceByLeaderScreenState extends State<CellAbsenceByLeaderScreen> {
       );
     }
 
-    if (_leaders.isEmpty) {
+    if (!_scanningAbsences && _leaders.isEmpty) {
       return RefreshIndicator(
         onRefresh: _loadLeaders,
         child: ListView(
@@ -263,7 +271,7 @@ class _CellAbsenceByLeaderScreenState extends State<CellAbsenceByLeaderScreen> {
           padding: const EdgeInsets.all(24),
           children: [
             Text(
-              l10n.cellAbsenceByLeaderEmpty,
+              l10n.cellAbsenceByLeaderNoAbsences,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium,
             ),
@@ -274,45 +282,74 @@ class _CellAbsenceByLeaderScreenState extends State<CellAbsenceByLeaderScreen> {
 
     final selected = _selectedLeader;
     final detail = _selectedDetail;
+    final scanProgress =
+        _scanTotal == 0 ? null : _scanDone / _scanTotal;
 
     return RefreshIndicator(
-      onRefresh: () async {
-        final selectedId = _selectedLeaderId;
-        _detailByLeaderId.clear();
-        await _loadLeaders();
-        if (selectedId != null) {
-          await _loadAbsencesForLeader(selectedId, force: true);
-        }
-      },
+      onRefresh: _loadLeaders,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
-          DropdownButtonFormField<String>(
-            key: ValueKey(_selectedLeaderId ?? 'leader-none'),
-            initialValue: _selectedLeaderId,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.cellAbsenceByLeaderSelectLabel,
-              border: const OutlineInputBorder(),
-              prefixIcon: const Icon(Icons.person_search_outlined),
-            ),
-            hint: Text(l10n.cellAbsenceByLeaderSelectHint),
-            items: _leaders
-                .map(
-                  (leader) => DropdownMenuItem<String>(
-                    value: leader.leaderId,
-                    child: Text(
-                      leader.leaderName,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+          if (_scanningAbsences) ...[
+            Text(
+              l10n.cellAbsenceByLeaderScanning,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                )
-                .toList(),
-            onChanged: _onLeaderSelected,
-          ),
-          const SizedBox(height: 16),
-          if (selected == null)
+            ),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(value: scanProgress),
+            const SizedBox(height: 16),
+          ],
+          if (_leaders.isNotEmpty) ...[
+            DropdownButtonFormField<String>(
+              key: ValueKey(
+                '${_selectedLeaderId ?? 'leader-none'}-${_leaders.length}',
+              ),
+              initialValue: _selectedLeaderId,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: l10n.cellAbsenceByLeaderSelectLabel,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.person_search_outlined),
+              ),
+              hint: Text(l10n.cellAbsenceByLeaderSelectHint),
+              items: _leaders
+                  .map(
+                    (leader) {
+                      final count =
+                          _detailByLeaderId[leader.leaderId]?.criticalCount ??
+                              0;
+                      return DropdownMenuItem<String>(
+                        value: leader.leaderId,
+                        child: Text(
+                          l10n.cellAbsenceByLeaderOptionLabel(
+                            leader.leaderName,
+                            count,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    },
+                  )
+                  .toList(),
+              onChanged: _onLeaderSelected,
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (_leaders.isEmpty && _scanningAbsences)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: Text(
+                l10n.cellAbsenceByLeaderScanning,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            )
+          else if (selected == null && _leaders.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 32),
               child: Text(
@@ -323,62 +360,18 @@ class _CellAbsenceByLeaderScreenState extends State<CellAbsenceByLeaderScreen> {
                     ),
               ),
             )
-          else if (_loadingAbsences && detail == null)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 48),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_absencesError != null && detail == null)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Column(
-                children: [
-                  Text(
-                    _absencesError!,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  FilledButton(
-                    onPressed: () => _loadAbsencesForLeader(
-                      selected.leaderId,
-                      force: true,
-                    ),
-                    child: Text(l10n.retry),
-                  ),
-                ],
-              ),
-            )
           else if (detail != null) ...[
-            if (_loadingAbsences)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 12),
-                child: LinearProgressIndicator(minHeight: 2),
-              ),
             _SelectedLeaderHeader(l10n: l10n, detail: detail),
             const SizedBox(height: 12),
-            if (detail.criticalDisciples.isEmpty)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    l10n.cellAbsenceByLeaderLeaderOk,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-              )
-            else
-              ...detail.criticalDisciples.map(
-                (entry) => _CriticalDiscipleTile(
-                  l10n: l10n,
-                  summary: entry.summary,
-                  cellCode: entry.cellCode,
-                  enabled: !_openingMember,
-                  onTap: () => _openMemberDetail(entry.summary),
-                ),
+            ...detail.criticalDisciples.map(
+              (entry) => _CriticalDiscipleTile(
+                l10n: l10n,
+                summary: entry.summary,
+                cellCode: entry.cellCode,
+                enabled: !_openingMember,
+                onTap: () => _openMemberDetail(entry.summary),
               ),
+            ),
           ],
         ],
       ),
