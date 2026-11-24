@@ -19,6 +19,13 @@ class DefaultFirebaseOptions {
     }
   }
 
+static const FirebaseOptions androidQA = FirebaseOptions(
+    apiKey: 'AIzaSyC-V8o1o9WKBVZTxx0vaeaUYkrv4UJKfLg',
+    appId: '1:401692251430:android:50d2c2b6d227cb6ee31de7',
+    messagingSenderId: '401692251430',
+    projectId: 'church-register-qa',
+    storageBucket: 'church-register-qa.firebasestorage.app',
+  );
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAd-9I9WKDu3HL3a86MLr0Jt6v7tjuHcNU',
     appId: '1:374770573112:android:29d96a8b8868cd39ef2bcd',

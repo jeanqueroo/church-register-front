@@ -433,6 +433,71 @@ class _LeadersListBodyState extends State<_LeadersListBody>
     }
   }
 
+  Future<void> _confirmDemoteToMember(
+    BuildContext context,
+    ChurchLeader leader,
+  ) async {
+    final l10n = context.l10n;
+    final id = leader.id;
+    if (id == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.leaderDetailDemoteToMemberTitle),
+        content: Text(l10n.leaderDetailDemoteToMemberConfirm(leader.fullName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.leaderDetailDemoteToMember),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    setState(() => _actionInProgress = true);
+    try {
+      await _service.demoteLeaderToMember(
+        leader: leader,
+        updatedBy: widget.registeredBy,
+        churchId: widget.permissions.churchId ?? leader.churchId,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.leaderDetailDemoteToMemberSuccess(leader.fullName),
+          ),
+        ),
+      );
+      await _loadFirstPage(forceRefresh: true);
+      await _loadBlockedCount();
+    } on LeaderDemoteHasCellException catch (e) {
+      if (!context.mounted) return;
+      final codes = e.cellCodes.isEmpty ? '—' : e.cellCodes.join(', ');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.leaderDetailDemoteHasCell(codes))),
+      );
+    } on FirebaseException catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            LeaderService.messageFromFirestoreException(e, context.l10n),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _actionInProgress = false);
+    }
+  }
+
   void _openLeaderDetail(BuildContext context, ChurchLeader leader) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -531,6 +596,8 @@ class _LeadersListBodyState extends State<_LeadersListBody>
                 _openAssignedMembers(context, leader);
               case 'edit':
                 _openEdit(context, leader);
+              case 'demote':
+                _confirmDemoteToMember(context, leader);
               case 'block':
                 _confirmBlock(context, leader, block: true);
               case 'unblock':
@@ -551,6 +618,11 @@ class _LeadersListBodyState extends State<_LeadersListBody>
                 value: 'edit',
                 child: Text(l10n.commonEdit),
               ),
+              if (!blocked)
+                PopupMenuItem(
+                  value: 'demote',
+                  child: Text(l10n.leaderDetailDemoteToMember),
+                ),
               PopupMenuItem(
                 value: blocked ? 'unblock' : 'block',
                 child: Text(

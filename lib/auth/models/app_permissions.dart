@@ -47,7 +47,9 @@ class AppPermissions {
   bool get isSupervisor => roles.contains(AppUserRole.supervisor);
   bool get isLeader => roles.contains(AppUserRole.leader);
 
-  bool get canRegisterMember => isAdmin || isRegistrar || isSupervisor || isLeader;
+  /// Incluye superadmin: el fallback `adminDefault()` y cuentas de consola.
+  bool get canRegisterMember =>
+      isAdmin || isRegistrar || isSupervisor || isLeader || isSuperAdmin;
   bool get canRegisterLeader => isAdmin;
   bool get canViewLeaderMenu => isAdmin;
   bool get canViewLeaderDashboard => isAdmin;

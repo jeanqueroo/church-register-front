@@ -902,6 +902,32 @@
   "leaderDetailEditLeader": "Edit leader",
   "leaderDetailBlockLeader": "Block leader",
   "leaderDetailUnblockLeader": "Unblock leader",
+  "leaderDetailDemoteToMember": "Make church member",
+  "leaderDetailDemoteToMemberTitle": "Make church member",
+  "leaderDetailDemoteToMemberConfirm": "Convert \"{name}\" from leader to church member? They will lose leader access and appear as a member again.",
+  "@leaderDetailDemoteToMemberConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderDetailDemoteToMemberSuccess": "{name} is now a church member",
+  "@leaderDetailDemoteToMemberSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderDetailDemoteHasCell": "Cannot demote: first reassign or free cell {codes}.",
+  "@leaderDetailDemoteHasCell": {
+    "placeholders": {
+      "codes": {
+        "type": "String"
+      }
+    }
+  },
   "leaderDetailViewMembers": "View members assigned to visit",
   "leaderDetailSectionLeadership": "Leadership data",
   "leaderDetailSectionCellContact": "Contact",

@@ -1799,6 +1799,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get leaderDetailUnblockLeader => 'Desbloquear líder';
 
   @override
+  String get leaderDetailDemoteToMember => 'Pasar a miembro';
+
+  @override
+  String get leaderDetailDemoteToMemberTitle => 'Pasar a miembro';
+
+  @override
+  String leaderDetailDemoteToMemberConfirm(String name) {
+    return '¿Pasar a \"$name\" de líder a miembro? Perderá el acceso de líder y volverá a figurar como miembro.';
+  }
+
+  @override
+  String leaderDetailDemoteToMemberSuccess(String name) {
+    return '$name ahora es miembro';
+  }
+
+  @override
+  String leaderDetailDemoteHasCell(String codes) {
+    return 'No se puede pasar a miembro: primero reasigna o libera la célula $codes.';
+  }
+
+  @override
   String get leaderDetailViewMembers => 'Ver integrantes asignados a visitar';
 
   @override
