@@ -627,6 +627,50 @@ class MemberService {
     });
   }
 
+  /// Quita el vínculo de liderazgo: vuelve a figurar como miembro normal.
+  Future<void> clearMemberLeadershipStatus(String memberId) async {
+    final id = memberId.trim();
+    if (id.isEmpty) return;
+    await _members.doc(id).update({
+      'leadershipStatus': FieldValue.delete(),
+      'linkedLeaderId': FieldValue.delete(),
+      'promotedToLeaderAt': FieldValue.delete(),
+      'isNewBeliever': false,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Quita asignación pastoral de todos los creyentes de este líder.
+  Future<void> clearPastoralAssignmentsForLeader(String leaderId) async {
+    final id = leaderId.trim();
+    if (id.isEmpty) return;
+
+    final snapshot =
+        await _members.where('assignedLeaderId', isEqualTo: id).get();
+    if (snapshot.docs.isEmpty) return;
+
+    const chunkSize = 400;
+    for (var i = 0; i < snapshot.docs.length; i += chunkSize) {
+      final end = (i + chunkSize < snapshot.docs.length)
+          ? i + chunkSize
+          : snapshot.docs.length;
+      final batch = FirebaseFirestore.instance.batch();
+      for (final doc in snapshot.docs.sublist(i, end)) {
+        batch.update(doc.reference, {
+          'assignedLeaderId': FieldValue.delete(),
+          'assignedLeaderName': FieldValue.delete(),
+          'assignedLeaderCellCode': FieldValue.delete(),
+          'assignedLeaderFromRegistration': FieldValue.delete(),
+          'assignedDistanceKm': FieldValue.delete(),
+          'assignmentKind': FieldValue.delete(),
+          'pastoralAssignedAt': FieldValue.delete(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      await batch.commit();
+    }
+  }
+
   static MemberLeadershipStatus leadershipStatusForLeader(ChurchLeader leader) {
     final roles = leader.appRoles ?? const <String>[];
     if (roles.contains(AppUserRole.registrar) ||

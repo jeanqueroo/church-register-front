@@ -1787,6 +1787,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaderDetailUnblockLeader => 'Unblock leader';
 
   @override
+  String get leaderDetailDemoteToMember => 'Make church member';
+
+  @override
+  String get leaderDetailDemoteToMemberTitle => 'Make church member';
+
+  @override
+  String leaderDetailDemoteToMemberConfirm(String name) {
+    return 'Convert \"$name\" from leader to church member? They will lose leader access and appear as a member again.';
+  }
+
+  @override
+  String leaderDetailDemoteToMemberSuccess(String name) {
+    return '$name is now a church member';
+  }
+
+  @override
+  String leaderDetailDemoteHasCell(String codes) {
+    return 'Cannot demote: first reassign or free cell $codes.';
+  }
+
+  @override
   String get leaderDetailViewMembers => 'View members assigned to visit';
 
   @override

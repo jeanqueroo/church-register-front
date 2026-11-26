@@ -3240,6 +3240,36 @@ abstract class AppLocalizations {
   /// **'Desbloquear líder'**
   String get leaderDetailUnblockLeader;
 
+  /// No description provided for @leaderDetailDemoteToMember.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasar a miembro'**
+  String get leaderDetailDemoteToMember;
+
+  /// No description provided for @leaderDetailDemoteToMemberTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasar a miembro'**
+  String get leaderDetailDemoteToMemberTitle;
+
+  /// No description provided for @leaderDetailDemoteToMemberConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Pasar a \"{name}\" de líder a miembro? Perderá el acceso de líder y volverá a figurar como miembro.'**
+  String leaderDetailDemoteToMemberConfirm(String name);
+
+  /// No description provided for @leaderDetailDemoteToMemberSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'{name} ahora es miembro'**
+  String leaderDetailDemoteToMemberSuccess(String name);
+
+  /// No description provided for @leaderDetailDemoteHasCell.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede pasar a miembro: primero reasigna o libera la célula {codes}.'**
+  String leaderDetailDemoteHasCell(String codes);
+
   /// No description provided for @leaderDetailViewMembers.
   ///
   /// In es, this message translates to:

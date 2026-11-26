@@ -39,7 +39,8 @@ class UserProfileService {
     if (churchId != null && churchId.isNotEmpty) {
       data['churchId'] = churchId;
     }
-    return _users.doc(uid).set(data);
+    // merge: conserva campos existentes (p. ej. supervisedLeaderIds).
+    return _users.doc(uid).set(data, SetOptions(merge: true));
   }
 
   Future<void> updateUserRoles({

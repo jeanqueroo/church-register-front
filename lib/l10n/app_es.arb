@@ -902,6 +902,32 @@
   "leaderDetailEditLeader": "Editar líder",
   "leaderDetailBlockLeader": "Bloquear líder",
   "leaderDetailUnblockLeader": "Desbloquear líder",
+  "leaderDetailDemoteToMember": "Pasar a miembro",
+  "leaderDetailDemoteToMemberTitle": "Pasar a miembro",
+  "leaderDetailDemoteToMemberConfirm": "¿Pasar a \"{name}\" de líder a miembro? Perderá el acceso de líder y volverá a figurar como miembro.",
+  "@leaderDetailDemoteToMemberConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderDetailDemoteToMemberSuccess": "{name} ahora es miembro",
+  "@leaderDetailDemoteToMemberSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderDetailDemoteHasCell": "No se puede pasar a miembro: primero reasigna o libera la célula {codes}.",
+  "@leaderDetailDemoteHasCell": {
+    "placeholders": {
+      "codes": {
+        "type": "String"
+      }
+    }
+  },
   "leaderDetailViewMembers": "Ver integrantes asignados a visitar",
   "leaderDetailSectionLeadership": "Datos del liderazgo",
   "leaderDetailSectionCellContact": "Contacto",

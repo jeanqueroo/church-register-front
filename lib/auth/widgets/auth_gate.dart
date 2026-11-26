@@ -166,18 +166,6 @@ class _AuthGateState extends State<AuthGate> {
         );
       } else {
         profile = UserProfile.fromFirestore(doc);
-        if (profile.roles.isEmpty) {
-          profile = UserProfile(
-            roles: [AppUserRole.superAdmin],
-            leaderId: profile.leaderId,
-            churchId: profile.churchId,
-            fullName: profile.fullName,
-            email: profile.email ?? user.email,
-            photoUrl: profile.photoUrl,
-            isBlocked: profile.isBlocked,
-            supervisedLeaderIds: profile.supervisedLeaderIds,
-          );
-        }
       }
 
       if (!mounted) return;
@@ -198,6 +186,24 @@ class _AuthGateState extends State<AuthGate> {
             leaderChurchId.isNotEmpty) {
           churchId = leaderChurchId;
         }
+        // No convertir líderes a superadmin: si users.roles está vacío,
+        // usar appRoles del líder o el rol canónico `leader`.
+        if (profile.roles.isEmpty) {
+          final fromLeader = AppUserRole.parseList(leader?.appRoles);
+          profile = UserProfile(
+            roles: fromLeader.isNotEmpty
+                ? fromLeader
+                : const [AppUserRole.leader],
+            leaderId: profile.leaderId,
+            churchId: profile.churchId,
+            fullName: profile.fullName,
+            email: profile.email ?? user.email,
+            photoUrl: profile.photoUrl,
+            isBlocked: profile.isBlocked,
+            supervisedLeaderIds: profile.supervisedLeaderIds,
+            canViewSpecialStatistics: profile.canViewSpecialStatistics,
+          );
+        }
         final leaderPhoto = leader?.photoUrl?.trim();
         final profilePhoto = profile.photoUrl?.trim();
         if ((profilePhoto == null || profilePhoto.isEmpty) &&
@@ -212,8 +218,22 @@ class _AuthGateState extends State<AuthGate> {
             photoUrl: leaderPhoto,
             isBlocked: profile.isBlocked,
             supervisedLeaderIds: profile.supervisedLeaderIds,
+            canViewSpecialStatistics: profile.canViewSpecialStatistics,
           );
         }
+      } else if (profile.roles.isEmpty) {
+        // Sin ficha de líder ni roles: cuenta de consola.
+        profile = UserProfile(
+          roles: [AppUserRole.superAdmin],
+          leaderId: profile.leaderId,
+          churchId: profile.churchId,
+          fullName: profile.fullName,
+          email: profile.email ?? user.email,
+          photoUrl: profile.photoUrl,
+          isBlocked: profile.isBlocked,
+          supervisedLeaderIds: profile.supervisedLeaderIds,
+          canViewSpecialStatistics: profile.canViewSpecialStatistics,
+        );
       }
       if (churchId != profile.churchId) {
         profile = UserProfile(
@@ -225,6 +245,7 @@ class _AuthGateState extends State<AuthGate> {
           photoUrl: profile.photoUrl,
           isBlocked: profile.isBlocked,
           supervisedLeaderIds: profile.supervisedLeaderIds,
+          canViewSpecialStatistics: profile.canViewSpecialStatistics,
         );
       }
       displayName ??= profile.fullName?.trim();

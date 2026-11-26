@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../auth/models/app_user_role.dart';
 import '../../auth/services/user_profile_service.dart';
+import '../../cells/services/cell_service.dart';
 import '../../core/search/firestore_search_text.dart';
 import '../../l10n/app_localizations.dart';
 import '../../members/services/member_service.dart';
@@ -15,14 +16,19 @@ class LeaderService {
     FirebaseFirestore? firestore,
     UserProfileService? userProfileService,
     MemberService? memberService,
-  })  : _leaders = (firestore ?? FirebaseFirestore.instance)
+    CellService? cellService,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _leaders = (firestore ?? FirebaseFirestore.instance)
             .collection('leaders'),
         _userProfileService = userProfileService ?? UserProfileService(),
-        _memberServiceOverride = memberService;
+        _memberServiceOverride = memberService,
+        _cellService = cellService ?? CellService(firestore: firestore);
 
+  final FirebaseFirestore _firestore;
   final CollectionReference<Map<String, dynamic>> _leaders;
   final UserProfileService _userProfileService;
   final MemberService? _memberServiceOverride;
+  final CellService _cellService;
   MemberService? _memberServiceLazy;
 
   MemberService get _memberService => _memberServiceOverride ??
@@ -267,6 +273,98 @@ class LeaderService {
         updatedBy: updatedBy,
       );
     }
+  }
+
+  /// Pasa un líder a miembro: deja de ser líder en la app.
+  ///
+  /// Requiere que no sea titular de ninguna célula.
+  Future<void> demoteLeaderToMember({
+    required ChurchLeader leader,
+    required String updatedBy,
+    String? churchId,
+  }) async {
+    final leaderId = leader.id?.trim();
+    if (leaderId == null || leaderId.isEmpty) {
+      throw ArgumentError('Leader must have id');
+    }
+
+    // Obligatorio para que la query de células cumpla las reglas de Firestore.
+    final effectiveChurchId =
+        (churchId ?? leader.churchId)?.trim();
+    if (effectiveChurchId == null || effectiveChurchId.isEmpty) {
+      throw ArgumentError('churchId is required to demote a leader');
+    }
+
+    final cells = await _cellService.fetchCellsForLeaderIds(
+      leaderIds: [leaderId],
+      churchId: effectiveChurchId,
+    );
+    final activeCells = cells.where((cell) => !cell.isBlocked).toList();
+    if (activeCells.isNotEmpty) {
+      throw LeaderDemoteHasCellException(
+        activeCells.map((c) => c.code).where((c) => c.trim().isNotEmpty).toList(),
+      );
+    }
+
+    await _memberService.clearPastoralAssignmentsForLeader(leaderId);
+
+    final linkedMemberId =
+        await _memberService.findMemberIdByLinkedLeaderId(leaderId);
+    if (linkedMemberId != null) {
+      await _memberService.clearMemberLeadershipStatus(linkedMemberId);
+    }
+
+    // Best-effort: no tumbar la democión si falla el listado de supervisores.
+    try {
+      await _removeLeaderFromSupervisorAssignments(leaderId);
+    } on FirebaseException catch (e) {
+      if (e.code != 'permission-denied') rethrow;
+    }
+
+    await _leaders.doc(leaderId).set(
+      {
+        'isBlocked': true,
+        'appRoles': <String>[],
+        'demotedAt': FieldValue.serverTimestamp(),
+        'demotedBy': updatedBy,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    final uid = leader.authUserId?.trim();
+    if (uid != null && uid.isNotEmpty) {
+      // Asegura churchId en users para que las reglas de admin coincidan.
+      final userUpdate = <String, dynamic>{
+        'roles': <String>[],
+        'leaderId': FieldValue.delete(),
+        'isBlocked': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+        'updatedBy': updatedBy,
+      };
+      userUpdate['churchId'] = effectiveChurchId;
+      await _firestore.collection('users').doc(uid).set(
+        userUpdate,
+        SetOptions(merge: true),
+      );
+    }
+  }
+
+  Future<void> _removeLeaderFromSupervisorAssignments(String leaderId) async {
+    final snapshot = await _firestore
+        .collection('users')
+        .where('supervisedLeaderIds', arrayContains: leaderId)
+        .get();
+    if (snapshot.docs.isEmpty) return;
+
+    final batch = _firestore.batch();
+    for (final doc in snapshot.docs) {
+      batch.update(doc.reference, {
+        'supervisedLeaderIds': FieldValue.arrayRemove([leaderId]),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    await batch.commit();
   }
 
   Future<ChurchLeader?> fetchLeaderById(String id) async {
@@ -713,6 +811,12 @@ class LeaderService {
 enum LeaderRegistrationConflictKind {
   email,
   documentNumber,
+}
+
+class LeaderDemoteHasCellException implements Exception {
+  LeaderDemoteHasCellException(this.cellCodes);
+
+  final List<String> cellCodes;
 }
 
 class LeaderRegistrationConflictException implements Exception {

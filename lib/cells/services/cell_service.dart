@@ -157,10 +157,16 @@ class CellService {
     final result = <ChurchCell>[];
     final seenIds = <String>{};
 
+    final churchFilter = churchId?.trim();
     final snapshots = await Future.wait(
-      uniqueIds.map(
-        (leaderId) => _cells.where('leaderId', isEqualTo: leaderId).get(),
-      ),
+      uniqueIds.map((leaderId) {
+        Query<Map<String, dynamic>> query =
+            _cells.where('leaderId', isEqualTo: leaderId);
+        if (churchFilter != null && churchFilter.isNotEmpty) {
+          query = query.where('churchId', isEqualTo: churchFilter);
+        }
+        return query.get();
+      }),
     );
 
     for (final snapshot in snapshots) {
@@ -207,11 +213,17 @@ class CellService {
     return map;
   }
 
-  Stream<List<ChurchCell>> watchCellsForLeaderId(String leaderId) {
-    return _cells
-        .where('leaderId', isEqualTo: leaderId)
-        .snapshots()
-        .map((snapshot) {
+  Stream<List<ChurchCell>> watchCellsForLeaderId(
+    String leaderId, {
+    String? churchId,
+  }) {
+    Query<Map<String, dynamic>> query =
+        _cells.where('leaderId', isEqualTo: leaderId);
+    final churchFilter = churchId?.trim();
+    if (churchFilter != null && churchFilter.isNotEmpty) {
+      query = query.where('churchId', isEqualTo: churchFilter);
+    }
+    return query.snapshots().map((snapshot) {
       final list = snapshot.docs.map(ChurchCell.fromFirestore).toList();
       list.sort((a, b) => a.code.compareTo(b.code));
       return list;

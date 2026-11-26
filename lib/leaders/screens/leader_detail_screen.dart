@@ -31,10 +31,14 @@ class LeaderDetailScreen extends StatefulWidget {
 
 class _LeaderDetailScreenState extends State<LeaderDetailScreen> {
   late bool _isBlocked = widget.leader.isBlocked;
+  bool _demoted = false;
   bool _actionInProgress = false;
 
   AppPermissions get _permissions =>
       widget.permissions ?? AppPermissions.fromRoles([]);
+
+  late final LeaderService _leaderService =
+      widget.leaderService ?? LeaderService();
 
   ChurchLeader get leader => widget.leader;
 
@@ -85,7 +89,7 @@ class _LeaderDetailScreenState extends State<LeaderDetailScreen> {
 
     setState(() => _actionInProgress = true);
     try {
-      await (widget.leaderService ?? LeaderService()).setLeaderBlocked(
+      await _leaderService.setLeaderBlocked(
         id: id,
         blocked: block,
         authUserId: leader.authUserId,
@@ -101,6 +105,71 @@ class _LeaderDetailScreenState extends State<LeaderDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(LeaderService.messageFromFirestoreException(e, context.l10n)),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _actionInProgress = false);
+    }
+  }
+
+  Future<void> _demoteToMember(BuildContext context) async {
+    if (!_permissions.canManageAll || _actionInProgress || _demoted) return;
+
+    final l10n = context.l10n;
+    final id = leader.id;
+    if (id == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.leaderDetailDemoteToMemberTitle),
+        content: Text(l10n.leaderDetailDemoteToMemberConfirm(leader.fullName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.leaderDetailDemoteToMember),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _actionInProgress = true);
+    try {
+      await _leaderService.demoteLeaderToMember(
+        leader: leader,
+        updatedBy: widget.registeredBy,
+        churchId: _permissions.churchId ?? leader.churchId,
+      );
+      if (!mounted) return;
+      setState(() {
+        _demoted = true;
+        _isBlocked = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.leaderDetailDemoteToMemberSuccess(leader.fullName)),
+        ),
+      );
+      Navigator.of(context).pop(true);
+    } on LeaderDemoteHasCellException catch (e) {
+      if (!mounted) return;
+      final codes = e.cellCodes.isEmpty ? '—' : e.cellCodes.join(', ');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.leaderDetailDemoteHasCell(codes))),
+      );
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            LeaderService.messageFromFirestoreException(e, context.l10n),
+          ),
         ),
       );
     } finally {
@@ -253,11 +322,19 @@ class _LeaderDetailScreenState extends State<LeaderDetailScreen> {
             ),
             const SizedBox(height: 12),
           ],
-          if (_permissions.canManageAll) ...[
+          if (_permissions.canManageAll && !_demoted) ...[
             FilledButton.icon(
               onPressed: () => _edit(context),
               icon: const Icon(Icons.edit_outlined),
               label: Text(l10n.leaderDetailEditLeader),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _actionInProgress
+                  ? null
+                  : () => _demoteToMember(context),
+              icon: const Icon(Icons.person_outline),
+              label: Text(l10n.leaderDetailDemoteToMember),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(

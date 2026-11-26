@@ -176,6 +176,23 @@ service cloud.firestore {
           .hasOnly(['isBlocked', 'updatedAt', 'updatedBy']);
     }
 
+    // Admin/registrador: pasar líder a miembro (quita roles y acceso de app).
+    function canChurchAdminDemoteLeaderAccount() {
+      let targetChurch = resource.data.get('churchId', '');
+      let sameOrMissingChurch = targetChurch == '' ||
+        targetChurch == currentUserChurchId();
+      let pastoralOnly = !resource.data.get('roles', []).hasAny(['superadmin', 'admin']);
+      let keys = request.resource.data.diff(resource.data).affectedKeys();
+      return (isChurchAdmin() || isRegistrar()) &&
+        currentUserChurchId() != '' &&
+        sameOrMissingChurch &&
+        pastoralOnly &&
+        (
+          keys.hasOnly(['roles', 'leaderId', 'isBlocked', 'updatedAt', 'updatedBy']) ||
+          keys.hasOnly(['roles', 'leaderId', 'isBlocked', 'updatedAt', 'updatedBy', 'churchId'])
+        );
+    }
+
     function memberBelongsToUserChurch(memberId) {
       return currentUserChurchId() != '' &&
         memberData(memberId).get('churchId', '') == currentUserChurchId();
@@ -557,15 +574,17 @@ service cloud.firestore {
         isStaffUser() ||
         canReadPastoralAssignmentUserProfile()
       );
-      // Necesario para `users.where('roles', arrayContains: 'supervisor')`.
-      allow list: if isStaffUser();
+      // Necesario para `users.where('roles', arrayContains: 'supervisor')`
+      // y para limpiar supervisedLeaderIds al demover un líder.
+      allow list: if isStaffUser() || isRegistrar();
       allow create: if isSignedIn();
       allow update: if isSignedIn() && (
         request.auth.uid == userId ||
         canManageOtherUsers() ||
         canChurchAdminAssignSupervisorLeaders() ||
         canChurchAdminUpdateLeaderRoles() ||
-        canChurchAdminBlockLeaderAccount()
+        canChurchAdminBlockLeaderAccount() ||
+        canChurchAdminDemoteLeaderAccount()
       );
 
       // Buzón del líder: solo él lee; cualquier usuario autenticado puede crear (registro).
